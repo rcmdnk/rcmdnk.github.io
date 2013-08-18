@@ -1,0 +1,1239 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>rm -rfのプロテクト、コマンドラインでのゴミ箱 - rcmdnk's blog</title>
+  <meta name="author" content="rcmdnk">
+  
+  <meta name="description" content="rmコマンドを使っていてなんか時間がかかるな、と思ったら
+変数が空だったり($a/$b&rarr;/)、
+引数の中に無駄なスペースがあったり(~/*.log&rarr;~/* .log)して
+うっかり重要なファイルやディレクトリを
+rmしてしまうことは1度や2度は経験していると思います。 &hellip;">
+  <meta name="keywords" content="Computer, bash, Linux, Mac">
+  <meta property="og:title" content="rm -rfのプロテクト、コマンドラインでのゴミ箱" />
+  <meta property="og:type" content="blog" />
+  <meta property="og:description" content="rmコマンドを使っていてなんか時間がかかるな、と思ったら
+変数が空だったり($a/$b&rarr;/)、
+引数の中に無駄なスペースがあったり(~/*.log&rarr;~/* .log)して
+うっかり重要なファイルやディレクトリを
+rmしてしまうことは1度や2度は経験していると思います。 &hellip;">
+  
+  <meta property="og:url" content="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac" />
+  
+  <meta property="og:image" content="/images/post/20130423_trash.jpg"/>
+  
+  <meta property="og:site_name" content="rcmdnk's blog" />
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="canonical" href="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='//fonts.googleapis.com/css?family=Black+Ops+One' rel='stylesheet' type='text/css'>
+
+
+
+
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script src="/javascripts/footnote.js"></script>
+  <script src="/javascripts/scrolltopcontrol.js"></script>
+  <script src="/javascripts/intro.min.js"></script>
+  <script src="/javascripts/jquery.exflexfixed-0.3.0.js"></script>
+  <script src="/javascripts/jquery.nailthumb.1.1.min.js"></script>
+  <script src="/javascripts/utils.js"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-39086461-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  <!--
+*************************************************************
+Images under http://rcmdnk.github.io//images/emoji
+
+octocat, squirrel, shipit
+Copyright (c) 2013 GitHub Inc. All rights reserved.
+
+bowtie, neckbeard, fu
+Copyright (c) 2013 37signals, LLC. All rights reserved.
+
+feelsgood, finnadie, goberserk, godmode, hurtrealbad, rage 1-4, suspect
+Copyright (c) 2013 id Software. All rights reserved.
+
+trollface
+Copyright (c) 2013 whynne@deviantart. All rights reserved.
+
+All other images
+Copyright (c) 2013 Apple Inc. All rights reserved.
+*************************************************************
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><h1>
+  <a href="/">
+  
+  <img src="/images/MacApp/MacLogoMini3.png" alt="" class="title_logo" >
+  
+  rcmdnk's blog
+  </a>
+</h1>
+
+
+</header>
+  <nav role="navigation"><div class="main-navigation">
+  
+  <p>
+    
+    <a href="mailto:rdmdnk@gmail.com" title="Mail"><i class="icon-envelope-alt icon-2x"></i></a>
+    
+    
+    <a href="https://twitter.com/rcmdnk" title="Twitter"><i class="icon-twitter-sign icon-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="https://github.com/rcmdnk" title="GitHub"><i class="icon-github-sign icon-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="icon-rss-sign icon-2x"></i></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-2x"></i></a>
+    
+  </p>
+  
+  <p>
+  <a href="/blog/archives" class="link_btn" >Archives</a>
+  <a href="/windows" class="link_btn" >Windows</a>
+  <a href="/mac" class="link_btn" >Mac</a>
+  </p>
+</div>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div><!-- post -->
+<article class="hentry" role="article">
+  
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+<article>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort0 */
+google_ad_slot = "8058553244";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</article>
+
+
+  
+<header>
+  
+  <p class="meta">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-04-23T00:48:00+02:00"  data-updated="true">23 Apr 2013</time>
+    
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+,
+    
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/linux/'>Linux</a>, <a class='tag' href='/blog/tags/mac/'>Mac</a>, <a class='tag' href='/blog/tags/bash/'>bash</a>
+  
+</span>
+
+
+  </p>
+  
+  
+  
+  <!-- zenback_title_begin -->
+  
+  <h1 class="entry-title">rm -rfのプロテクト、コマンドラインでのゴミ箱</h1>
+  
+  <!-- zenback_title_end -->
+  
+  
+  
+</header>
+
+
+
+  <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="rm -rfのプロテクト、コマンドラインでのゴミ箱 - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+
+
+
+<!-- zenback_body_begin -->
+
+<div class="entry-content">
+  
+  <div class="nailthumb-container title-thumb">
+    <img src="/images/post/20130423_trash.jpg" alt="" title=""/>
+  </div>
+  
+  <p><code>rm</code>コマンドを使っていてなんか時間がかかるな、と思ったら
+変数が空だったり(<code>$a/$b</code>&rarr;<code>/</code>)、
+引数の中に無駄なスペースがあったり(<code>~/*.log</code>&rarr;<code>~/* .log</code>)して
+うっかり重要なファイルやディレクトリを
+<code>rm</code>してしまうことは1度や2度は経験していると思います。</p>
+
+<p>最近以下の参照先の流れを見て、最初は自分の<code>ゴミ箱スクリプト</code>を
+もうちょっとマシにアップデートしよう、と思ったのですが、
+<code>rm</code>関連の事でも調べたら改めて知ったこともいくつかあったので
+その辺をまとめておこうと思います。
+基本的に<code>bash</code>での話です。</p>
+
+<p><em>参照</em></p>
+
+<ul>
+<li><a href="http://kadoppe.com/archives/2013/04/delete-home-directory.html">僕がMacのホームディレクトリを削除するに至った経緯と、復元するまでの道のり</a></li>
+<li><a href="http://trackback.blogsys.jp/livedoor/dankogai/51863725">私みたいなおっちょこちょいを自滅から救って来たちょいとした工夫x3+1</a></li>
+<li><a href="http://trackback.blogsys.jp/livedoor/dankogai/51863873">OSX - mv2trashというスクリプト書いた</a></li>
+</ul>
+
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#rmコマンドを安全にする">rmコマンドを安全にする</a>
+  <ul>
+  <li><a href="#rm+-i">rm -i</a>  </li>
+  <li><a href="#rm+--preserve-root">rm &mdash;preserve-root</a>  </li>
+  <li><a href="#ホームをプロテクトする1">ホームをプロテクトする1</a>  </li>
+  <li><a href="#ホームをプロテクトする2">ホームをプロテクトする2</a>  </li>
+  <li><a href="#その他見つけたもの">その他見つけたもの</a>  </li>
+ </ul>
+ <li><a href="#コマンドラインでゴミ箱を使う">コマンドラインでゴミ箱を使う</a>
+  <ul>
+  <li><a href="#trash.sh">trash.sh</a>
+   <ul>
+   <li><a href="#インストール">インストール</a>   </li>
+   <li><a href="#使い方">使い方</a>   </li>
+   <li><a href="#オプション">オプション</a>   </li>
+  </ul>
+  <li><a href="#webで見つけられるその他のゴミ箱実装">webで見つけられるその他のゴミ箱実装</a>
+   <ul>
+   <li><a href="#Mac,+AppleScriptを使った方法">Mac, AppleScriptを使った方法</a>   </li>
+   <li><a href="#Mac,+rmtrash">Mac, rmtrash</a>   </li>
+   <li><a href="#trash-cli">trash-cli</a>   </li>
+   <li><a href="#nrm">nrm</a>   </li>
+  </ul>
+  </li>
+ </ul>
+ <li><a href="#rm+tips">rm tips</a>
+  <ul>
+  <li><a href="#消せないファイルを消す方法">消せないファイルを消す方法</a>  </li>
+  <li><a href="#消してしまったファイルの復旧">消してしまったファイルの復旧</a>  </li>
+ </ul>
+ <li><a href="#まとめ">まとめ</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="rmコマンドを安全にする">rmコマンドを安全にする</h1>
+
+<h2 id="rm+-i">rm -i</h2>
+
+<p><code>rm</code>に<code>-i</code>オプションを加えると消去する時に1つ1つ消すかどうか確認しながら
+消せる様になるわけですが、通常デフォルトでは確認する様になっていないので、
+上記リンクの2番めにもある様に、</p>
+
+<pre><code>alias rm="rm -i"
+</code></pre>
+
+<p>などと<code>.bashrc</code>等に書いておけば<code>-f</code>を与えない限り確認する様に出来ます。</p>
+
+<p>ただ、後から<code>-f</code>を与えればそれが優先されるので、同記事内にあるような</p>
+
+<pre><code>rm -rf ~/
+</code></pre>
+
+<p>は防げません。これを防ぎたいなら</p>
+
+<pre><code>function rm { command rm $@ -i;}
+</code></pre>
+
+<p>の様に関数でラッパーを作ってやれば常に<code>-i</code>を有効に出来ます。</p>
+
+<p>逆に、この様にしてしまうと<code>-f</code>を与えても意味が無いので、
+確認無しで消すには<code>/bin/rm a</code>や<code>command rm a</code>などとして
+元の<code>rm</code>を直接呼び出す必要があります。</p>
+
+<h2 id="rm+--preserve-root">rm &#8211;preserve-root</h2>
+
+<p><code>--preserve-root</code>オプションは<code>/</code>を引数として使用できなくします。
+<em>参照</em></p>
+
+<ul>
+<li><a href="http://mattn.kaoriya.net/software/lang/c/20120625184100.htm">最近の GNU CoreUtils を使っている限り rm -rf / は &#8211;no-preserve-root 付けないと / は消せない</a></li>
+</ul>
+
+
+<p>これは環境にようってデフォルトでそうなっていたり
+そうでなかったりするみたいです。</p>
+
+<p><code>root</code>状態や<code>sudo</code>でのみ関係あるところなので、
+コマンドラインから作業する時はこれ抜きでも慎重になるべきですが、
+結構簡単なことでも、</p>
+
+<pre><code>rm -rf $abc/$def
+</code></pre>
+
+<p>としたつもりが</p>
+
+<pre><code>rm -rf $abv/$deg
+</code></pre>
+
+<p>等タイポしたりそもそも変数が空(未定義)だったりすると大変な事になるので、
+これくらいはaliasに(rootのものにも)入れておいても(デフォルトでなければ)
+良いかと思います。</p>
+
+<p>未定義変数を絶対に使わない、と言う状況であれば</p>
+
+<pre><code>set -u
+</code></pre>
+
+<p>をしておくと、タイポで未定義の変数を使おうとした時に
+エラーを吐く様になるので、rootで限られた作業しかしない場合や
+そこで使うスクリプト内では<code>set -u</code>をしておくと安全です。</p>
+
+<h2 id="ホームをプロテクトする1">ホームをプロテクトする1</h2>
+
+<p>寸前に<code>cd</code>してしまい気づかないままふと<code>rm -rf *</code>をしてしまったり、
+上の場合同様変数が空だったり、引数を書いてる途中でスペースが
+入ってしまって<code>*</code>や<code>~</code>が独立してしまって間違って展開されて
+恐ろしい事になったことは、誰しもが経験し得ることかと思います。</p>
+
+<p>Linuxを初めて使い始めた頃に、1回やりかけて恐ろしくなって
+プロテクトするようなラッパーを使っていました。
+冗長過ぎる感が強かったので、結局すぐに消してしまって
+どんなだったか覚えてなかったのですが、
+改めて書いてみました。</p>
+
+<div><script src='https://gist.github.com/5439030.js?file=rm_wrapper.sh'></script>
+<noscript><pre><code>#alias rm=&quot;rm -i&quot;
+#function rm={ rm $@ -i; }
+
+function rm {
+for f in $@;do
+  if [[ &quot;$f&quot; =~ ^- ]];then
+    continue 
+  fi
+  if [ &quot;$f&quot; = &quot;$HOME&quot; ] || [ &quot;$f&quot; = &quot;$HOME/&quot; ];then
+    echo -n 'Are you sure to remove your HOME? '
+    read yes
+    if ! [[ &quot;$yes&quot; =~ ^[yY] ]];then
+      return 0
+    fi
+  elif [ -d $f ];then
+    dn=&quot;$(cd &quot;$(dirname $f)&quot;;pwd -P)&quot;
+    if [ &quot;$dn&quot; = &quot;$HOME&quot; ] || [ &quot;$dn&quot; = &quot;$HOME/&quot; ];then
+      echo -n 'Are you sure to remove your HOME? '
+      read yes
+      if ! [[ &quot;$yes&quot; =~ ^[yY] ]];then
+        return 0
+      fi
+    fi
+  fi
+done
+command rm --preserve-root $@
+#command rm -i --preserve-root $@
+#command rm --preserve-root $@ -i
+
+}
+</code></pre></noscript></div>
+
+
+<p>ホームディレクトリそのものを消そうとした時や
+ホームディレクトリ下にあるディレクトリを消そうとした時に
+<code>rm</code>コマンドの前に別に1回確認を取ってくれる様に
+しています。</p>
+
+<p>といくつか簡単にrmにラッパーをかける方法を書きましたが、
+特に最初の2つの様な<code>-i</code>を要求する変更は
+スクリプト内で、<code>.bashrc</code>等設定を読み込んだ状態で
+<code>rm</code>を素のまま使っていると、
+スクリプトがそこで止まるので、<code>cron</code>ジョブで使ってるものなど
+影響が出る可能性があるので気をつけてください。</p>
+
+<p>最後の物は全ての引数をチェックしているので
+引数が多いと結構邪魔くさいです。</p>
+
+<p>(現在は上の様な設定はせずに<code>rm</code>は素の<code>rm</code>のまま使っています。)</p>
+
+<h2 id="ホームをプロテクトする2">ホームをプロテクトする2</h2>
+
+<p>ホームでの<code>rm -rf *</code>を予防する方法としてホームで見える
+ファイルやディレクトリを全てシンボリックリンクにしてしまう、
+と言う方法もあります。</p>
+
+<p><code>~/usr</code>という様なディレクトリがある場合、<code>~/.usr</code>
+や<code>~/.home/usr</code>と言った<code>.</code>で始まるディレクトリ内に
+実体を作ってホームにはそこからシンボリックリンクを貼っておくと、
+消されるファイルはシンボリックリンクだけなので被害を
+最小限に抑えられます。</p>
+
+<pre><code>$ cd ~
+$ mkdir ./.home
+$ mv ./usr ./.home/usr
+$ ln -s ./.home/usr ./usr
+</code></pre>
+
+<p>この方法では<code>rm -rf ~/</code>とディレクトリを指定された場合は防げませんが、
+<code>rm</code>コマンド自体はそのままなので他への影響を
+最小限に抑えられます。</p>
+
+<p>ただ、環境によっては<code>$HOME</code>に沢山シンボリックリンクがあると
+余計な負荷をかける事もあるので注意して下さい。</p>
+
+<h2 id="その他見つけたもの">その他見つけたもの</h2>
+
+<p>上でやっているような事も含めて色々な物がweb上に転がっていると思いますが、
+今回ちょっと調べてるうちに、
+割とよさそうなものとして<a href="http://www.safe-rm.org.nz/">safe-rm</a>
+というものを見つけました。</p>
+
+<p>perlで書かれていて、消したくないディレクトリを指定しておいて
+消せないようにする、と言うものですが、
+設定ファイルに書くことで簡単にディレクトリが追加出来るのが
+良い感じです。</p>
+
+<h1 id="コマンドラインでゴミ箱を使う">コマンドラインでゴミ箱を使う</h1>
+
+<p>以上は直接ファイルやディレクトリを消してしまう
+<code>rm</code>をする時に如何に気をつけるか、という話でした。</p>
+
+<p>一方で、パソコンを使い始めて凄い便利だな、と思うことの1つに
+当たり前のことですが簡単に<code>元に戻す</code>事が出来る事があると思います。
+(もうちょい前から始めてる人はそれは当たり前のことではない、と言うかもしれませんが&#8230;)
+ゴミ箱に捨てても後から簡単に戻す事が出来る事もその1つ。</p>
+
+<p>その様なゴミ箱に慣れてる状態で、初めて黒い画面で<code>rm</code>を使うと
+そのファイルが簡単に元に戻せない、ということに軽く恐怖を覚えます。</p>
+
+<p>そういう物だと慣れれば、<code>rm</code>コマンドを使う時に
+ちゃんと考えてから消すようになるわけですが、
+今でもたまにちょっとしたファイルを消して暫くした後に
+消したファイルを確認出来れば便利だな、と思うことがあります。</p>
+
+<p>そこで、これまではファイルを消す代わりに
+適当なゴミ箱ディレクトリに移す簡単なスクリプトや関数を
+使っていました。</p>
+
+<p>今回、アップデートしてコマンドラインから元に戻せる様にもしたので
+載せておきます。</p>
+
+<h2 id="trash.sh">trash.sh</h2>
+
+<h3 id="インストール">インストール</h3>
+
+<p>スクリプトはGitHubにあります: <a href="https://github.com/rcmdnk/scripts/blob/master/trash.sh">trash.sh</a>。</p>
+
+<pre><code>wget https://raw.github.com/rcmdnk/scripts/master/trash.sh
+</code></pre>
+
+<p>するか、scriptsフォルダ毎</p>
+
+<pre><code>git clone git@github.com:rcmdnk/scripts.git
+</code></pre>
+
+<p>してスクリプト<code>trash.sh</code>を取ってください。</p>
+
+<p>インストールはこのスクリプトを適当なPATHの通ったディレクトリに入れるなり
+aliasで使える様にしてください。</p>
+
+<p>自分の環境ではcloneしたディレクトリから<code>~/usr/bin</code>(PATHが通っている)
+にリンクを張り(リンク先では<code>.sh</code>は除いてます)、
+<code>.bashrc</code>内で<code>alias del="trash"</code>としています。
+(元からスクリプト名をdelにしても良いわけですがなんとなく&#8230;)</p>
+
+<p>rmを変更しても良いと思いますが、上にも書いたようにあまり
+rm自体を変更するのは好きではないので別コマンドにしています。</p>
+
+<h3 id="使い方">使い方</h3>
+
+<p><code>rm</code>と同じ様なオプションを使える様にしてあります。
+詳しくは<code>trash.sh -h</code>やスクリプトを御覧ください。</p>
+
+<p>例1:</p>
+
+<pre><code>$ cd tmp/
+$ ls
+$ touch a
+$ trash.sh a
+~/tmp/a was moved to ~/.Trash/my_trash_box/20130423/a
+$ touch a
+$ trash.sh a
+~/tmp/a was moved to ~/.Trash/my_trash_box/20130423/a.1
+$ ls
+$ trash.sh -b
+  2 20130423-03-24-29,~/tmp/a
+  1 20130423-03-24-37,~/tmp/a
+choose trash number: 1
+ ~/tmp/a was restored from ~/.Trash/my_trash_box/20130423/a.1
+$ ls
+a
+$ trash.sh -l
+  1 20130423-03-24-29,~/tmp/a
+$
+</code></pre>
+
+<p>消去するファイルはゴミ箱(<code>~/.Trash/my_trash_box</code>)下の
+日付ごとのディレクトリに移動されます。</p>
+
+<p>もし、同じファイル名の物が削除されると、数字を付けて区別します。</p>
+
+<p><code>-b</code>オプションを使うことで一覧を表示させ、その中から
+番号を選択することで該当物を元に戻すことが出来ます。</p>
+
+<p><code>-l</code>オプションは削除物をリストするだけのコマンドです。</p>
+
+<p>これ以外に<code>-r</code>(ディレクトリ削除)、<code>-f</code>(確認しない、デフォルト)、
+<code>-i</code>(確認を行う)という<code>rm</code>同様のオプションがあります。</p>
+
+<p>また、<code>trash.sh -c</code>とすると、下のオプションで設定する
+ゴミ箱容量を超えた分を古い物から消していきます。
+ゴミ箱ディレクトリを自動的に削除されないディレクトリに指定している場合、
+cronなどで<code>trash.sh -c</code>を定期的に行う様にしてください。
+Macの<code>~/.Trash</code>に指定したり、<code>/tmp</code>以下に作る様な場合は
+余程大きな容量に指定しない以上は必要無いかもしれません。</p>
+
+<p><code>trash.sh -C</code>(大文字の<code>C</code>)とすると、ゴミ箱を全て空にします。</p>
+
+<p>注意として、この様に直接ゴミ箱内に移動されたものは
+Finderからゴミ箱を開いた場合も表示されますが、
+Finderから元に戻す事はできません。
+右クリックしても<code>元に戻す</code>の項目はでません。</p>
+
+<p>Finderから直接他へ移動させる事は可能ですが、
+コマンドラインから<code>trash.sh</code>を使えば簡単に元に戻せます。</p>
+
+<h3 id="オプション">オプション</h3>
+
+<p>設定変数は以下の通りです。適時<code>.bashrc</code>などで設定してください。</p>
+
+<table>
+<thead>
+<tr>
+<th align="left"> 変数 </th>
+<th align="left"> 説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">TRASHLIST</td>
+<td align="left"> ゴミ箱に移動したファイル/ディレクトリのリスト用ファイル。デフォルトは<code>~/.trashlist</code>。</td>
+</tr>
+<tr>
+<td align="left">TRASHBOX</td>
+<td align="left"> ゴミ箱親ディレクトリ。デフォルトは<code>~/.Trash</code>(Macの通常のゴミ箱ディレクトリ)。このディレクトリの下に<code>my_trash_box</code>というディレクトリを作り、さらに日毎のディレクトリを作りその下に削除された物が移動される。</td>
+</tr>
+<tr>
+<td align="left">MAXTRASHBOXSIZE</td>
+<td align="left"> ゴミ箱の容量(MB)。デフォルトは1024。この容量を超えた状態でクリーンアップコマンドを使うとこの容量以下になるように古い順にゴミが削除される。</td>
+</tr>
+<tr>
+<td align="left">MAXTRASHSIZE</td>
+<td align="left">このサイズを超えるファイル/フォルダは直接<code>rm</code>で削除する。</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>デフォルトの設定にあるように、ゴミ箱の容量は比較的小さめ(1GB)
+に設定してあります。
+さらに~100MBを超える様なファイルの場合には直接<code>rm</code>する様に設定しています。</p>
+
+<p>基本的には<code>rm</code>を使い、
+ちょっとした設定ファイルやスクリプトなど、取り敢えず要らないけど
+もしかしたら後で見るかも、と思うな物を上で書いたalias <code>del</code>を使って
+削除する、と言った形を取っています。</p>
+
+<p>その辺りは好み次第かと。</p>
+
+<h2 id="webで見つけられるその他のゴミ箱実装">webで見つけられるその他のゴミ箱実装</h2>
+
+<h3 id="Mac,+AppleScriptを使った方法">Mac, AppleScriptを使った方法</h3>
+
+<p><a href="http://blog.livedoor.jp/dankogai/archives/51863873.html">OSX - mv2trashというスクリプト書いた</a>
+にあるように、MacではAppleScriptの力を借りると
+通常の<code>ゴミ箱に捨てる</code>作業と同じ様にコマンドラインで
+削除することが出来る様になります。</p>
+
+<p><a href="http://blog.livedoor.jp/dankogai/archives/51863873.html">コマンドラインからゴミ箱に捨てるシェルスクリプト</a>にはシェルスクリプトを使って書いているものがありました。</p>
+
+<p>Macの場合は上の
+<a href="https://github.com/rcmdnk/scripts/blob/master/trash.sh">trash.sh</a>
+に削除部分で<code>mv</code>の代わりに使っても良いかな、
+とも思ったのですが、2つ目の参照先にもある様にかなり遅くなるので、
+頻繁に使うには余り実用的で無い感じがしました。</p>
+
+<h3 id="Mac,+rmtrash">Mac, rmtrash</h3>
+
+<p>mac用の他のものとして、<a href="http://www.nightproductions.net/cli.htm">rmtrash</a>
+という物を良く見かけました。</p>
+
+<p>HomebrewやMacPortsでインストール出来るところから
+多少良く出回っている感じがしますが、単に<code>.Trash</code>に
+送っているだけです。</p>
+
+<p>もしかしたら古いバージョンを見ただけなのかも知れませんが、
+確認した所、上の
+<a href="https://github.com/rcmdnk/scripts/blob/master/trash.sh">trash.sh</a>
+同様、単にゴミ箱フォルダに移動させてる
+だけのようなので(sourceを見る限りでも)、
+捨てられたファイルはFinderから直接見ると
+<code>元に戻す</code>、は使えませんでしたし、<code>rmtrash</code>自体に
+戻す機能が無いので元の場所の情報は残ってないことになります。
+(Obj-cまで使ってやる必要が良くわかりませんでした&#8230;)</p>
+
+<h3 id="trash-cli">trash-cli</h3>
+
+<p><a href="https://github.com/andreafrancia/trash-cli">trash-cli</a>は
+pythonベースでゴミ箱を実装したパッケージです。
+pythonの環境(python 2.7)を整えればどのOSでも基本的には
+使えます。</p>
+
+<p>このパッケージには、ゴミ箱から元に戻したりゴミ箱を
+空にしたりするコマンドも入っています。</p>
+
+<h3 id="nrm">nrm</h3>
+
+<p>自分で試してないですが、
+<a href="http://omnisterra.com/walker/linux/nrm.man.html">nrm</a>といったものも有りました。</p>
+
+<h1 id="rm+tips">rm tips</h1>
+
+<h2 id="消せないファイルを消す方法">消せないファイルを消す方法</h2>
+
+<p>手違いで記号から始まる様なファイルを作ってしまったり、
+文字化けしてしまう様なファイルを消したい場合、
+<code>"</code>などで囲ってみてもどうしても上手く行かない場合があります。</p>
+
+<p>この様なファイルを消す手っ取り早い方法は、必要なファイルや
+ディレクトリを他のディレクトリに移し、
+そのファイルを含むディレクトリ毎消してしまうことです。</p>
+
+<p>さらに安易な方法は、MacならFinder等、GUIファイルマネージャー
+を開けば大概の場合消去出来ます。</p>
+
+<p>まじめに削除しようとする場合には、
+inodeを使って消します。</p>
+
+<pre><code>$ ls -i
+45323032 a
+</code></pre>
+
+<p>とするディレクトリ内にあるファイル/ディレクトリのinode番号が分かるので、
+(上の場合は<code>a</code>と言うファイルだけあり、inode番号が<code>45323032</code>)
+この番号を用いて</p>
+
+<pre><code>find . -inum 45323032 -exec rm -rf {} \;
+</code></pre>
+
+<p>とすれば目的のファイル/ディレクトリを確実に消せます。</p>
+
+<h2 id="消してしまったファイルの復旧">消してしまったファイルの復旧</h2>
+
+<p><code>rm</code>で消してしまった場合でも、ゴミ箱を空にしてしまった場合でも、
+これらの<code>消す</code>作業は基本的に情報を保持したブロックとの
+リンクを切ってその部分を使える様にする(余り正確な記述じゃないかもしれませんが)
+という作業なので、そのブロック自体には
+上書きされるまで情報が残っている可能性があります。</p>
+
+<p>この様な時は、すぐにそのディスク自体への書き込みを禁止にして
+復旧作業を行えば情報を復旧出来る事があります。</p>
+
+<p>デジカメなんかで間違えてSDカード内全消去、とかしてしまったとか言う
+場面に何度か合いましたが、WindowsにもMacにも
+無料のサルベージソフト(または期間限定で無料で使えるソフト)
+が沢山あるので、適当な物を
+ダウンロードしてきて毎回比較的簡単に復旧出来ています。</p>
+
+<p>Linux等で<code>ext4</code>を使っている場合は<a href="http://extundelete.sourceforge.net/">extundelete</a>というユーティリティがあり、
+<a href="http://d.hatena.ne.jp/y-kawaz/20110123/1295779916">Linuxでうっかりrm -rfしちゃったけど復活出来たよー＼(＾o＾)／</a>が参考になります。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p><code>rm</code>のプロテクトやゴミ箱、さらに復旧についてまで見てみましたが、
+結局のところ、バックアップさえしっかり取っておけばなんとかなるので、
+重要なな部分については最低1日1回はバックアップが取れる様な
+体制をとっておきたいところです。</p>
+
+<p>今回は特にファイル削除に関することなので、上記のスクリプトも含め、
+ご利用は計画的に。</p>
+
+<p><a href="https://github.com/rcmdnk/scripts/blob/master/trash.sh">trash.sh</a>
+は手元のMacとWindowsのcygwin、Red Had系のLinuxで試していますが、
+不具合やもっと良く出来そうな部分があれば教えて頂けると嬉しいです。</p>
+
+<p>最後に、<code>rm -rf /</code>をやってみました動画をどうぞ。</p>
+
+<div class="embed-video-container"><iframe src="http://www.youtube.com/embed/ZqcGcDZxjQE "></iframe></div>
+
+
+<div class="embed-video-container"><iframe src="http://www.youtube.com/embed/7RfihcLJLeo "></iframe></div>
+
+
+
+
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+<!-- zenback_body_end -->
+
+
+
+  <footer>
+    
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort1 */
+google_ad_slot = "9535286447";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<br class="clearBoth">
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRect0 */
+google_ad_slot = "9052765242";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+<!-- Rakuten Widget FROM HERE --><script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="111f634c.5fb25e94.111f634d.1a56ae16";rakuten_items="ctsmatch";rakuten_genreId=0;rakuten_size="336x280";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";</script><script type="text/javascript" src="http://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js"></script><!-- Rakuten Widget TO HERE -->
+
+
+
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">rcmdnk</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-04-23T00:48:00+02:00"  data-updated="true">23 Apr 2013</time>
+      
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+
+      
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/linux/'>Linux</a>, <a class='tag' href='/blog/tags/mac/'>Mac</a>, <a class='tag' href='/blog/tags/bash/'>bash</a>
+  
+</span>
+
+
+    </p>
+    
+    
+    <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="rm -rfのプロテクト、コマンドラインでのゴミ箱 - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+    
+    <p class="meta">
+      
+      <a class="basic-alignment left" href="/blog/2013/04/19/computer-mac-desktop/" title="Previous Post: Macのデスクトップ上の情報表示">&laquo; Macのデスクトップ上の情報表示</a>
+      
+      
+      <a class="basic-alignment right" href="/blog/2013/04/25/airplane-airplane-ana/" title="Next Post: ANA国際線手荷物がエコノミークラスは2個から1個へ">ANA国際線手荷物がエコノミークラスは2個から1個へ &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+<section>
+  
+<div class="linkwithin_div"></div>
+
+
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/f295b351803418ecbd39da5abf41c8fd"></script>
+<!-- admax -->
+
+
+
+
+<!-- X:S ZenBackWidget --><script type="text/javascript">document.write(unescape("%3Cscript")+" src='http://widget.zenback.jp/?base_uri=http%3A//rcmdnk.github.io/&nsid=112714283011311473%3A%3A112714293211884381&rand="+Math.ceil((new Date()*1)*Math.random())+"' type='text/javascript'"+unescape("%3E%3C/script%3E"));</script><!-- X:E ZenBackWidget -->
+
+
+</section>
+
+
+<section>
+  <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/54ba254afe4204c140ba37132d12861d"></script>
+<!-- admax -->
+
+
+
+</section>
+
+
+</div><!-- post -->
+
+<aside class="sidebar">
+  
+  
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* img0 */
+google_ad_slot = "1906431641";
+google_ad_width = 300;
+google_ad_height = 250;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+<h1>About Me</h1>
+
+<a href="mailto:rdmdnk@gmail.com" class="sidebar-about" title="Mail"><img src="/images/MacApp/MacLogoMini.png" class="aboutme_logo" alt="" ></a>
+
+
+
+<a href="mailto:rdmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="icon-envelope-alt icon-link-btn"></i></a>
+
+
+<a href="https://twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="icon-twitter-sign icon-link-btn"></i></a>
+
+
+
+
+<br>
+
+<a href="https://github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="icon-github-sign icon-link-btn"></i></a>
+
+
+<a href="/atom.xml" title="RSS" class="sidebar-about"><i class="icon-rss-sign icon-link-btn"></i></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-link-btn"></i></a>
+
+
+<br class="clearBoth">
+</section>
+
+<section>
+
+
+
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822/JP/rcmdnk0c-22/8004/6c541ac0-db47-40ca-b8c4-6cd9b8c68c77"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Frcmdnk0c-22%2F8004%2F6c541ac0-db47-40ca-b8c4-6cd9b8c68c77&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
+
+
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/computer-windows-cygwin-vim/">Vim 7.4をCygwinへインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/07/computer-vim/">Lua対応Vimをインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/04/computer-linux-mac/">pacoでmake installしたパッケージを管理</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+
+<form action="http://www.google.co.jp/cse" id="cse-search-box">
+  <div>
+    <input type="hidden" name="cx" value="partner-pub-3802317723662375:7194255647" />
+    <input type="hidden" name="ie" value="EUC-JP" />
+    <input type="text" name="q" size="55" />
+    <input type="submit" name="sa" value="検索" />
+  </div>
+</form>
+
+<script type="text/javascript" src="http://www.google.co.jp/coop/cse/brand?form=cse-search-box&amp;lang=ja"></script>
+
+<script type="text/javascript" src="http://www.google.com/cse/query_renderer.js"></script>
+<div id="queries"></div>
+<script src="http://www.google.com/cse/api/partner-pub-3802317723662375/cse/7194255647/queries/js?oe=EUC-JP&amp;callback=(new+PopularQueryRenderer(document.getElementById(%22queries%22))).render"></script>
+
+
+</section>
+
+
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linksmall */
+google_ad_slot = "4441095648";
+google_ad_width = 200;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/blog'>Blog (15)</a></li><li><a href='/blog/categories/computer'>Computer (57)</a></li><li><a href='/blog/categories/others'>Others (1)</a></li></ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+    <span id="tag-cloud"><a href='/blog/tags/airplane' style='font-size: 102.14285714285714%'>Airplane(1)</a> <a href='/blog/tags/ana' style='font-size: 102.14285714285714%'>ANA(1)</a> <a href='/blog/tags/autohotkey' style='font-size: 110.71428571428571%'>AutoHotkey(5)</a> <a href='/blog/tags/bash' style='font-size: 121.42857142857143%'>bash(10)</a> <a href='/blog/tags/bitbucket' style='font-size: 102.14285714285714%'>Bitbucket(1)</a> <a href='/blog/tags/bsd' style='font-size: 102.14285714285714%'>BSD(1)</a> <a href='/blog/tags/colinux' style='font-size: 102.14285714285714%'>coLinux(1)</a> <a href='/blog/tags/cygwin' style='font-size: 127.85714285714286%'>Cygwin(13)</a> <a href='/blog/tags/desktop' style='font-size: 104.28571428571429%'>Desktop(2)</a> <a href='/blog/tags/dropbox' style='font-size: 102.14285714285714%'>Dropbox(1)</a> <a href='/blog/tags/english' style='font-size: 104.28571428571429%'>English(2)</a> <a href='/blog/tags/evernote' style='font-size: 102.14285714285714%'>Evernote(1)</a> <a href='/blog/tags/firefox' style='font-size: 104.28571428571429%'>Firefox(2)</a> <a href='/blog/tags/geektool' style='font-size: 104.28571428571429%'>GeekTool(2)</a> <a href='/blog/tags/ginger' style='font-size: 102.14285714285714%'>Ginger(1)</a> <a href='/blog/tags/git' style='font-size: 115.0%'>git(7)</a> <a href='/blog/tags/github' style='font-size: 106.42857142857143%'>GitHub(3)</a> <a href='/blog/tags/gnu' style='font-size: 102.14285714285714%'>GNU(1)</a> <a href='/blog/tags/google' style='font-size: 102.14285714285714%'>Google(1)</a> <a href='/blog/tags/hhk' style='font-size: 102.14285714285714%'>HHK(1)</a> <a href='/blog/tags/install' style='font-size: 104.28571428571429%'>install(2)</a> <a href='/blog/tags/jquery' style='font-size: 104.28571428571429%'>jQuery(2)</a> <a href='/blog/tags/keyremap4macbook' style='font-size: 115.0%'>KeyRemap4MacBook(7)</a> <a href='/blog/tags/linux' style='font-size: 123.57142857142857%'>Linux(11)</a> <a href='/blog/tags/mac' style='font-size: 155.71428571428572%'>Mac(26)</a> <a href='/blog/tags/octopress' style='font-size: 134.28571428571428%'>Octopress(16)</a> <a href='/blog/tags/pocket' style='font-size: 102.14285714285714%'>Pocket(1)</a> <a href='/blog/tags/prompt' style='font-size: 106.42857142857143%'>Prompt(3)</a> <a href='/blog/tags/screen' style='font-size: 115.0%'>screen(7)</a> <a href='/blog/tags/thunderbird' style='font-size: 102.14285714285714%'>Thunderbird(1)</a> <a href='/blog/tags/vim' style='font-size: 132.14285714285714%'>Vim(15)</a> <a href='/blog/tags/vimperator' style='font-size: 102.14285714285714%'>Vimperator(1)</a> <a href='/blog/tags/windows' style='font-size: 160.0%'>Windows(28)</a> <a href='/blog/tags/yamy' style='font-size: 115.0%'>yamy(7)</a> </span>
+</section>
+<div class="scroll-fixed"><section>
+  <script language="javascript" type="text/javascript" src="http://b.hatena.ne.jp/js/widget.js" charset="utf-8"></script>
+  <script language="javascript" type="text/javascript">
+    Hatena.BookmarkWidget.url   = "http://rcmdnk.github.io";
+  Hatena.BookmarkWidget.title = "人気エントリー";
+  Hatena.BookmarkWidget.sort  = "count";
+  Hatena.BookmarkWidget.width = 280;
+  Hatena.BookmarkWidget.num   = 5;
+  Hatena.BookmarkWidget.theme = "default";
+  Hatena.BookmarkWidget.load();
+  </script>
+</section>
+
+<section>
+
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/0d062d3caa4c77cb77c0a5edf2dc7911"></script>
+<!-- admax -->
+
+
+
+</section>
+
+</div>
+  
+</aside>
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - rcmdnk -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'rcmdnk';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/';
+        var disqus_url = 'http://rcmdnk.github.io/blog/2013/04/23/computer-bash-linux-mac/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<script>
+(function(w,d){
+    var c,e=d.createDocumentFragment(),f=d.getElementsByTagName("script")[0],
+    a=function(a,b){if(!d.getElementById(b)){c=d.createElement("script");
+    c.src=a;c.id=b||null;c.async=true;e.appendChild(c);}};
+
+
+    w.___gcfg={lang:"ja"};
+
+    a("https://apis.google.com/js/plusone.js");
+
+
+    a("//platform.twitter.com/widgets.js");
+
+
+    a("//connect.facebook.net/ja_JP/all.js#appId=242225962586587&xfbml=1","facebook-jssdk");
+
+    a("//b.st-hatena.com/js/bookmark_button_wo_al.js");
+    f.parentNode.insertBefore(e,f);
+})(this,document);
+</script>
+
+
+<script>
+var linkwithin_site_id = 1795279;
+</script>
+<script src="http://www.linkwithin.com/widget.js"></script>
+<a href="http://www.linkwithin.com/"><img src="http://www.linkwithin.com/pixel.png" alt="Related Posts Plugin for WordPress, Blogger..." style="border: 0" /></a>
+<script>linkwithin_text='You might also like...'</script>
+
+
+
+
+</body>
+</html>

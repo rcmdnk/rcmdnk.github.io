@@ -1,0 +1,1140 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Git + Dropbox使用時の注意点 - rcmdnk's blog</title>
+  <meta name="author" content="rcmdnk">
+  
+  <meta name="description" content="OctopressのファイルはDropboxに入れて管理していて、
+複数の端末からアップデートすることがあります。 先日rake deployしてもページがアップデートされないな、
+と思っていたらgitでcommit/pushするときにエラーが出ていました。
+( &hellip;">
+  <meta name="keywords" content="Computer, Octopress, git, GitHub, Dropbox, cygwin">
+  <meta property="og:title" content="Git + Dropbox使用時の注意点" />
+  <meta property="og:type" content="blog" />
+  <meta property="og:description" content="OctopressのファイルはDropboxに入れて管理していて、
+複数の端末からアップデートすることがあります。 先日rake deployしてもページがアップデートされないな、
+と思っていたらgitでcommit/pushするときにエラーが出ていました。
+( &hellip;">
+  
+  <meta property="og:url" content="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox" />
+  
+  <meta property="og:image" content="/images/post/20130513_dropbox.jpg"/>
+  
+  <meta property="og:site_name" content="rcmdnk's blog" />
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="canonical" href="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='//fonts.googleapis.com/css?family=Black+Ops+One' rel='stylesheet' type='text/css'>
+
+
+
+
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script src="/javascripts/footnote.js"></script>
+  <script src="/javascripts/scrolltopcontrol.js"></script>
+  <script src="/javascripts/intro.min.js"></script>
+  <script src="/javascripts/jquery.exflexfixed-0.3.0.js"></script>
+  <script src="/javascripts/jquery.nailthumb.1.1.min.js"></script>
+  <script src="/javascripts/utils.js"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-39086461-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  <!--
+*************************************************************
+Images under http://rcmdnk.github.io//images/emoji
+
+octocat, squirrel, shipit
+Copyright (c) 2013 GitHub Inc. All rights reserved.
+
+bowtie, neckbeard, fu
+Copyright (c) 2013 37signals, LLC. All rights reserved.
+
+feelsgood, finnadie, goberserk, godmode, hurtrealbad, rage 1-4, suspect
+Copyright (c) 2013 id Software. All rights reserved.
+
+trollface
+Copyright (c) 2013 whynne@deviantart. All rights reserved.
+
+All other images
+Copyright (c) 2013 Apple Inc. All rights reserved.
+*************************************************************
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><h1>
+  <a href="/">
+  
+  <img src="/images/MacApp/MacLogoMini3.png" alt="" class="title_logo" >
+  
+  rcmdnk's blog
+  </a>
+</h1>
+
+
+</header>
+  <nav role="navigation"><div class="main-navigation">
+  
+  <p>
+    
+    <a href="mailto:rdmdnk@gmail.com" title="Mail"><i class="icon-envelope-alt icon-2x"></i></a>
+    
+    
+    <a href="https://twitter.com/rcmdnk" title="Twitter"><i class="icon-twitter-sign icon-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="https://github.com/rcmdnk" title="GitHub"><i class="icon-github-sign icon-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="icon-rss-sign icon-2x"></i></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-2x"></i></a>
+    
+  </p>
+  
+  <p>
+  <a href="/blog/archives" class="link_btn" >Archives</a>
+  <a href="/windows" class="link_btn" >Windows</a>
+  <a href="/mac" class="link_btn" >Mac</a>
+  </p>
+</div>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div><!-- post -->
+<article class="hentry" role="article">
+  
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+<article>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort0 */
+google_ad_slot = "8058553244";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</article>
+
+
+  
+<header>
+  
+  <p class="meta">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-05-12T20:57:00+02:00"  data-updated="true">12 May 2013</time>
+    
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+,
+    
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/cygwin/'>Cygwin</a>, <a class='tag' href='/blog/tags/dropbox/'>Dropbox</a>, <a class='tag' href='/blog/tags/github/'>GitHub</a>, <a class='tag' href='/blog/tags/octopress/'>Octopress</a>, <a class='tag' href='/blog/tags/git/'>git</a>
+  
+</span>
+
+
+  </p>
+  
+  
+  
+  <!-- zenback_title_begin -->
+  
+  <h1 class="entry-title">Git + Dropbox使用時の注意点</h1>
+  
+  <!-- zenback_title_end -->
+  
+  
+  
+</header>
+
+
+
+  <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="Git + Dropbox使用時の注意点 - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+
+
+
+<!-- zenback_body_begin -->
+
+<div class="entry-content">
+  
+  <div class="nailthumb-container title-thumb">
+    <img src="/images/post/20130513_dropbox.jpg" alt="" title=""/>
+  </div>
+  
+  <p>OctopressのファイルはDropboxに入れて管理していて、
+複数の端末からアップデートすることがあります。</p>
+
+<p>先日<code>rake deploy</code>してもページがアップデートされないな、
+と思っていたらgitで<code>commit</code>/<code>push</code>するときにエラーが出ていました。
+(<code>generate</code>した時のエラーは気をつけますが<code>deploy</code>時は
+ちゃんと見てなかった。。。)
+ついでにcygwin上でのパーミッション等についても調べたので
+まとめておきます。</p>
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#Dropboxでの競合エラー">Dropboxでの競合エラー</a> </li>
+ <li><a href="#Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)">Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)</a> </li>
+ <li><a href="#Dropbox上でのgit/svn">Dropbox上でのgit/svn</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="Dropboxでの競合エラー">Dropboxでの競合エラー</h1>
+
+<p>ちゃんと見れば簡単なことなのですが、次の様なエラーが起っていました。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>## copying public to _deploy
+</span><span class='line'>$ rake deploy
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>cp -r public/. _deploy
+</span><span class='line'>cd _deploy
+</span><span class='line'>
+</span><span class='line'>## Commiting: Site updated at 2013-05-11 16:59:45 UTC
+</span><span class='line'>fatal: Reference has invalid format: 'refs/heads/master (XXXX の競合コピ ー 2013-05-10)'
+</span><span class='line'>
+</span><span class='line'>## Pushing generated _deploy website
+</span><span class='line'>fatal: Reference has invalid format: 'refs/heads/master (XXXX の競合コピ ー 2013-05-10)'
+</span><span class='line'>
+</span><span class='line'>## Github Pages deploy complete
+</span><span class='line'>cd -
+</span><span class='line'>fatal: The remote end hung up unexpectedly</span></code></pre></td></tr></table></div></figure>
+
+
+<p>よく見ればちゃんと<code>fatal</code>と言ってるんですが、
+ローカルで<code>preview</code>チェックはOKだったので<code>deploy</code>コマンド打って
+ブラウザでチェック、まではもう深く考えない流れ作業なので、
+ブラウザを何度更新してもアップデートされないな、とちょっと悩んでしまいました&#8230;</p>
+
+<p>問題は<code>_deploy/.git/refs/heads/</code>以下に上に出ている
+<code>master (XXXX の競合コピー 2013-05-10)</code>と言う名前のファイルが出来ていて、
+gitが変なファイルがあって分からない、と言っている訳です。</p>
+
+<p>このファイルは、Dropboxで競合が起こった時に上手くマージ出来なかった時に
+作られます。
+今回は片方の端末でDropboxがちょっと落ちていた時があって、
+その間にもOctopress内をアップデートしてしまったのが原因だと思います。</p>
+
+<p>取り敢えず、この<code>master</code>以外にもいくつか競合コピーがあったので
+全て削除したら文句を言われなくなりましたのでOKです。</p>
+
+<p>Dropbox内なので、最悪上手くいかなくても復元出来るので取り敢えず消してしまいましたが、
+安全を取るならバックアップを取っておくべきかもしれません
+(この程度のことならば冗長かもしれませんが)。</p>
+
+<h1 id="Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)">Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)</h1>
+
+<p>ついでに、これまで何度かファイルのパーミッションがおかしくて
+手で権限変更したりする必要があって気になっていたことがあったので
+調べてみました。</p>
+
+<p>通常、Dropbox内でのファイルをExploerとかから見る場合は
+読み取り実行など問題ありません。</p>
+
+<p>ただ、Macでターミナルから見たり、Windowsでcygwinからファイルを
+見たりするとそれぞれのパーミッションが違って見えます。</p>
+
+<p>最初はMacとWindows(cygwin)
+で使っているとそれぞれでパーミッションの構造自体が単に違うだけかな、
+とか思っていたんですが、
+どうやらDropboxでは基本的にファイルやディレクトリのパーミッションは
+伝播されず、1つの端末でパーミッションを変更しても
+他の端末では反映されません。(Windows同士でも反映されませんでした。)</p>
+
+<p>さらに、問題はファイルなどが作られた時の初期パーミッションが
+環境によって違うことです。</p>
+
+<p>通常の設定だと、ファイルやディレクトリ(フォルダ)を作った場合
+次の様なパーミッション(権限)<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>になります。</p>
+
+<table class="center">
+  <tr>
+    <th>OS</th>
+    <th>作成方法</th>
+    <th>作成物</th>
+    <th>権限</th>
+  </tr>
+  <tr>
+    <td rowspan="4" >Windows<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup></td>
+    <td rowspan="2">Explorer</td>
+    <td>ファイル</td>
+    <td>700(*)</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>700(*)</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Command</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td rowspan="4">Mac<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup></td>
+    <td rowspan="2">Finder</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Command</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td>Linux<sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup></td>
+    <td colspan="3">Macと同じ</td>
+  </tr>
+</table>
+
+
+<p><code>Explorer</code>、<code>Finder</code>となっているのはExplorer等で右クリックから
+新規作成で作った場合です。
+OSの普通の作業で作られる場合も同様で、
+従ってDropboxの同期によって作られるファイルも<code>Exploer</code>と同様になります。</p>
+
+<p>見て分かるように、Macの場合はFinderでもコマンドラインからでも
+同じ様に扱われますが、
+Windowsの場合、cygwin以外で作られたファイル等は全て
+700のパーミッションを持っています。</p>
+
+<hr />
+
+<p><em>2013/06/25 WindowsのAdministrators状態について追記</em></p>
+
+<p>さらに700と言っても</p>
+
+<pre><code>$ ls -l
+-rwx------+ 1 Administrators None 2 May 12 21:00 a.txt
+</code></pre>
+
+<p>の様に所有者を見ると<code>Administrators</code>になっています。
+cygwin上で作ったファイルはちゃんとユーザーのものになります。</p>
+
+<pre><code>$ touch b.txt
+$ ls -l
+-rwx------+ 1 Administrators None 2 May 12 21:00 a.txt
+-rwx------+ 1 User           None 2 May 12 21:10 b.txt
+</code></pre>
+
+<p>この所有者はExploerからファイルを右クリックして<code>プロパティ</code>の<code>詳細</code>から見れるものとは
+同期してない様です。
+新規作成で作ったテキスト等は<code>詳細</code>ではユーザー名になっていても
+cygwinからはAdministratorsの物に見えていました。</p>
+
+<p>Windows内のDropbox以外のフォルダも見てみましたが、
+最初にシステムに作られるユーザーのもの(Desktopフォルダだったり)は
+ユーザーの所有に見えたり、その後自分で作った物に関しては
+作ったソフトも関係しているのか、まばらでいまいちどの様に決まるのか良く分かってません。</p>
+
+<p>問題なのはAdministrators用で700なので、ここでユーザーに権限が無いように見えることです。
+これに関しては詳しく調べて無いですが、手元で使ってる環境で、
+共にユーザーが管理者権限持っていてUAC等切っている状態で、</p>
+
+<ul>
+<li>Windows Vista : 読む、実行はできるが書き込みが出来ない。ただ、どうも
+<code>管理者だけど書き込み権限が無い</code>状態にあるみたいで、viで<code>:w!</code>とすれば書き込めるし、
+<code>chmod +w a.txt</code>とすれば普通に書き込める様になる。(<code>ls -l</code>の結果は変わらず)。
+所謂root権限状態?</li>
+<li>Windows 7: Administrators所有で700になっているファイルも普通に書き込める。
+つまりAdministratorsと管理者権限を持ったユーザーの区別無し?</li>
+</ul>
+
+
+<p>といった感じです。問題なのはVistaの場合で、
+DropboxでOctopressの記事なんかを管理していると全てreadonlyの状態になっているので
+他で作った記事は毎回<code>chmod +w file</code>する必要があります。
+<code>rake isolate[file]</code>的な事を一旦すれば、全てが再生成される形になるので、
+記事全てがreadonly状態に。</p>
+
+<p>仕方が無いのでoctopressのトップディレクトリやDropboxのトップディレクトリで
+気が向いたら(気になったら)</p>
+
+<pre><code>$ chmod -R +w ./
+</code></pre>
+
+<p>として書き込み権限を与えています。</p>
+
+<p><em>追記終わり</em></p>
+
+<hr />
+
+<hr />
+
+<p>*2013/06/26 さらに追記
+ファイルを作る際に親フォルダの権限を変えると中に作られる
+ファイルの権限も変わってくる様です。</p>
+
+<p>Cygwin外で作られるファイルがAdministratorsの所有物なのは変わらないのですが、
+フォルダを<code>chmod 755 folder</code>としてから<code>folder</code>内に
+Cygwin外からファイルを作ると、パーミッションが755だったりします。
+さらにファイルに書き込み可能だったりします。
+また、フォルダを<code>chown +w folder</code>等としても同様(?)。</p>
+
+<p>取り敢えず、Cygwinでのトップディレクトリに行って全部USER所有に変えてみました。</p>
+
+<pre><code>$ cd /
+$ chown -R +w ./
+</code></pre>
+
+<p>この状態で、Explorer上で新規ファイルを作ったりするとAdministrators所有で
+700状態ですが、USERで書き込み可能です。</p>
+
+<p>この状態でDropboxで新たなファイルを他のPCで追加した所、同期されたファイルは</p>
+
+<pre><code>$ ls 
+----------+ 1 Administrators None     0 Jun 26 23:00 a.txt
+</code></pre>
+
+<p>の様な形に&#8230;読んだりパーミッションを変えたり所有者を変えたりはできますが、
+最初の状態は書き込み不可なので結局以前と一緒です。</p>
+
+<p>ソフトによっても動作が違う様で、イマイチ良くわからない、という感じで
+中途半端で申し訳ないですが、
+取り敢えず、Cygwinからよく使うフォルダは<code>chmod -R +w</code>しておくと
+Explorerなどで作ったファイルは書き込み可能な状態に出来ます。</p>
+
+<p>ただ、VistaでDropboxフォルダを使う場合、Dropbox経由でコピーされてきた
+ファイルはどうしても書き込み権限が無い状態で作られるようです。
+(cronで<code>chmod -R +w ./Dropbox</code>的なコマンドを1日1回くらい実行する、とかで対処するくらい
+しかないのでしょうか&#8230;?)</p>
+
+<p><em>追記終わり</em></p>
+
+<hr />
+
+<p>WindowsではNTFSアクセス制御リスト(Access Control List, ACL)<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup><sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>
+と呼ばれるシステムでファイルを管理していて、
+これで決定されたパーミッションがcygwinからも見えています。
+つまり、通常作られるファイルは、他人からは見えない様なファイルで、
+所有者には実行権限も与えられています。</p>
+
+<p>このACLは<code>/etc/fstab</code>へマウント設定を追加してあげると無効にすることが出来ます。
+<sup id='fnref:7'><a href='#fn:7' rel='footnote'>7</a></sup></p>
+
+<p><img alt="warning" src="/images/emoji/warning.png" class="emoji" /> 以下に設定変更方法を書いていますが、下にも書く様に副作用が
+強いため、結果的には使わないことにしています。</p>
+
+<p>まず、現状のマウントポイントを確認:</p>
+
+<pre><code>$ mount
+C:/cygwin/bin on /usr/bin type ntfs (binary,auto)
+C:/cygwin/lib on /usr/lib type ntfs (binary,auto)
+C:/cygwin on / type ntfs (binary,auto)
+C: on /cygdrive/c type ntfs (binary,posix=0,user,noumount,auto)
+</code></pre>
+
+<p><code>/etc/fstab</code>に何も書かれて居ない状態ですが、上の4つについては
+最初からマウントされるようになっています。
+のでセットアップで特に変更しなければ上の様になっているかと思います。</p>
+
+<p>次に、これらに関連する項目を<code>/etc/fstab</code>へ書いて定義を変更します。</p>
+
+<figure class='code'><figcaption><span>/etc/fstab</span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>C:/cygwin/bin /usr/bin  ntfs     binary,noacl,notexec              0 0
+</span><span class='line'>C:/cygwin/lib /usr/lib  ntfs     binary,noacl,notexec              0 0
+</span><span class='line'>C:/cygwin     /         ntfs     binary,noacl,notexec,override     0 0
+</span><span class='line'>none          /cygdrive cygdrive binary,noacl,notexec,posix=0,user 0 0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>と追加します。(初期のままだと<code>/etc/fstab</code>にはコメントが書かれているだけです。)</p>
+
+<p>書き方は<sup id='fnref:8'><a href='#fn:8' rel='footnote'>8</a></sup></p>
+
+<pre><code>Windowsのパス Cygwinのパス ファイルシステム　オプション 0 0
+</code></pre>
+
+<p>Windowsのパスも<code>\</code>でなく<code>/</code>を使います。
+最後のcygdriveの設定ではファイルシステムは<code>cygdrive</code>を設定します。
+最後の2つはdump/fsckオプションですが、cygwinでは使わない(?)ので、
+ここでは0にしておきます。</p>
+
+<p>上で確認したものと比べて分かるように、追加したオプションは
+<code>noacl</code>でこれによってACLの設定を無視する様になります。</p>
+
+<p>この設定を加えてからcygwinを再起動すると、全てのファイルの
+cygwinから見えるパーミッションが変わります。</p>
+
+<p>ただ、<code>noacl</code>だとファイルのパーミッションをcygwinが勝手に中身を
+判断して決定するようになってしまい、<code>chmod</code>等でも変更が出来ません。<sup id='fnref:9'><a href='#fn:9' rel='footnote'>9</a></sup></p>
+
+<p>さらに気持ち悪いことに、実行権限が無いファイルでも実行出来てしまうようになります。
+(TAB補完は効かないが、ちゃんと書けばどんなファイルでも実行しようとする。)</p>
+
+<p>また、<code>exec</code>/<code>notexec</code>と言うオプションがあって、これらを指定すると
+以下のディレクトリのファイル全てが実行ファイル(755)/通常ファイル(644)
+になります。
+この場合でも一意に決まってしまって変更出来ません。</p>
+
+<p>ので、結局上の設定を消して元に戻しました。
+(元に戻すと、<code>noacl</code>等を設定する以前のパーミッションに全て戻ります。)</p>
+
+<p>大分古い記事ですがACLやマウント方法について詳細に書いてあるものもありました<sup id='fnref:10'><a href='#fn:10' rel='footnote'>10</a></sup>。
+細かい事を直したいときに参考になるかもしれません。</p>
+
+<h1 id="Dropbox上でのgit/svn">Dropbox上でのgit/svn</h1>
+
+<p>パーミッション関連で困ることは、勿論スクリプトに実行権限がついてなくて
+実行出来ない、と言うこともあるのですが、
+それ以上にgitでコミットするといちいちファイルモードを変更してしまって
+困ってしまいます。</p>
+
+<p>なので、特にDropbox上でgit(svnでも)のレポジトリを管理している場合は、</p>
+
+<pre><code>git config core.filemode false
+</code></pre>
+
+<p>するか<code>./.git/config</code>を書き換えて(<code>filemode = true</code>を<code>false</code>へ)
+ファイルのパーミッションは無視する様にした方が余計な変更を入れない
+ので良いと思います。</p>
+
+<p>特にOctopressの様な場合は、基本的に実行ファイルは含まないので、
+問題ないと思います。</p>
+
+<p>Octopressの場合はOctopressの親ディレクトリの<code>./.git/config</code>と
+deploy用の<code>./_deploy/.git/config</code>を変更して下さい。</p>
+
+<p>ちなみに、大概の場合各レポジトリのconfigファイルにfilemodeの設定が
+加えられているので
+<code>$HOME/.gitconfig</code>で設定しても意味がないことが多いので注意が必要です。</p>
+
+<hr />
+
+<div class="footnotes">
+    <ol>
+        <li id='fn:1'><p> ここではWindowsの場合はcygwinから見た場合のパーミッションの話です。
+  Unix系の権限は所有者、グループユーザー、その他の枠でそれぞれ、
+  読み(4)、書き(2)、実行(1)の権限を指定しますが、この時、
+  表にあるように権限の数字を足した物を並べて表示します。
+  <code>ls -l</code>すると<code>rwxr-xr-x</code>等と出ますがこれは所有者r(読み)w(書き)r実行可能で、
+  グループユーザー及びその他は読み込みと実行のみ許可されている、と言うことで、
+  数字では755になります。
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p> Windows Vista/7, cygwin 1.7.18
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p> Mac OS X Lion (10.7.5)
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p> Scientific Linux 6
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p> <a href="http://www.atmarkit.co.jp/fwin2k/win2ktips/700whatisacl/whatisacl.html">アクセス制御リストACLとは？</a>
+  <a href='#fnref:5' rev='footnote'>↩</a></p>
+</li><li id='fn:6'><p> <a href="http://www.teppi.com/solution/file_mgmt/006_filing_win_acl01.php">Windowsアクセス権設定（ACL）の基礎知識</a>
+  <a href='#fnref:6' rev='footnote'>↩</a></p>
+</li><li id='fn:7'><p> <a href="http://www.akamoz.jp/you/uni/cygwin.htm">Cygwin 1.5からCygwin 1.7へのアップグレード</a>
+  <a href='#fnref:7' rev='footnote'>↩</a></p>
+</li><li id='fn:8'><p> <a href="http://ksugita.blog62.fc2.com/blog-entry-23.html">Cygwin1.7の /etc/fstabのフォーマット</a>
+  <a href='#fnref:8' rev='footnote'>↩</a></p>
+</li><li id='fn:9'><p> 先頭行を見て<code>#!</code>等かどうかで判断して実行ファイル(755)か
+  通常ファイル(644)に自動的に決まるとのことです: Ref <a href="http://d.hatena.ne.jp/kfujieda/20110521/1305982895">普段はWindowsを使っているのよ</a>
+  <a href='#fnref:9' rev='footnote'>↩</a></p>
+</li><li id='fn:10'><p><a href="http://www.sixnine.net/cygwin/cygwin-doc/professional.html">Cygwin for Professionals</a></p>
+
+<p><a href='#fnref:10' rev='footnote'>↩</a></p>
+</li>
+    </ol>
+</div>
+
+
+
+
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+<!-- zenback_body_end -->
+
+
+
+  <footer>
+    
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort1 */
+google_ad_slot = "9535286447";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<br class="clearBoth">
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRect0 */
+google_ad_slot = "9052765242";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+<!-- Rakuten Widget FROM HERE --><script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="111f634c.5fb25e94.111f634d.1a56ae16";rakuten_items="ctsmatch";rakuten_genreId=0;rakuten_size="336x280";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";</script><script type="text/javascript" src="http://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js"></script><!-- Rakuten Widget TO HERE -->
+
+
+
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">rcmdnk</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-05-12T20:57:00+02:00"  data-updated="true">12 May 2013</time>
+      
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+
+      
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/cygwin/'>Cygwin</a>, <a class='tag' href='/blog/tags/dropbox/'>Dropbox</a>, <a class='tag' href='/blog/tags/github/'>GitHub</a>, <a class='tag' href='/blog/tags/octopress/'>Octopress</a>, <a class='tag' href='/blog/tags/git/'>git</a>
+  
+</span>
+
+
+    </p>
+    
+    
+    <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="Git + Dropbox使用時の注意点 - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+    
+    <p class="meta">
+      
+      <a class="basic-alignment left" href="/blog/2013/05/12/blog-octopress/" title="Previous Post: Topへ戻るボタンの設置">&laquo; Topへ戻るボタンの設置</a>
+      
+      
+      <a class="basic-alignment right" href="/blog/2013/05/14/computer-firefox-mac-windows/" title="Next Post: Firefoxの表示をすっきりカスタマイズ">Firefoxの表示をすっきりカスタマイズ &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+<section>
+  
+<div class="linkwithin_div"></div>
+
+
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/f295b351803418ecbd39da5abf41c8fd"></script>
+<!-- admax -->
+
+
+
+
+<!-- X:S ZenBackWidget --><script type="text/javascript">document.write(unescape("%3Cscript")+" src='http://widget.zenback.jp/?base_uri=http%3A//rcmdnk.github.io/&nsid=112714283011311473%3A%3A112714293211884381&rand="+Math.ceil((new Date()*1)*Math.random())+"' type='text/javascript'"+unescape("%3E%3C/script%3E"));</script><!-- X:E ZenBackWidget -->
+
+
+</section>
+
+
+<section>
+  <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/54ba254afe4204c140ba37132d12861d"></script>
+<!-- admax -->
+
+
+
+</section>
+
+
+</div><!-- post -->
+
+<aside class="sidebar">
+  
+  
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* img0 */
+google_ad_slot = "1906431641";
+google_ad_width = 300;
+google_ad_height = 250;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+<h1>About Me</h1>
+
+<a href="mailto:rdmdnk@gmail.com" class="sidebar-about" title="Mail"><img src="/images/MacApp/MacLogoMini.png" class="aboutme_logo" alt="" ></a>
+
+
+
+<a href="mailto:rdmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="icon-envelope-alt icon-link-btn"></i></a>
+
+
+<a href="https://twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="icon-twitter-sign icon-link-btn"></i></a>
+
+
+
+
+<br>
+
+<a href="https://github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="icon-github-sign icon-link-btn"></i></a>
+
+
+<a href="/atom.xml" title="RSS" class="sidebar-about"><i class="icon-rss-sign icon-link-btn"></i></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-link-btn"></i></a>
+
+
+<br class="clearBoth">
+</section>
+
+<section>
+
+
+
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822/JP/rcmdnk0c-22/8004/6c541ac0-db47-40ca-b8c4-6cd9b8c68c77"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Frcmdnk0c-22%2F8004%2F6c541ac0-db47-40ca-b8c4-6cd9b8c68c77&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
+
+
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/computer-windows-cygwin-vim/">Vim 7.4をCygwinへインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/07/computer-vim/">Lua対応Vimをインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/04/computer-linux-mac/">pacoでmake installしたパッケージを管理</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+
+<form action="http://www.google.co.jp/cse" id="cse-search-box">
+  <div>
+    <input type="hidden" name="cx" value="partner-pub-3802317723662375:7194255647" />
+    <input type="hidden" name="ie" value="EUC-JP" />
+    <input type="text" name="q" size="55" />
+    <input type="submit" name="sa" value="検索" />
+  </div>
+</form>
+
+<script type="text/javascript" src="http://www.google.co.jp/coop/cse/brand?form=cse-search-box&amp;lang=ja"></script>
+
+<script type="text/javascript" src="http://www.google.com/cse/query_renderer.js"></script>
+<div id="queries"></div>
+<script src="http://www.google.com/cse/api/partner-pub-3802317723662375/cse/7194255647/queries/js?oe=EUC-JP&amp;callback=(new+PopularQueryRenderer(document.getElementById(%22queries%22))).render"></script>
+
+
+</section>
+
+
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linksmall */
+google_ad_slot = "4441095648";
+google_ad_width = 200;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/blog'>Blog (15)</a></li><li><a href='/blog/categories/computer'>Computer (57)</a></li><li><a href='/blog/categories/others'>Others (1)</a></li></ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+    <span id="tag-cloud"><a href='/blog/tags/airplane' style='font-size: 102.14285714285714%'>Airplane(1)</a> <a href='/blog/tags/ana' style='font-size: 102.14285714285714%'>ANA(1)</a> <a href='/blog/tags/autohotkey' style='font-size: 110.71428571428571%'>AutoHotkey(5)</a> <a href='/blog/tags/bash' style='font-size: 121.42857142857143%'>bash(10)</a> <a href='/blog/tags/bitbucket' style='font-size: 102.14285714285714%'>Bitbucket(1)</a> <a href='/blog/tags/bsd' style='font-size: 102.14285714285714%'>BSD(1)</a> <a href='/blog/tags/colinux' style='font-size: 102.14285714285714%'>coLinux(1)</a> <a href='/blog/tags/cygwin' style='font-size: 127.85714285714286%'>Cygwin(13)</a> <a href='/blog/tags/desktop' style='font-size: 104.28571428571429%'>Desktop(2)</a> <a href='/blog/tags/dropbox' style='font-size: 102.14285714285714%'>Dropbox(1)</a> <a href='/blog/tags/english' style='font-size: 104.28571428571429%'>English(2)</a> <a href='/blog/tags/evernote' style='font-size: 102.14285714285714%'>Evernote(1)</a> <a href='/blog/tags/firefox' style='font-size: 104.28571428571429%'>Firefox(2)</a> <a href='/blog/tags/geektool' style='font-size: 104.28571428571429%'>GeekTool(2)</a> <a href='/blog/tags/ginger' style='font-size: 102.14285714285714%'>Ginger(1)</a> <a href='/blog/tags/git' style='font-size: 115.0%'>git(7)</a> <a href='/blog/tags/github' style='font-size: 106.42857142857143%'>GitHub(3)</a> <a href='/blog/tags/gnu' style='font-size: 102.14285714285714%'>GNU(1)</a> <a href='/blog/tags/google' style='font-size: 102.14285714285714%'>Google(1)</a> <a href='/blog/tags/hhk' style='font-size: 102.14285714285714%'>HHK(1)</a> <a href='/blog/tags/install' style='font-size: 104.28571428571429%'>install(2)</a> <a href='/blog/tags/jquery' style='font-size: 104.28571428571429%'>jQuery(2)</a> <a href='/blog/tags/keyremap4macbook' style='font-size: 115.0%'>KeyRemap4MacBook(7)</a> <a href='/blog/tags/linux' style='font-size: 123.57142857142857%'>Linux(11)</a> <a href='/blog/tags/mac' style='font-size: 155.71428571428572%'>Mac(26)</a> <a href='/blog/tags/octopress' style='font-size: 134.28571428571428%'>Octopress(16)</a> <a href='/blog/tags/pocket' style='font-size: 102.14285714285714%'>Pocket(1)</a> <a href='/blog/tags/prompt' style='font-size: 106.42857142857143%'>Prompt(3)</a> <a href='/blog/tags/screen' style='font-size: 115.0%'>screen(7)</a> <a href='/blog/tags/thunderbird' style='font-size: 102.14285714285714%'>Thunderbird(1)</a> <a href='/blog/tags/vim' style='font-size: 132.14285714285714%'>Vim(15)</a> <a href='/blog/tags/vimperator' style='font-size: 102.14285714285714%'>Vimperator(1)</a> <a href='/blog/tags/windows' style='font-size: 160.0%'>Windows(28)</a> <a href='/blog/tags/yamy' style='font-size: 115.0%'>yamy(7)</a> </span>
+</section>
+<div class="scroll-fixed"><section>
+  <script language="javascript" type="text/javascript" src="http://b.hatena.ne.jp/js/widget.js" charset="utf-8"></script>
+  <script language="javascript" type="text/javascript">
+    Hatena.BookmarkWidget.url   = "http://rcmdnk.github.io";
+  Hatena.BookmarkWidget.title = "人気エントリー";
+  Hatena.BookmarkWidget.sort  = "count";
+  Hatena.BookmarkWidget.width = 280;
+  Hatena.BookmarkWidget.num   = 5;
+  Hatena.BookmarkWidget.theme = "default";
+  Hatena.BookmarkWidget.load();
+  </script>
+</section>
+
+<section>
+
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/0d062d3caa4c77cb77c0a5edf2dc7911"></script>
+<!-- admax -->
+
+
+
+</section>
+
+</div>
+  
+</aside>
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - rcmdnk -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'rcmdnk';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/';
+        var disqus_url = 'http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<script>
+(function(w,d){
+    var c,e=d.createDocumentFragment(),f=d.getElementsByTagName("script")[0],
+    a=function(a,b){if(!d.getElementById(b)){c=d.createElement("script");
+    c.src=a;c.id=b||null;c.async=true;e.appendChild(c);}};
+
+
+    w.___gcfg={lang:"ja"};
+
+    a("https://apis.google.com/js/plusone.js");
+
+
+    a("//platform.twitter.com/widgets.js");
+
+
+    a("//connect.facebook.net/ja_JP/all.js#appId=242225962586587&xfbml=1","facebook-jssdk");
+
+    a("//b.st-hatena.com/js/bookmark_button_wo_al.js");
+    f.parentNode.insertBefore(e,f);
+})(this,document);
+</script>
+
+
+<script>
+var linkwithin_site_id = 1795279;
+</script>
+<script src="http://www.linkwithin.com/widget.js"></script>
+<a href="http://www.linkwithin.com/"><img src="http://www.linkwithin.com/pixel.png" alt="Related Posts Plugin for WordPress, Blogger..." style="border: 0" /></a>
+<script>linkwithin_text='You might also like...'</script>
+
+
+
+
+</body>
+</html>

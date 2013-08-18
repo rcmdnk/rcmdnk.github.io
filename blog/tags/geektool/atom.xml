@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GeekTool | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/geektool/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[コマンドラインでGoole Taks(ToDoリスト)を表示する方法]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/10/computer-mac-geektool-google/"/>
+    <updated>2013-05-10T19:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/10/computer-mac-geektool-google</id>
+    <content type="html"><![CDATA[<p><a href="2013/04/18/computer-mac-geektool-desktop">以前GeekToolの自分設定を紹介した記事</a>
+タスクリストは<a href="http://hasseg.org/icalBuddy/">icalBuddy</a>
+を使ってiCalの情報を載せる様にしている、と書きましたが、
+実際に現在iCal自体を使わなくなっているのでこの欄は空欄のままでした。</p>
+
+<p>一方で<a href="https://mail.google.com/tasks/canvas">Google Tasks (ToDoリスト)</a>で、
+GDTと言える程ではないものの、適当に思いついたことをメモしておくのにも使っています。</p>
+
+<p>それをそのままiCal情報を載せてた場所に載せれば良いとは思っててしばらく
+放っておいてしまいましたが、
+今回Google Tasksをこの欄へ載せる様にスクリプトを書いてアップデートしました。</p>
+
+<p>GoogleのAPI関連と一緒にまとめておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="googleclで挑戦(上手くいかない)">googleclで挑戦(上手くいかない)</h1>
+
+<p><a href="http://code.google.com/p/googlecl/">googlecl</a>と言う
+Google APIを使ったツールを見つけたので導入してみました。</p>
+
+<blockquote><p><a href="http://code.google.com/p/googlecl/wiki/DiscoveryManual">DiscoveryManual</a></p></blockquote>
+
+<p>によるとTasks等が入ったDiscovery Service用のAPIが
+あり、これらをインストールして、最新のgoogleclを使えば
+Tasksも使える、とのこと。</p>
+
+<p>ただ、これ、2011年くらいの話なので、このTasks等のAPIは</p>
+
+<pre><code>$ sudo  easy_install --upgrade google-api-python-client
+</code></pre>
+
+<p>と<a href="2013/04/18/computer-mac-geektool-desktop">前回</a>インストールした時点で
+入っていると思います。
+<a href="https://developers.google.com/api-client-library/python/start/installation">Google APIs Client Libary for Python</a>のページへ言ってもこれしかないので。</p>
+
+<p>googleclの方も、上のDiscoveryManualのページだと、svnにあるアルファ版の
+最新のを、と書いてありますが、svnのtrunkを見ると、0.9.14で
+tagsにある最新のものとおそらく一緒のものです。</p>
+
+<p>通常googleclをインストールする場合には</p>
+
+<pre><code>$ sudo easy_install googlecl
+</code></pre>
+
+<p>だけでOKですが、今回は一応svnのtrunkから取ってきてインストールしてみました。</p>
+
+<pre><code>$ svn checkout http://googlecl.googlecode.com/svn/trunk/ googlecl-read-only
+$ cd googlecl-read-only
+$ sudo python setup.py install
+</code></pre>
+
+<p>これで<code>google</code>コマンドが使える様になります。</p>
+
+<p>しかし、<code>calendar</code>等のコマンドは使えましたがtasksをやろうとすると</p>
+
+<pre><code>$ google tasks
+...
+FATAL ERROR:
+Discovery API unavailable.  Services limited to:help, picasa, blogger, youtube, docs, contacts, calendar, finance
+Unknown service: tasks
+</code></pre>
+
+<p>となり、Discovery APIが入っていないと怒られます。</p>
+
+<p>この辺、しっかりと追ってないですが、
+すでにgoogle-api-python-clientに統一されていて、
+googleclの中で判定する際に古い構造を探しに行って失敗しているのか、
+とかなのかな、と思ってます(違ったら教えて下さい)。</p>
+
+<p>googlecl自体が古いままで止まっているので、
+あまりやっても意味ないかな、ということで取り敢えず断念。</p>
+
+<h1 id="自分でスクリプトを書いてみる">自分でスクリプトを書いてみる</h1>
+
+<p><a href="https://developers.google.com/api-client-library/python/start/installation">Google APIs Client Libary for Python</a>のページ内の
+<code>Getting started: Quickstart</code>と言う項目で</p>
+
+<ul>
+<li><code>Select an API</code>からTasks API</li>
+<li><code>Select a Platform</code>からCommand-Line</li>
+</ul>
+
+
+<p>を選ぶと、<code>Configure Project</code>というボタンが出てくるのでこれを押して
+さらに出てきた窓で<code>Continue</code>を押すと
+下の様な画面にきます。</p>
+
+<p><img src="/images/post/20130510_googleapi.jpg" alt="googleapi" title="googleapi" ></p>
+
+<p>ここからサンプルコード(<code>Download the starter application</code>)を取って来ることができますので、特に中にある<code>sample.py</code>
+を参考にしてスクリプトを書いていくことができます。
+(client_secretコードも必要ならとっておく。)</p>
+
+<p>取り敢えずリストを取ってこれれば良いだけなので、簡単に次の様なスクリプトを作ってみました。</p>
+
+<ul>
+<li><a href="https://github.com/rcmdnk/python/blob/master/gtaskslist.py">gtaskslist.py</a>
+
+<ul>
+<li>そのまま走らせれば全てのリストを取ってくる</li>
+<li>-l (--list)でリストを指定する(指定しない場合は全てを使用)</li>
+<li>-i (--item)で指定した言葉を含むタスクだけ取ってくる(指定しない場合は全てを取ってくる)
+
+<ul>
+<li><code>,</code>で区切って複数指定出来る</li>
+</ul>
+</li>
+<li>オプション指定しない引数は-iと同様にタスクの選択に使う</li>
+<li>例) ./gtaskslist.py -l mylist -i work,home important<br/>
+<i class="icon-arrow-right"></i><code>mylist</code>と言うリストの中から
+<code>work</code>, <code>home</code>または<code>important</code>と言う単語の入ったタスクのみ表示する</li>
+</ul>
+</li>
+</ul>
+
+
+<p>こんな感じです。
+メモや期限は取り敢えず無視しています。</p>
+
+<p>試しに以下の様なタスクリスト(test)をGoogle Tasksに作って表示してみます。</p>
+
+<p><img src="/images/post/20130510_tasks_canvas.jpg" alt="tasks_canvas" title="tasks_canvas" ></p>
+
+<p>ちなみに、Google TasksへはCalendarからも操作できますが
+<a href="https://mail.google.com/tasks/canvas">https://mail.google.com/tasks/canvas</a>
+というアドレスへアクセスするとフル画面で操作することが出来ます。</p>
+
+<p><code>gtaskslist.py</code>は適当なところへおいて、<code>~/usr/bin/gtaskslist</code>へ
+リンクを張ってあります。(<code>~usr/bin</code>は<code>PATH</code>が通っている所。この辺は好きな様に。)</p>
+
+<pre><code>cd ~/usr/bin/
+ln -s ~/Dropbox/08_Settings/Git/python/gtaskslist.py
+</code></pre>
+
+<p>この状態でshell GeekletのCommand欄へ</p>
+
+<pre><code>~/usr/bin/gtaskslist -l test -i IMPORTANT
+</code></pre>
+
+<p>と入力しておきます。</p>
+
+<p>結果は下の様になります。</p>
+
+<p><img src="/images/post/20130510_geektool_gtaskslist.jpg" alt="geektool_gtaskslist" title="geektool_gtaskslist" ></p>
+
+<p>上のスクリプトではタスクを言葉でピックアップしてそのまま並べているだけですが、
+期限等も含めて表示したい場合は
+<a href="https://developers.google.com/google-apps/tasks/?hl=ja">Google Tasks API</a>
+を参考に項目を追加したりしてみれば意外と簡単に出来ると思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GeekTool]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/04/18/computer-mac-geektool-desktop/"/>
+    <updated>2013-04-18T22:43:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/04/18/computer-mac-geektool-desktop</id>
+    <content type="html"><![CDATA[<p><a href="http://projects.tynsoe.org/en/geektool/">GeekTool</a>で使っていた
+<a href="https://github.com/insanum/gcalcli">gcalcli</a>というpythonのアプリケーションが
+アップデートされていたのでアップデートついでに整理しておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="GeekTool">GeekTool</h1>
+
+<p><a href="http://click.linksynergy.com/fs-bin/stat?id=iYVkHjWpfxk&offerid=94348&type=3&subid=0&tmpid=2192&RD_PARM1=https%253A%252F%252Fitunes.apple.com%252Fjp%252Fapp%252Fgeektool%252Fid456877552%253Fmt%253D12%2526uo%253D4%2526partnerId%253D30" target="_blank" rel="nofollow"><img width="75" class="alignleft" align="left" src="http://a3.mzstatic.com/us/r1000/101/Purple/05/02/3a/mzi.wldskqbn.75x75-65.png" style="border-radius: 11px 11px 11px 11px;-moz-border-radius: 11px 11px 11px 11px;-webkit-border-radius: 11px 11px 11px 11px;box-shadow: 1px 4px 6px 1px #999999;-moz-box-shadow: 1px 4px 6px 1px #999999;-webkit-box-shadow: 1px 4px 6px 1px #999999;margin: -5px 15px 1px 5px;"></a><div style="font-size:small;line-height:1.2;"><a href="http://click.linksynergy.com/fs-bin/stat?id=iYVkHjWpfxk&offerid=94348&type=3&subid=0&tmpid=2192&RD_PARM1=https%253A%252F%252Fitunes.apple.com%252Fjp%252Fapp%252Fgeektool%252Fid456877552%253Fmt%253D12%2526uo%253D4%2526partnerId%253D30" target="_blank" rel="nofollow"<strong> GeekTool 3.0.3（無料）</strong></a><br> カテゴリ: ユーティリティ, 開発ツール<br> 販売元: <a href="http://click.linksynergy.com/fs-bin/stat?id=iYVkHjWpfxk&offerid=94348&type=3&subid=0&tmpid=2192&RD_PARM1=https%253A%252F%252Fitunes.apple.com%252Fjp%252Fartist%252Ftynsoe.org%252Fid284941671%253Fmt%253D12%2526uo%253D4%2526partnerId%253D30" target="_blank" rel="nofollow">Tynsoe.org - Yann Bizeul</a>（サイズ: 1.1 MB）</div><br class="clearBoth"></p>
+
+<p>デスクトップ上に情報を表示させる方法は沢山ありますが、
+GeekToolはMacで最も自由に表示をカスタマイズ出来るアプリの1つだと思います。</p>
+
+<p>中でも、"Shell"と言うGeeklet(情報を表示するウィンドウ)を作る事が出来て、
+適当なコマンドの出力結果をデスクトップに表示することが出来ます。</p>
+
+<p>自分の環境ではこれを使ってGoogleカレンダーの予定やCPU/Memory情報の一部などを
+表示させています。</p>
+
+<h1 id="gcalcli">gcalcli</h1>
+
+<p><a href="https://github.com/insanum/gcalcli">gcalcli</a>はpythonで作られた
+Googleカレンダーを操作することが出来るアプリケーションです。</p>
+
+<p>インストールは上記ページから直接ダウンロードするか<code>git clone</code>で。</p>
+
+<p>以前のパージョンでは必要なかったのですが、(v3から?)Google API Clientを使う
+様になったので、これをインストールしておく必要があります。</p>
+
+<p>gcalcliのインストールも含めて以下の様な感じで
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /tmp
+</span><span class='line'>$ git clone git://github.com/insanum/gcalcli.git
+</span><span class='line'>$ mkdir -p ~/usr/bin # or as you like (in $PATH)
+</span><span class='line'>$ cp gcalcli/gcalcli ~/usr/bin
+</span><span class='line'>$ sudo  easy_install --upgrade google-api-python-client</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>以前のバージョンをインストールしていた場合、ユーザー名や
+パスワードを書いた<code>~/.gcalclirc</code>と言うファイルがあるかもしれませんが、
+新しいバージョンではユーザー名等は必要ないので特に凝った設定をしてない限りは
+削除するかどこかへ移動させて置いた方が良いです(でないと新しいスクリプトでは
+理解出来ない項目が出てきてクラッシュします)。</p>
+
+<p>インストールしたら</p>
+
+<pre><code>gcalcli list
+</code></pre>
+
+<p>などとするとデフォルトブラウザが開いて</p>
+
+<p><img src="/images/post/20130418_gcalcliauth.jpg" title="" alt=""></p>
+
+<p>の様に許可をするかどうか聞かれるので<code>アクセスを許可</code>をクリック。</p>
+
+<p>すると、<code>$HOME</code>に<code>.gcalcli_oauth</code>と言うファイルが出来ているはずで、
+これが今後認証のために使われます。</p>
+
+<p>以降、同じように<code>gcalcli list</code>等とすればすぐにカレンダーのリストが
+表れる様になります。</p>
+
+<p><code>gcalcli agenda</code>とすると予定の一覧が見れ、さらに<code>--calendar [カレンダー名]</code>
+オプションを与える事で予定を見るカレンダーを絞れます。<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup></p>
+
+<h1 id="表示させているGeeklet:+カレンダー">表示させているGeeklet: カレンダー</h1>
+
+<p><img src="/images/post/20130418_gcalCal.jpg" title="" alt=""></p>
+
+<p>まず1つ目はカレンダーです。見て分かる様にコマンド<code>cal</code>の様な出力にしています。</p>
+
+<p>この出力は<a href="https://github.com/rcmdnk/scripts/blob/master/gcalCal.sh">gcalCal.sh</a>
+というスクリプトで作っています。</p>
+
+<p>やっていることは</p>
+
+<ul>
+<li><code>date</code>コマンドを使って今月の日付一覧と(1日や31日と同じ週にある)前後の月の
+埋め合わせ日付のリストを作る。</li>
+<li>Googleカレンダーから予定のリストを取ってきて予定のある日をチェック。
+
+<ul>
+<li><code>Holidays</code>という名前を含むカレンダーの予定は別に取得。</li>
+</ul>
+</li>
+<li>当日は色反転、予定のある日は<code>'</code>を、休みの日にはアンダーバーを付ける様にして
+出力。</li>
+</ul>
+
+
+<p>白黒だけでやろうとしているので<code>'</code>などを使っていますが、
+色を使って良いのであれば休日は赤にして予定のある日にアンダーバーにする、
+と言った方がすっきりすると思います。</p>
+
+<h1 id="表示させているGeeklet:+予定リスト">表示させているGeeklet: 予定リスト</h1>
+
+<p><img src="/images/post/20130418_gcalList.jpg" title="" alt=""></p>
+
+<p>カレンダーの下には予定リストを表示しています。</p>
+
+<p>場所を選ばなければ単に<code>gcallist agenda</code>の結果でも良いのですが、
+オリジナルのままだと幅を取ってしまうので、
+まず<code>gcalcli</code>自体を少しいじって
+<code>agenda</code>の表示方法を変えています。(使っている<code>gcalcli</code>は<code>v3.1</code>)
+<div><script src='https://gist.github.com/5373541.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>上の変更で、さらに同じ名前の予定が複数ある時は最初だけを表示する様にしています。
+(毎週ある予定等の重複表示を避けるため)</p>
+
+<p>この変更を行った<code>gcalcli</code>を<a href="https://github.com/rcmdnk/scripts/blob/master/gcalList.sh">gcalList.sh</a>
+というスクリプトを使って最終的に表示させています。</p>
+
+<p>このスクリプトでは
+<code>gmail</code>、<code>Facebook</code>、<code>Time</code>と付いたカレンダーのみに情報を取得して
+表示させています。</p>
+
+<h1 id="表示させているGeeklet:+タスクリスト">表示させているGeeklet: タスクリスト</h1>
+
+<p>現在実際には使っていないのですが、iCalでのイベントを
+コマンドラインから呼べる<a href="http://hasseg.org/icalBuddy/">icalBuddy</a>
+と言うツールがあり、
+これを使ってタスクリストを表示させていました。</p>
+
+<p><code>icalBuddy</code>をインストール後</p>
+
+<pre><code>`/usr/local/bin/icalBuddy uncompletedTasks | sed -e "s/*/-/"`
+</code></pre>
+
+<p>というコマンドを与えたGeekletです。</p>
+
+<p>(現在はタスクリストはGoogle Taskに書き込んでいて、
+iCalとは同期させていないので何も表示されません。)</p>
+
+<h1 id="表示させているGeeklet:+CPU/Memory情報">表示させているGeeklet: CPU/Memory情報</h1>
+
+<p><img src="/images/post/20130418_myps.jpg" title="" alt=""></p>
+
+<p>最後にCPUやMemoryを使っているアプリの情報です。
+これは<code>ps</code>の出力をちょっといじった出力にしています。</p>
+
+<p>スクリプトは<a href="https://github.com/rcmdnk/scripts/blob/master/myps.sh">myps.sh</a>
+です。</p>
+
+<h1 id="設定">設定</h1>
+
+<p><img src="/images/post/20130418_gt_gcalCal.jpg" title="" alt=""></p>
+
+<p>上の例はカレンダー表示の例ですが、
+このように<code>Command</code>欄にスクリプトを記入します。
+その下にある数字で何秒ごとに更新するか(Refresh every)、と
+Timeoutの時間を設定します(上の例では5分毎)。</p>
+
+<p>Position, Sizeは直接ウィンドウをいじっても変更出来ます。</p>
+
+<p>フォントサイズはCPU/Memory情報が11ptで他は12ptにしています。</p>
+
+<p>全部合わせて下の様な感じで、画面の右端に表示してあります。</p>
+
+<p><img src="/images/post/20130418_geektoolAll.jpg" title="" alt=""></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <code>--calendar</code>オプションで与える名前は省略されたものでも可能で、
+  与えられた名前が含まれるカレンダー全てが使われる様になっています。
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>

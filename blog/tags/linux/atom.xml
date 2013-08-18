@@ -1,0 +1,1178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Linux | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/linux/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[stowでmake installしたパッケージを管理]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin/"/>
+    <updated>2013-08-11T03:53:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B003KOAR0G/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41PYjDYaZvL._SL160_.jpg" border="0"></a></p>
+
+<p><a href="/blog/2013/08/04/computer-linux-mac/">pacoでmake installしたパッケージを管理</a>
+で書いた様に、Linux(WindowsのcoLinuxも含む)で
+make installしたパッケージも管理出来る様にしましたが、
+Cygwinにもpacoを入れようとした所コンパイル出来なかったので
+代わりにstowと言うインストーラーを入れました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="Cygwinではpacoをコンパイル出来ない">Cygwinではpacoをコンパイル出来ない</h1>
+
+<p>pacoのパッケージを取ってきてCygwinでコンパイルしようとすると</p>
+
+<pre><code>log.c:67:20: error: ‘RTLD_NEXT’ undeclared (first use in this function)
+</code></pre>
+
+<p>と言った様なエラーが出てコンパイル出来ないのですが、これはglibcが入ってないからですが、
+Cygwinではglibcは入れられない様です<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
+
+<p>いくつかそれっぽいものはありましたが<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>、素直に入れることは
+出来なそうなのでpacoは辞めておくことに。</p>
+
+<h1 id="stow">stow</h1>
+
+<p><a href="http://www.gnu.org/software/stow/">stow</a>はpacoと同じ様な<code>make install</code>などで
+<code>apt-get</code>などを通さず直接インストールするパッケージを管理する
+インストーラーです。</p>
+
+<h2 id="paco+v.s.+stow">paco v.s. stow</h2>
+
+<p>pacoとstowの違いは</p>
+
+<ul>
+<li>paco: <code>/usr/local/var/log/paco</code>等のディレクトリ以下にパッケージ名情報ファイルを作り、
+その情報を元にインストールされたファイルを管理する。</li>
+<li>stow: <code>/usr/local/stow/</code>等のディレクトリ以下にパッケージ名ディレクトリを作り、
+その中にパッケージをインストールする。
+そこから<code>/usr/local/</code>などへリンクを張る。</li>
+</ul>
+
+
+<p>pacoでインストールした場合は、パッケージ自体は通常通りインストールされるので、<code>/usr/local/var/log/paco</code>自体を削除しても問題有りません。</p>
+
+<p>stowの場合は<code>/usr/local/</code>へはリンクが貼られるだけなので
+通常インストールとは形が変わります。
+一方、stowは<code>/usr/local/stow/</code>からのリンクを管理するので、
+例えば1つのパッケージでバージョンの違う物を両方インストールしておいて、
+一時的に切り替える事が簡単に出来ます。
+新しいバージョンを入れて取り敢えず試してみる、と言うことができるので、
+その点でstowが結構便利かもしれません。</p>
+
+<h2 id="stowインストール">stowインストール</h2>
+
+<ul>
+<li>Cygwin</li>
+</ul>
+
+
+<p><a href="/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>で</p>
+
+<pre><code>$ apt-cyg install stow
+</code></pre>
+
+<ul>
+<li>Mac</li>
+</ul>
+
+
+<p><a href="/blog/2013/06/21/computer-mac/">Homebrew</a>で</p>
+
+<pre><code>$ brew install stow
+</code></pre>
+
+<ul>
+<li>Linux</li>
+</ul>
+
+
+<p>apt-getなど。root権限がないところでローカルに入れる場合は自分もstowで管理。</p>
+
+<pre><code>$ cd ~/tmp/
+$ wget http://ftp.gnu.org/gnu/stow/stow-2.2.0.tar.gz
+$ tar xzf stow-2.2.0.tar.gz
+$ cd stow-2.2.0
+$ ./configure --prefix=$HOME/usr/local/stow/stow-2.2.0
+$ make &amp;&amp; make install
+$ cd ~/usr/local/stow
+$ ./stow-2.2.0/bin/stow stow-2.2.0
+</code></pre>
+
+<h2 id="stowの使い方">stowの使い方</h2>
+
+<p>まず、stowで管理するパッケージをインストールするディレクトリを決めておきます。
+通常は最終的にインストールするディレクトリ下にstowというディレクトリを作ります。
+(上の場合は<code>$HOME/usr/local/</code>に<code>bin/stow</code>などをインストールするので
+<code>$HOME/usr/local/stow</code>ディレクトリを作って入れています。)</p>
+
+<p>パッケージをインストールする際は、prefix等でインストール先を
+<code>$HOME/usr/local/stow</code>+<code>パッケージ名</code>に指定して後は通常通りインストールします。</p>
+
+<p>インストール後、stowディレクトリへ行き、</p>
+
+<pre><code>$ stow package
+</code></pre>
+
+<p>とすることで、package内から<code>../</code>の<code>/bin/</code>等へリンクが張られます。</p>
+
+<p>アンインストールは</p>
+
+<pre><code>$ stow -D package
+</code></pre>
+
+<p>とするとリンクが削除されます。パッケージがその後必要なければ
+stowディレクトリから実体も削除すればOK。</p>
+
+<p>バージョンの違う同じパッケージをインストールしてる場合は</p>
+
+<pre><code>$ stow -D package-1.0
+$ stow package-2.0
+</code></pre>
+
+<p>の様にすれば1.0から2.0へ切り替える事が出来、
+実体は残ったままなので、同じ様に1.0に戻る事もすぐ出来ます。</p>
+
+<pre><code>$ stow -n package-2.0
+</code></pre>
+
+<p>とすると、ドライランすることが出来ます。</p>
+
+<p>通常は、カレントディレクトリがstowディレクトリ、親ディレクトリが
+リンクを作るインストール先ですが、これを変えたい場合は</p>
+
+<ul>
+<li><code>-d stow_dir</code>、<code>--dir=stow_dir</code>でstowディレクトリを指定。</li>
+<li><code>-t target_dir</code>、<code>--target=target_dir</code>でインストール先ディレクトリを指定。</li>
+</ul>
+
+
+<p>します。ただ、pacoの場合と違い、これらの情報は残らないので、
+特別指定した場合はアンインストールする場合も指定する必要があるので、
+管理上、最終的なインストール先の下にstowディレクトリを作るのが良いかと思います。</p>
+
+<h2 id="すでにインストールしてあるパッケージに対してstowで再インストールする場合">すでにインストールしてあるパッケージに対してstowで再インストールする場合</h2>
+
+<p>すでにパッケージがインストールしてあると、
+リンクでなく実体が存在するのでstowでリンクを作ろうとすると
+エラーが出ます。
+(<code>-D</code>で削除しようとするとリンクじゃない、と言って削除してくれない。)
+一旦それらのファイルを削除しないとstowで管理しようがないみたいで、
+結構面倒です。</p>
+
+<p>そこで<a href="https://github.com/rcmdnk/scripts/blob/master/stowReset.sh">stowReset.sh</a>
+と言うスクリプトを作りました。</p>
+
+<p>使い方は、まず、インストールしたいパッケージをstowディレクトリに
+インストールした後、
+stowディレクトリに行き、</p>
+
+<pre><code>$ stowReset.sh package
+</code></pre>
+
+<p>とすると、packageに関連するファイルが親ディレクトリから削除されます。
+stow同様に<code>-d</code>、<code>-t</code>、<code>-n</code>のオプションが使えます(<code>--dir</code>等2重ハイフンオプションは未対応)。</p>
+
+<p>その後、通常通り、</p>
+
+<pre><code>$ stow package
+</code></pre>
+
+<p>とすればリンクを作れる様になります。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>pacoに比べて、新しいバージョンのテスト等にも便利に使えそうなので、
+MacやLinuxでもpacoからstowへ移行しようと思います。</p>
+
+<p>pacoだとconfigureの引数等の情報がそのまま残るのでちょっと便利ですが、
+その点はちゃんとメモするようにしておけばOKかな、と。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://cygwin.com/faq.html#faq.programming.glibc">Where is glibc?</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://www.gurucoding.com/en/pc_cross_compiler/building_glibc_cygwin_vm.php">Building GLibc in the Cygwin VM</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://artfiles.org/cygwin.org/pub/glibc/releases/">Index of /cygwin.org/pub/glibc/releases</a>
+<a href='#fnref:3' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Lua対応Vimをインストール]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/08/07/computer-vim/"/>
+    <updated>2013-08-07T20:36:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/08/07/computer-vim</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/4048677977/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41otNZcUklL._SL160_.jpg" border="0"></a></p>
+
+<p>Vimでの補完機能のプラグインである<a href="https://github.com/Shougo/neocomplcache.vim">neocompletecache</a>
+の後継版<a href="https://github.com/Shougo/neocomplete.vim">neocomplete</a>
+を使うためにVimを再インストールした際の手順。
+<a href="http://www.lua.org/home.html">Lua</a>自体がない環境もあったので、
+Luaのインストールからです。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="Linux">Linux</h1>
+
+<ul>
+<li>su権限持っていないのでローカルにluaをインストール:</li>
+</ul>
+
+
+<p><a href="http://www.lua.org/ftp/">luaのダウンロードページ</a>より最新のを取ってきてインストール。
+取り敢えずmakeしてみるとエラーがでた。</p>
+
+<pre><code>$ cd ~/tmp/
+$ wget http://www.lua.org/ftp/lua-5.2.2.tar.gz
+$ tar xzf lua-5.2.2.tar.gz
+$ cd lua-5.2.2
+$ make linux
+...
+make[1]: Entering directory `/home/user/tmp/lua-5.2.2/src'
+make all SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl -lreadline"
+make[2]: Entering directory `/home/user/tmp/lua-5.2.2/src'
+gcc -o lua   lua.o liblua.a -lm -Wl,-E -ldl -lreadline-
+/usr/lib/../lib64/libreadline.so: undefined reference to `PC'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tgetflag'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tgetent'
+/usr/lib/../lib64/libreadline.so: undefined reference to `UP'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tputs'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tgoto'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tgetnum'
+/usr/lib/../lib64/libreadline.so: undefined reference to `BC'
+/usr/lib/../lib64/libreadline.so: undefined reference to `tgetstr'
+collect2: ld returned 1 exit status
+make[2]: *** [lua] Error 1
+make[2]: Leaving directory `/home/user/tmp/lua-5.2.2/src'
+make[1]: *** [linux] Error 2
+make[1]: Leaving directory `/home/user/tmp/lua-5.2.2/src'
+make: *** [linux] Error 2
+</code></pre>
+
+<p>libreadlineを調べてみると</p>
+
+<pre><code>$ ldd -r /usr/lib64/libreadline.so
+        linux-vdso.so.1 =&gt;  (0x00007fffbe3aa000)
+        /$LIB/snoopy.so =&gt; /lib64/snoopy.so (0x00002b2a6a387000)
+        libc.so.6 =&gt; /lib64/libc.so.6 (0x00002b2a6a5af000)
+        libdl.so.2 =&gt; /lib64/libdl.so.2 (0x00002b2a6a907000)
+        /lib64/ld-linux-x86-64.so.2 (0x00002b2a69f29000)
+undefined symbol: PC    (/usr/lib64/libreadline.so)
+undefined symbol: UP    (/usr/lib64/libreadline.so)
+undefined symbol: BC    (/usr/lib64/libreadline.so)
+undefined symbol: tgetflag      (/usr/lib64/libreadline.so)
+undefined symbol: tgetent       (/usr/lib64/libreadline.so)
+undefined symbol: tputs (/usr/lib64/libreadline.so)
+undefined symbol: tgoto (/usr/lib64/libreadline.so)
+undefined symbol: tgetnum       (/usr/lib64/libreadline.so)
+undefined symbol: tgetstr       (/usr/lib64/libreadline.so)
+</code></pre>
+
+<p>こんな感じ。
+これに関することが
+<a href="http://lua.2524044.n2.nabble.com/ANN-Lua-5-2-2-rc1-now-available-td7646399i20.html">このthread</a>
+にあったので、個々にある通り<code>-ltermcap</code>を加えてみる。</p>
+
+<pre><code>$ make linux MYLIBS=-ltermcap
+</code></pre>
+
+<p>OK。<code>$HOME/usr/local</code>に<a href="/blog/2013/08/04/computer-linux-mac/">paco</a>に登録しつつインストール。</p>
+
+<pre><code>$ paco -D "make install INSTALL_TOP=$HOME/usr/local"
+</code></pre>
+
+<ul>
+<li>Vimをインストール</li>
+</ul>
+
+
+<p>ソースからコンパイルしてインストール。</p>
+
+<pre><code>$ cd ~/tmp/
+$ hg clone https://vim.googlecode.com/hg/ vim
+$ cd vim/src
+$ LDFLAGS="-L$HOME/usr/local/lib/" ./configure --with-lua-prefix=$HOME/usr/local --prefix=$HOME/usr/local --with-local-dir=$HOME/usr/local --disable-selinux --disable-xim --disable-darwin --disable-xsmp --disable-xsmp-interact --enable-netbeans --enable-multibyte --enable-gui=no --enable-gtk2-check=no --enable-gnome-check=no --enable-motif-check=no --enable-athena-check=no --enable-nextaw-check=no --enable-carbon-check=no --disable-gtktest --disable-acl --disable-gpm --disable-sysmouse --enable-luainterp=yes --enable-mzschemeinterp=no --enable-perlinterp=no --enable-pythoninterp=yes --enable-python3interp=yes --enable-tclinterp --enable-rubyinterp=yes --enable-cscope --disable-workshop --disable-sniff --enable-hangulinput --enable-fontset --enable-largefile --enable-nls
+</code></pre>
+
+<p><code>--enable-luainterp=yes</code>でluaオプションを有効にします。
+他は適宣自分に合わせて設定。</p>
+
+<p><code>LDFLAGS</code>や<code>--with-local-dir</code>で<code>$HOME/usr/local</code>にあるライブラリー等を使う様に
+指定してますが、lua用に
+<code>--with-lua-prefix=$HOME/usr/local</code>が別途必要の様。</p>
+
+<p>ちゃんとluaが見つかれば、<code>./configure</code>時に、</p>
+
+<pre><code>...
+checking if link with -L/home/user/usr/local/lib -llua is sane... yes
+...
+</code></pre>
+
+<p>の様に見つかった、と言ってくれます。
+<code>--with-lua-prefix</code>を指定しないと<code>/usr/</code>を見に行き、</p>
+
+<pre><code>checking --with-lua-prefix argument... no
+checking LUA_PREFIX environment var... not set, default to /usr
+checking --with-luajit... no
+checking for lua... (cached) /usr/bin/lua
+checking Lua version... (cached) 5.1
+checking if lua.h can be found in /usr/include... no
+checking if lua.h can be found in /usr/include/lua5.1... no
+</code></pre>
+
+<p>な感じで失敗します。</p>
+
+<p>configureが成功したら</p>
+
+<pre><code>$ make &amp;&amp; make install
+</code></pre>
+
+<ul>
+<li>PATHの設定</li>
+</ul>
+
+
+<p><code>$HOME/usr/local</code>にPATHが通ってない場合は以下の設定を<code>~/.bashrc</code>に加えておきます。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc  </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;export <span class="nv">PATH</span><span class="o">=</span><span class="nv">$HOME</span>/usr/local/bin:<span class="nv">$PATH</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h1 id="Windows+(Cygwin)">Windows (Cygwin)</h1>
+
+<ul>
+<li>setup.exeを使うか<a href="http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>
+でluaをインストール:</li>
+</ul>
+
+
+<p>apt-cygで</p>
+
+<pre><code>$ apt-cyg install lua
+</code></pre>
+
+<ul>
+<li>Vimのインストール</li>
+</ul>
+
+
+<p>現状のCygwinで配布されてるバイナリが1-1110, 1112-1152のパッチが当たっていて、
+さらにLua対応でビルドされてるので、
+最近インストールしたなら対応しているはずです。</p>
+
+<p>もし対応してなかったり古い場合は取り直し。</p>
+
+<p>apt-cygには<code>update</code>と言ったコマンドが無いので、一度削除してから入れなおします。</p>
+
+<pre><code>$ apt-cyg remove vim
+</code></pre>
+
+<p>そして新たにインストール:</p>
+
+<pre><code>$ apt-cyg install vim
+</code></pre>
+
+<h1 id="Mac">Mac</h1>
+
+<ul>
+<li><a href="/blog/2013/06/21/computer-mac/">Homebrew</a>を使ってLuaをインストール:</li>
+</ul>
+
+
+<p>Homebrewでluaを</p>
+
+<pre><code>$ brew install lua
+</code></pre>
+
+<ul>
+<li>HomebrewでMacVimのHEADバージョンをインストール<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>:</li>
+</ul>
+
+
+<p>さらにvimも</p>
+
+<pre><code>$ brew install macvim --with-cscope --with-lua --HEAD
+$ sudo ln -s /usr/local/Cellar/macvim/HEAD/MacVim.app /Applications/
+</code></pre>
+
+<ul>
+<li>ターミナル等から使うため<code>~/.bashrc</code>に次を追加:</li>
+</ul>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc  </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1 <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;For+MacVim&quot;</span>&gt;For MacVim&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;if <span class="o">[[</span> <span class="s2">&quot;$OSTYPE&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;darwin&quot;</span> <span class="o">]]</span> &amp;amp;&amp;amp; <span class="o">[</span> -d /Applications/MacVim.app/Contents/MacOS <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>/Applications/MacVim.app/Contents/MacOS:<span class="nv">$PATH</span>
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<ul>
+<li>ソースから直接コンパイルしてインストール</li>
+</ul>
+
+
+<p>Homebrew版でも現状7.4b版がHEADで使えて、さらに<code>--with-lua</code>オプションで
+luaを有効に出来るので充分ですが、もしソースから直接コンパイルして
+インストールしたい場合は</p>
+
+<pre><code>$ brew install mercurial
+</code></pre>
+
+<p>でMercurial(hg)をインストールしてから上のLinuxとかの様に<code>hg</code>でソースを取ってきて
+インストール。</p>
+
+<p></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://supermomonga.com/2013/07/03/macvim-with-lua-features/">最新パッチ＆if_luaなMacVimで高速検索＆補完！</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[pacoでmake installしたパッケージを管理]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac/"/>
+    <updated>2013-08-04T09:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/8484640825/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/61moyMmCoxL._SL160_.jpg" border="0"></a></p>
+
+<p>Linuxでapt-get、Macで<a href="/blog/2013/06/21/computer-mac/">Homebrew</a>、
+Cygwinで<a href="/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>
+などでパッケージ管理出来ますが、
+ソースからコンパイルして入れる場合やroot権限を持ってない環境で
+<code>make install</code>して入れているパッケージが結構あります。</p>
+
+<p>これら、適当なログはのこしてありますが、実際どのファイルが
+どのパッケージに対応しているのかまでは分からなかったりします。</p>
+
+<p>そんな中で<code>make install</code>で入れるパッケージを管理するための
+<a href="http://paco.sourceforge.net/">paco</a>と言うソフトを見つけたで入れてみました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="pacoのインストール">pacoのインストール</h1>
+
+<p>pacoの<a href="http://paco.sourceforge.net/downloads.html">Downloads</a>
+ページから最新版のバージョンを確認してダウンロードしてインストールします。</p>
+
+<pre><code>$ wget -O paco-2.0.9.tar.gz http://sourceforge.net/projects/paco/files/paco/2.0.9/paco-2.0.9.tar.gz/download
+$ tar xzf paco-2.0.9.tar.gz
+$ cd paco-2.0.9
+$ ./configure --prefix=$HOME/usr/local --disable-gpaco --with-paco-logdir=$HOME/usr/local/var/log/paco
+</code></pre>
+
+<p>ここで、<code>--disable-gpaco</code>はGUI版のpacoを無効にしています。
+GUI版をインストールするためには
+gtkmmが必要で、インストールされてない状態で<code>--disbale-gpaco</code>オプションを
+入れないと</p>
+
+<pre><code>...
+No package 'gtkmm-2.4' found 
+...
+</code></pre>
+
+<p>等と怒られます。<code>gtkmm</code>を入れても良いのですが、
+GUI版を使う予定がないのでオプションで外しておきます。</p>
+
+<p><code>--with-paco-logdir</code>はpacoでインストールされたパッケージ情報を管理するファイルの場所で、
+初期値が<code>/var/log/paco</code>になっていて、root権限が無いと書き込めないので、
+変更しておきます。</p>
+
+<p>この変更をしておかないと、root権限以外で<code>make install</code>した時に</p>
+
+<pre><code>mkdir: /var/log/paco: Permission denied
+</code></pre>
+
+<p>と怒られます。</p>
+
+<p>configureできたら</p>
+
+<pre><code>$ make &amp;&amp; make install
+</code></pre>
+
+<p>でインストール完了。</p>
+
+<p>Macで使えない、と言った話もいくつか見かけましたが、Macでも問題なく使えます。</p>
+
+<p>pacoのページを見ると</p>
+
+<pre><code>Note:
+Paco does not work on systems in which the executables involved in the installation of the packages (mv, cp, install...) are statically linked against libc, like FreeBSD and OpenBSD.
+</code></pre>
+
+<p>とありますが、その上の表で<code>NetBSD</code>では使える様になっています。</p>
+
+<p>OS Xのベースの<a href="http://ja.wikipedia.org/wiki/Darwin_(%e3%82%aa%e3%83%9a%e3%83%ac%e3%83%bc%e3%83%86%e3%82%a3%e3%83%b3%e3%82%b0%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0)">Darwin</a>はFreeBSDベース、となってますが、
+NetBSDからも受け継いでる部分はあり<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup><sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>、
+そもそもシステムとして別物の様な物みたいですが
+取り敢えず手元のLionでは問題なく動いてます。</p>
+
+<p>Macでmvを調べてみると</p>
+
+<pre><code>$ otool -L /bin/mv
+/bin/mv:
+        /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 159.1.0)
+</code></pre>
+
+<p>と言った感じでlibSystemという名の共有ライブラリ<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>だけにリンクしています。
+(ので、上の注意にあるFreeBSDの様な状況には当たらない。)</p>
+
+<p>Linuxだと(Debianなど)、</p>
+
+<pre><code>$ ldd /bin/mv
+...
+libc.so.6 =&gt; /lib/libc.so.6 (0xb7746000)
+...
+</code></pre>
+
+<p>と言った感じでlibcの共有ライブラリにリンクしていて、
+Cygwinなんかはまた別ですが、libcの静的ライブラリにはリンクしてません。</p>
+
+<p>FreeBSDが手元にないのでわかりませんがMacとはmvの状況が少し違うみたいです。</p>
+
+<h2 id="pacoの使い方">pacoの使い方</h2>
+
+<p>ここで、まず自分自身をパッケージコントロールするため、
+pacoのインストール用パッケージディレクトリ(makeした場所)で</p>
+
+<pre><code>$ make logme
+</code></pre>
+
+<p>を実行します。これでpaco自身が登録されます。</p>
+
+<p>他のパッケージを登録するには<code>make install</code>する代わりに</p>
+
+<pre><code>$ paco -lp vim-7.4b "make install"
+</code></pre>
+
+<p>など。
+もし、Makefileがあるディレクトリがpacoの様にパッケージ名だったりする場合、</p>
+
+<pre><code>$ paco -lD "make install"
+</code></pre>
+
+<p>の様に<code>D</code>オプションを使うと、ディレクトリ名がパッケージ名として登録されます。
+version情報もここでの<code>-</code>以降になるので、
+ディレクトリにバージョン情報がない場合でバージョンを把握してる場合は
+<code>p</code>オプションで正しく指定して置いた方が良いかもしれません。</p>
+
+<p>Vimなどは<code>src</code>以下にMakefileがあるので<code>D</code>オプションでやってしまうと
+<code>src</code>と言うなのパッケージで登録されてしまうので注意です。
+もし、間違って登録したら、
+<code>$HOME/usr/local/var/log/paco/src</code>と言うファイルが出来て居るはずなので、
+このファイルを<code>vim-7.4b</code>に名前を変えて、
+中身の<code>Name</code>と<code>Version</code>項目を</p>
+
+<pre><code>#:Name:     vim
+#:Version:  7.4b
+</code></pre>
+
+<p>と変更しておきます。</p>
+
+<p>登録されたパッケージ一覧を表示するには</p>
+
+<pre><code>$ paco -a
+paco-2.0.9 vim-7.4b
+</code></pre>
+
+<p>各パッケージの情報を見るには
+<code>paco -i &lt;package&gt;</code>:</p>
+
+<pre><code>$ paco -i paco
+------------
+paco-2.0.9
+------------
+
+Name:     paco
+Version:  2.0.9
+Summary:  Source code package organizer
+</code></pre>
+
+<p><code>&lt;package&gt;</code>に関してはversion入(<code>paco-2.0.9</code>)でもversion無し(<code>paco</code>)でもOK。
+ここで出てくる情報の</p>
+
+<p>インストール時に使ったconfigureのオプションを表示するには
+<code>paco -o &lt;package&gt;</code>:</p>
+
+<pre><code>$ paco -o paco
+--prefix=/home/user/usr/local --disable-gpaco --with-paco-logdir=/home/user/usr/local/var/log/paco
+</code></pre>
+
+<p>インストールされたファイル一覧とファイルサイズ等を見るには</p>
+
+<pre><code>$ paco -fst paco
+paco-2.0.9:
+  8k  /home/user/usr/local/share/paco/README
+ 40k  /home/user/usr/local/lib/libpaco-log.a
+  4k  /home/user/usr/local/lib/libpaco-log.la
+...
+1.3M  Total
+</code></pre>
+
+<p>とします。</p>
+
+<pre><code>$ paco -r paco
+</code></pre>
+
+<p>とすれば、上で表示されたファイル全部を消去するパッケージのアンインストールを行います。
+(多分これが一番嬉しい機能。)</p>
+
+<p>その他詳しくは<a href="http://paco.sourceforge.net/doc/paco.8.txt">pacoのmanページ</a>で。</p>
+
+<h2 id="すでにインストールされたパッケージについて">すでにインストールされたパッケージについて</h2>
+
+<p>pacoは<code>make install</code>時の情報を元に管理情報を作成するので、
+すでにインストールされているパッケージについては情報を作る簡単な
+方法はありません。</p>
+
+<p>ソースが残っていれば再度<code>paco -lp &lt;package&gt; "make install"</code>
+するのが一番簡単です。</p>
+
+<p>無理矢理情報を追加しようと思えば、
+<code>$HOME/usr/local/var/log/paco</code>にある他のパッケージのファイルを参考に、
+各パッケージのファイルを作ってあげれば良いと思うのですが
+すでに複数パッケージを同じディレクトリ下にインストールしてある場合は
+結構面倒です。</p>
+
+<p>各パッケージ情報のファイルの中身はconfigure情報などの後に、
+ファイル一覧が</p>
+
+<pre><code>ファイル名|サイズ|-2|-2
+</code></pre>
+
+<p>の様になっていて、サイズは適当でも良いのでファイル名だけすべて
+入れておけばアンインストールは簡単に出来ます。
+もしあるディレクトリ下に1つのパッケージしかインストールされてない状態なら、
+ファイル一覧が簡単に作れるので、サイズは適当でもいいから
+登録しておくだけでもよいかもしれませんが、
+すでに複数ある場合は名前だけから判断するのも難しいファイルもあるので、
+次にインストールし直すときに登録しなおすか
+同じものでも<code>make install</code>し直す方が結果的には楽で正しく出来るかな、と。</p>
+
+<hr />
+
+<p>追記 2013/08/11</p>
+
+<p><a href="/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>でstowを導入してみましたが、
+新しいバージョンなどをテストしたりするのにstowだと簡単に元に戻したりできるので、
+stowのが便利かな、と思いstowに全面的に移行。</p>
+
+<p>追記終わり</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://www.netbsd.org/gallery/products.html#darwin">Products based on NetBSD</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://en.wikipedia.org/wiki/Comparison_of_BSD_operating_systems">Comparison of BSD operating systems</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://d.hatena.ne.jp/kanonji/20121018/1350538932">.soや.dylibや.aファイル、共有ライブラリなどについて調べてみた</a>
+<a href='#fnref:3' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Vimインストール]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/06/28/computer-linux-mac-vim/"/>
+    <updated>2013-06-28T17:58:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/06/28/computer-linux-mac-vim</id>
+    <content type="html"><![CDATA[<p>色々プラグインを使おうと思ったら足りないオプションがあったりしたので
+MacとLinuxでVimの再設定したりインストールし直した事についてのメモ。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="Mac">Mac</h1>
+
+<p>ターミナルコマンドとして<code>/usr/bin/</code>入っているVimでは色々足りないので、
+<code>.bashrc</code>へ</p>
+
+<pre><code>#For MacVim
+if [[ "$OSTYPE" =~ "darwin" ]] &amp;&amp; [ -d /Applications/MacVim.app/Contents/MacOS ];then
+  export PATH=/Applications/MacVim.app/Contents/MacOS:$PATH
+fi
+</code></pre>
+
+<p>を追加。ターミナルからもMacVimのVimを使う様に変更。</p>
+
+<h1 id="Linux">Linux</h1>
+
+<p>半年くらい前にパッチを当てた物を使おうと思ったら
+何故かSEGって使い物にならなかったので素の7.3を入れてたのですが、
+再度チャレンジしてみることに。
+(7.3でもパッチ当ててないと使えないプラグインとかもあるので)</p>
+
+<p>Mercurialがインストールされてたので、Mercurialで取ってくる。</p>
+
+<pre><code>$ cd ~/tmp
+$ hg clone https://vim.googlecode.com/hg/ vim
+</code></pre>
+
+<p>取り敢えずconfigureしてみると</p>
+
+<pre><code>$ cd vim/src
+$ ./configure ...
+....
+no terminal library found
+checking for tgetent()... configure: error: NOT FOUND!
+      You need to install a terminal library; for example ncurses.
+      Or specify the name of the library with --with-tlib.
+</code></pre>
+
+<p>と怒られる。以前、libncursesを~/usr/localに入れたたのを忘れてた、と言うことで、
+LDFLAGSを指定してからconfigure。この時、一度<code>make disclean</code>して
+掃除してやる必要があります。</p>
+
+<pre><code>$ make disclean
+$ LDFLAGS="-L$HOME/usr/local/lib/" ./configure ...
+$ make
+</code></pre>
+
+<p>で、取り敢えずmake出来たのですが、今回入れたかった<code>autochdir</code>オプションが見当たらない。</p>
+
+<p><code>feature.h</code>の中身を見ると<code>FEAT_SUN_WORKSHOP</code>か<code>FEAT_NETBEANS_INTG</code>が
+有効なときに取り込まれる様です。</p>
+
+<p>Workshopについては、Motifがインストールされていなくて使えないので、
+NetBeansの方を<code>--enable-netbeans</code>として追加してやることにしました。</p>
+
+<p>最終的には次の様にインストール:</p>
+
+<pre><code>$ LDFLAGS="-L$HOME/usr/local/lib/" ./configure --prefix=$HOME/usr/local --with-local-dir=$HOME/usr/local --disable-selinux --disable-xim --disable-darwin --disable-xsmp --disable-xsmp-interact --enable-netbeans --enable-multibyte --enable-gui=no --enable-gtk2-check=no --enable-gnome-check=no --enable-motif-check=no --enable-athena-check=no --enable-nextaw-check=no --enable-carbon-check=no --disable-gtktest --disable-acl --disable-gpm --disable-sysmouse --enable-luainterp=yes --enable-mzschemeinterp=no --enable-perlinterp=no --enable-pythoninterp=yes --enable-python3interp=yes --enable-tclinterp --enable-rubyinterp=yes --enable-cscope --disable-workshop --disable-sniff --enable-hangulinput --enable-fontset --enable-largefile --enable-nls 
+$ make &amp;&amp; make install
+</code></pre>
+
+<p>無事<code>set autochdir?</code>で使える事が確認できたのでOK。
+オプションは半分くらい余り吟味せずなんとなくで、デフォルトでのままのものもあったりするので、
+、気が向いたら整理する予定。</p>
+
+<hr />
+
+<p>2013/07/06追記
+<code>--enable-luainterp=no</code>から<code>yes</code>へ
+追記終わり</p>
+
+<hr />
+
+<hr />
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mac(BSD)でcpをGNU的に使う + おまけ]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/06/27/computer-linux-mac-gnu-bsd/"/>
+    <updated>2013-06-27T19:48:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/06/27/computer-linux-mac-gnu-bsd</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/asin/4756144152/rcmdnk0c-22/" rel="nofollow" target="_blank" title="アマゾン" ><img class="left" src="http://ecx.images-amazon.com/images/I/61WVENM7J6L._SL160_.jpg" border="0" ></a>
+MacはBSD UNIXベースなのでGNU Linuxのコマンドと比べて
+同じコマンドでも少し振舞いが違う所があります。</p>
+
+<p>これまでGNU Linuxだけ使ってきてFree BSD等使ったことが無いので、
+基本的にGNU系のコマンドに慣れていて、
+たまにMacでコマンドを打つと予想外の事が起きて戸惑っています。</p>
+
+<p>今回、特に気になっていた<code>cp</code>についてwrapper関数(bash用)を作って
+Mac上でもGNU的な振る舞いにするようにしてみました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="cp+Wrapper関数">cp Wrapper関数</h1>
+
+<p>次の様な関数を定義して<code>.bashrc</code>等に書いておきます。</p>
+
+<p><div><script src='https://gist.github.com/5878785.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>cpが<code>GNU</code>のものでない場合これらのwrapper関数を適用します。</p>
+
+<p>特に気になったのが、コピーする元のディレクトリの指定が
+最後に<code>/</code>を付けた状態だとディレクトリではなく、中身だけ
+持ってきてしまうことです。
+(GNUの場合は<code>/</code>あるなしに関わらずディレクトリそのものがコピーされる。)
+<i class='key'>Tab</i>で補完してディレクトリ名を入力すると<code>/</code>まで補完されるので、
+ディレクトリをコピーしたい場合はいちいち消さないといけないし、
+忘れると中身をコピーしてきてしまって、
+中身が大量のディレクトリの場合には酷いことになります。</p>
+
+<p>元からあったファイルと区別して移動し直すのも大変ですが、
+同じファイル名の物があった日には上書きされてしまってどうしようもないことに...</p>
+
+<p>GNU Linuxと両方使ってる場合はとっても危険なのでとても気をつけないといけません。</p>
+
+<p>通常、ディレクトリ内の物を移動したい時は<code>dir/*</code>使う様にします。
+ただこれだと<code>dir</code>内の<code>.</code>で始まる隠しファイルは移動出来ません。</p>
+
+<p>BSDコマンドの場合だと、</p>
+
+<pre><code>$ cp -R ../dir/ ./
+</code></pre>
+
+<p>とすれば<code>/dir</code>の中身が<code>.</code>で始まるファイルも含めてコピー出来るのですが、
+GNUと合わせて使いたいのでこの機能は封印することになります。
+(意図してない限り知らないうちに<code>.git/</code>等も含めて複製したりすることになるので、
+この機能を普段から意図的に使ってない場合はむしろ混乱の元になるかと。)</p>
+
+<p>もう1つの変更が<code>-r</code>オプションで、GNUの場合は<code>-r</code>は<code>-R</code>と同様、単なる
+<code>recursive</code>としてのオプションですが、
+<code>BSD</code>の場合はmanしてみると</p>
+
+<pre><code>COMPATIBILITY
+     Historic versions of the cp utility had a -r option.  This implementation
+     supports that option; however, its use is strongly discouraged, as it
+     does not correctly copy special files, symbolic links, or fifo's.
+</code></pre>
+
+<p>の様に、使わないように、となっています。</p>
+
+<p>これまで普通に<code>cp -r</code>してきて上の<code>/</code>問題以外には余り気付かなかったのですが、
+特にディレクトリ内にシンボリックリンクがある場合に微妙な振る舞いをします。</p>
+
+<p>GNU cpだと<code>cp -r</code>で他のオプション無しだと中にあるシンボリックリンクを
+シンボリックリンクとしてコピーしますが、BSD cpだとシンボリックの
+元の実態をコピーしようとします。</p>
+
+<p>一方で<code>cp -R</code>とすればGNUの<code>cp -r</code>の様な振る舞いになります。</p>
+
+<p>基本的に<code>-r</code>としている場合でもシンボリックリンクはシンボリックリンクとして
+コピーされるものだと身に付いているので、これも<code>-R</code>に変換しておきます。</p>
+
+<p>シンボリックリンクを追うかどうかは<code>-L/P</code>でオン/オフ出来ますが、
+BSDでは<code>-r</code>はこれらのオプションとは同時に使えないため、
+やはり<code>-r</code>は使うべきでは無いようです。</p>
+
+<p>ちょっと使ってみた感じ、問題なく動いているのでしばらく使ってみようと思っていますが、
+<code>cp</code>という頻繁に使うコアなコマンドなので、もし使う際には自己責任で注意して使って下さい。</p>
+
+<h1 id="おまけ">おまけ</h1>
+
+<p>cp以外にも色々と細かい所で違いがあってたまにイラッとしますが
+(まだ単に気づいてないだけの所も多々あると思いますが...)、
+気になった所でGNU/BSDの互換性をもたせようと思って使っている物をついでに紹介しておきます。</p>
+
+<h2 id="sed">sed</h2>
+
+<p><code>sed</code>もGNUとBSDでちょっと違う所があります。</p>
+
+<p>ファイルを直接書き換えるコマンドで</p>
+
+<pre><code>$ sed -i 's/foo/bar/g' test.txt
+</code></pre>
+
+<p>とGNU sedですると、<code>test.txt</code>の中の<code>foo</code>が<code>bar</code>に変換されます。
+<code>-i</code>に続いて<code>.bak</code>等とサフィックスを与えれば元のファイルが<code>test.txt.bak</code>
+と言う風にバックアップされます。</p>
+
+<p>これがBSD sedだと</p>
+
+<pre><code>$ sed -i 's/foo/bar/g' test.txt
+sed: 1: "test.txt": command a expects \ followed by text
+</code></pre>
+
+<p>等と怒られます。BSDの場合では<code>-i</code>に続いて必ずサフィックスを指定しなくてはならず、
+バックアップが要らない場合でも空の<code>""</code>を与える必要があります。</p>
+
+<p>それぞれ<code>man</code>してみるとGNUの場合:</p>
+
+<pre><code> -i[SUFFIX], --in-place[=SUFFIX]
+
+        edit files in place (makes backup if extension supplied)
+</code></pre>
+
+<p>BSDの場合:</p>
+
+<pre><code> -i extension
+         Edit files in-place, saving backups with the specified extension.
+         If a zero-length extension is given, no backup will be saved.  It
+         is not recommended to give a zero-length extension when in-place
+         editing files, as you risk corruption or partial content in situ-
+         ations where disk space is exhausted, etc.
+</code></pre>
+
+<p>となっています。BSDの方では親切にno backupは危ないよ、と言う思想で、
+どうしてもと言うなら意図的に<code>""</code>を与えなさい、と言う感じ。</p>
+
+<p>前置きが長くなりましたが、これの対処としては<code>sed</code>にWrapper関数かけるのは
+色々複雑すぎて面倒なので、 aliasで別コマンドにして処置します。</p>
+
+<p>ただ、この<code>""</code>を与える際、GNU sedの場合、<code>-i</code>と離すと(<code>sed -i ""</code>とすると)次の引数として
+取られるのでエラーが出ます。</p>
+
+<p>一方、BSD sedの場合、<code>-i</code>とくっつけて渡すと(<code>sed -i""</code>とすると)エラーになります。</p>
+
+<p>これらも考慮して、</p>
+
+<pre><code>if sed --version 2&gt;/dev/null |grep -q GNU;then
+  alias sedi='sed -i"" '
+else
+  alias sedi='sed -i "" '
+fi
+</code></pre>
+
+<p>といったものを<code>.bashrc</code>に書いておいてファイル内の<code>foo</code>をすべて<code>bar</code>にしたい場合、</p>
+
+<pre><code>$ sedi 's/foo/bar/g' test.txt
+</code></pre>
+
+<p>としています。(これで余計なファイルを作らずに変換出来ます。)</p>
+
+<h2 id="tail:+ファイルの中身を逆さにする">tail: ファイルの中身を逆さにする</h2>
+
+<p>BSDの<code>tail</code>コマンドには<code>-r</code>オプションがあり、</p>
+
+<pre><code>$ cat &lt;&lt; EOF &gt; test.txt
+&gt; abc
+&gt; def
+&gt; 123
+&gt; EOF
+$ cat test.txt
+abc
+def
+123
+$ tail -r test.txt
+123
+def
+abc
+$
+</code></pre>
+
+<p>こんな感じでファイルの中身を逆にします。
+引数を与えない場合は標準入力を変換します。</p>
+
+<pre><code>$ cat test.txt|tail -r
+123
+def
+abc
+</code></pre>
+
+<p>一方、GNU tailには<code>-r</code>がありません。
+ただし、大概のLinuxにはGNUの<code>tac</code>と言うコマンドが入っていてこれが<code>tail -r</code>と同じ
+働きをします(BSDには<code>tail -r</code>があるから<code>tac</code>は無い?)。</p>
+
+<p>これら気にせず使うために、これもaliasで</p>
+
+<pre><code># Revert lines in the file/std input
+if ! type tac &gt;&amp; /dev/null &amp;&amp; \
+   ! tail --version 2&gt;/dev/null|grep -q GNU;then
+  alias tac='tail -r'
+fi
+</code></pre>
+
+<p>こんな感じでBSDの場合でも<code>tail -r</code>を<code>tac</code>で呼べる様にしてあります。</p>
+
+<p>余談ですが、これを最初考えてる時、</p>
+
+<pre><code>if type tac &gt;/dev/null 2&gt;&amp;1;then
+  alias rev="tac"
+elif ! tail --version 2&gt;/dev/null |grep -q GNU;then
+  alias rev="tail -r"
+fi
+</code></pre>
+
+<p>こんな感じで<code>rev</code>(reverse)と言う名前で統一しようかと思ったのですが、
+実は<code>rev</code>と言うコマンドは存在していることにこの時気づきました。
+各行の文字列をそれぞれ反転される、というコマンドです。
+(LinuxにもMacにもありました。)</p>
+
+<p>実行すると</p>
+
+<pre><code>$ rev test.txt
+cba
+fed
+321
+</code></pre>
+
+<p>の様に、各行が逆から書かれています。
+正直、このコマンドを使う場面が余り思いつかないし、
+使っているところを見たことありませんが、
+一応潰さないように。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>(おまけの方が長くなった...)</p>
+
+<p>MacにもGNUコマンド入れれば良いじゃん、と言ってしまえばそれまでですが、
+設定ファイル(<code>.bashrc</code>)1つで手軽に変えられる方法、と言うことで。</p>
+
+<p><code>cp</code>に関しては<code>cp</code>なんて使わず<code>rsync</code>でしょ、とか、<code>find</code>+<code>cpio</code>だろ、とか、
+さらには<code>tar</code>使うでしょ、という話もある様ですが<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+通常のファイルコピー同様<code>cp</code>で慣れてるのでまだ<code>cp</code>使いたいな、と。</p>
+
+<p>そのうち他の物も気になったら加えて行こうとおもっていますが、
+もし他にもクリティカルな違いがあれば教えて頂けるとうれしいです。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://d.hatena.ne.jp/nishiohirokazu/20120718/1342594795">manに「cp -rは使うな」と書いてあった話</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Dropbox | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/dropbox/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Git + Dropbox使用時の注意点]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox/"/>
+    <updated>2013-05-12T20:57:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/12/computer-octopress-git-github-dropbox</id>
+    <content type="html"><![CDATA[<p>OctopressのファイルはDropboxに入れて管理していて、
+複数の端末からアップデートすることがあります。</p>
+
+<p>先日<code>rake deploy</code>してもページがアップデートされないな、
+と思っていたらgitで<code>commit</code>/<code>push</code>するときにエラーが出ていました。
+(<code>generate</code>した時のエラーは気をつけますが<code>deploy</code>時は
+ちゃんと見てなかった。。。)
+ついでにcygwin上でのパーミッション等についても調べたので
+まとめておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="Dropboxでの競合エラー">Dropboxでの競合エラー</h1>
+
+<p>ちゃんと見れば簡単なことなのですが、次の様なエラーが起っていました。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h2 id="copying+public+to+_deploy">copying public to _deploy&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ rake deploy
+</span><span class='line'>...&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>cp -r public/. &lt;em>deploy
+</span><span class='line'>cd &lt;/em>deploy&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h2 id="Commiting:+Site+updated+at+2013-05-11+16:59:45+UTC">Commiting: Site updated at 2013-05-11 16:59:45 UTC&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;p>fatal: Reference has invalid format: 'refs/heads/master (XXXX の競合コピ ー 2013-05-10)'&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h2 id="Pushing+generated+_deploy+website">Pushing generated _deploy website&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;p>fatal: Reference has invalid format: 'refs/heads/master (XXXX の競合コピ ー 2013-05-10)'&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h2 id="Github+Pages+deploy+complete">Github Pages deploy complete&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;p>cd -
+</span><span class='line'>fatal: The remote end hung up unexpectedly</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>よく見ればちゃんと<code>fatal</code>と言ってるんですが、
+ローカルで<code>preview</code>チェックはOKだったので<code>deploy</code>コマンド打って
+ブラウザでチェック、まではもう深く考えない流れ作業なので、
+ブラウザを何度更新してもアップデートされないな、とちょっと悩んでしまいました...</p>
+
+<p>問題は<code>_deploy/.git/refs/heads/</code>以下に上に出ている
+<code>master (XXXX の競合コピー 2013-05-10)</code>と言う名前のファイルが出来ていて、
+gitが変なファイルがあって分からない、と言っている訳です。</p>
+
+<p>このファイルは、Dropboxで競合が起こった時に上手くマージ出来なかった時に
+作られます。
+今回は片方の端末でDropboxがちょっと落ちていた時があって、
+その間にもOctopress内をアップデートしてしまったのが原因だと思います。</p>
+
+<p>取り敢えず、この<code>master</code>以外にもいくつか競合コピーがあったので
+全て削除したら文句を言われなくなりましたのでOKです。</p>
+
+<p>Dropbox内なので、最悪上手くいかなくても復元出来るので取り敢えず消してしまいましたが、
+安全を取るならバックアップを取っておくべきかもしれません
+(この程度のことならば冗長かもしれませんが)。</p>
+
+<h1 id="Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)">Dropboxでのファイルパーミッションの問題(各OSでのパーミッションについて)</h1>
+
+<p>ついでに、これまで何度かファイルのパーミッションがおかしくて
+手で権限変更したりする必要があって気になっていたことがあったので
+調べてみました。</p>
+
+<p>通常、Dropbox内でのファイルをExploerとかから見る場合は
+読み取り実行など問題ありません。</p>
+
+<p>ただ、Macでターミナルから見たり、Windowsでcygwinからファイルを
+見たりするとそれぞれのパーミッションが違って見えます。</p>
+
+<p>最初はMacとWindows(cygwin)
+で使っているとそれぞれでパーミッションの構造自体が単に違うだけかな、
+とか思っていたんですが、
+どうやらDropboxでは基本的にファイルやディレクトリのパーミッションは
+伝播されず、1つの端末でパーミッションを変更しても
+他の端末では反映されません。(Windows同士でも反映されませんでした。)</p>
+
+<p>さらに、問題はファイルなどが作られた時の初期パーミッションが
+環境によって違うことです。</p>
+
+<p>通常の設定だと、ファイルやディレクトリ(フォルダ)を作った場合
+次の様なパーミッション(権限)<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>になります。</p>
+
+<table class="center">
+  <tr>
+    <th>OS</th>
+    <th>作成方法</th>
+    <th>作成物</th>
+    <th>権限</th>
+  </tr>
+  <tr>
+    <td rowspan="4" >Windows<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup></td>
+    <td rowspan="2">Explorer</td>
+    <td>ファイル</td>
+    <td>700(*)</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>700(*)</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Command</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td rowspan="4">Mac<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup></td>
+    <td rowspan="2">Finder</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Command</td>
+    <td>ファイル</td>
+    <td>644</td>
+  </tr>
+  <tr>
+    <td>ディレクトリ</td>
+    <td>755</td>
+  </tr>
+  <tr>
+    <td>Linux<sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup></td>
+    <td colspan="3">Macと同じ</td>
+  </tr>
+</table>
+
+
+<p><code>Explorer</code>、<code>Finder</code>となっているのはExplorer等で右クリックから
+新規作成で作った場合です。
+OSの普通の作業で作られる場合も同様で、
+従ってDropboxの同期によって作られるファイルも<code>Exploer</code>と同様になります。</p>
+
+<p>見て分かるように、Macの場合はFinderでもコマンドラインからでも
+同じ様に扱われますが、
+Windowsの場合、cygwin以外で作られたファイル等は全て
+700のパーミッションを持っています。</p>
+
+<hr />
+
+<p><em>2013/06/25 WindowsのAdministrators状態について追記</em></p>
+
+<p>さらに700と言っても</p>
+
+<pre><code>$ ls -l
+-rwx------+ 1 Administrators None 2 May 12 21:00 a.txt
+</code></pre>
+
+<p>の様に所有者を見ると<code>Administrators</code>になっています。
+cygwin上で作ったファイルはちゃんとユーザーのものになります。</p>
+
+<pre><code>$ touch b.txt
+$ ls -l
+-rwx------+ 1 Administrators None 2 May 12 21:00 a.txt
+-rwx------+ 1 User           None 2 May 12 21:10 b.txt
+</code></pre>
+
+<p>この所有者はExploerからファイルを右クリックして<code>プロパティ</code>の<code>詳細</code>から見れるものとは
+同期してない様です。
+新規作成で作ったテキスト等は<code>詳細</code>ではユーザー名になっていても
+cygwinからはAdministratorsの物に見えていました。</p>
+
+<p>Windows内のDropbox以外のフォルダも見てみましたが、
+最初にシステムに作られるユーザーのもの(Desktopフォルダだったり)は
+ユーザーの所有に見えたり、その後自分で作った物に関しては
+作ったソフトも関係しているのか、まばらでいまいちどの様に決まるのか良く分かってません。</p>
+
+<p>問題なのはAdministrators用で700なので、ここでユーザーに権限が無いように見えることです。
+これに関しては詳しく調べて無いですが、手元で使ってる環境で、
+共にユーザーが管理者権限持っていてUAC等切っている状態で、</p>
+
+<ul>
+<li>Windows Vista : 読む、実行はできるが書き込みが出来ない。ただ、どうも
+<code>管理者だけど書き込み権限が無い</code>状態にあるみたいで、viで<code>:w!</code>とすれば書き込めるし、
+<code>chmod +w a.txt</code>とすれば普通に書き込める様になる。(<code>ls -l</code>の結果は変わらず)。
+所謂root権限状態?</li>
+<li>Windows 7: Administrators所有で700になっているファイルも普通に書き込める。
+つまりAdministratorsと管理者権限を持ったユーザーの区別無し?</li>
+</ul>
+
+
+<p>といった感じです。問題なのはVistaの場合で、
+DropboxでOctopressの記事なんかを管理していると全てreadonlyの状態になっているので
+他で作った記事は毎回<code>chmod +w file</code>する必要があります。
+<code>rake isolate[file]</code>的な事を一旦すれば、全てが再生成される形になるので、
+記事全てがreadonly状態に。</p>
+
+<p>仕方が無いのでoctopressのトップディレクトリやDropboxのトップディレクトリで
+気が向いたら(気になったら)</p>
+
+<pre><code>$ chmod -R +w ./
+</code></pre>
+
+<p>として書き込み権限を与えています。</p>
+
+<p><em>追記終わり</em></p>
+
+<hr />
+
+<hr />
+
+<p>*2013/06/26 さらに追記
+ファイルを作る際に親フォルダの権限を変えると中に作られる
+ファイルの権限も変わってくる様です。</p>
+
+<p>Cygwin外で作られるファイルがAdministratorsの所有物なのは変わらないのですが、
+フォルダを<code>chmod 755 folder</code>としてから<code>folder</code>内に
+Cygwin外からファイルを作ると、パーミッションが755だったりします。
+さらにファイルに書き込み可能だったりします。
+また、フォルダを<code>chown +w folder</code>等としても同様(?)。</p>
+
+<p>取り敢えず、Cygwinでのトップディレクトリに行って全部USER所有に変えてみました。</p>
+
+<pre><code>$ cd /
+$ chown -R +w ./
+</code></pre>
+
+<p>この状態で、Explorer上で新規ファイルを作ったりするとAdministrators所有で
+700状態ですが、USERで書き込み可能です。</p>
+
+<p>この状態でDropboxで新たなファイルを他のPCで追加した所、同期されたファイルは</p>
+
+<pre><code>$ ls 
+----------+ 1 Administrators None     0 Jun 26 23:00 a.txt
+</code></pre>
+
+<p>の様な形に...読んだりパーミッションを変えたり所有者を変えたりはできますが、
+最初の状態は書き込み不可なので結局以前と一緒です。</p>
+
+<p>ソフトによっても動作が違う様で、イマイチ良くわからない、という感じで
+中途半端で申し訳ないですが、
+取り敢えず、Cygwinからよく使うフォルダは<code>chmod -R +w</code>しておくと
+Explorerなどで作ったファイルは書き込み可能な状態に出来ます。</p>
+
+<p>ただ、VistaでDropboxフォルダを使う場合、Dropbox経由でコピーされてきた
+ファイルはどうしても書き込み権限が無い状態で作られるようです。
+(cronで<code>chmod -R +w ./Dropbox</code>的なコマンドを1日1回くらい実行する、とかで対処するくらい
+しかないのでしょうか...?)</p>
+
+<p><em>追記終わり</em></p>
+
+<hr />
+
+<p>WindowsではNTFSアクセス制御リスト(Access Control List, ACL)<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup><sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>
+と呼ばれるシステムでファイルを管理していて、
+これで決定されたパーミッションがcygwinからも見えています。
+つまり、通常作られるファイルは、他人からは見えない様なファイルで、
+所有者には実行権限も与えられています。</p>
+
+<p>このACLは<code>/etc/fstab</code>へマウント設定を追加してあげると無効にすることが出来ます。
+<sup id='fnref:7'><a href='#fn:7' rel='footnote'>7</a></sup></p>
+
+<p>:warning: 以下に設定変更方法を書いていますが、下にも書く様に副作用が
+強いため、結果的には使わないことにしています。</p>
+
+<p>まず、現状のマウントポイントを確認:</p>
+
+<pre><code>$ mount
+C:/cygwin/bin on /usr/bin type ntfs (binary,auto)
+C:/cygwin/lib on /usr/lib type ntfs (binary,auto)
+C:/cygwin on / type ntfs (binary,auto)
+C: on /cygdrive/c type ntfs (binary,posix=0,user,noumount,auto)
+</code></pre>
+
+<p><code>/etc/fstab</code>に何も書かれて居ない状態ですが、上の4つについては
+最初からマウントされるようになっています。
+のでセットアップで特に変更しなければ上の様になっているかと思います。</p>
+
+<p>次に、これらに関連する項目を<code>/etc/fstab</code>へ書いて定義を変更します。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>/etc/fstab</span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>C:/cygwin/bin /usr/bin  ntfs     binary,noacl,notexec              0 0
+</span><span class='line'>C:/cygwin/lib /usr/lib  ntfs     binary,noacl,notexec              0 0
+</span><span class='line'>C:/cygwin     /         ntfs     binary,noacl,notexec,override     0 0
+</span><span class='line'>none          /cygdrive cygdrive binary,noacl,notexec,posix=0,user 0 0</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>と追加します。(初期のままだと<code>/etc/fstab</code>にはコメントが書かれているだけです。)</p>
+
+<p>書き方は<sup id='fnref:8'><a href='#fn:8' rel='footnote'>8</a></sup></p>
+
+<pre><code>Windowsのパス Cygwinのパス ファイルシステム　オプション 0 0
+</code></pre>
+
+<p>Windowsのパスも<code>\</code>でなく</code>/<code>を使います。
+最後のcygdriveの設定ではファイルシステムは</code>cygdrive`を設定します。
+最後の2つはdump/fsckオプションですが、cygwinでは使わない(?)ので、
+ここでは0にしておきます。</p>
+
+<p>上で確認したものと比べて分かるように、追加したオプションは
+<code>noacl</code>でこれによってACLの設定を無視する様になります。</p>
+
+<p>この設定を加えてからcygwinを再起動すると、全てのファイルの
+cygwinから見えるパーミッションが変わります。</p>
+
+<p>ただ、<code>noacl</code>だとファイルのパーミッションをcygwinが勝手に中身を
+判断して決定するようになってしまい、<code>chmod</code>等でも変更が出来ません。<sup id='fnref:9'><a href='#fn:9' rel='footnote'>9</a></sup></p>
+
+<p>さらに気持ち悪いことに、実行権限が無いファイルでも実行出来てしまうようになります。
+(TAB補完は効かないが、ちゃんと書けばどんなファイルでも実行しようとする。)</p>
+
+<p>また、<code>exec</code>/<code>notexec</code>と言うオプションがあって、これらを指定すると
+以下のディレクトリのファイル全てが実行ファイル(755)/通常ファイル(644)
+になります。
+この場合でも一意に決まってしまって変更出来ません。</p>
+
+<p>ので、結局上の設定を消して元に戻しました。
+(元に戻すと、<code>noacl</code>等を設定する以前のパーミッションに全て戻ります。)</p>
+
+<p>大分古い記事ですがACLやマウント方法について詳細に書いてあるものもありました<sup id='fnref:10'><a href='#fn:10' rel='footnote'>10</a></sup>。
+細かい事を直したいときに参考になるかもしれません。</p>
+
+<h1 id="Dropbox上でのgit/svn">Dropbox上でのgit/svn</h1>
+
+<p>パーミッション関連で困ることは、勿論スクリプトに実行権限がついてなくて
+実行出来ない、と言うこともあるのですが、
+それ以上にgitでコミットするといちいちファイルモードを変更してしまって
+困ってしまいます。</p>
+
+<p>なので、特にDropbox上でgit(svnでも)のレポジトリを管理している場合は、</p>
+
+<pre><code>git config core.filemode false
+</code></pre>
+
+<p>するか<code>./.git/config</code>を書き換えて(<code>filemode = true</code>を<code>false</code>へ)
+ファイルのパーミッションは無視する様にした方が余計な変更を入れない
+ので良いと思います。</p>
+
+<p>特にOctopressの様な場合は、基本的に実行ファイルは含まないので、
+問題ないと思います。</p>
+
+<p>Octopressの場合はOctopressの親ディレクトリの<code>./.git/config</code>と
+deploy用の<code>./_deploy/.git/config</code>を変更して下さい。</p>
+
+<p>ちなみに、大概の場合各レポジトリのconfigファイルにfilemodeの設定が
+加えられているので
+<code>$HOME/.gitconfig</code>で設定しても意味がないことが多いので注意が必要です。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> ここではWindowsの場合はcygwinから見た場合のパーミッションの話です。
+  Unix系の権限は所有者、グループユーザー、その他の枠でそれぞれ、
+  読み(4)、書き(2)、実行(1)の権限を指定しますが、この時、
+  表にあるように権限の数字を足した物を並べて表示します。
+  <code>ls -l</code>すると<code>rwxr-xr-x</code>等と出ますがこれは所有者r(読み)w(書き)r実行可能で、
+  グループユーザー及びその他は読み込みと実行のみ許可されている、と言うことで、
+  数字では755になります。
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p> Windows Vista/7, cygwin 1.7.18
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p> Mac OS X Lion (10.7.5)
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p> Scientific Linux 6
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p> <a href="http://www.atmarkit.co.jp/fwin2k/win2ktips/700whatisacl/whatisacl.html">アクセス制御リストACLとは？</a>
+  <a href='#fnref:5' rev='footnote'>↩</a></p>
+</li><li id='fn:6'><p> <a href="http://www.teppi.com/solution/file_mgmt/006_filing_win_acl01.php">Windowsアクセス権設定（ACL）の基礎知識</a>
+  <a href='#fnref:6' rev='footnote'>↩</a></p>
+</li><li id='fn:7'><p> <a href="http://www.akamoz.jp/you/uni/cygwin.htm">Cygwin 1.5からCygwin 1.7へのアップグレード</a>
+  <a href='#fnref:7' rev='footnote'>↩</a></p>
+</li><li id='fn:8'><p> <a href="http://ksugita.blog62.fc2.com/blog-entry-23.html">Cygwin1.7の /etc/fstabのフォーマット</a>
+  <a href='#fnref:8' rev='footnote'>↩</a></p>
+</li><li id='fn:9'><p> 先頭行を見て<code>#!</code>等かどうかで判断して実行ファイル(755)か
+  通常ファイル(644)に自動的に決まるとのことです: Ref <a href="http://d.hatena.ne.jp/kfujieda/20110521/1305982895">普段はWindowsを使っているのよ</a>
+  <a href='#fnref:9' rev='footnote'>↩</a></p>
+</li><li id='fn:10'><p><a href="http://www.sixnine.net/cygwin/cygwin-doc/professional.html">Cygwin for Professionals</a></p></p>
+
+<p><a href='#fnref:10' rev='footnote'>↩</a>
+
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>

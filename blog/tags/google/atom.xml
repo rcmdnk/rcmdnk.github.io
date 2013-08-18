@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Google | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/google/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[コマンドラインでGoole Taks(ToDoリスト)を表示する方法]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/10/computer-mac-geektool-google/"/>
+    <updated>2013-05-10T19:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/10/computer-mac-geektool-google</id>
+    <content type="html"><![CDATA[<p><a href="2013/04/18/computer-mac-geektool-desktop">以前GeekToolの自分設定を紹介した記事</a>
+タスクリストは<a href="http://hasseg.org/icalBuddy/">icalBuddy</a>
+を使ってiCalの情報を載せる様にしている、と書きましたが、
+実際に現在iCal自体を使わなくなっているのでこの欄は空欄のままでした。</p>
+
+<p>一方で<a href="https://mail.google.com/tasks/canvas">Google Tasks (ToDoリスト)</a>で、
+GDTと言える程ではないものの、適当に思いついたことをメモしておくのにも使っています。</p>
+
+<p>それをそのままiCal情報を載せてた場所に載せれば良いとは思っててしばらく
+放っておいてしまいましたが、
+今回Google Tasksをこの欄へ載せる様にスクリプトを書いてアップデートしました。</p>
+
+<p>GoogleのAPI関連と一緒にまとめておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="googleclで挑戦(上手くいかない)">googleclで挑戦(上手くいかない)</h1>
+
+<p><a href="http://code.google.com/p/googlecl/">googlecl</a>と言う
+Google APIを使ったツールを見つけたので導入してみました。</p>
+
+<blockquote><p><a href="http://code.google.com/p/googlecl/wiki/DiscoveryManual">DiscoveryManual</a></p></blockquote>
+
+<p>によるとTasks等が入ったDiscovery Service用のAPIが
+あり、これらをインストールして、最新のgoogleclを使えば
+Tasksも使える、とのこと。</p>
+
+<p>ただ、これ、2011年くらいの話なので、このTasks等のAPIは</p>
+
+<pre><code>$ sudo  easy_install --upgrade google-api-python-client
+</code></pre>
+
+<p>と<a href="2013/04/18/computer-mac-geektool-desktop">前回</a>インストールした時点で
+入っていると思います。
+<a href="https://developers.google.com/api-client-library/python/start/installation">Google APIs Client Libary for Python</a>のページへ言ってもこれしかないので。</p>
+
+<p>googleclの方も、上のDiscoveryManualのページだと、svnにあるアルファ版の
+最新のを、と書いてありますが、svnのtrunkを見ると、0.9.14で
+tagsにある最新のものとおそらく一緒のものです。</p>
+
+<p>通常googleclをインストールする場合には</p>
+
+<pre><code>$ sudo easy_install googlecl
+</code></pre>
+
+<p>だけでOKですが、今回は一応svnのtrunkから取ってきてインストールしてみました。</p>
+
+<pre><code>$ svn checkout http://googlecl.googlecode.com/svn/trunk/ googlecl-read-only
+$ cd googlecl-read-only
+$ sudo python setup.py install
+</code></pre>
+
+<p>これで<code>google</code>コマンドが使える様になります。</p>
+
+<p>しかし、<code>calendar</code>等のコマンドは使えましたがtasksをやろうとすると</p>
+
+<pre><code>$ google tasks
+...
+FATAL ERROR:
+Discovery API unavailable.  Services limited to:help, picasa, blogger, youtube, docs, contacts, calendar, finance
+Unknown service: tasks
+</code></pre>
+
+<p>となり、Discovery APIが入っていないと怒られます。</p>
+
+<p>この辺、しっかりと追ってないですが、
+すでにgoogle-api-python-clientに統一されていて、
+googleclの中で判定する際に古い構造を探しに行って失敗しているのか、
+とかなのかな、と思ってます(違ったら教えて下さい)。</p>
+
+<p>googlecl自体が古いままで止まっているので、
+あまりやっても意味ないかな、ということで取り敢えず断念。</p>
+
+<h1 id="自分でスクリプトを書いてみる">自分でスクリプトを書いてみる</h1>
+
+<p><a href="https://developers.google.com/api-client-library/python/start/installation">Google APIs Client Libary for Python</a>のページ内の
+<code>Getting started: Quickstart</code>と言う項目で</p>
+
+<ul>
+<li><code>Select an API</code>からTasks API</li>
+<li><code>Select a Platform</code>からCommand-Line</li>
+</ul>
+
+
+<p>を選ぶと、<code>Configure Project</code>というボタンが出てくるのでこれを押して
+さらに出てきた窓で<code>Continue</code>を押すと
+下の様な画面にきます。</p>
+
+<p><img src="/images/post/20130510_googleapi.jpg" alt="googleapi" title="googleapi" ></p>
+
+<p>ここからサンプルコード(<code>Download the starter application</code>)を取って来ることができますので、特に中にある<code>sample.py</code>
+を参考にしてスクリプトを書いていくことができます。
+(client_secretコードも必要ならとっておく。)</p>
+
+<p>取り敢えずリストを取ってこれれば良いだけなので、簡単に次の様なスクリプトを作ってみました。</p>
+
+<ul>
+<li><a href="https://github.com/rcmdnk/python/blob/master/gtaskslist.py">gtaskslist.py</a>
+
+<ul>
+<li>そのまま走らせれば全てのリストを取ってくる</li>
+<li>-l (--list)でリストを指定する(指定しない場合は全てを使用)</li>
+<li>-i (--item)で指定した言葉を含むタスクだけ取ってくる(指定しない場合は全てを取ってくる)
+
+<ul>
+<li><code>,</code>で区切って複数指定出来る</li>
+</ul>
+</li>
+<li>オプション指定しない引数は-iと同様にタスクの選択に使う</li>
+<li>例) ./gtaskslist.py -l mylist -i work,home important<br/>
+<i class="icon-arrow-right"></i><code>mylist</code>と言うリストの中から
+<code>work</code>, <code>home</code>または<code>important</code>と言う単語の入ったタスクのみ表示する</li>
+</ul>
+</li>
+</ul>
+
+
+<p>こんな感じです。
+メモや期限は取り敢えず無視しています。</p>
+
+<p>試しに以下の様なタスクリスト(test)をGoogle Tasksに作って表示してみます。</p>
+
+<p><img src="/images/post/20130510_tasks_canvas.jpg" alt="tasks_canvas" title="tasks_canvas" ></p>
+
+<p>ちなみに、Google TasksへはCalendarからも操作できますが
+<a href="https://mail.google.com/tasks/canvas">https://mail.google.com/tasks/canvas</a>
+というアドレスへアクセスするとフル画面で操作することが出来ます。</p>
+
+<p><code>gtaskslist.py</code>は適当なところへおいて、<code>~/usr/bin/gtaskslist</code>へ
+リンクを張ってあります。(<code>~usr/bin</code>は<code>PATH</code>が通っている所。この辺は好きな様に。)</p>
+
+<pre><code>cd ~/usr/bin/
+ln -s ~/Dropbox/08_Settings/Git/python/gtaskslist.py
+</code></pre>
+
+<p>この状態でshell GeekletのCommand欄へ</p>
+
+<pre><code>~/usr/bin/gtaskslist -l test -i IMPORTANT
+</code></pre>
+
+<p>と入力しておきます。</p>
+
+<p>結果は下の様になります。</p>
+
+<p><img src="/images/post/20130510_geektool_gtaskslist.jpg" alt="geektool_gtaskslist" title="geektool_gtaskslist" ></p>
+
+<p>上のスクリプトではタスクを言葉でピックアップしてそのまま並べているだけですが、
+期限等も含めて表示したい場合は
+<a href="https://developers.google.com/google-apps/tasks/?hl=ja">Google Tasks API</a>
+を参考に項目を追加したりしてみれば意外と簡単に出来ると思います。</p>
+]]></content>
+  </entry>
+  
+</feed>

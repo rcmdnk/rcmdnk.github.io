@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GNU | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/gnu/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Mac(BSD)でcpをGNU的に使う + おまけ]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/06/27/computer-linux-mac-gnu-bsd/"/>
+    <updated>2013-06-27T19:48:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/06/27/computer-linux-mac-gnu-bsd</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/asin/4756144152/rcmdnk0c-22/" rel="nofollow" target="_blank" title="アマゾン" ><img class="left" src="http://ecx.images-amazon.com/images/I/61WVENM7J6L._SL160_.jpg" border="0" ></a>
+MacはBSD UNIXベースなのでGNU Linuxのコマンドと比べて
+同じコマンドでも少し振舞いが違う所があります。</p>
+
+<p>これまでGNU Linuxだけ使ってきてFree BSD等使ったことが無いので、
+基本的にGNU系のコマンドに慣れていて、
+たまにMacでコマンドを打つと予想外の事が起きて戸惑っています。</p>
+
+<p>今回、特に気になっていた<code>cp</code>についてwrapper関数(bash用)を作って
+Mac上でもGNU的な振る舞いにするようにしてみました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="cp+Wrapper関数">cp Wrapper関数</h1>
+
+<p>次の様な関数を定義して<code>.bashrc</code>等に書いておきます。</p>
+
+<p><div><script src='https://gist.github.com/5878785.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>cpが<code>GNU</code>のものでない場合これらのwrapper関数を適用します。</p>
+
+<p>特に気になったのが、コピーする元のディレクトリの指定が
+最後に<code>/</code>を付けた状態だとディレクトリではなく、中身だけ
+持ってきてしまうことです。
+(GNUの場合は<code>/</code>あるなしに関わらずディレクトリそのものがコピーされる。)
+<i class='key'>Tab</i>で補完してディレクトリ名を入力すると<code>/</code>まで補完されるので、
+ディレクトリをコピーしたい場合はいちいち消さないといけないし、
+忘れると中身をコピーしてきてしまって、
+中身が大量のディレクトリの場合には酷いことになります。</p>
+
+<p>元からあったファイルと区別して移動し直すのも大変ですが、
+同じファイル名の物があった日には上書きされてしまってどうしようもないことに...</p>
+
+<p>GNU Linuxと両方使ってる場合はとっても危険なのでとても気をつけないといけません。</p>
+
+<p>通常、ディレクトリ内の物を移動したい時は<code>dir/*</code>使う様にします。
+ただこれだと<code>dir</code>内の<code>.</code>で始まる隠しファイルは移動出来ません。</p>
+
+<p>BSDコマンドの場合だと、</p>
+
+<pre><code>$ cp -R ../dir/ ./
+</code></pre>
+
+<p>とすれば<code>/dir</code>の中身が<code>.</code>で始まるファイルも含めてコピー出来るのですが、
+GNUと合わせて使いたいのでこの機能は封印することになります。
+(意図してない限り知らないうちに<code>.git/</code>等も含めて複製したりすることになるので、
+この機能を普段から意図的に使ってない場合はむしろ混乱の元になるかと。)</p>
+
+<p>もう1つの変更が<code>-r</code>オプションで、GNUの場合は<code>-r</code>は<code>-R</code>と同様、単なる
+<code>recursive</code>としてのオプションですが、
+<code>BSD</code>の場合はmanしてみると</p>
+
+<pre><code>COMPATIBILITY
+     Historic versions of the cp utility had a -r option.  This implementation
+     supports that option; however, its use is strongly discouraged, as it
+     does not correctly copy special files, symbolic links, or fifo's.
+</code></pre>
+
+<p>の様に、使わないように、となっています。</p>
+
+<p>これまで普通に<code>cp -r</code>してきて上の<code>/</code>問題以外には余り気付かなかったのですが、
+特にディレクトリ内にシンボリックリンクがある場合に微妙な振る舞いをします。</p>
+
+<p>GNU cpだと<code>cp -r</code>で他のオプション無しだと中にあるシンボリックリンクを
+シンボリックリンクとしてコピーしますが、BSD cpだとシンボリックの
+元の実態をコピーしようとします。</p>
+
+<p>一方で<code>cp -R</code>とすればGNUの<code>cp -r</code>の様な振る舞いになります。</p>
+
+<p>基本的に<code>-r</code>としている場合でもシンボリックリンクはシンボリックリンクとして
+コピーされるものだと身に付いているので、これも<code>-R</code>に変換しておきます。</p>
+
+<p>シンボリックリンクを追うかどうかは<code>-L/P</code>でオン/オフ出来ますが、
+BSDでは<code>-r</code>はこれらのオプションとは同時に使えないため、
+やはり<code>-r</code>は使うべきでは無いようです。</p>
+
+<p>ちょっと使ってみた感じ、問題なく動いているのでしばらく使ってみようと思っていますが、
+<code>cp</code>という頻繁に使うコアなコマンドなので、もし使う際には自己責任で注意して使って下さい。</p>
+
+<h1 id="おまけ">おまけ</h1>
+
+<p>cp以外にも色々と細かい所で違いがあってたまにイラッとしますが
+(まだ単に気づいてないだけの所も多々あると思いますが...)、
+気になった所でGNU/BSDの互換性をもたせようと思って使っている物をついでに紹介しておきます。</p>
+
+<h2 id="sed">sed</h2>
+
+<p><code>sed</code>もGNUとBSDでちょっと違う所があります。</p>
+
+<p>ファイルを直接書き換えるコマンドで</p>
+
+<pre><code>$ sed -i 's/foo/bar/g' test.txt
+</code></pre>
+
+<p>とGNU sedですると、<code>test.txt</code>の中の<code>foo</code>が<code>bar</code>に変換されます。
+<code>-i</code>に続いて<code>.bak</code>等とサフィックスを与えれば元のファイルが<code>test.txt.bak</code>
+と言う風にバックアップされます。</p>
+
+<p>これがBSD sedだと</p>
+
+<pre><code>$ sed -i 's/foo/bar/g' test.txt
+sed: 1: "test.txt": command a expects \ followed by text
+</code></pre>
+
+<p>等と怒られます。BSDの場合では<code>-i</code>に続いて必ずサフィックスを指定しなくてはならず、
+バックアップが要らない場合でも空の<code>""</code>を与える必要があります。</p>
+
+<p>それぞれ<code>man</code>してみるとGNUの場合:</p>
+
+<pre><code> -i[SUFFIX], --in-place[=SUFFIX]
+
+        edit files in place (makes backup if extension supplied)
+</code></pre>
+
+<p>BSDの場合:</p>
+
+<pre><code> -i extension
+         Edit files in-place, saving backups with the specified extension.
+         If a zero-length extension is given, no backup will be saved.  It
+         is not recommended to give a zero-length extension when in-place
+         editing files, as you risk corruption or partial content in situ-
+         ations where disk space is exhausted, etc.
+</code></pre>
+
+<p>となっています。BSDの方では親切にno backupは危ないよ、と言う思想で、
+どうしてもと言うなら意図的に<code>""</code>を与えなさい、と言う感じ。</p>
+
+<p>前置きが長くなりましたが、これの対処としては<code>sed</code>にWrapper関数かけるのは
+色々複雑すぎて面倒なので、 aliasで別コマンドにして処置します。</p>
+
+<p>ただ、この<code>""</code>を与える際、GNU sedの場合、<code>-i</code>と離すと(<code>sed -i ""</code>とすると)次の引数として
+取られるのでエラーが出ます。</p>
+
+<p>一方、BSD sedの場合、<code>-i</code>とくっつけて渡すと(<code>sed -i""</code>とすると)エラーになります。</p>
+
+<p>これらも考慮して、</p>
+
+<pre><code>if sed --version 2&gt;/dev/null |grep -q GNU;then
+  alias sedi='sed -i"" '
+else
+  alias sedi='sed -i "" '
+fi
+</code></pre>
+
+<p>といったものを<code>.bashrc</code>に書いておいてファイル内の<code>foo</code>をすべて<code>bar</code>にしたい場合、</p>
+
+<pre><code>$ sedi 's/foo/bar/g' test.txt
+</code></pre>
+
+<p>としています。(これで余計なファイルを作らずに変換出来ます。)</p>
+
+<h2 id="tail:+ファイルの中身を逆さにする">tail: ファイルの中身を逆さにする</h2>
+
+<p>BSDの<code>tail</code>コマンドには<code>-r</code>オプションがあり、</p>
+
+<pre><code>$ cat &lt;&lt; EOF &gt; test.txt
+&gt; abc
+&gt; def
+&gt; 123
+&gt; EOF
+$ cat test.txt
+abc
+def
+123
+$ tail -r test.txt
+123
+def
+abc
+$
+</code></pre>
+
+<p>こんな感じでファイルの中身を逆にします。
+引数を与えない場合は標準入力を変換します。</p>
+
+<pre><code>$ cat test.txt|tail -r
+123
+def
+abc
+</code></pre>
+
+<p>一方、GNU tailには<code>-r</code>がありません。
+ただし、大概のLinuxにはGNUの<code>tac</code>と言うコマンドが入っていてこれが<code>tail -r</code>と同じ
+働きをします(BSDには<code>tail -r</code>があるから<code>tac</code>は無い?)。</p>
+
+<p>これら気にせず使うために、これもaliasで</p>
+
+<pre><code># Revert lines in the file/std input
+if ! type tac &gt;&amp; /dev/null &amp;&amp; \
+   ! tail --version 2&gt;/dev/null|grep -q GNU;then
+  alias tac='tail -r'
+fi
+</code></pre>
+
+<p>こんな感じでBSDの場合でも<code>tail -r</code>を<code>tac</code>で呼べる様にしてあります。</p>
+
+<p>余談ですが、これを最初考えてる時、</p>
+
+<pre><code>if type tac &gt;/dev/null 2&gt;&amp;1;then
+  alias rev="tac"
+elif ! tail --version 2&gt;/dev/null |grep -q GNU;then
+  alias rev="tail -r"
+fi
+</code></pre>
+
+<p>こんな感じで<code>rev</code>(reverse)と言う名前で統一しようかと思ったのですが、
+実は<code>rev</code>と言うコマンドは存在していることにこの時気づきました。
+各行の文字列をそれぞれ反転される、というコマンドです。
+(LinuxにもMacにもありました。)</p>
+
+<p>実行すると</p>
+
+<pre><code>$ rev test.txt
+cba
+fed
+321
+</code></pre>
+
+<p>の様に、各行が逆から書かれています。
+正直、このコマンドを使う場面が余り思いつかないし、
+使っているところを見たことありませんが、
+一応潰さないように。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>(おまけの方が長くなった...)</p>
+
+<p>MacにもGNUコマンド入れれば良いじゃん、と言ってしまえばそれまでですが、
+設定ファイル(<code>.bashrc</code>)1つで手軽に変えられる方法、と言うことで。</p>
+
+<p><code>cp</code>に関しては<code>cp</code>なんて使わず<code>rsync</code>でしょ、とか、<code>find</code>+<code>cpio</code>だろ、とか、
+さらには<code>tar</code>使うでしょ、という話もある様ですが<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+通常のファイルコピー同様<code>cp</code>で慣れてるのでまだ<code>cp</code>使いたいな、と。</p>
+
+<p>そのうち他の物も気になったら加えて行こうとおもっていますが、
+もし他にもクリティカルな違いがあれば教えて頂けるとうれしいです。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://d.hatena.ne.jp/nishiohirokazu/20120718/1342594795">manに「cp -rは使うな」と書いてあった話</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>

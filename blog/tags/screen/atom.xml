@@ -1,0 +1,1439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: screen | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/screen/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[メタキー/ESCについて: iTermでそれらのキーを送る設定も]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/30/computer-bash-screen-linux/"/>
+    <updated>2013-05-30T21:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/30/computer-bash-screen-linux</id>
+    <content type="html"><![CDATA[<p><a href="/blog/2013/05/29/computer-bash-screen-linux">前回</a>
+コマンドラインで文字化けしてたのは<code>\M-c</code>を<code>.inputrc</code>で設定してたからだ、
+という話を書きましたが、
+ついでにメタキーやらエスケープ入力やらを少し調べたので
+まとめておきたいと思います。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="MacのiTerm(ターミナル)でのメタキー、エスケープシーケンスの設定">MacのiTerm(ターミナル)でのメタキー、エスケープシーケンスの設定</h1>
+
+<p>まず、Macの場合ちょっと特殊なので、iTerm(ここではiTerm2)等で
+メタキープレフィックス状態やエスケープシーケンスを送る方法をまとめておきます。</p>
+
+<p>iTerm(ターミナル.appでも一緒)
+ではCommandキー(<i class='key'>&#x2318;</i>)との同時押しはターミナルに直接送られないで、
+アプリケーションのショートカットとなるので
+<i class='key'>&#x2318;</i>+<i class='key'>f</i>
+はサーチウィンドウが開いてしまいます。</p>
+
+<p>これに対処するにはいくつか方法がありますが、
+まずはiTerm自体でキー直接送るよう、設定をする方法があります。</p>
+
+<p><img src="/images/post/20130530_iTerm_preference.jpg" title="" alt=""></p>
+
+<p><code>Preferences</code><i class="icon-arrow-right"></i>
+<code>Profiles</code><i class="icon-arrow-right"></i>
+<code>Keys</code>の項目で、上の図の様に
+<i class='key'>&#x2318;</i>+<i class='key'>f</i>
+に対して
+<code>Send Escape Sequence</code>+<code>f</code>と言う様に設定します。
+これで<i class='key'>&#x2318;</i>+<i class='key'>f</i>
+を押すと<i class='key'>ESC</i> <i class='key'>f</i>が送らる様になるので
+コマンドライン上で1単語進める様になります。</p>
+
+<p>ターミナル.appでも
+<code>環境設定</code><i class="icon-arrow-right"></i>
+<code>設定</code><i class="icon-arrow-right"></i>
+<code>キーボード</code>に
+同じ様な設定項目があるので、同様に設定出来ます。</p>
+
+<p>また、上の図の下の方を見るとOption(<i class='key'>&#x2325;</i>)の設定が
+<code>Normal</code>、<code>Meta</code>、<code>+Esc</code>のうちから選べる様になっているので、
+<code>Meta</code>を選べばメタキー、<code>+Esc</code>を選べば入力キーと共にエスケープシーケンス
+(上のCommandに対するのと同様の働き)、</p>
+
+<p>として働かす事が出来ます。</p>
+
+<p>また、もし<a href="http://pqrs.org/macosx/keyremap4macbook/index.html">KeyRemap4MacBook</a>
+を使っているなら下のような設定を入れておけば直接
+<i class='key'>&#x2318;</i>+<i class='key'>&lowast;</i>
+を<i class='key'>ESC</i> <i class='key'>&lowast;</i>
+に置き換えてやることもできます。
+(沢山入れたい時はこちらの方が楽。)</p>
+
+<p><div><script src='https://gist.github.com/5681243.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<h1 id="メタプレフィックスとエスケープシーケンス、それから`Alt`キー">メタプレフィックスとエスケープシーケンス、それから<code>Alt</code>キー</h1>
+
+<p>前置きが長くなりましたが、本題へ。</p>
+
+<p>そもそもメタプレフィックス(<code>\M-</code>、メタキーと同時押し)と
+エスケープシーケンス(<code>\e</code>、ESCを押して一旦離して次のキーを押す)
+が全く一緒だと思ってたんですが
+基本的には区別されます。</p>
+
+<p>以下に行く前に取り敢えず前回の設定の</p>
+
+<pre><code>set convert-meta off
+set input-meta on
+set output-meta on
+</code></pre>
+
+<p>は設定してあることを前提とします。(<code>convert-meta</code>はすぐに変えますが。)</p>
+
+<h2 id="`convert-meta`が`on`の場合"><code>convert-meta</code>が<code>on</code>の場合</h2>
+
+<p>前回で設定した<code>convert-meta</code>が<code>off</code>でなく<code>on</code>になっていると
+メタキープレフィックスがエスケープシーケンスと区別されなくなります。</p>
+
+<p>これは、まず</p>
+
+<ul>
+<li>メタキーが8bit目を1にするためのキーであること。</li>
+</ul>
+
+
+<p>一方</p>
+
+<ul>
+<li><code>convert-meta</code>が<code>on</code>である場合、8bit目が1のキー入力が来た時は
+8bit目を落として、<code>ESC</code>を先に1回押した状態、と同じにする。</li>
+<li>さらにこのような<code>ESC+*</code>の状態をメタキープレフィックス状態と同値とみなす様になる。</li>
+</ul>
+
+
+<p>ということから結果的に<code>\M-f</code>と<code>\ef</code>の様なキーを全く同一とみなす様になります。
+(この辺理解がちょっと怪しい...)</p>
+
+<p>実際に<code>set convert-meta on</code>と<code>.inputrc</code>で設定した場合、
+まず、<code>bind -p</code>等とすると設定されている項目は<code>\C-</code>等Control関係のものなどのものに混じって
+<code>\M-f</code>等、メタキープレフィックスな状態だけが表示されます。</p>
+
+<p>MacのiTerm上では、
+<i class='key'>&#x2318;</i>+<i class='key'>f</i>、
+<i class='key'>&#x2325;</i>+<i class='key'>f</i>
+(これらについては上にあるように設定してあるとします)、
+及び<i class='key'>ESC</i><i class='key'>f</i>
+は全て初期設定の1単語進む(<code>forward-word</code>)、の動きをします。
+Windows/Linuxでも
+<i class='key'>Alt</i><i class='key'>f</i>、
+<i class='key'>ESC</i><i class='key'>f</i>
+が同様に動作します。</p>
+
+<p>ここで、</p>
+
+<pre><code>$ bind '"\ef":backward-word'
+</code></pre>
+
+<p>としても</p>
+
+<pre><code>$ bind '"\M-f":backward-word'
+</code></pre>
+
+<p>としても、いずれの場合でも全てのキーが1単語戻る、の動作をするように変更されます。</p>
+
+<p>また、<code>bind -p|grep backward-word</code>で確認すると、上記両方共設定した場合でも</p>
+
+<pre><code>$ bind '"\M-f":backward-word'
+$ bind '"\ef":backward-word'
+$ `bind -p|grep backward`
+"\M-f": backward-word
+</code></pre>
+
+<p>の様に<code>\M-f</code>しか表示されません。試しに違う設定を入れてみれば</p>
+
+<pre><code>$ bind '"\M-f":backward-char'
+$ bind '"\ef":backward-word'
+$ `bind -p|grep backward`
+"\M-f": backward-word
+
+$ bind '"\ef":backward-word'
+$ bind '"\M-f":backward-char'
+$ `bind -p|grep backward`
+"\M-f": backward-char
+</code></pre>
+
+<p>の様に<code>\ef</code>、<code>\M-f</code>のいずれか後で設定した物がbindの<code>\M-f</code>の結果として
+表示される事が分かります(上の表示は必要ない出力は省いています。)。</p>
+
+<h2 id="`convert-meta`が`off`の場合"><code>convert-meta</code>が<code>off</code>の場合</h2>
+
+<p><code>convert-meta</code>が<code>off</code>の場合、<code>\M-f</code>と<code>ESC f</code>は区別されます。</p>
+
+<p>まず、<code>bind -p</code>などとすると<code>\e</code>の項目だけで<code>\M-</code>となっているものはありません。</p>
+
+<p>ここでキーを試して見ると、Macでの
+<i class='key'>&#x2318;</i>+<i class='key'>f</i>、
+<i class='key'>ESC</i><i class='key'>f</i>、
+また
+Windows/Linuxでの
+<i class='key'>Alt</i><i class='key'>f</i>、
+<i class='key'>ESC</i><i class='key'>f</i>
+は1単語進む(<code>forward-word</code>)、の動きをします。</p>
+
+<p>一方、Macでメタキーとして設定した
+<i class='key'>&#x2325;</i>+<i class='key'>f</i>
+だけは
+<code>forward-word</code>の動きはせず文字化けしたものを表示したりします。</p>
+
+<p>従ってメタキープレフィックスな状態とエスケープシーケンスが区別されていて、
+さらに<code>Alt</code>キーはメタキーとしてではなく、エスケープシーケンスを作る様に
+働く事が分かります。
+<code>Alt</code>についてはCygwinやらLinuxでのxterm等で試しましたが、
+試した限りでは全てエスケープシーケンス的に動いています。
+(ここが意外だった所。ターミナルやその他の環境によって
+もしかしたら違うのかもしれません。)</p>
+
+<p>次に、bindでキー変更してみると、</p>
+
+<pre><code>$ bind '"\ef":backward-word'
+</code></pre>
+
+<p>とした場合は<i class='key'>&#x2325;</i>+<i class='key'>f</i>以外のキーが</p>
+
+<pre><code>$ bind '"\M-f":backward-word'
+</code></pre>
+
+<p>とした場合は<i class='key'>&#x2325;</i>+<i class='key'>f</i>だけが変更されます。</p>
+
+<p><code>bind -P</code>とすると</p>
+
+<pre><code>$ bind -P |grep backword-word
+"\eb": backward-word
+"\ef": backward-word
+"*": backward-word
+</code></pre>
+
+<p>の様な感じで、最後の文字化け(*としてある)部分が<code>\M-f</code>です。
+(文字化け部分はfのコード(01100110)の8bit目が1になったもの。)</p>
+
+<h2 id="`input-meta`/`output-meta`について"><code>input-meta</code>/<code>output-meta</code>について</h2>
+
+<p><code>input-meta</code>が<code>off</code>の場合、端末がサポートして居ない場合、
+8bit目を落とします。<code>on</code>だと端末の状況関係なく8bit目も受け入れます。
+手元の環境ではこの設定は<code>off</code>にしても影響が出るものはありませんでした。
+この値は古くは<code>meta-flag</code>と言う名前で定義されていましたが、
+この名前は現在は<code>input-meta</code>と同義で、
+<code>input-meta</code>で定義しても<code>bind -v</code>等で見るとき等は<code>input-meta</code>の値として反映されます。</p>
+
+<p><code>output-meta</code>は<code>on</code>の時には出力時に8bit目が1の入力を直接表示し、
+<code>off</code>の時はメタプレフィックスエスケープシーケンスとして表示します。
+<code>output-meta</code>を<code>off</code>にしてさらに<code>convert-meta</code>を<code>off</code>にした状態で
+<i class='key'>&#x2318;</i>+<i class='key'>f</i>
+を打つと<code>\346</code>と表示され、
+これは11100110(fのコードの8bit目を1にしたもの)の8進法表示になってる
+事が確認出来ます。(メタキーが8bit目を1にしたことを確認出来る。)</p>
+
+<h1 id="Emacsでのキーバインド">Emacsでのキーバインド</h1>
+
+<p>Emacsにおいては少なくとも初期設定のままでは
+エスケープシーケンスのみが有効でメタキーは効きませんでした。</p>
+
+<p>キーバインドで</p>
+
+<pre><code>(define-key global-map "\M-f" 'backward-word)
+</code></pre>
+
+<p>と書こうが、</p>
+
+<pre><code>(define-key global-map "\ef" 'backward-word)
+</code></pre>
+
+<p>と書こうが<i class='key'>&#x2318;</i>+<i class='key'>f</i>
+は1単語戻る、になりましたが、
+<i class='key'>&#x2325;</i>+<i class='key'>f</i>
+は何故か<code>A</code>を出力するだけでした。 <sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup></p>
+
+<h1 id="Happy+Hacking+Keyboardのメタキー?">Happy Hacking Keyboardのメタキー?</h1>
+
+<p>HHKにはモードを変更してスペースの両端にあるキーを変更できたりするんですが、
+両端にあるダイヤモンド型のマークの有るキーが
+Wikipediaの
+<a href="http://ja.wikipedia.org/wiki/%e3%83%a1%e3%82%bf%e3%82%ad%e3%83%bc">メタキーのページ</a>
+で紹介されているので違いがあるかな、と思ったんですが、
+このキーは何も機能しない様でした。</p>
+
+<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B000EXZ0VC/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img src="http://ecx.images-amazon.com/images/I/41WFYKNEMPL._SL160_.jpg" border="0"></a></p>
+
+<p><a href="http://www.pfu.fujitsu.com/hhkeyboard/leaflet/hhkb_backview.html">HHKモード</a>
+にして、キー自体が送られていることは<a href="/blog/2013/03/13/yamy">yamy</a>の
+スキャンコードの機能で確かめました。
+コード自体は以前も調べたのですが、左右がそれぞれ<code>0x7b</code>、<code>0x79</code>です。
+これらは日本語配列キーボードの無変換、変換に当たるキーコードなので、
+この部分だけは日本語配列と同じ
+<i class='key'>Alt</i>-<i class='key'>無変換</i>-<i class='key'>Space</i>-<i class='key'>変換</i>
+<i class='key'>Alt</i>
+の状態になっているわけですね。</p>
+
+<p>というわけで、未だメタキーを直接送れるキーボードがあるかどうか自体が謎。
+(Wikiの<a href="http://ja.wikipedia.org/wiki/Alt%e3%82%ad%e3%83%bc">Altの歴史</a>
+なんかを見てもメタキーの存在はもう無い感じですかね...?)</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <code>.emacs</code>を数年ぶりにいじる上、昔の設定を消していたのでどうやるか
+  分からなくて調べた...
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[コマンドラインでの文字化け解決?: '&#92;M-c'とは...]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/29/computer-bash-screen-linux/"/>
+    <updated>2013-05-29T14:23:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/29/computer-bash-screen-linux</id>
+    <content type="html"><![CDATA[<p>前に<a href="/blog/2013/05/29/computer-bash-screen-linux">Macでの文字化け対策用のGNU screenのインストール</a>で書いた様に日本語ファイルの表示は出来る様にしてあったのですが、
+コマンドラインから日本語を打つと化けると言う現象に悩まされてました。</p>
+
+<p>普段は殆ど必要としないので特に調べないで居たんですが、
+色々設定をいじっているうちにとりあえず何が悪いかは分かりました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="+#92;M-c+in+.inputrc">&#92;M-c in .inputrc</h1>
+
+<p>問題は<code>.inputrc</code>の中で</p>
+
+<pre><code>"\M-c": capitalize-word
+</code></pre>
+
+<p>と設定してあることでした。</p>
+
+<p>この設定いつ書いたかうる覚えですが、
+<code>.inputrc</code>に一通りreadline<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>のショートカットが
+再定義してあって、恐らくこれはMacに移った時に<code>Command</code>
+ボタンがMeta Keyとして効かない、と思った時に
+取り敢えず、と言うことで書いてみたんだと思います。
+(この辺りのことはまた次回辺り書きたいと思います。)</p>
+
+<p>この設定を外してbashを立ち上げれば日本語を使えるし
+日本語ファイルもコマンドラインから操作できる様になりました。
+これでiTermから一通り全て日本語が使えます。</p>
+
+<p>ただ、ちょっとまだわからないのが、この<code>\M-c</code>を設定した時だけ日本語が化ける、
+と言う点。</p>
+
+<p>実際にファイルには他の項目も<code>\M-</code>の様な書き方で設定してあったんですが、
+これらは悪さしてませんでした。</p>
+
+<p>試しに、これらを<code>.inputrc</code>から外して、日本語が書けることを確認した後、</p>
+
+<pre><code>$ bind '"\M-c": capitalize-word'
+</code></pre>
+
+<p>の様に<code>bind</code>コマンドで再定義してやっても日本語が化ける様になります。
+この場合、コマンドラインで<code>M-c</code><sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>を打つ限りは期待通り次の単語の先頭が
+大文字になる動きをします。</p>
+
+<pre><code>$ bind '"\M-c": "test"'
+</code></pre>
+
+<p>の様に他の物にしても駄目。この場合<code>M-c</code>を送ると<code>test</code>と出力される様になるわけですが、
+日本語をうって<code>Return</code>を押すと書く文字の前に<code>test</code>と表示され
+文字化けがその後に出ます。<code>テスト</code>という文字で決定すると<code>test*test*test*</code>
+の様な感じに。
+<code>\M-c</code>と<code>Enter</code>が何か関係しているのか...?</p>
+
+<p>他の</p>
+
+<pre><code>$ bind '"\M-b": "test"'
+</code></pre>
+
+<p>等は影響が無いみたいで日本語がそのまま打てます。</p>
+
+<p>ざっと調べた所、よく分からなかったので、取り敢えず<code>\M-c</code>については
+設定しちゃだめ、ということだけで置いておきます...</p>
+
+<p>6/1追記
+キーコードをつらつら見ていたらちょっと分かりました。
+<code>c</code>のAsciiコードは(従ってUTF-8でのコードも)<code>01100011</code>
+なんですがメタキーを利かすと最上位が1になるので
+<code>11100011</code>になります。</p>
+
+<p>一方で、UTF-8でのひらがなとカタカナのコードは3バイトで表現されますが、
+全ての文字が1バイト目が<code>11100011</code>で始まります。</p>
+
+<p>従って、ひらがなやカタカナを入力した時、決定した瞬間にまず1バイト目が
+<code>\M-c</code>で定義されていてしまうとそれに変換されてしまい、
+残りの2バイト分が意味不明な状態で残ってしまうわけです。
+なので
+ <code>テスト</code>という文字で決定すると<code>test*test*test*</code>
+の様にそれぞれの文字の1バイト目が変換っされた形になります。</p>
+
+<p>また、漢字は1バイト目が違うので、<code>\M-c</code>を設定した状態でも文字化けしません。
+例えば<code>漢字</code>は2進法だと
+<code>11100110 10111100 10100010</code>と
+<code>11100101 10101101 10010111</code>
+で、それぞれの1バイト目の8ビットを除いた数、<code>01100110</code>と<code>01100101</code>は
+それぞれ<code>f</code>と<code>e</code>です。
+従って、<code>bind '"\M-f":"meta-f"';bind '"\M-e":"meta-e"'</code>の様な設定をすれば
+<code>漢字</code>と打って決定した時に<code>meta-f*meta-e*</code>の様な表示になります。</p>
+
+<p>ということなので、<code>convert-meta off</code>に設定した時はメタプレフィックスな
+設定はしちゃ駄目、と言うのが正しい様です。</p>
+
+<h1 id="meta+in+inputrc">meta in inputrc</h1>
+
+<p>それからコマンドラインで日本語を表示/使用したいとき、
+readlineの設定で</p>
+
+<pre><code>set convert-meta off
+set input-meta on
+set output-meta on
+</code></pre>
+
+<p>の様になってる必要があります<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>。(<code>bind -v</code>で確認。)</p>
+
+<p>この設定も<code>.inputrc</code>でそのまま書いておけば反映されます。
+(書いた後に反映する場合は<code>C-x C-r</code>)</p>
+
+<p>ただ、使っているLinux端末だと英語環境で使ってますがこれらは
+<code>/etc/inputrc</code>に最初から書いてあり
+MacやらWindowsやらでは<code>/etc/inputrc</code>が見当たりませんが、
+デフォルトで上の様に設定されていました。</p>
+
+<h1 id="LANG">LANG</h1>
+
+<p>上のmetaに関する設定で日本語ファイルを作ったりは出来ますが、
+<code>ls</code>などでは化けます。
+これを表示するためには</p>
+
+<pre><code>$ echo $LANG
+</code></pre>
+
+<p>で何になってるか確認してUTF8系でなかったら</p>
+
+<pre><code>$ export LANG=en_GB.UTF-8
+</code></pre>
+
+<p>などとします(<code>.bashrc</code>に加えておく)。<code>ja_JP.UTF-8</code>にすればコマンド出力等も一部表示が日本語化されます。
+<code>en_US.UTF-8</code>もあって、<code>en_GB</code>と殆ど変わらないんですが、
+<code>date</code>の表示がイギリス式のが好きなのでGBにしてあります。</p>
+
+<pre><code>$ export LANG=en_GB.UTF-8
+$ date
+Wed 29 May 2013 HH:MM:SS XXXX
+$ export LANG=en_US.UTF-8
+$ date
+Wed May 29 HH:MM:SS XXXX 2013
+$ export LANG=ja_JP.UTF-8
+$ date
+2013年 5月29日 水曜日 HH時MM分SS秒 XXXX
+</code></pre>
+
+<p></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <a href="http://www.nxmnpg.com/ja/3/readline">manページ  — READLINE</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p> これも次回書こうと思いますが、iTermだとOptionキーでMetaキーを送る事が出来ます。
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p> <a href="http://ja.wikipedia.org/wiki/UTF-8">Wiki: URF-8</a>
+  <a href="http://www.eva.hi-ho.ne.jp/cgi-bin/user/zxcv/decodeUTF8.cgi">UTF8エンコードをデコードする</a>
+  <a href="http://mikeneko.creator.club.ne.jp/~lab/kcode/encode.html">エンコードの種類</a>
+  <a href="http://www.bugbearr.jp/?FreeBSD%2FUTF-8%E5%8C%96">FreeBSD/UTF-8化</a>
+<a href='#fnref:3' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screenアップデート]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/11/computer-screen-install/"/>
+    <updated>2013-05-11T19:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/11/computer-screen-install</id>
+    <content type="html"><![CDATA[<p>仕事で使ってるLinuxのOSアップデートがあったので
+色々自分用に再インストールをしましたが、
+<a href="http://www.gnu.org/software/screen/">GNU screen</a>のインストール時にちょっとひっかかったのでメモしておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="GNU+screen開発版(4.1.0)のインストール">GNU screen開発版(4.1.0)のインストール</h1>
+
+<p>基本的に<a href="/blog/2013/03/22/screen-install/">以前やった通り</a>なんですが、
+4月にちょっとしたアップデートがあった様で、それによって
+コンパイルが通らなくなっているようです。<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup></p>
+
+<p><a href="http://git.savannah.gnu.org/cgit/screen.git/commit/?id=d94037c08a6dd30845b27cd76d99663e06aaabb2">non-BMPのサポートを入れた際</a>
+の恐らくタイポ?なんでしょうけど<code>src/anci.c</code>の一箇所
+2930行目辺り(パッチを当てた後に見ると2954行目辺り)を
+以下の様に訂正します</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'> # endif
+</span><span class='line'> #endif
+</span><span class='line'> #ifdef UTF8
+</span><span class='line'><span class="gd">-      if (p-&gt;encoding == UTF8)</span>
+</span><span class='line'><span class="gi">+      if (p-&gt;w_encoding == UTF8)&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;    {
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>取り敢えずこれで後は<a href="/blog/2013/03/22/screen-install/">以前</a>
+と同じ様にインストール。</p>
+
+<h1 id="caption/hardstatusの表示">caption/hardstatusの表示</h1>
+
+<p>上で参照したページ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>を見ていたら
+<code>%E</code>と言うエスケープがcaptionとかで使える様になっている、
+というのを見つけて、
+<a href="http://git.savannah.gnu.org/cgit/screen.git">screenのgitのコミットメッセージ</a>
+を見ると1年以上前に実装されていました。</p>
+
+<p><code>%E</code>は、コマンド入力待ち状態(<code>C-a</code>等escape文字を押した時)を
+判定してくれる、ということです。</p>
+
+<p>ということで、これを含めてcaption及びhardstatusは以下の様にしています。
+(hardstatusは<code>%E</code>を使ってませんが...)</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="caption+for+each+window">caption for each window&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>caption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%?%n %H %L=%h%>%?%P &lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong>%?%?%E &lt;strong>&lt;em> command mode &lt;/em>&lt;/strong>%?%-0='&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%F++++++#+if+the+window+has+the+focus">%?%F      # if the window has the focus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Wk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Write(W)}">%{=d Wk} #   set attribute = {dim, black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%:++++++++#+else">%:        # else&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Kk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Black(K)}">%{=d Kk} #   set attribute = {dim, black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Bk}#+++set+attribute+=+{dim,+black(k)+on+bright+Blue(B)}">%{=d Bk}#   set attribute = {dim, black(k) on bright Blue(B)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+window+number">%n        # window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%H++++++++#+hostname+of+the+system">%H        # hostname of the system&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%L=+++++++#+Mark+the+position+for+the+next+truncation">%L=       # Mark the position for the next truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%h++++++++#+window'+hardstatus">%h        # window' hardstatus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%>++++++++#+Truncate+%L=+~+%>">%>        # Truncate %L= ~ %>&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+copy/paste+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%E++++++#+if+copy/paste+mode">%?%E      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+command+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> command mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-0=++++++#+pad+the+string+to+the+display's+width.++-0++means+start+from">%-0=      # pad the string to the display's width. "-0" means start from&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+the+rightest+side"># the rightest side&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(e.g.+10=:+10%+from+left,+010,+10+characters+from+left"># (e.g. 10=: 10% from left, 010, 10 characters from left&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(+++++-10=:+10%+from+right)"># (     -10=: 10% from right)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+With+%L>,+%=+above,+screen+tries+to+truncates+the+part"># With %L>, %= above, screen tries to truncates the part&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+in+the+left+of++%L>+"># in the left of "%L>"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="hardstatus">hardstatus&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>hardstatus alwayslastline "%{= Kk}%-w%40>%{= Wk}%n %t%{-}%+w%-0="&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="hardstatus+alwayslastline++%{=+Kk}%-w%{=+Wk}%n+%H+%t%{-}%+w+">hardstatus alwayslastline "%{= Kk}%-w%{= Wk}%n %H %t%{-}%+w"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Kk}+++#+set+attribute+=+{black(k)+on+bright+Black(K)}">%{= Kk}   # set attribute = {black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-w+++++++#+windows'+list+up+to+the+current+window+(shown+as++%n+%t+)">%-w       # windows' list up to the current window (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%40>++++++#+Mark+here+as+a+point+to+move+when+truncation">%40>      # Mark here as a point to move when truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+Try+to+move+this+point+to+the+40%+point"># Try to move this point to the 40% point&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Wk}+++#+set+attribute+=+{black(k)+on+bright+Write(W)}">%{= Wk}   # set attribute = {black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+current+window+number">%n        # current window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%t++++++++#+current+window+title">%t        # current window title&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{-}++++++#+remove+the+set+from+the+current+attributes">%{-}      # remove the set from the current attributes&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%+w+++++++#+windows'+list+starting+with+the+window+after+the+current+one+(shown+as++%n+%t+)">%+w       # windows' list starting with the window after the current one (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>%E</code>の使い方としては、コマンド入力待機状態の時に
+<code>*** command mode ***</code>とcaptionに表示させるようにしました。</p>
+
+<p>こんな感じ</p>
+
+<p><a href="post/20130511_screen.jpg"><img src="/images/post/20130511_screen.jpg" title="" alt=""></a></p>
+
+<p>最初、copy/paste同様色も変えようかと思ったんですが、
+ウィンドウを移動するたびに色が変わると目がチカチカするので
+文字を追加するだけにしておきまた。</p>
+
+<p>1つ気になるのが、縦分割をしていると、何故か<code>%E</code>が横のウィンドウにも有効になって
+上の絵にあるように上側両方のウィンドウで<code>command mode</code>
+が表示されてしまっています。</p>
+
+<p>バグなのかどうなのか分かりませんが、
+まあ、ウィンドウの情報と言うより全体の情報ですし、
+それ程長い時間表示されるものでもないのでとりあえずはこの状態でOKとします。</p>
+
+<p>ちなみに、上のcopy/pasteの部分も随分前にどこかからコピペしたものだったと思ったんですが、
+恐らく上で参照したページと同じ方の</p>
+
+<blockquote><p><a href="http://yskwkzhr.blogspot.ch/2011/12/master-copy-and-paste-of-gnu-screen.html"> 開発版GNU Screenでコピペを極める(ターミナルマルチプレクサ Advent Calendar 2011 : ATND の２４日目)</a></p></blockquote>
+
+<p>を参照したみたいです。(毎度参考にさせて頂いてありがとうございます。)</p>
+
+<h1 id="tmix...?">tmix...?</h1>
+
+<p>最近<a href="http://www.gnu.org/software/screen/">GNU screen</a>よりも
+<a href="http://tmux.sourceforge.net/">tmux</a>
+の方が流行ってる感もあって、何度か
+乗り換えようと試してみたんですが、どうしてもtmux出来ないことがあって
+乗り換えられません。</p>
+
+<p>screenだと、ウィンドウを適当に分割した後、それぞれのウィンドウに
+適時好きなウィンドウを持ってこれます。</p>
+
+<p>これがtmuxだと、<code>window</code>と言うのが1つのタブみたいな感じで、
+それぞれで<code>pane</code>と呼ばれる領域に分けることが出来ます。</p>
+
+<p>この<code>pane</code>と言う単位を、screenで言うところのウィンドウの様に扱いたくて、
+別の<code>window</code>に行った時に他の<code>window</code>から<code>pane</code>を自由に取ってきたい、
+と思うんですが、これが簡単じゃありません。</p>
+
+<p>丁度、Advent Calenderの上の記事の前の日に、</p>
+
+<blockquote><p><a href="http://d.hatena.ne.jp/kozo2/20111223/1324667710">tmuxのペイン切り替えをscreenみたくする(ターミナルマルチプレクサ Advent Calendar 2011 23日目)</a></p></blockquote>
+
+<p>という記事があってまさにこのことを記事にしてありました。</p>
+
+<p>ですが、これだと前後の<code>window</code>の決まった<code>pane</code>しか取ってこれない上に
+交換的な事をしてるので、やっぱりscreenとは違う感じになってしまいます。
+(この辺<code>window</code>だとか<code>pane</code>という言葉が正確でなかったらすいません。)</p>
+
+<p>もうこの辺はツール自体の思想の問題で、
+tmux的な動作になれてしまえばそっちの方が便利だ、と言う人もいるんだと思うんですが、
+やっぱり暫くはscreenにとどまることになりそうです。</p>
+
+<p>しかしtmuxの方が良い、という感じの話のが多いのは何でなんでしょう...?
+(以前は画面分割の面で大分tmuxの方が先を言ってた感じですかね?
+今でもGNU screenの安定版は縦分割出来ない訳で...)</p>
+
+<p>tmuxの最大の利点はググる時に<code>tmux</code>と売っただけでもちゃんと<code>tmux</code>関連の
+話を検索してくれることかもしれません...
+(<code>screen</code>だと一般的単語過ぎてしまうので<code>GNU screen</code>とかしますが、
+これだと<code>GNU</code>を書いてない記事とかで結構ためになる話を後ろに回してしまったり...)</p>
+
+<h1 id="byobu">byobu</h1>
+
+<p><a href="http://byobu.co/">byobu</a>はGNU screenのラッパーツールみたいな感じで、
+中でGNU screenを起動しますが、設定変更を行う簡単なインターフェースがあるので、
+直接<code>.screenrc</code>を書かなくても指示に従って好きな物を選んであげれば簡単に好きな
+設定を作ることが出来る、と言う感じでしょうか?</p>
+
+<p>tmuxにも対応していて、screenの代わりに使う事も出来ます。</p>
+
+<p>既に自分で<code>.screenrc</code>等をがしがし書いている場合には必要無いですが、
+始めてGNU screenやtmuxを使う人にはとても便利なものだと思います。</p>
+
+<p>以前、外国人の同僚に</p>
+
+<p>"byobuっていう便利なものがあるよ"</p>
+
+<p>って言われて、
+最初何のことだか良く分からなかったけどどうやらターミナルで使う物で
+GNU screenとかと同じ様なものだな、と理解。
+それで、byobuってなんでそんな変な名前?と思ってたら</p>
+
+<p>"日本のものでしょ?"</p>
+
+<p>って言われて始めて<code>屏風</code>だったのか、と知ったという。</p>
+
+<p><img src="/images/post/20130511_byobu.jpg" title="" alt=""></p>
+
+<p>byobuは殆ど使ったことがないのですが、
+ちょっとこの話を思い出したので最後に紹介してみました。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <a href="http://yskwkzhr.blogspot.ch/2013/04/gnu-screen-watch-january-2011-april-2013.html">GNU Screen Watch: January 2011 - April 2013</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ターミナルでのディレクトリ移動]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/04/10/computer-bash/"/>
+    <updated>2013-04-10T22:33:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/04/10/computer-bash</id>
+    <content type="html"><![CDATA[<p>ターミナルでのディレクトリ移動コマンドは最も良く使うコマンドだと思いますが、
+良く使うコマンドだけに出来るだけ楽出来るようにしたいものです。</p>
+
+<p>このページでは、数回前に居た時のディレクトリに戻りたい、
+という時や、
+複数のウィンドウで作業している時に、
+一方のウィンドウで作業しているディレクトリに他方のウィンドウからも移動したい、
+という時に簡単に移動出来るようなコマンドを紹介します。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="cd">cd</h1>
+
+<p>まずは<code>cd</code>(Change Directory)の簡単なまとめ。
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd directory # Go to directory
+</span><span class='line'>cd           # = cd ~, Go to $HOME
+</span><span class='line'>cd -         # Go to previous directory</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>通常、<code>directory</code>をした場合、カレントディレクトリから相対的に移動するか、
+<code>/</code>で始まればそれによって指定された絶対パスに移動します。</p>
+
+<p><code>-</code>を使うと直前に居たディレクトリに帰る事が出来、良く使うと思いますが、
+1回<code>-</code>を使った後は、戻る前に居たディレクトリが記憶されるので、
+<code>cd -</code>を繰り返すと前に居たディレクトリとカレントディレクトリを行ったり来たり
+するだけです。</p>
+
+<p>さらに前のディレクトリに行きたいときは下の様に予め<code>pushd</code>等で
+移動しておく必要があります。</p>
+
+<p>ここで<code>CDPATH</code>と言うシェル変数があって、良く使う親ディレクトリの場所を
+指定しておくと、どのディレクトリから<code>cd</code>しても、<code>CDPATH</code>内にかかれた
+親ディレクトリ内に指定のディレクトリがある場合、そのディレクトリに移動します。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /tmp
+</span><span class='line'>$ mkdir -p test1/test2
+</span><span class='line'>$ CDPATH=/tmp/test1/
+</span><span class='line'>$ cd test2
+</span><span class='line'>/tmp/test1/test2
+</span><span class='line'>$ cd /tmp
+</span><span class='line'>$ mkdir test2
+</span><span class='line'>$ cd test2
+</span><span class='line'>/tmp/test1/test2
+</span><span class='line'>$ cd /tmp
+</span><span class='line'>$ cd ./test2
+</span><span class='line'>$ pwd
+</span><span class='line'>/tmp/test2</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>CDPATH</code>内で指定されているディレクトリが最優先されているので、
+カレントディレクトリに同名のディレクトリがあったとしても
+<code>CDPATH</code>内に書かれたディレクトリ内にあるディレクトリが優先されます。
+(なので明示的に<code>./</code>を使う必要があります。)</p>
+
+<p>逆に混乱の元にもなるので、余程特殊なディレクトリ名だけがあるような
+親ディレクトリでない場合は使わないほうが無難です。</p>
+
+<p><code>CDPATH</code>へは<code>PATH</code>等と同様に<code>:</code>で区切って
+複数のディレクトリを指定することが出来ます。</p>
+
+<h1 id="pushd/popd">pushd/popd</h1>
+
+<p><code>cd</code>の代わりに<code>pushd</code>を使うと移動と同時に移動先のディレクトリを記憶します。
+<code>popd</code>を使うと記憶されたディレクトリの新しい順に
+戻っていくことが出来ます。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /tmp
+</span><span class='line'>$ mkdir -p test1/test2
+</span><span class='line'>$ pushd test1/
+</span><span class='line'>/tmp/test1 /tmp
+</span><span class='line'>$ pushd test2/
+</span><span class='line'>/tmp/test1/test2 /tmp/test1 /tmp
+</span><span class='line'>$ pushd ../
+</span><span class='line'>/tmp/test1 /tmp/test1/test2 /tmp/test1 /tmp
+</span><span class='line'>$ popd
+</span><span class='line'>/tmp/test1/test2 /tmp/test1 /tmp
+</span><span class='line'>$ popd
+</span><span class='line'>/tmp/test1 /tmp
+</span><span class='line'>$ popd
+</span><span class='line'>/tmp
+</span><span class='line'>$ popd
+</span><span class='line'>bash: popd: directory stack empty
+</span><span class='line'>/tmp $</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>pushd</code>/<code>popd</code>ではさらに数字を指定することによって
+n回前のディレクトリに戻る、といったことも出来ますがここでは省略します。</p>
+
+<h1 id="cdをpushdのwrapperにする">cdをpushdのwrapperにする</h1>
+
+<p>過去の移動歴を覚えてくれるのは便利ですが、毎回<code>pushd</code>を
+するのは大変な上、ディレクトリがいちいち表示されて嫌なので、
+<code>cd</code>を<code>pushd</code>へのwrapper functionにしています。</p>
+
+<p><div><script src='https://gist.github.com/5356817.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>素直に<code>alias cd='pushd &gt;/dev/null'</code>でも殆ど変わらないですが、
+1番最初のディレクトリを記憶したり、
+ディレクトリの中のファイル名まで指定してしまった時にその親ディレクトリに
+移動したりと(Tabで探してる時等にたまに行きすぎてしまった時とか)、
+細かいところを調整しています。</p>
+
+<p><code>popd</code>も保存されているディレクトリ名が表示されるので
+上の様に<code>bd</code>(Back Directoryのつもり)にaliasして
+何も表示せずにディレクトリを遡って行ける様にしています。</p>
+
+<p>使う場合は<code>.bashrc</code>にでも加えて下さい。</p>
+
+<h1 id="異なるプロセス上でディレクトリ情報を共有する">異なるプロセス上でディレクトリ情報を共有する</h1>
+
+<p>複数のターミナルを開いて作業していたり、
+<code>screen</code>等で複数ウィンドウを開いて作業をしていると、
+一方のウィンドウの作業ディレクトリに、他方のウィンドウも
+移動させたい時が良くあると思います。</p>
+
+<p>違うターミナルを開いている時は<code>pwd</code>でカレントディレクトリ
+を表示させてマウスでコピペしたりするでしょうし、
+<code>screen</code>などではコピーモードを使って表示された
+ディレクトリをコピペするかと思いますが、
+ちょっと面倒です。</p>
+
+<p>そこで、次の様な関数などを使って簡単にディレクトリ情報を共有するようにしています。
+<div><script src='https://gist.github.com/5356658.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p><code>sd</code>と言う関数でカレントディレクトリを記憶して
+<code>cl</code>と言う関数で記憶されたディレクトリに移動します。</p>
+
+<p>一方のウィンドウで<code>sd</code>してもう一方のウィンドウで<code>cl</code>すれば同じディレクトリに
+行けるわけです。</p>
+
+<p>また、<code>cl</code>オプションとして</p>
+
+<ul>
+<li><code>cl -l</code>  : 記憶したディレクトリの一覧の表示</li>
+<li><code>cl -c</code>  : 記憶したディレクトリの一覧を表示し、選択した番号のディレクトリへ移動</li>
+<li><code>cl -n N</code>: N番目の記憶されたディレクトリへ移動</li>
+</ul>
+
+
+<p>が出来ます。</p>
+
+<p>設定変数は</p>
+
+<ul>
+<li>LASTDIRFILE: 記憶するディレクトリの</li>
+<li>NLASTDIR: 記憶するディレクトリの数</li>
+</ul>
+
+
+<p>上記設定で<code>pushd</code>が常に行われる設定にしていますが、
+この<code>sd</code>を使うことで、1つのウィンドウだけで作業している時でも、
+特定のディレクトリだけを覚えておいて後で簡単に戻る、という使い方も出来ます。</p>
+
+<p>これも使う場合は<code>.bashrc</code>にでも加えください。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screenでクリップボードの履歴を使えるようにする]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/03/24/screen-bash/"/>
+    <updated>2013-03-24T16:21:00+01:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/03/24/screen-bash</id>
+    <content type="html"><![CDATA[<p>WindowsやMacでは
+<a href="/windows/windowssoftware#CLCL">clcl</a>(Windows)や
+<a href="/mac/macapp#ClipMenu">ClipMenu</a>(ClipMenu)
+と言ったソフトでクリップボードの履歴を呼び出せる様にしています。
+正直、これらが無いとやってられないくらいです(OSオリジナルでもって貰いたい)。</p>
+
+<p>vimなんかもちゃんとコピーしたものをレジストリーにしまっておけたりするのですが、
+GNU screenを使っている時も頻繁にコピーモードを使うので、
+その履歴も取れる様にしました。</p>
+
+<p>さらに、screenでコピーした物を手元のOSのクリップボードに繋げる
+事も出来るようにしました。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="準備">準備</h1>
+
+<p><a href="https://github.com/rcmdnk/scripts/blob/master/multi_clipboards.sh">multi_clipboards.sh</a>
+をダウンロードしてパスが通ったディレクトリに入れます。</p>
+
+<hr />
+
+<h2 id="2013/04/10+追記">2013/04/10 追記</h2>
+
+<p>Webでの表示上の関係でベル文字(<code>^G</code>, <code>C-v C-g</code>で入力)が空白になってしまうので、
+Raw表示をコピペしたりするとこれが消えてしまっておかしくなることがあります。
+ので、</p>
+
+<pre><code>wget https://raw.github.com/rcmdnk/scripts/master/multi_clipboards.sh
+</code></pre>
+
+<p>で直接ダウンロードするか</p>
+
+<pre><code>git clone git@github.com:rcmdnk/scripts.git
+</code></pre>
+
+<p>でscriptsフォルダ毎取って使って下さい。</p>
+
+<hr />
+
+<p>このスクリプトはscreenでコピーしたものや引数に与えた物をファイルに書き出しておいて
+呼び出すときはそこから読み込むだけなので、
+screenを使わないでも、単なる記憶装置として単独でも使えます
+(必要かどうかはわかりませんが)。</p>
+
+<p>次に、<code>.screenrc</code>にコピーした際にこのスクリプトを呼び出すよう、設定してあげます。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>bufferfile "$SCREENEXCHANGE"
+</span><span class='line'>bindkey -m ' ' eval 'stuff \040' 'writebuf' 'exec !!! multi_clipboards.sh -I'
+</span><span class='line'>bindkey -m Y eval 'stuff Y' 'writebuf' 'exec !!! multi_clipboards.sh -I'
+</span><span class='line'>bindkey -m W eval 'stuff W' 'writebuf' 'exec !!! multi_clipboards.sh -I'
+</span><span class='line'>bind a eval "!bash -c 'multi_clipboards.sh -O;echo -n \"$SCREEN_PS1\"'"
+</span><span class='line'>bind ^a eval "!bash -c 'multi_clipboards.sh -O;echo -n \"$SCREEN_PS1\"'"</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>これで、コピーモード時に<code>SPACE</code>、<code>Y</code>、<code>W</code>でコピーした際に
+<code>writebuf</code>で1度screenのクリップボードを<code>$SCREENEXCHANGE</code>に書き出してから
+<code>multi_clipboards.sh</code>を呼び出して、その中でクリップボードリストを作っています。</p>
+
+<p>さらに<code>C-a a (C-a)</code><sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>によってクリップボードリストが呼び出され、選択して
+screenのクリップボードに入れる事が出来るよう、設定しています。</p>
+
+<p>次に、上で設定している<code>SCREENEXCHANGE</code>を<code>.bashrc</code>等で
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>export SCREENEXCHANGE=$HOME/.screen-exchange</span></code></pre></td></tr></table></div></figure></notextile></div>
+等と、好きなファイルに指定して下さい。
+<code>bufferfile</code>を上の様に設定した場合は必ず<code>SCREENEXCHANGE</code>の値を
+正しいものに設定して下さい(そうでないとscreenでコピーしても<code>multi_clipboards.sh</code>
+に何も渡されません)。`</p>
+
+<h1 id="使い方">使い方</h1>
+
+<p>screen内のwindowで普通に<code>C-a [</code>でコピーモードに入りコピーします。
+取り敢えず何回かコピーした後に<code>C-a a</code>
+を押してみるとこんな感じになると思います。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&#040;-&#095;-&#041; $ Applications
+</span><span class='line'> 8: Applications Documents    Dropbox      Movies       Pictures     tmp
+</span><span class='line'> 7: Downloads
+</span><span class='line'> 6: Dropbox
+</span><span class='line'> 5: Applications Documents    Dropbox      Movies       Pictures     tmp&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>Desktop      Downloads    Library      Music        Public       usr
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p> 4: &#040;.&lt;sup>.&#041;&lt;/sup> $&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&amp;#040;-&amp;#095;-&amp;#041; $
+</span><span class='line'>&amp;#040;-&amp;#095;-&amp;#041; $
+</span><span class='line'>&amp;#040;-&amp;#095;-&amp;#041; $
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p> 3: &#040;@o@&#041; $
+</span><span class='line'> 2: &#041; $&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&amp;#040;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p> 1: bash
+</span><span class='line'> 0: Applications&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>choose buffer:3
+</span><span class='line'>&#040;-&#095;-&#041; $ &#040;@o@&#041; $</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>上の例では、元々screenのクリップボードには<code>Applications</code>が入っていて
+(<code>C-a ]</code>で貼りつけた所)、
+そこで<code>C-a a</code>を押した状態です。</p>
+
+<p>そうするとリストが出て番号を選ぶ様に言われるので、番号を入れれば
+それがscreenのクリップボードに入ります。
+なので、最後に選んだ後、<code>C-a a</code>で確認すると<code>(@o@) $</code>が出てきました。</p>
+
+<p>2, 4, 5番の例の様に、複数行でも扱える様になっています。</p>
+
+<h1 id="その他、multi_clipboards.shを直接使う方法">その他、multi_clipboards.shを直接使う方法</h1>
+
+<p>以下の引数を与えることで、それぞれ次の様な働きをします。
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ multi_clipboards.sh -i [args]&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Push+[args]+to+the+clipboard+list">Push [args] to the clipboard list&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ multi_clipboards.sh -I&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Push+the+screen's+clipboard+to+the+clipboard+list">Push the screen's clipboard to the clipboard list&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ multi_clipboards.sh -o&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Will+show+the+clipboard+list,+then+select+one,+which+will+be+placed">Will show the clipboard list, then select one, which will be placed&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="the+top+of+the+clipboard+list.">the top of the clipboard list.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ multi_clipboards.sh -O # or w/o arguments&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Same+as++-o+,+in+addition,+sent+it+to+the+screen's+clipboard">Same as "-o", in addition, sent it to the screen's clipboard&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ multi_clipboards.sh -s [args]&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Push+[args]+to+the+clipboard+of+screen">Push [args] to the clipboard of screen&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>$ multi_clipboards.sh -x&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Send+the+last+clipboard+to+the+clipboard+of+OS+(X+server)">Send the last clipboard to the clipboard of OS (X server)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="Even+if+CLX+is+not+set,+it+uses+CLXOS,+is+available">Even if CLX is not set, it uses CLXOS, is available&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h1 id="オプション">オプション</h1>
+
+<p>次の環境変数を<code>.bashrc</code>等で設定しておくことで設定を変える事が出来ます。</p>
+
+<table>
+<thead>
+<tr>
+<th align="left"> 環境変数 </th>
+<th align="left"> 説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">SCREENEXCHANGE</td>
+<td align="left"> screenのクリップボードを書きだして使える様にするファイル。screenの初期設定は<code>/tmp/screen-exchange</code>で<code>multi_clipboards.sh</code>の初期値も位置硫黄ここを指しているので、もしこのファイルを使いたい場合は<code>SCREENEXCHANGE</code>の値もこれにするか、もしくは<code>SCREENEXCHANGE</code>設定せず、<code>.screenrc</code>にも<code>bufferfile</code>の設定を書かないようにする。<code>bufferfile</code>の設定だけ書いて<code>SCREENEXCHANGE</code>の設定をしないと空の名前を指定してしまってクリップボードに何も渡されなくなるので注意。</td>
+</tr>
+<tr>
+<td align="left">CLIPBOARD</td>
+<td align="left"> クリップボードリストを保存しておくファイル。初期値は<code>$HOME/.clipboard</code>。</td>
+</tr>
+<tr>
+<td align="left">CLMAXHIST</td>
+<td align="left"> 保存しておくクリップボードの数。初期値は10。</td>
+</tr>
+<tr>
+<td align="left">CLX</td>
+<td align="left"> OS(Xサーバー)にクリップボードを渡すためのアプリケーション名。初期値は空で、通常のコピーではOSのクリップボードには送らない。<code>xsel</code>(linux)や<code>pbcopy</code>(Mac)などを指定しておくと、毎回コピーするたびに送るようになる。</td>
+</tr>
+<tr>
+<td align="left">CLXOS</td>
+<td align="left"> OS毎のクリップボード渡しソフトの指定。<code>CLX</code>が指定されていない時、<code>multi_clipboards.sh -x</code>を行う事で<code>CLXOS</code>を通じてクリップボードを渡す。初期値はLinuxでは<code>xsel</code>、なければ<code>xclip</code>、cygwin(Windows)では<code>putclip</code>、なければ<code>xsel</code>、それも無ければ<code>xclipl</code>、Macでは<code>pbcopy</code>。</td>
+</tr>
+<tr>
+<td align="left">CLSEP</td>
+<td align="left"> CLIPBOARD内で各クリップボードを分けるセパレーター。初期値は<code>&amp;#94;G</code>(<code>C-v C-g</code>、<code>\a</code>、ベル)。</td>
+</tr>
+<tr>
+<td align="left">SCREEN_PS1</td>
+<td align="left"> screenの中からコマンドを呼ぶと、終了後にプロンプトが表示されないため、それを補完するためにscreenでのbind内で最後に表示させる値。</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>ちなみに、screenの中では、screenを立ち上げた端末の子プロセスとして
+各ウィンドウが立ち上がり(記述がおかしかったら教えて下さい)、
+上で<code>bind</code>内でスクリプトが実行される際にはscreenを立ち上げた端末の
+環境変数が使われます。
+なので、<code>CLMAXHIST</code>等、screen内で変更しても意味がありません。</p>
+
+<p>screenを立ち上げた後に、どうしても変更したい場合は、
+1度detouchして、環境変数を変えてからattachし、
+新しいウィンドウを立ち上げればその中では新しい環境変数が有効になります。
+最初に立ち上げたウィンドウで変更する方法は今のところ思いつきませんでした。
+(screenの中の変数みたいなものでキープしたり変更したり出来るものが
+もしあるのであればうれしいのですが。)</p>
+
+<p><code>SCREEN_PS1</code>についても動的に変えられないため、
+カレントディレクトリをプロンプトに表示させていたりすると
+どうしても別の物になってしまいます。</p>
+
+<p>ただ、リストから選択するコマンドは無理にscreenコマンドとして呼ぶ必要はないので、
+<code>multi_clipboards.sh</code>を適当な値にaliasして上げた方が良いと思います。
+(自分のとこでは<code>alias c='multi_clipboards.sh</code>としてます。)</p>
+
+<p>また、自分の運用では<code>CLX</code>は空にして普段はOSのクリップボードには送らないように
+しています。</p>
+
+<p>ローカルだけで作業する時は殆ど問題になりませんが、
+ssh先で使う時に多少の遅れがストレスになることもあるので、
+普段はクリップボードには送らず、以下の様なaliasを設定し</p>
+
+<pre><code>alias put='multi_clipboards.sh -x
+</code></pre>
+
+<p>必要な時だけ<code>put</code>としてクリップボードに入れる様にしています。</p>
+
+<h1 id="参考">参考</h1>
+
+<p>OS(Xサーバー)にクリップボードを渡す部分で参考にしたサイトや
+さらに色々screenのクリップボードで遊んでいるサイト。</p>
+
+<p>特に、今の状態だとssh先にXを飛ばして無いときには手元のOSのクリップボードに
+持ってこれないので、そのうちやってみたいとも思ってもいます。</p>
+
+<ul>
+<li><a href="http://www.dekaino.net/screen/">screenのススメ</a></li>
+<li><a href="http://d.hatena.ne.jp/emacsjjj/20050717/p1">screen から簡単操作で X のクリップボードにコピ</a></li>
+<li><a href="http://taichino.com/engineer-life/mac/216">OSXでscreenのバッファをクリップボードでも使いたい件</a></li>
+<li><a href="http://yskwkzhr.blogspot.ch/2009/08/screenosx.html">screenのペーストバッファを自動でOSXのクリップボードに送る方法</a></li>
+<li><a href="http://d.hatena.ne.jp/sugyan/20100706/1278357368">screenでコピーした文字列を他のアプリケーションでもペーストできるようにする設定</a></li>
+<li><a href="http://yskwkzhr.blogspot.ch/2011/04/copying-remote-screen-paste-buffer.html">ssh先screenのペーストバッファをクリップボードに貼り付ける</a></li>
+</ul>
+
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> ここではescapeキーデフォルトのaにしてますが、自分の環境ではscreenのescapeキーは<code>escape ^Tt</code>にしてます。
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>

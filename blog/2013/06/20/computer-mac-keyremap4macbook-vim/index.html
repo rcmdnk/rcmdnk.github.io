@@ -1,0 +1,1095 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Vimを使う上でのIME(日本語入力)の取り扱い - rcmdnk's blog</title>
+  <meta name="author" content="rcmdnk">
+  
+  <meta name="description" content=" Vimで日本語入力をしているとノーマルモードに戻ったと時に
+毎回IMEをoffにしてやらないとコマンドが打てません。
+これはかなり面倒なのでノーマルモード移行時に
+自動的にIMEがoffになるようにしたい所で、
+その辺りのまとめというか、自分設定とついでに見つけた情報の寄せ集め。 ">
+  <meta name="keywords" content="Computer, Windows, Mac, yamy, KeyRemap4MacBook, Vim">
+  <meta property="og:title" content="Vimを使う上でのIME(日本語入力)の取り扱い" />
+  <meta property="og:type" content="blog" />
+  <meta property="og:description" content=" Vimで日本語入力をしているとノーマルモードに戻ったと時に
+毎回IMEをoffにしてやらないとコマンドが打てません。
+これはかなり面倒なのでノーマルモード移行時に
+自動的にIMEがoffになるようにしたい所で、
+その辺りのまとめというか、自分設定とついでに見つけた情報の寄せ集め。 ">
+  
+  <meta property="og:url" content="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim" />
+  
+  <meta property="og:image" content="/images/post/20130607_vim_ime.jpg"/>
+  
+  <meta property="og:site_name" content="rcmdnk's blog" />
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="canonical" href="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='//fonts.googleapis.com/css?family=Black+Ops+One' rel='stylesheet' type='text/css'>
+
+
+
+
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script src="/javascripts/footnote.js"></script>
+  <script src="/javascripts/scrolltopcontrol.js"></script>
+  <script src="/javascripts/intro.min.js"></script>
+  <script src="/javascripts/jquery.exflexfixed-0.3.0.js"></script>
+  <script src="/javascripts/jquery.nailthumb.1.1.min.js"></script>
+  <script src="/javascripts/utils.js"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-39086461-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  <!--
+*************************************************************
+Images under http://rcmdnk.github.io//images/emoji
+
+octocat, squirrel, shipit
+Copyright (c) 2013 GitHub Inc. All rights reserved.
+
+bowtie, neckbeard, fu
+Copyright (c) 2013 37signals, LLC. All rights reserved.
+
+feelsgood, finnadie, goberserk, godmode, hurtrealbad, rage 1-4, suspect
+Copyright (c) 2013 id Software. All rights reserved.
+
+trollface
+Copyright (c) 2013 whynne@deviantart. All rights reserved.
+
+All other images
+Copyright (c) 2013 Apple Inc. All rights reserved.
+*************************************************************
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><h1>
+  <a href="/">
+  
+  <img src="/images/MacApp/MacLogoMini3.png" alt="" class="title_logo" >
+  
+  rcmdnk's blog
+  </a>
+</h1>
+
+
+</header>
+  <nav role="navigation"><div class="main-navigation">
+  
+  <p>
+    
+    <a href="mailto:rdmdnk@gmail.com" title="Mail"><i class="icon-envelope-alt icon-2x"></i></a>
+    
+    
+    <a href="https://twitter.com/rcmdnk" title="Twitter"><i class="icon-twitter-sign icon-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="https://github.com/rcmdnk" title="GitHub"><i class="icon-github-sign icon-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="icon-rss-sign icon-2x"></i></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-2x"></i></a>
+    
+  </p>
+  
+  <p>
+  <a href="/blog/archives" class="link_btn" >Archives</a>
+  <a href="/windows" class="link_btn" >Windows</a>
+  <a href="/mac" class="link_btn" >Mac</a>
+  </p>
+</div>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div><!-- post -->
+<article class="hentry" role="article">
+  
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+<article>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort0 */
+google_ad_slot = "8058553244";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</article>
+
+
+  
+<header>
+  
+  <p class="meta">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-06-20T20:00:00+02:00"  data-updated="true">20 Jun 2013</time>
+    
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+,
+    
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/keyremap4macbook/'>KeyRemap4MacBook</a>, <a class='tag' href='/blog/tags/mac/'>Mac</a>, <a class='tag' href='/blog/tags/vim/'>Vim</a>, <a class='tag' href='/blog/tags/windows/'>Windows</a>, <a class='tag' href='/blog/tags/yamy/'>yamy</a>
+  
+</span>
+
+
+  </p>
+  
+  
+  
+  <!-- zenback_title_begin -->
+  
+  <h1 class="entry-title">Vimを使う上でのIME(日本語入力)の取り扱い</h1>
+  
+  <!-- zenback_title_end -->
+  
+  
+  
+</header>
+
+
+
+  <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="Vimを使う上でのIME(日本語入力)の取り扱い - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+
+
+
+<!-- zenback_body_begin -->
+
+<div class="entry-content">
+  
+  <div class="nailthumb-container title-thumb">
+    <img src="/images/post/20130607_vim_ime.jpg" alt="" title=""/>
+  </div>
+  
+  <p>Vimで日本語入力をしているとノーマルモードに戻ったと時に
+毎回IMEをoffにしてやらないとコマンドが打てません。
+これはかなり面倒なのでノーマルモード移行時に
+自動的にIMEがoffになるようにしたい所で、
+その辺りのまとめというか、自分設定とついでに見つけた情報の寄せ集め。</p>
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#MacでKeyRemap4MacBookを使ってIMEをノーマルモードで必ずオフにする">MacでKeyRemap4MacBookを使ってIMEをノーマルモードで必ずオフにする</a> </li>
+ <li><a href="#Windowsでyamyを使ってIMEをノーマルモードで必ずオフにする">Windowsでyamyを使ってIMEをノーマルモードで必ずオフにする</a> </li>
+ <li><a href="#GVimで出来る設定">GVimで出来る設定</a> </li>
+ <li><a href="#日本語固定モード">日本語固定モード</a> </li>
+ <li><a href="#Tera+Termでの制御シーケンスの使用">Tera Termでの制御シーケンスの使用</a> </li>
+ <li><a href="#WindowsでAutoHotkeyを使う方法">WindowsでAutoHotkeyを使う方法</a> </li>
+ <li><a href="#IMEの状態でカーソルの色を変更する">IMEの状態でカーソルの色を変更する</a> </li>
+ <li><a href="#IMEのON/OFFをsyntaxで制御する">IMEのON/OFFをsyntaxで制御する</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="MacでKeyRemap4MacBookを使ってIMEをノーマルモードで必ずオフにする">MacでKeyRemap4MacBookを使ってIMEをノーマルモードで必ずオフにする</h1>
+
+<p>Macでは<a href="http://rcmdnk.github.io/blog/tags/keyremap4macbook/">KeyRemap4MacBook</a>を使ったキーリマップで
+ノーマルモードに戻るときに<i class='key'>ESC</i>/<i class='key'>ctrl</i>-<i class='key'>[</i>を押した際
+IMEをオフにするようにしています。</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;item&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;name&gt;</span>ESC to IME off (to English) + Esc + Esc<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;appendix&gt;</span>Enable for all but HHK<span class="nt">&lt;/appendix&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;identifier&gt;</span>private.vim.ime_off_ESC<span class="nt">&lt;/identifier&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;only&gt;</span>TERMINAL, VI<span class="nt">&lt;/only&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;inputsource_only&gt;</span>JAPANESE<span class="nt">&lt;/inputsource_only&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;autogen&gt;</span>
+</span><span class='line'>    __KeyToKey__ KeyCode::ESCAPE, ModifierFlag::NONE,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_ENGLISH,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_JAPANESE,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_ENGLISH,
+</span><span class='line'>    KeyCode::ESCAPE, KeyCode::ESCAPE
+</span><span class='line'>  <span class="nt">&lt;/autogen&gt;</span>
+</span><span class='line'><span class="nt">&lt;/item&gt;</span>
+</span><span class='line'><span class="nt">&lt;item&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;name&gt;</span>Control + BRACKET_LEFT to IME off (to English) + Esc + Esc<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;identifier&gt;</span>private.vim.ime_new<span class="nt">&lt;/identifier&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;only&gt;</span>TERMINAL, VI<span class="nt">&lt;/only&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;inputsource_only&gt;</span>JAPANESE<span class="nt">&lt;/inputsource_only&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;autogen&gt;</span>
+</span><span class='line'>    __KeyToKey__ KeyCode::BRACKET_LEFT,
+</span><span class='line'>    MODIFIERFLAG_EITHER_LEFT_OR_RIGHT_CONTROL|ModifierFlag::NONE,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_ENGLISH,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_JAPANESE,
+</span><span class='line'>    KeyCode::VK_CHANGE_INPUTSOURCE_ENGLISH,
+</span><span class='line'>    KeyCode::ESCAPE, KeyCode::ESCAPE
+</span><span class='line'>  <span class="nt">&lt;/autogen&gt;</span>
+</span><span class='line'><span class="nt">&lt;/item&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ターミナル(含iTerm)及びVim(含MacVim)上で有効になります。</p>
+
+<p>最後に<i class='key'>ESC</i>を2回使っているのは文字を変換中の場合でも
+一気に抜けるためです。
+これだと本来のIME変換中の<i class='key'>ESC</i>の機能(変換中の文字を消すだけ)
+が失われますが、1回でも消してIMEをオフにする、状態になって
+中途半端なので取り敢えず2回に。</p>
+
+<p>KeyRemap4MacBookでは<code>変換中</code>の状態を取る要素が(調べた限り)無いので、
+どちらか好みの設定にする、ということで。</p>
+
+<p>また、こういった設定を書いてある所で余り見かけませんが、</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;inputsource_only>JAPANESE&lt;/inputsource_only></span></code></pre></td></tr></table></div></figure>
+
+
+<p>を使うとIMEがON(日本語入力)の時だけ有効になります。</p>
+
+<p>これはGNU screenと併用している時に絶対必要で、
+これを外してしまうとGNU screenでコピーモードに入ろうと
+<i class='key'>ctrl</i>-<i class='key'>[</i>を押してもすぐ<i class='key'>ESC</i>が押され終了することになり
+コピーモードが使えなくなります。</p>
+
+<p><i class='key'>ESC</i>1回設定なら特に問題が無いのですが、2回設定の場合は必須。</p>
+
+<p>日本語に戻す際に
+<code>英語</code><i class="icon-arrow-right"></i><code>日本語</code><i class="icon-arrow-right"></i><code>英語</code>
+と言った周りくどいことをしてますが、
+これはGoogle日本語入力等を使っていて、入力中に補完表示がある状態で
+GNU screenのコピーモードに入ろうとプレフィクス+<i class='key'>ctrl</i>-<i class='key'>[</i>
+を押してしまうと補完表示が残る様になってしまったのでその処置です。</p>
+
+<p>IMEをオフにするには
+<code>KeyCode::VK_CHANGE_INPUTSOURCE_ENGLISH</code>の代わりに
+<code>KeyCode::JIS_EISUU</code>(USキーボード使用時にも使えます)でもOKです。
+(VK_CHANGE_INPUTSOURCE_*と言うバーチャルキーを使ってみたかっただけ。)</p>
+
+<h1 id="Windowsでyamyを使ってIMEをノーマルモードで必ずオフにする">Windowsでyamyを使ってIMEをノーマルモードで必ずオフにする</h1>
+
+<p>Windowsでは<a href="http://rcmdnk.github.io/blog/tags/yamy/">yamy</a>
+を使って同じ様な事をしています。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># For Cygwin {{{
+</span><span class='line'>window Cygwin /cygwin/ : Global
+</span><span class='line'>  key A-v = RButton # Paste
+</span><span class='line'>
+</span><span class='line'>  # IL: IME on
+</span><span class='line'>  # IC: IME inserting
+</span><span class='line'>
+</span><span class='line'>  key IL-~IC-Esc = $ToggleIME Esc # Make IME off, Exit insert mode
+</span><span class='line'>  key IC-Esc = Esc # Stop inserting, Make IME off, Exit insert mode
+</span><span class='line'>
+</span><span class='line'>  key IL-*IC-C-LeftSquareBracket = Esc $ToggleIME Esc # Stop inserting, Make IME off, Exit insert mode
+</span><span class='line'># }}}
+</span><span class='line'>window PuTTY /putty/ : Global</span></code></pre></td></tr></table></div></figure>
+
+
+<p>cygwin上のみで有効になる様な設定です。
+yamyではIMEが有効である(<code>IL</code>)の状態に加え、入力中(<code>IC</code>)と言う状態を使えるので、
+上の設定では</p>
+
+<ul>
+<li>IMEオンの状態で文字を入力中に<i class='key'>ESC</i>を押したら入力キャンセル(元々のESCの動き)</li>
+<li>IMEオンの状態で文字を入力中でないときに<i class='key'>ESC</i>を押したらIMEをオフにしてESC(ノーマルモードへ)</li>
+<li><i class='key'>ctrl</i>-<i class='key'>[</i>を押したら入力中でもどんな状態でも最初にESCで行動をキャンセルし、IMEをオフにしてESC(ノーマルモードへ)</li>
+</ul>
+
+
+<p>となっています。</p>
+
+<p>ついでに最初の<i class='key'>Alt</i>-<i class='key'>v</i>の設定は、
+このキーで右クリックをすることにより
+<code>貼り付け</code>を出来る様にしてあります。
+<code>cygwin</code>を<code>putty</code>に替えて、puttyの設定で右クリックが貼り付けになっていれば
+puttyでも同じ事が出来ます。
+(ただし、マウスカーソルはターミナル上に無いとカーソル下のウィンドウを選ぶ
+だけなので注意。)</p>
+
+<p>Macだと元々<i class='key'>Command</i>-<i class='key'>v</i>が貼り付けで<i class='key'>Control</i>と区別されているので
+ターミナルなどでも貼り付けが使えますが、Windowsだと貼り付けキーが
+使えないのでこれで代用を。</p>
+
+<hr />
+
+<p><em>2013/06/28 追記</em></p>
+
+<p>下記ではGvimやPuttyでも同じ様な設定を使うため、
+<code>Terminal</code>という新しいグループを作って
+<code>Cygwin</code>、<code>Gvim</code>、<code>Putty</code>上で有効にするようにしています。
+CUIの<code>vim.exe</code>を直接呼び出したWindowは
+<code>ConsoleWindowClass</code>と言うクラスだと言う事がyamyの調査から確認できるのですが
+そもそもIMEの変換が良く分からない動きをしたりして、
+イマイチちゃんと設定できなかったのでコメントアウトしてあります。
+(わざわざCUI版Vimを直接呼び出す必要も無いと思いますし。)</p>
+
+<p>後、上のコードコメントがちょっとおかしいのと
+<code>$ToggleIME</code>の前<code>Esc</code>が要らない(<code>$ToggleIME</code>で入力を中断してIME Offの動きをするので)点も下では治してあります。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Terminal/Vim {{{
+</span><span class='line'>keymap Terminal : Global
+</span><span class='line'>  key A-v = RButton # Paste
+</span><span class='line'>  # IL: IME on
+</span><span class='line'>  # IC: IME inserting
+</span><span class='line'>  key IL-~IC-Esc = $ToggleIME Esc # Make IME off, Exit insert mode
+</span><span class='line'>  key IC-Esc = Esc # Stop inserting
+</span><span class='line'>  key IL-*IC-C-LeftSquareBracket = $ToggleIME Esc # Stop inserting, Make IME off, Exit insert mode
+</span><span class='line'>keymap Global
+</span><span class='line'>#}}}
+</span><span class='line'>
+</span><span class='line'># For Cygwin {{{
+</span><span class='line'>window Cygwin /cygwin/ : Terminal
+</span><span class='line'># }}}
+</span><span class='line'>
+</span><span class='line'># For Gvim {{{
+</span><span class='line'>window GVim /Vim/ : Terminal
+</span><span class='line'>#window CVim /ConsoleWindowClass/ : Terminal
+</span><span class='line'># }}}
+</span><span class='line'>
+</span><span class='line'># For PuTTY {{{
+</span><span class='line'>window PuTTY /putty/ : Terminal
+</span><span class='line'># }}}
+</span><span class='line'> 
+</span><span class='line'>keymap Global</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>追記終わり</em></p>
+
+<hr />
+
+<h1 id="GVimで出来る設定">GVimで出来る設定</h1>
+
+<p>GVimではCUI版と違い、IMEを制御出来る部分があり、
+Vim側だけで詳細に制御出来ます。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>" ime setting
+</span><span class='line'>if has('multi_byte_ime') || has('xim') || has('gui_macvim')
+</span><span class='line'>  " Insert mode: lmap off, IME ON
+</span><span class='line'>  set iminsert=2
+</span><span class='line'>  " Serch mode: lmap off, IME ON
+</span><span class='line'>  set imsearch=2
+</span><span class='line'>  " Normal mode: IME off
+</span><span class='line'>  inoremap &lt;silent> &lt;ESC> &lt;ESC>:set iminsert=0&lt;CR>
+</span><span class='line'>endif</span></code></pre></td></tr></table></div></figure>
+
+
+<p>といった感じで<code>.vimrc</code>で設定すればインサートモードやサーチモードに入った時はIMEをONにして
+ノーマルモードに戻るときにオフにします。</p>
+
+<p>GVimの方は殆ど使わないので実際使ってみないと分からない事もあるんですが、
+日本語関連のことだと普通のGVimやらMacVimだと上手く設定が効かなくて、
+KaoriYa version (<a href="http://www.kaoriya.net/software/vim/">Windows</a>、
+<a href="http://code.google.com/p/macvim-kaoriya/">Mac</a>)だと
+効く、と言った話も見ました。</p>
+
+<p>Ref:</p>
+
+<blockquote><p><a href="http://vimwiki.net/?" title="iminsert">iminsert</a></p>
+
+<p><a href="http://code.google.com/p/macvim-kaoriya/wiki/Readme#%e6%97%a5%e6%9c%ac%e8%aa%9e%e5%85%a5%e5%8a%9b(IM)%e8%87%aa%e5%8b%95%e3%82%aa%e3%83%b3/%e3%82%aa%e3%83%95">macvim-kaoriya:日本語入力(IM)自動オン/オフ</a></p></blockquote>
+
+<h1 id="日本語固定モード">日本語固定モード</h1>
+
+<p><a href="https://github.com/fuenor/im_control.vim">im_control.vim</a>
+というプラグインを使ってIMEのオン/オフをより詳細に設定する方法が
+<a href="https://sites.google.com/site/fudist/Home/vim-nihongo-ban">vim UTF-8 日本語版</a>
+の中サイトの以下のページにに詳しくあります。基本的にはGVim専用。</p>
+
+<blockquote><p><a href="https://sites.google.com/site/fudist/Home/vim-nihongo-ban/vim-japanese/ime-control">Vim/GVimで「日本語入力固定モード」を使用する</a></p></blockquote>
+
+<p>Windows専用ですが、こんなプラグインも。</p>
+
+<blockquote><p><a href="http://qiita.com/rbtnn/items/855a8dce0ff0a3ea26f2">Vimのノーマルモード中は自動的にIMEをOFFにする。（Windowsのみ）</a></p></blockquote>
+
+<h1 id="Tera+Termでの制御シーケンスの使用">Tera Termでの制御シーケンスの使用</h1>
+
+<p>普段Tera Termは使わないのですが
+IMEの制御以外にもシーケンスを使った色々な設定が以下のサイトに詳しくあります。</p>
+
+<blockquote><p><a href="http://ttssh2.sourceforge.jp/manual/ja/usage/tips/vim.html">vim からの制御シーケンスの使用例</a></p>
+
+<p><a href="http://slashdot.jp/journal/522812/IME-%e5%88%b6%e5%be%a1">dodaの日記： IME 制御</a></p></blockquote>
+
+<p>Tera Termを使ってない場合でもシーケンスを使った設定や使い方が参考になると思います。</p>
+
+<h1 id="WindowsでAutoHotkeyを使う方法">WindowsでAutoHotkeyを使う方法</h1>
+
+<p><a href="http://www.autohotkey.com/">Autohotkey</a>はちゃんと使ったことないですが
+<a href="http://rcmdnk.github.io/blog/tags/yamy/">yamy</a>で
+<i class='key'>Ctrl</i><i class="icon-arrow-exchange"></i>の交換でちょこちょこ不具合がるので
+ちょっと他のリマップソフトも検討中のため、メモ。
+下記のサイトには<code>imdisable</code>を
+<code>挿入モード</code><i class="icon-arrow-exchange"></i><code>ノーマルモード</code>
+変換の際に自動で変更する設定も載っています。</p>
+
+<blockquote><p><a href="http://blog.blueblack.net/item_393">VimのノーマルモードでIMEを常時無効化する</a></p></blockquote>
+
+<hr />
+
+<p>2013/08/04 追記</p>
+
+<p>AutoHotkeyを使い始めたので、AutoHotkeyでの方法を自分でも作ってみました:
+<a href="/blog/2013/08/04/computer-windows-autohotkey/">Vimを使う上でのIME(日本語入力)の取り扱い with AutoHotKey</a></p>
+
+<hr />
+
+<h1 id="IMEの状態でカーソルの色を変更する">IMEの状態でカーソルの色を変更する</h1>
+
+<p>GVim限定ですが、<code>CursorIM</code>というhightlighが定義されていて
+通常の時の<code>CursorIM</code>と違う色を設定することでIMEの状態でカーソルの色を変えられます。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if has('multi_byte_ime')
+</span><span class='line'>  highlight Cursor guifg=NONE guibg=Green
+</span><span class='line'>    highlight CursorIM guifg=NONE guibg=Purple
+</span><span class='line'>    fi</span></code></pre></td></tr></table></div></figure>
+
+
+<h1 id="IMEのON/OFFをsyntaxで制御する">IMEのON/OFFをsyntaxで制御する</h1>
+
+<p>vim-jpにこんな話もありました。</p>
+
+<blockquote><p><a href="https://github.com/vim-jp/issues/issues/13">IMEのON/OFFをsyntaxで制御する</a></p></blockquote>
+
+<p>以上!</p>
+
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+<!-- zenback_body_end -->
+
+
+
+  <footer>
+    
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linkshort1 */
+google_ad_slot = "9535286447";
+google_ad_width = 468;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<br class="clearBoth">
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRect0 */
+google_ad_slot = "9052765242";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+<!-- Rakuten Widget FROM HERE --><script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="111f634c.5fb25e94.111f634d.1a56ae16";rakuten_items="ctsmatch";rakuten_genreId=0;rakuten_size="336x280";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";</script><script type="text/javascript" src="http://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js"></script><!-- Rakuten Widget TO HERE -->
+
+
+
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">rcmdnk</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2013-06-20T20:00:00+02:00"  data-updated="true">20 Jun 2013</time>
+      
+
+<span class="categories">
+  Posted in
+  
+    <a class='category' href='/blog/categories/computer/'>Computer</a>
+  
+</span>
+
+
+      
+
+<span class="tags">
+  Tagged as
+  
+    <a class='tag' href='/blog/tags/keyremap4macbook/'>KeyRemap4MacBook</a>, <a class='tag' href='/blog/tags/mac/'>Mac</a>, <a class='tag' href='/blog/tags/vim/'>Vim</a>, <a class='tag' href='/blog/tags/windows/'>Windows</a>, <a class='tag' href='/blog/tags/yamy/'>yamy</a>
+  
+</span>
+
+
+    </p>
+    
+    
+    <div class="social_box">
+  <ul class="social">
+    
+    <li class="twitter">
+      
+      <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" data-via="rcmdnk" data-counturl="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" >Tweet</a>
+      
+    </li>
+    
+    
+    <li class="hatena">
+      
+      <a href="http://b.hatena.ne.jp/entry/http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/" class="hatena-bookmark-button" data-hatena-bookmark-layout="standard" title="このエントリーをはてなブックマークに追加"><img src="http://b.st-hatena.com/images/entry-button/button-only.gif" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="http://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+      
+    </li>
+    
+    
+    <li class="googleplus">
+      <div class="g-plusone" data-size="medium"></div>
+    </li>
+    
+    
+    <li class="facebook">
+      
+      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false" data-font="verdana" data-href="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"></div>
+      
+    </li>
+    
+    
+    <li class="pocket">
+      
+      <a href="https://getpocket.com/save" class="pocket-btn" data-lang="en"
+      data-save-url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"
+      data-pocket-count="horizontal"
+      data-pocket-align="left"
+      >Pocket</a>
+      <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+      
+    </li>
+    
+    
+    <li class="bookmark">
+      
+      <input class="link_btn add_bookmark" type="button" value="お気に入りに登録" data-page_title="Vimを使う上でのIME(日本語入力)の取り扱い - rcmdnk's blog" data-page_url="http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/"/>
+      
+    </li>
+    
+  </ul>
+</div>
+<br class="clearBoth">
+
+    
+    <p class="meta">
+      
+      <a class="basic-alignment left" href="/blog/2013/06/19/blog-octopress/" title="Previous Post: OctopressでMac風キーボードのキーを表示をさせるプラグイン">&laquo; OctopressでMac風キーボードのキーを表示をさせるプラグイン</a>
+      
+      
+      <a class="basic-alignment right" href="/blog/2013/06/21/computer-mac/" title="Next Post: gitの更新とHomebrewの導入">gitの更新とHomebrewの導入 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+<section>
+  
+<div class="linkwithin_div"></div>
+
+
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/f295b351803418ecbd39da5abf41c8fd"></script>
+<!-- admax -->
+
+
+
+
+<!-- X:S ZenBackWidget --><script type="text/javascript">document.write(unescape("%3Cscript")+" src='http://widget.zenback.jp/?base_uri=http%3A//rcmdnk.github.io/&nsid=112714283011311473%3A%3A112714293211884381&rand="+Math.ceil((new Date()*1)*Math.random())+"' type='text/javascript'"+unescape("%3E%3C/script%3E"));</script><!-- X:E ZenBackWidget -->
+
+
+</section>
+
+
+<section>
+  <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+<section>
+  
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/54ba254afe4204c140ba37132d12861d"></script>
+<!-- admax -->
+
+
+
+</section>
+
+
+</div><!-- post -->
+
+<aside class="sidebar">
+  
+  
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* img0 */
+google_ad_slot = "1906431641";
+google_ad_width = 300;
+google_ad_height = 250;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+<h1>About Me</h1>
+
+<a href="mailto:rdmdnk@gmail.com" class="sidebar-about" title="Mail"><img src="/images/MacApp/MacLogoMini.png" class="aboutme_logo" alt="" ></a>
+
+
+
+<a href="mailto:rdmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="icon-envelope-alt icon-link-btn"></i></a>
+
+
+<a href="https://twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="icon-twitter-sign icon-link-btn"></i></a>
+
+
+
+
+<br>
+
+<a href="https://github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="icon-github-sign icon-link-btn"></i></a>
+
+
+<a href="/atom.xml" title="RSS" class="sidebar-about"><i class="icon-rss-sign icon-link-btn"></i></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="http://rcmdnk.github.io"><i class="icon-star-empty icon-link-btn"></i></a>
+
+
+<br class="clearBoth">
+</section>
+
+<section>
+
+
+
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822/JP/rcmdnk0c-22/8004/6c541ac0-db47-40ca-b8c4-6cd9b8c68c77"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.jp/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Frcmdnk0c-22%2F8004%2F6c541ac0-db47-40ca-b8c4-6cd9b8c68c77&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
+
+
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/computer-windows-cygwin-vim/">Vim 7.4をCygwinへインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/07/computer-vim/">Lua対応Vimをインストール</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/04/computer-linux-mac/">pacoでmake installしたパッケージを管理</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+
+<form action="http://www.google.co.jp/cse" id="cse-search-box">
+  <div>
+    <input type="hidden" name="cx" value="partner-pub-3802317723662375:7194255647" />
+    <input type="hidden" name="ie" value="EUC-JP" />
+    <input type="text" name="q" size="55" />
+    <input type="submit" name="sa" value="検索" />
+  </div>
+</form>
+
+<script type="text/javascript" src="http://www.google.co.jp/coop/cse/brand?form=cse-search-box&amp;lang=ja"></script>
+
+<script type="text/javascript" src="http://www.google.com/cse/query_renderer.js"></script>
+<div id="queries"></div>
+<script src="http://www.google.com/cse/api/partner-pub-3802317723662375/cse/7194255647/queries/js?oe=EUC-JP&amp;callback=(new+PopularQueryRenderer(document.getElementById(%22queries%22))).render"></script>
+
+
+</section>
+
+
+<section>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* linksmall */
+google_ad_slot = "4441095648";
+google_ad_width = 200;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+</section>
+
+<section>
+  <h1>Categories</h1>
+    <ul id="category-list"><li><a href='/blog/categories/blog'>Blog (15)</a></li><li><a href='/blog/categories/computer'>Computer (57)</a></li><li><a href='/blog/categories/others'>Others (1)</a></li></ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+    <span id="tag-cloud"><a href='/blog/tags/airplane' style='font-size: 102.14285714285714%'>Airplane(1)</a> <a href='/blog/tags/ana' style='font-size: 102.14285714285714%'>ANA(1)</a> <a href='/blog/tags/autohotkey' style='font-size: 110.71428571428571%'>AutoHotkey(5)</a> <a href='/blog/tags/bash' style='font-size: 121.42857142857143%'>bash(10)</a> <a href='/blog/tags/bitbucket' style='font-size: 102.14285714285714%'>Bitbucket(1)</a> <a href='/blog/tags/bsd' style='font-size: 102.14285714285714%'>BSD(1)</a> <a href='/blog/tags/colinux' style='font-size: 102.14285714285714%'>coLinux(1)</a> <a href='/blog/tags/cygwin' style='font-size: 127.85714285714286%'>Cygwin(13)</a> <a href='/blog/tags/desktop' style='font-size: 104.28571428571429%'>Desktop(2)</a> <a href='/blog/tags/dropbox' style='font-size: 102.14285714285714%'>Dropbox(1)</a> <a href='/blog/tags/english' style='font-size: 104.28571428571429%'>English(2)</a> <a href='/blog/tags/evernote' style='font-size: 102.14285714285714%'>Evernote(1)</a> <a href='/blog/tags/firefox' style='font-size: 104.28571428571429%'>Firefox(2)</a> <a href='/blog/tags/geektool' style='font-size: 104.28571428571429%'>GeekTool(2)</a> <a href='/blog/tags/ginger' style='font-size: 102.14285714285714%'>Ginger(1)</a> <a href='/blog/tags/git' style='font-size: 115.0%'>git(7)</a> <a href='/blog/tags/github' style='font-size: 106.42857142857143%'>GitHub(3)</a> <a href='/blog/tags/gnu' style='font-size: 102.14285714285714%'>GNU(1)</a> <a href='/blog/tags/google' style='font-size: 102.14285714285714%'>Google(1)</a> <a href='/blog/tags/hhk' style='font-size: 102.14285714285714%'>HHK(1)</a> <a href='/blog/tags/install' style='font-size: 104.28571428571429%'>install(2)</a> <a href='/blog/tags/jquery' style='font-size: 104.28571428571429%'>jQuery(2)</a> <a href='/blog/tags/keyremap4macbook' style='font-size: 115.0%'>KeyRemap4MacBook(7)</a> <a href='/blog/tags/linux' style='font-size: 123.57142857142857%'>Linux(11)</a> <a href='/blog/tags/mac' style='font-size: 155.71428571428572%'>Mac(26)</a> <a href='/blog/tags/octopress' style='font-size: 134.28571428571428%'>Octopress(16)</a> <a href='/blog/tags/pocket' style='font-size: 102.14285714285714%'>Pocket(1)</a> <a href='/blog/tags/prompt' style='font-size: 106.42857142857143%'>Prompt(3)</a> <a href='/blog/tags/screen' style='font-size: 115.0%'>screen(7)</a> <a href='/blog/tags/thunderbird' style='font-size: 102.14285714285714%'>Thunderbird(1)</a> <a href='/blog/tags/vim' style='font-size: 132.14285714285714%'>Vim(15)</a> <a href='/blog/tags/vimperator' style='font-size: 102.14285714285714%'>Vimperator(1)</a> <a href='/blog/tags/windows' style='font-size: 160.0%'>Windows(28)</a> <a href='/blog/tags/yamy' style='font-size: 115.0%'>yamy(7)</a> </span>
+</section>
+<div class="scroll-fixed"><section>
+  <script language="javascript" type="text/javascript" src="http://b.hatena.ne.jp/js/widget.js" charset="utf-8"></script>
+  <script language="javascript" type="text/javascript">
+    Hatena.BookmarkWidget.url   = "http://rcmdnk.github.io";
+  Hatena.BookmarkWidget.title = "人気エントリー";
+  Hatena.BookmarkWidget.sort  = "count";
+  Hatena.BookmarkWidget.width = 280;
+  Hatena.BookmarkWidget.num   = 5;
+  Hatena.BookmarkWidget.theme = "default";
+  Hatena.BookmarkWidget.load();
+  </script>
+</section>
+
+<section>
+
+<!-- admax -->
+<script type="text/javascript" src="http://adm.shinobi.jp/s/0d062d3caa4c77cb77c0a5edf2dc7911"></script>
+<!-- admax -->
+
+
+
+</section>
+
+</div>
+  
+</aside>
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - rcmdnk -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'rcmdnk';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/';
+        var disqus_url = 'http://rcmdnk.github.io/blog/2013/06/20/computer-mac-keyremap4macbook-vim/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<script>
+(function(w,d){
+    var c,e=d.createDocumentFragment(),f=d.getElementsByTagName("script")[0],
+    a=function(a,b){if(!d.getElementById(b)){c=d.createElement("script");
+    c.src=a;c.id=b||null;c.async=true;e.appendChild(c);}};
+
+
+    w.___gcfg={lang:"ja"};
+
+    a("https://apis.google.com/js/plusone.js");
+
+
+    a("//platform.twitter.com/widgets.js");
+
+
+    a("//connect.facebook.net/ja_JP/all.js#appId=242225962586587&xfbml=1","facebook-jssdk");
+
+    a("//b.st-hatena.com/js/bookmark_button_wo_al.js");
+    f.parentNode.insertBefore(e,f);
+})(this,document);
+</script>
+
+
+<script>
+var linkwithin_site_id = 1795279;
+</script>
+<script src="http://www.linkwithin.com/widget.js"></script>
+<a href="http://www.linkwithin.com/"><img src="http://www.linkwithin.com/pixel.png" alt="Related Posts Plugin for WordPress, Blogger..." style="border: 0" /></a>
+<script>linkwithin_text='You might also like...'</script>
+
+
+
+
+</body>
+</html>

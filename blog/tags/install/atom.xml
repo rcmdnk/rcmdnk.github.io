@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: install | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/install/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-08-18T06:11:09+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screenアップデート]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/05/11/computer-screen-install/"/>
+    <updated>2013-05-11T19:00:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/05/11/computer-screen-install</id>
+    <content type="html"><![CDATA[<p>仕事で使ってるLinuxのOSアップデートがあったので
+色々自分用に再インストールをしましたが、
+<a href="http://www.gnu.org/software/screen/">GNU screen</a>のインストール時にちょっとひっかかったのでメモしておきます。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<h1 id="GNU+screen開発版(4.1.0)のインストール">GNU screen開発版(4.1.0)のインストール</h1>
+
+<p>基本的に<a href="/blog/2013/03/22/screen-install/">以前やった通り</a>なんですが、
+4月にちょっとしたアップデートがあった様で、それによって
+コンパイルが通らなくなっているようです。<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup></p>
+
+<p><a href="http://git.savannah.gnu.org/cgit/screen.git/commit/?id=d94037c08a6dd30845b27cd76d99663e06aaabb2">non-BMPのサポートを入れた際</a>
+の恐らくタイポ?なんでしょうけど<code>src/anci.c</code>の一箇所
+2930行目辺り(パッチを当てた後に見ると2954行目辺り)を
+以下の様に訂正します</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'> # endif
+</span><span class='line'> #endif
+</span><span class='line'> #ifdef UTF8
+</span><span class='line'><span class="gd">-      if (p-&gt;encoding == UTF8)</span>
+</span><span class='line'><span class="gi">+      if (p-&gt;w_encoding == UTF8)&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;    {
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>取り敢えずこれで後は<a href="/blog/2013/03/22/screen-install/">以前</a>
+と同じ様にインストール。</p>
+
+<h1 id="caption/hardstatusの表示">caption/hardstatusの表示</h1>
+
+<p>上で参照したページ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>を見ていたら
+<code>%E</code>と言うエスケープがcaptionとかで使える様になっている、
+というのを見つけて、
+<a href="http://git.savannah.gnu.org/cgit/screen.git">screenのgitのコミットメッセージ</a>
+を見ると1年以上前に実装されていました。</p>
+
+<p><code>%E</code>は、コマンド入力待ち状態(<code>C-a</code>等escape文字を押した時)を
+判定してくれる、ということです。</p>
+
+<p>ということで、これを含めてcaption及びhardstatusは以下の様にしています。
+(hardstatusは<code>%E</code>を使ってませんが...)</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="caption+for+each+window">caption for each window&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>caption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%?%n %H %L=%h%>%?%P &lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong>%?%?%E &lt;strong>&lt;em> command mode &lt;/em>&lt;/strong>%?%-0='&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%F++++++#+if+the+window+has+the+focus">%?%F      # if the window has the focus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Wk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Write(W)}">%{=d Wk} #   set attribute = {dim, black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%:++++++++#+else">%:        # else&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Kk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Black(K)}">%{=d Kk} #   set attribute = {dim, black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Bk}#+++set+attribute+=+{dim,+black(k)+on+bright+Blue(B)}">%{=d Bk}#   set attribute = {dim, black(k) on bright Blue(B)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+window+number">%n        # window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%H++++++++#+hostname+of+the+system">%H        # hostname of the system&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%L=+++++++#+Mark+the+position+for+the+next+truncation">%L=       # Mark the position for the next truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%h++++++++#+window'+hardstatus">%h        # window' hardstatus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%>++++++++#+Truncate+%L=+~+%>">%>        # Truncate %L= ~ %>&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+copy/paste+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%E++++++#+if+copy/paste+mode">%?%E      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+command+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> command mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-0=++++++#+pad+the+string+to+the+display's+width.++-0++means+start+from">%-0=      # pad the string to the display's width. "-0" means start from&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+the+rightest+side"># the rightest side&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(e.g.+10=:+10%+from+left,+010,+10+characters+from+left"># (e.g. 10=: 10% from left, 010, 10 characters from left&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(+++++-10=:+10%+from+right)"># (     -10=: 10% from right)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+With+%L>,+%=+above,+screen+tries+to+truncates+the+part"># With %L>, %= above, screen tries to truncates the part&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+in+the+left+of++%L>+"># in the left of "%L>"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="hardstatus">hardstatus&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>hardstatus alwayslastline "%{= Kk}%-w%40>%{= Wk}%n %t%{-}%+w%-0="&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="hardstatus+alwayslastline++%{=+Kk}%-w%{=+Wk}%n+%H+%t%{-}%+w+">hardstatus alwayslastline "%{= Kk}%-w%{= Wk}%n %H %t%{-}%+w"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Kk}+++#+set+attribute+=+{black(k)+on+bright+Black(K)}">%{= Kk}   # set attribute = {black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-w+++++++#+windows'+list+up+to+the+current+window+(shown+as++%n+%t+)">%-w       # windows' list up to the current window (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%40>++++++#+Mark+here+as+a+point+to+move+when+truncation">%40>      # Mark here as a point to move when truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+Try+to+move+this+point+to+the+40%+point"># Try to move this point to the 40% point&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Wk}+++#+set+attribute+=+{black(k)+on+bright+Write(W)}">%{= Wk}   # set attribute = {black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+current+window+number">%n        # current window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%t++++++++#+current+window+title">%t        # current window title&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{-}++++++#+remove+the+set+from+the+current+attributes">%{-}      # remove the set from the current attributes&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%+w+++++++#+windows'+list+starting+with+the+window+after+the+current+one+(shown+as++%n+%t+)">%+w       # windows' list starting with the window after the current one (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>%E</code>の使い方としては、コマンド入力待機状態の時に
+<code>*** command mode ***</code>とcaptionに表示させるようにしました。</p>
+
+<p>こんな感じ</p>
+
+<p><a href="post/20130511_screen.jpg"><img src="/images/post/20130511_screen.jpg" title="" alt=""></a></p>
+
+<p>最初、copy/paste同様色も変えようかと思ったんですが、
+ウィンドウを移動するたびに色が変わると目がチカチカするので
+文字を追加するだけにしておきまた。</p>
+
+<p>1つ気になるのが、縦分割をしていると、何故か<code>%E</code>が横のウィンドウにも有効になって
+上の絵にあるように上側両方のウィンドウで<code>command mode</code>
+が表示されてしまっています。</p>
+
+<p>バグなのかどうなのか分かりませんが、
+まあ、ウィンドウの情報と言うより全体の情報ですし、
+それ程長い時間表示されるものでもないのでとりあえずはこの状態でOKとします。</p>
+
+<p>ちなみに、上のcopy/pasteの部分も随分前にどこかからコピペしたものだったと思ったんですが、
+恐らく上で参照したページと同じ方の</p>
+
+<blockquote><p><a href="http://yskwkzhr.blogspot.ch/2011/12/master-copy-and-paste-of-gnu-screen.html"> 開発版GNU Screenでコピペを極める(ターミナルマルチプレクサ Advent Calendar 2011 : ATND の２４日目)</a></p></blockquote>
+
+<p>を参照したみたいです。(毎度参考にさせて頂いてありがとうございます。)</p>
+
+<h1 id="tmix...?">tmix...?</h1>
+
+<p>最近<a href="http://www.gnu.org/software/screen/">GNU screen</a>よりも
+<a href="http://tmux.sourceforge.net/">tmux</a>
+の方が流行ってる感もあって、何度か
+乗り換えようと試してみたんですが、どうしてもtmux出来ないことがあって
+乗り換えられません。</p>
+
+<p>screenだと、ウィンドウを適当に分割した後、それぞれのウィンドウに
+適時好きなウィンドウを持ってこれます。</p>
+
+<p>これがtmuxだと、<code>window</code>と言うのが1つのタブみたいな感じで、
+それぞれで<code>pane</code>と呼ばれる領域に分けることが出来ます。</p>
+
+<p>この<code>pane</code>と言う単位を、screenで言うところのウィンドウの様に扱いたくて、
+別の<code>window</code>に行った時に他の<code>window</code>から<code>pane</code>を自由に取ってきたい、
+と思うんですが、これが簡単じゃありません。</p>
+
+<p>丁度、Advent Calenderの上の記事の前の日に、</p>
+
+<blockquote><p><a href="http://d.hatena.ne.jp/kozo2/20111223/1324667710">tmuxのペイン切り替えをscreenみたくする(ターミナルマルチプレクサ Advent Calendar 2011 23日目)</a></p></blockquote>
+
+<p>という記事があってまさにこのことを記事にしてありました。</p>
+
+<p>ですが、これだと前後の<code>window</code>の決まった<code>pane</code>しか取ってこれない上に
+交換的な事をしてるので、やっぱりscreenとは違う感じになってしまいます。
+(この辺<code>window</code>だとか<code>pane</code>という言葉が正確でなかったらすいません。)</p>
+
+<p>もうこの辺はツール自体の思想の問題で、
+tmux的な動作になれてしまえばそっちの方が便利だ、と言う人もいるんだと思うんですが、
+やっぱり暫くはscreenにとどまることになりそうです。</p>
+
+<p>しかしtmuxの方が良い、という感じの話のが多いのは何でなんでしょう...?
+(以前は画面分割の面で大分tmuxの方が先を言ってた感じですかね?
+今でもGNU screenの安定版は縦分割出来ない訳で...)</p>
+
+<p>tmuxの最大の利点はググる時に<code>tmux</code>と売っただけでもちゃんと<code>tmux</code>関連の
+話を検索してくれることかもしれません...
+(<code>screen</code>だと一般的単語過ぎてしまうので<code>GNU screen</code>とかしますが、
+これだと<code>GNU</code>を書いてない記事とかで結構ためになる話を後ろに回してしまったり...)</p>
+
+<h1 id="byobu">byobu</h1>
+
+<p><a href="http://byobu.co/">byobu</a>はGNU screenのラッパーツールみたいな感じで、
+中でGNU screenを起動しますが、設定変更を行う簡単なインターフェースがあるので、
+直接<code>.screenrc</code>を書かなくても指示に従って好きな物を選んであげれば簡単に好きな
+設定を作ることが出来る、と言う感じでしょうか?</p>
+
+<p>tmuxにも対応していて、screenの代わりに使う事も出来ます。</p>
+
+<p>既に自分で<code>.screenrc</code>等をがしがし書いている場合には必要無いですが、
+始めてGNU screenやtmuxを使う人にはとても便利なものだと思います。</p>
+
+<p>以前、外国人の同僚に</p>
+
+<p>"byobuっていう便利なものがあるよ"</p>
+
+<p>って言われて、
+最初何のことだか良く分からなかったけどどうやらターミナルで使う物で
+GNU screenとかと同じ様なものだな、と理解。
+それで、byobuってなんでそんな変な名前?と思ってたら</p>
+
+<p>"日本のものでしょ?"</p>
+
+<p>って言われて始めて<code>屏風</code>だったのか、と知ったという。</p>
+
+<p><img src="/images/post/20130511_byobu.jpg" title="" alt=""></p>
+
+<p>byobuは殆ど使ったことがないのですが、
+ちょっとこの話を思い出したので最後に紹介してみました。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <a href="http://yskwkzhr.blogspot.ch/2013/04/gnu-screen-watch-january-2011-april-2013.html">GNU Screen Watch: January 2011 - April 2013</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Macでの文字化け対策用のGNU screenのインストール]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/03/22/screen-install/"/>
+    <updated>2013-03-22T12:18:00+01:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/03/22/screen-install</id>
+    <content type="html"><![CDATA[<p>Macを使うようになってからずっと気になってたGNU screen使用時の
+日本語ファイル名の文字化けを回避するためにscreenの再インストールを
+今更ながら行ったのでそれについて。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+</p>
+
+<p>普段ターミナルから日本語ファイルを扱う事は殆ど無い上、
+<code>vim</code>で編集する際には、<code>vim</code>の設定で殆ど問題なく日本語を読み書きすることができるので
+放っておいてました。
+ただ、縦分割した時に<code>ls</code>で日本語ファイルを表示して表示がくずれて
+がっちゃがっちゃになってしまうことがあるので、
+取り敢えずは<code>clear</code>して描写しなおせば良いんですが、
+ちょっとストレスが溜まるものです。</p>
+
+<p>やること自体は簡単だと思ってたんですが、上手くいかずに嵌ったら
+やばいと思ってしばらく放っておきました...</p>
+
+<p>が、結果的に、取り敢えず主な問題は直ぐに解決できたので良かったな、と。</p>
+
+<p>今回は作られた物を使っただけなので、今回は詳細はそちらのページで</p>
+
+<blockquote><p>Ref: <a href="http://yskwkzhr.blogspot.ch/2012/05/effectively-to-use-gnu-screen.html"> GNU Screenのhardstatusを有効活用する</a></p>
+
+<p>Ref: <a href="http://d.hatena.ne.jp/mrkn/20101014/fix_screen_utf8_nfd_bug">screen が結合文字の後に存在しないはずの ÿ を出力しちゃうバグを直した</a></p></blockquote>
+
+<p>これらのページで紹介されているパッチをあててインストールし直しただけです。</p>
+
+<pre><code>$ cd $TMPDIR
+$ git clone git://git.sv.gnu.org/screen.git
+$ cd screen
+$ wget  https://gist.github.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+$ wget get http://zuse.jp/misc/screen-utf8-osc.diff
+$ patch -p1 &lt; screen-utf8-nfd.patch
+$ patch -p1 &lt; screen-utf8-osc.diff
+$ cd src/
+$ autogen.sh
+$ ./configure --prefix=/Users/$USER/usr/local/  --enable-colors256 &amp;&amp; make &amp;&amp;  make install
+</code></pre>
+
+<p>新しいものは自分のディレクトリ下に入れました。</p>
+
+<p>上の画像は<code>iTerm2</code>でのものですが、
+この新しいscreenで起動すると</p>
+
+<p><img src="/images/post/20130322_screen_char_ok.jpeg" title="" alt=""></p>
+
+<p>この様に、ちゃんと表示されました。</p>
+
+<p>ただ、Macのターミナルアプリで開くとまだ文字化けしていました。
+それについては</p>
+
+<blockquote><p>Ref: <a href="https://sites.google.com/site/togino77/home/screen-410">screen 4.1.0 で日本語の表示がおかしくなる件</a></p></blockquote>
+
+<p>を参考にすればなんとかなるのかな(パッチが少しだけ違ってたりSIMBLプラグインを入れていたり)とも思ってますし、
+まだ一部<code>iTerm2</code>でもちょっとおかしなところもありますが、
+取り敢えず普段使う分には前よりストレスなくなったので今回はこれで良しとしておきます。</p>
+]]></content>
+  </entry>
+  
+</feed>
