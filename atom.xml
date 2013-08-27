@@ -5,7 +5,7 @@
   <link href="http://rcmdnk.github.io/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
   <link href="http://rcmdnk.superfeedr.com/" rel="hub"/>
-  <updated>2013-08-23T13:09:01+02:00</updated>
+  <updated>2013-08-27T22:28:02+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -13,6 +13,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Windows]Group Policy Clientサービスに接続できませんでした。]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/08/27/computer-windows/"/>
+    <updated>2013-08-27T21:55:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/08/27/computer-windows</id>
+    <content type="html"><![CDATA[<p>Windows Update後、題名の様なエラーがでてログイン出来ず。</p>
+
+<!-- more -->
+
+
+<p>Windows7でWindows Updateした後、再起動した時、
+ログイン画面までは普通に行ったのに、
+ログインしようとしたら</p>
+
+<pre><code>Group Policy Clientサービスに接続できませんでした。
+システム管理者に連絡してください。
+</code></pre>
+
+<p>と出て、強制ログアウトする状態に。
+この際ログインしようとしたのは、管理者権限が無いユーザーでした。</p>
+
+<p>試しにセーフモードで立ち上げてみたら</p>
+
+<pre><code>The user name or password is incorrect.
+</code></pre>
+
+<p>というエラーが途中で出ましたが、その後ログイン画面に行き、
+普通のログインの様な画面に移行後ログインするような状態に。</p>
+
+<p>取り敢えず一旦再起動しなおして、管理者アカウントでログインすると、
+ログインは出来たのですが、</p>
+
+<pre><code>Windowsサービスに接続できませんでした。
+Group Policy Clientサービスに接続できませんでした。
+このため、標準ユーザーはこのシステムにログオンできません。
+管理者ユーザーは、システムイベントログを参照して、このサービスが応答しなかった原因を確認できます。
+</code></pre>
+
+<p>というエラーメッセージが。
+Windows全般的にそうですが、(知識がないので。。。)エラーログを見ても余りよく分からないので、適当にググってみると</p>
+
+<blockquote><p><a href="http://bit.ly/16ODJZ6">レジストリの修正する</a></p></blockquote>
+
+<p>とか</p>
+
+<blockquote><p><a href="http://bit.ly/1fhbhRb">ユーザープロファイルを削除してみるとか</a></p></blockquote>
+
+<p>とかありましたが、ちょっと大変そうなので、取り敢えず
+システムの復元を試すことに。</p>
+
+<p>で、結果的にはUpdate前の復元ポイントまで戻したら問題なく治りました。
+その後Updateを適用しても大丈夫そうです。</p>
+
+<p>何が問題だったんだろうか。。。？</p>
+
+<hr />
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[KDriveのサービス終了でオンラインストレージ使用について考えてみる]]></title>
@@ -4477,197 +4536,6 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 <blockquote><p><a href="https://github.com/rcmdnk/octogray">octogray</a></p></blockquote>
 
 <p>他のテーマ同様<code>/.themes/</code>に入れて<code>rake install[octogray]</code>で入れられます。</p>
-
-<hr />
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CygwinでCan't fork()とかのエラーが出た時の対処法]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/05/computer-windows-cygwin-git/"/>
-    <updated>2013-07-05T01:17:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/05/computer-windows-cygwin-git</id>
-    <content type="html"><![CDATA[<p>この前<a href="http://rcmdnk.github.io/blog/2013/06/25/computer-windows-git-cygwin/">Cygwinにgit-1.8.3をインストール</a>しましたが、
-ちゃんと動かない所があったので
-その対処法について。</p>
-
-<!-- more -->
-
-
-<br class="clearBoth">
-
-
-
-
-<h1>Contents</h1>
-
-
-<p>
- <ul>
- <li><a href="#error:+cannot+fork()">error: cannot fork()</a> </li>
- <li><a href="#rebaseall">rebaseall</a> </li>
- <li><a href="#~/usr/localへrebase.exeを適用する">~/usr/localへrebase.exeを適用する</a> </li>
- <li><a href="#DefaultBaseAddress=0x40000000+?">DefaultBaseAddress=0x40000000 ?</a> </li>
- </ul>
-
-</p>
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-
-
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-<h1 id="error:+cannot+fork()">error: cannot fork()</h1>
-
-<p>gitをインストールしてざっと動かして大丈夫そうだと思ってたんですが、
-ちゃんと使おうと思って色々動かしてたら色々問題があってちゃんと動いてませんでした。</p>
-
-<p>あまり使わないのでちょっと放っておいたんですが、vimで新しい
-プラグインをneobundleでインストールする時に問題があるので、
-ちゃんと対処しようかと。</p>
-
-<p>問題としては、新しくレポジトリをcloneしようとする時、
-1回目はcloneしようとするローカルのディレクトリの親ディレクトリまで
-作って失敗し、2回めに成功したりしなかったり。</p>
-
-<p>git pushなんかでもなんかエラーが出ます。</p>
-
-<p>失敗する時のエラーを見ると</p>
-
-<pre><code>$ git push
-     10 [main] git 5476 child_info_fork::abort: C:\cygwin\home\USER\usr\local\bin\cygintl-8.dll: Loaded to different address: parent(0x300000) != child(0x330000)
-error: cannot fork() for git-rebase: Resource temporarily unavailable
-</code></pre>
-
-<p>こんな感じ。</p>
-
-<p><code>Cygwin error fork</code>辺りで調べてみると<code>rebaseall</code>すれば良い、と言うのが
-見つかったので試して見ることに。</p>
-
-<h1 id="rebaseall">rebaseall</h1>
-
-<p>まず、<code>rebase.exe</code>及び<code>rebaseall</code>が<code>/bin/</code>にあることを確認します。
-また、<code>rebase</code>を走らせるのに必要なので
-<code>/bin/ash.exe</code>または<code>/bin/dash.exe</code>があることを確認します。
-(実は今回の件では必要なかったわけですが同じような事が起こった時様に
-入れておいた方が良いです。)</p>
-
-<p>これらのインストールは<code>setup.exe</code>を使うか<a href="http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>で。</p>
-
-<p>インストールしたら、一度Cygwin関連で走っているものをすべて切ります。</p>
-
-<pre><code>$ cygrunsrv -L
-</code></pre>
-
-<p>などとしてサービス登録されているものを探して、もしあれば</p>
-
-<pre><code>$ cygrunsrv -E &lt;svc_name&gt;
-$ cygrunsrv -R &lt;svc_name&gt;
-</code></pre>
-
-<p>などとして一度外しておきます。
-後で</p>
-
-<pre><code>$ cygrunsrv -I &lt;svc_name&gt;
-$ cygrunsrv -S &lt;svc_name&gt;
-</code></pre>
-
-<p>しなおしてください。</p>
-
-<p>さらに、現在走っているcygwin関連のジョブを探して</p>
-
-<pre><code>$ tasklist /M cygwin1.dll
-</code></pre>
-
-<p>などとしてXサーバーなど走っていれば一度落とします。
-(minttyやbashだけの状態に。)
-ひと通り落としたら一度cygwin自体から一度ログアウトします。</p>
-
-<p>Explorerで<code>C:\cygwin\bin</code>(もしくは<code>cygwinをインストールしたディレクトリ\bin</code>)
-へ行き、<code>ash.exe</code>または<code>dash.exe</code>をダブルクリックで起動します。</p>
-
-<p>プロンプトが出てくるので、</p>
-
-<pre><code>$ cd /bin
-$ ./rebaseall
-</code></pre>
-
-<p>として、rebaseallを実行します。</p>
-
-<pre><code>rebaseall: only ash or dash processes are allowed during rebasing
-    Exit all Cygwin processes and stop all Cygwin services.
-    Execute ash (or dash) from Start/Run... or a cmd or command window.
-    Execute '/bin/rebaseall' from ash (or dash).
-</code></pre>
-
-<p>等と出たらまだ他にcygwinのプロセスとして走っているものが居る可能性があります。(サービスなどを再チェック)</p>
-
-<p>これでいくつか見つからないファイルには適用できないよ、的な
-メッセージが出るかもしれませんが、取り敢えずOKです。</p>
-
-<p>ということで、gitを使ってみると、以前と同じエラーがでました。</p>
-
-<p>それはそのはずで、今回インストールしたgitは自分で<code>~/usr/local</code>
-にインストールしていましたが、
-<code>rebaseall</code>はcygwinの管理システム、<code>setup.exe</code>や<code>apt-cyg</code>など、で
-管理されているものを探して<code>rebase.exe</code>を適用しているだけなので、
-別途インストールしたものには適用されません。
-(<code>/bin/rebaseall</code>はシェルスクリプトなので見れば何やってるか分かります。)</p>
-
-<h1 id="~/usr/localへrebase.exeを適用する">~/usr/localへrebase.exeを適用する</h1>
-
-<p><code>rebaseall</code>を参考に<code>~/usr/local</code>にあるファイルに対して<code>rebase.exe</code>を適用します。</p>
-
-<p>今度はCygwinで<code>bash</code>のまま直接<code>rebase.exe</code>を走らせます。</p>
-
-<pre><code>$ cd ~/usr/local/lib
-$ find . -name \*dll　&gt; rebase.lst
-$ find . -name \*so　&gt;&gt; rebase.lst
-$ rebase.exe -n -s -4 -T ./rebase.lst
-$ rm -f rebase.lst
-</code></pre>
-
-<p>こんな感じで<code>~/usr/local/lib/</code>にあるライブラリをリストアップし、
-<code>rebase.exe</code>を適用。
-Cygwinを立ち上げている状態なので、
-いくつかCygwinのコアなライブラリを変更できない、とでますが
-無視してOKです。
-(もし、上で一度も<code>rebaseall</code>をcygwinの外からやらず、これだけで
-エラーが出る場合は一度外で<code>rebaseall</code>をやる必要があるかもしれません。)</p>
-
-<p>これで、gitを実行すると問題なく動く様になりました。</p>
-
-<p>今回は<code>~/usr/local</code>にインストールしたものについてですが、
-<code>/usr/</code>ディレクトリなどにインストールした場合も、
-<code>setup.exe</code>や<code>apt-cyg</code>などのCygwinの管理システムから
-外れた方法でインストールした場合には
-<code>rebaseall</code>で見つけてくれないので自分で見つけて
-<code>rebase.exe</code>をかける必要があります。</p>
-
-<p>大概の場合は上の<code>~/usr/local/lib</code>の部分を<code>/usr/lib</code>、<code>/usr/local/lib</code>
-と置き換えて<code>rebase.exe</code>を適用してあげれば大丈夫だと思います。</p>
-
-<h1 id="DefaultBaseAddress=0x40000000+?">DefaultBaseAddress=0x40000000 ?</h1>
-
-<p>色々探しているうちに、<code>rebaseall</code>をしたら元から入ってるvimもおかしくなって
-しまった、といった話を見つけました。</p>
-
-<p>Ref:</p>
-
-<blockquote><p><a href="http://security.cs.shinshu-u.ac.jp/~t_takeda/cat/index.php?Cygwin">Cygwin - Elegant Cat Wiki</a></p></blockquote>
-
-<p>今のところ問題は起きてないのですが、
-一応同じ様な問題が起こった時用にメモ。</p>
 
 <hr />
 ]]></content>
