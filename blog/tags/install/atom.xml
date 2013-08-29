@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: install | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/install/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-08-29T13:44:30+02:00</updated>
+  <updated>2013-08-29T13:55:53+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -25,39 +25,67 @@
 <!-- more -->
 
 
-<p>{% include after_excerpt.html %}</p>
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
 
 <h1 id="GNU+screen開発版(4.1.0)のインストール">GNU screen開発版(4.1.0)のインストール</h1>
 
 <p>基本的に<a href="/blog/2013/03/22/screen-install/">以前やった通り</a>なんですが、
 4月にちょっとしたアップデートがあった様で、それによって
-コンパイルが通らなくなっているようです。{% footnote_ref 1 %}</p>
+コンパイルが通らなくなっているようです。<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup></p>
 
 <p><a href="http://git.savannah.gnu.org/cgit/screen.git/commit/?id=d94037c08a6dd30845b27cd76d99663e06aaabb2">non-BMPのサポートを入れた際</a>
 の恐らくタイポ?なんでしょうけど<code>src/anci.c</code>の一箇所
 2930行目辺り(パッチを当てた後に見ると2954行目辺り)を
 以下の様に訂正します</p>
 
-<p>{% codeblock lang:diff %}
-{% raw %}
- # endif
- #endif
- #ifdef UTF8
--      if (p->encoding == UTF8)
-+      if (p->w_encoding == UTF8)</p>
-
-<pre><code>    {
-</code></pre>
-
-<p>{% endraw %}
-{% endcodeblock %}</p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'> # endif
+</span><span class='line'> #endif
+</span><span class='line'> #ifdef UTF8
+</span><span class='line'><span class="gd">-      if (p-&gt;encoding == UTF8)</span>
+</span><span class='line'><span class="gi">+      if (p-&gt;w_encoding == UTF8)&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;    {
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>取り敢えずこれで後は<a href="/blog/2013/03/22/screen-install/">以前</a>
 と同じ様にインストール。</p>
 
 <h1 id="caption/hardstatusの表示">caption/hardstatusの表示</h1>
 
-<p>上で参照したページ{% footnote_ref 1 %}を見ていたら
+<p>上で参照したページ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>を見ていたら
 <code>%E</code>と言うエスケープがcaptionとかで使える様になっている、
 というのを見つけて、
 <a href="http://git.savannah.gnu.org/cgit/screen.git">screenのgitのコミットメッセージ</a>
@@ -69,100 +97,188 @@
 <p>ということで、これを含めてcaption及びhardstatusは以下の様にしています。
 (hardstatusは<code>%E</code>を使ってませんが...)</p>
 
-<p>{% codeblock .screenrc %}</p>
-
-<h3 id="caption+for+each+window">caption for each window</h3>
-
-<p>caption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%?%n %H %L=%h%>%?%P <strong><em> copy/paste mode </em></strong>%?%?%E <strong><em> command mode </em></strong>%?%-0='</p>
-
-<h1 id="%?%F++++++#+if+the+window+has+the+focus">%?%F      # if the window has the focus</h1>
-
-<h1 id="%{=d+Wk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Write(W)}">%{=d Wk} #   set attribute = {dim, black(k) on bright Write(W)}</h1>
-
-<h1 id="%:++++++++#+else">%:        # else</h1>
-
-<h1 id="%{=d+Kk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Black(K)}">%{=d Kk} #   set attribute = {dim, black(k) on bright Black(K)}</h1>
-
-<h1 id="%?++++++++#+end+if">%?        # end if</h1>
-
-<h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode</h1>
-
-<h1 id="%{=d+Bk}#+++set+attribute+=+{dim,+black(k)+on+bright+Blue(B)}">%{=d Bk}#   set attribute = {dim, black(k) on bright Blue(B)}</h1>
-
-<h1 id="%?++++++++#+end+if">%?        # end if</h1>
-
-<h1 id="%n++++++++#+window+number">%n        # window number</h1>
-
-<h1 id="#+space"># space</h1>
-
-<h1 id="%H++++++++#+hostname+of+the+system">%H        # hostname of the system</h1>
-
-<h1 id="#+space"># space</h1>
-
-<h1 id="%L=+++++++#+Mark+the+position+for+the+next+truncation">%L=       # Mark the position for the next truncation</h1>
-
-<h1 id="%h++++++++#+window'+hardstatus">%h        # window' hardstatus</h1>
-
-<h1 id="%>++++++++#+Truncate+%L=+~+%>">%>        # Truncate %L= ~ %></h1>
-
-<h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode</h1>
-
-<h1 id="***+copy/paste+mode+***+#+draw+this+sentence"><strong><em> copy/paste mode </em></strong> # draw this sentence</h1>
-
-<h1 id="%?++++++++#+end+if">%?        # end if</h1>
-
-<h1 id="%?%E++++++#+if+copy/paste+mode">%?%E      # if copy/paste mode</h1>
-
-<h1 id="***+command+mode+***+#+draw+this+sentence"><strong><em> command mode </em></strong> # draw this sentence</h1>
-
-<h1 id="%?++++++++#+end+if">%?        # end if</h1>
-
-<h1 id="%-0=++++++#+pad+the+string+to+the+display's+width.++-0++means+start+from">%-0=      # pad the string to the display's width. "-0" means start from</h1>
-
-<h1 id="#+the+rightest+side"># the rightest side</h1>
-
-<h1 id="#+(e.g.+10=:+10%+from+left,+010,+10+characters+from+left"># (e.g. 10=: 10% from left, 010, 10 characters from left</h1>
-
-<h1 id="#+(+++++-10=:+10%+from+right)"># (     -10=: 10% from right)</h1>
-
-<h1 id="#+With+%L>,+%=+above,+screen+tries+to+truncates+the+part"># With %L>, %= above, screen tries to truncates the part</h1>
-
-<h1 id="#+in+the+left+of++%L>+"># in the left of "%L>"</h1>
-
-<h3 id="hardstatus">hardstatus</h3>
-
-<p>hardstatus alwayslastline "%{= Kk}%-w%40>%{= Wk}%n %t%{-}%+w%-0="</p>
-
-<h1 id="hardstatus+alwayslastline++%{=+Kk}%-w%{=+Wk}%n+%H+%t%{-}%+w+">hardstatus alwayslastline "%{= Kk}%-w%{= Wk}%n %H %t%{-}%+w"</h1>
-
-<h1 id="%{=+Kk}+++#+set+attribute+=+{black(k)+on+bright+Black(K)}">%{= Kk}   # set attribute = {black(k) on bright Black(K)}</h1>
-
-<h1 id="%-w+++++++#+windows'+list+up+to+the+current+window+(shown+as++%n+%t+)">%-w       # windows' list up to the current window (shown as "%n %t")</h1>
-
-<h1 id="%40>++++++#+Mark+here+as+a+point+to+move+when+truncation">%40>      # Mark here as a point to move when truncation</h1>
-
-<h1 id="#+Try+to+move+this+point+to+the+40%+point"># Try to move this point to the 40% point</h1>
-
-<h1 id="%{=+Wk}+++#+set+attribute+=+{black(k)+on+bright+Write(W)}">%{= Wk}   # set attribute = {black(k) on bright Write(W)}</h1>
-
-<h1 id="%n++++++++#+current+window+number">%n        # current window number</h1>
-
-<h1 id="#+space"># space</h1>
-
-<h1 id="%t++++++++#+current+window+title">%t        # current window title</h1>
-
-<h1 id="%{-}++++++#+remove+the+set+from+the+current+attributes">%{-}      # remove the set from the current attributes</h1>
-
-<h1 id="%+w+++++++#+windows'+list+starting+with+the+window+after+the+current+one+(shown+as++%n+%t+)">%+w       # windows' list starting with the window after the current one (shown as "%n %t")</h1>
-
-<p>{% endcodeblock %}</p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="caption+for+each+window">caption for each window&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>caption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%?%n %H %L=%h%>%?%P &lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong>%?%?%E &lt;strong>&lt;em> command mode &lt;/em>&lt;/strong>%?%-0='&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%F++++++#+if+the+window+has+the+focus">%?%F      # if the window has the focus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Wk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Write(W)}">%{=d Wk} #   set attribute = {dim, black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%:++++++++#+else">%:        # else&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Kk}+#+++set+attribute+=+{dim,+black(k)+on+bright+Black(K)}">%{=d Kk} #   set attribute = {dim, black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=d+Bk}#+++set+attribute+=+{dim,+black(k)+on+bright+Blue(B)}">%{=d Bk}#   set attribute = {dim, black(k) on bright Blue(B)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+window+number">%n        # window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%H++++++++#+hostname+of+the+system">%H        # hostname of the system&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%L=+++++++#+Mark+the+position+for+the+next+truncation">%L=       # Mark the position for the next truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%h++++++++#+window'+hardstatus">%h        # window' hardstatus&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%>++++++++#+Truncate+%L=+~+%>">%>        # Truncate %L= ~ %>&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%P++++++#+if+copy/paste+mode">%?%P      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+copy/paste+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> copy/paste mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?%E++++++#+if+copy/paste+mode">%?%E      # if copy/paste mode&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="***+command+mode+***+#+draw+this+sentence">&lt;strong>&lt;em> command mode &lt;/em>&lt;/strong> # draw this sentence&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%?++++++++#+end+if">%?        # end if&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-0=++++++#+pad+the+string+to+the+display's+width.++-0++means+start+from">%-0=      # pad the string to the display's width. "-0" means start from&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+the+rightest+side"># the rightest side&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(e.g.+10=:+10%+from+left,+010,+10+characters+from+left"># (e.g. 10=: 10% from left, 010, 10 characters from left&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+(+++++-10=:+10%+from+right)"># (     -10=: 10% from right)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+With+%L>,+%=+above,+screen+tries+to+truncates+the+part"># With %L>, %= above, screen tries to truncates the part&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+in+the+left+of++%L>+"># in the left of "%L>"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h3 id="hardstatus">hardstatus&lt;/h3>
+</span><span class='line'>
+</span><span class='line'>&lt;p>hardstatus alwayslastline "%{= Kk}%-w%40>%{= Wk}%n %t%{-}%+w%-0="&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="hardstatus+alwayslastline++%{=+Kk}%-w%{=+Wk}%n+%H+%t%{-}%+w+">hardstatus alwayslastline "%{= Kk}%-w%{= Wk}%n %H %t%{-}%+w"&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Kk}+++#+set+attribute+=+{black(k)+on+bright+Black(K)}">%{= Kk}   # set attribute = {black(k) on bright Black(K)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%-w+++++++#+windows'+list+up+to+the+current+window+(shown+as++%n+%t+)">%-w       # windows' list up to the current window (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%40>++++++#+Mark+here+as+a+point+to+move+when+truncation">%40>      # Mark here as a point to move when truncation&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+Try+to+move+this+point+to+the+40%+point"># Try to move this point to the 40% point&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{=+Wk}+++#+set+attribute+=+{black(k)+on+bright+Write(W)}">%{= Wk}   # set attribute = {black(k) on bright Write(W)}&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%n++++++++#+current+window+number">%n        # current window number&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="#+space"># space&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%t++++++++#+current+window+title">%t        # current window title&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%{-}++++++#+remove+the+set+from+the+current+attributes">%{-}      # remove the set from the current attributes&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1 id="%+w+++++++#+windows'+list+starting+with+the+window+after+the+current+one+(shown+as++%n+%t+)">%+w       # windows' list starting with the window after the current one (shown as "%n %t")&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p><code>%E</code>の使い方としては、コマンド入力待機状態の時に
 <code>*** command mode ***</code>とcaptionに表示させるようにしました。</p>
 
 <p>こんな感じ</p>
 
-<p><a href="{{site.img}}post/20130511_screen.jpg"><img src="{{site.imgpath}}post/20130511_screen.jpg" title="" alt=""></a></p>
+<p><a href="post/20130511_screen.jpg"><img src="/images/post/20130511_screen.jpg" title="" alt=""></a></p>
 
 <p>最初、copy/paste同様色も変えようかと思ったんですが、
 ウィンドウを移動するたびに色が変わると目がチカチカするので
@@ -249,16 +365,21 @@ GNU screenとかと同じ様なものだな、と理解。
 
 <p>って言われて始めて<code>屏風</code>だったのか、と知ったという。</p>
 
-<p><img src="{{site.imgpath}}post/20130511_byobu.jpg" title="" alt=""></p>
+<p><img src="/images/post/20130511_byobu.jpg" title="" alt=""></p>
 
 <p>byobuは殆ど使ったことがないのですが、
 ちょっとこの話を思い出したので最後に紹介してみました。</p>
 
 <hr />
 
-<p>{% footnotes %}
-  {% fn %} <a href="http://yskwkzhr.blogspot.ch/2013/04/gnu-screen-watch-january-2011-april-2013.html">GNU Screen Watch: January 2011 - April 2013</a>
-{% endfootnotes %}</p>
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p> <a href="http://yskwkzhr.blogspot.ch/2013/04/gnu-screen-watch-january-2011-april-2013.html">GNU Screen Watch: January 2011 - April 2013</a>
+<a href='#fnref:1' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
 ]]></content>
   </entry>
   
@@ -274,7 +395,27 @@ GNU screenとかと同じ様なものだな、と理解。
 <!-- more -->
 
 
-<p>{% include after_excerpt.html %}</p>
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
 
 <p>普段ターミナルから日本語ファイルを扱う事は殆ど無い上、
 <code>vim</code>で編集する際には、<code>vim</code>の設定で殆ど問題なく日本語を読み書きすることができるので
@@ -314,7 +455,7 @@ $ ./configure --prefix=/Users/$USER/usr/local/  --enable-colors256 &amp;&amp; ma
 <p>上の画像は<code>iTerm2</code>でのものですが、
 この新しいscreenで起動すると</p>
 
-<p><img src="{{site.imgpath}}post/20130322_screen_char_ok.jpeg" title="" alt=""></p>
+<p><img src="/images/post/20130322_screen_char_ok.jpeg" title="" alt=""></p>
 
 <p>この様に、ちゃんと表示されました。</p>
 
