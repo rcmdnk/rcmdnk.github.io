@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: Cygwin | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/cygwin/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-02T20:06:59+00:00</updated>
+  <updated>2013-09-06T03:04:53+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -14,9 +14,124 @@
 
   
   <entry>
+    <title type="html"><![CDATA[[Cygwin][Windows][Putty][Vim]Cygwin+screenで256 colorを有効にする]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/05/computer-cygwin-putty-vim/"/>
+    <updated>2013-09-05T19:26:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/05/computer-cygwin-putty-vim</id>
+    <content type="html"><![CDATA[<p>最近、vimのステータス表示で
+<a href="https://github.com/bling/vim-airline">vim-airline</a>がリリースされたり
+それに追随して<a href="https://github.com/itchyny/lightline.vim">lightline</a>
+がリリースされたり<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+気になっていたのでインストールしました。
+これまであまりターミナルの表示色を気にしてませんでしたが、
+これらを導入した際にちゃんと表示されてない部分があったので
+それらの設定と、後、導入したステータスラインの設定等。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="Cygwin+++GNU+Screen">Cygwin + GNU Screen</h1>
+
+<p>CygwinではMac同様、GNU Screenはソースからコンパイルして
+インストールしていますが<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>、
+この際、<code>configure</code>で<code>--enable-colors256</code>として256色表示を有効にしてるんですが、
+実際にはそれ程色を気にするわけでもないのでCygwin上ではきちんと試してませんでした。</p>
+
+<p>で、今回vimのステータスラインを入れてみて他の端末ではこんな感じで綺麗に見れてたのが</p>
+
+<p><img src="/images/post/20130905_vimstatusok.png" "" ""></p>
+
+<p>Cygwinだと</p>
+
+<p><img src="/images/post/20130905_vimstatusno.png" "" ""></p>
+
+<p>こんな感じで状態がとても見辛く(ともに<code>lightline</code>の<code>jellybeans</code>テーマ)。</p>
+
+<p>色々試していると、GNU screenを起動した時だけがおかしくなるので、
+screenインストール時にcolors256オプション付け忘れかと思って再インストールしてみるも駄目。
+<code>.screenrc</code>に</p>
+
+<pre><code>term xterm-256color
+</code></pre>
+
+<p>とtermを指定したりしても関係なし(そもそも他の端末ではなくてもOK。)</p>
+
+<p>問題はMinttyのターミナルオプションが<code>xterm</code>になっていて、これを
+<code>xterm-256color</code>に指定する必要があったみたいです。
+(つまりはずっと256色表示でなかった。。。)</p>
+
+<p>ターミナルにメニューバーが無いので、タイトルバーを右クリックから<code>Options...</code>
+を選び下の様にTerminalのTypeを<code>xterm-256color</code>に。</p>
+
+<p><img src="/images/post/20130905_cygwin.png" "" ""></p>
+
+<p>これでちゃんと表示出来る様になりました。</p>
+
+<p>テストとして<code>bash</code>でこんなスクリプトを使って表示。
+<div><script src='https://gist.github.com/6457780.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p><img src="/images/post/20130905_256colOK.png" "" ""></p>
+
+<p>こんな感じに見れます。もし256色表示が有効でないと、</p>
+
+<p><img src="/images/post/20130905_256colNO.png" "" ""></p>
+
+<p>こんな感じで、同じ色を表示する所が出てきます。</p>
+
+<h1 id="Putty">Putty</h1>
+
+<p>一応同じWindowsとしてPuttyについても。</p>
+
+<p>Puttyは各Sessionの<code>Connection</code>の<code>Data</code>の所に<code>Terminal-type string</code>
+という項目があるので、ここに<code>xterm-256color</code>を記入します。
+こちらは昔設定したみたいでこうなっていて、外に繋げたりcoLinuxでは
+きちんと256色表示されていたみたいです。</p>
+
+<p><img src="/images/post/20130905_putty.png" "" ""></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://d.hatena.ne.jp/itchyny/20130824/1377351527">lightline.vim作りました - プラグインの直交性について</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a>
+<a href='#fnref:2' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Vim 7.4をCygwinへインストール]]></title>
     <link href="http://rcmdnk.github.io/blog/2013/08/17/computer-windows-cygwin-vim/"/>
-    <updated>2013-08-17T00:44:00+00:00</updated>
+    <updated>2013-08-17T00:44:00+02:00</updated>
     <id>http://rcmdnk.github.io/blog/2013/08/17/computer-windows-cygwin-vim</id>
     <content type="html"><![CDATA[<p>Vim 7.4の正式版がリリースされたので、
 Cygwinへもインストールしました。
@@ -92,7 +207,7 @@ $ stow vim-7.4
   <entry>
     <title type="html"><![CDATA[stowでmake installしたパッケージを管理]]></title>
     <link href="http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin/"/>
-    <updated>2013-08-11T03:53:00+00:00</updated>
+    <updated>2013-08-11T03:53:00+02:00</updated>
     <id>http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin</id>
     <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B003KOAR0G/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41PYjDYaZvL._SL160_.jpg" border="0"></a></p>
 
@@ -409,7 +524,7 @@ $ stow vim
   <entry>
     <title type="html"><![CDATA[apt-cygでsetup.iniが404 Not Foundになった]]></title>
     <link href="http://rcmdnk.github.io/blog/2013/08/08/computer-windows-cygwin/"/>
-    <updated>2013-08-08T22:10:00+00:00</updated>
+    <updated>2013-08-08T22:10:00+02:00</updated>
     <id>http://rcmdnk.github.io/blog/2013/08/08/computer-windows-cygwin</id>
     <content type="html"><![CDATA[<p><a href="/blog/2013/06/24/computer-windows-git-cygwin/">Cygwinでコマンドラインからパッケージ管理をする</a>で紹介した<code>apt-cyg</code>ですが、
 久しぶりに使ったらミラーサイトで必要なsetupファイルが
@@ -522,8 +637,8 @@ setup.ini等から得る各パッケージパス情報の中に、<code>x86</cod
 今までのapt-cygと完全に同じ様に使えます。</p>
 
 <p>ちなみに、apt-cygのページをもう一度良く見てみたら、
-gitHubにレポジトリが作られた様です
-:<a href="https://github.com/tnscode-openranscode-open">transcode-open/apt-cyg</a>。
+gitHubにレポジトリが作られた様です:
+<a href="https://github.com/transcode-open/apt-cyg">transcode-open/apt-cyg</a>。
 16日程前なので、恐らくその頃にこの問題が起こって指摘されて、
 勝手に改造して使って、となったのでしょうか？
 せっかく見つけたので、何も考えずにpull requestしてみましたが、
@@ -556,7 +671,7 @@ gitHubにレポジトリが作られた様です
   <entry>
     <title type="html"><![CDATA[Lua対応Vimをインストール]]></title>
     <link href="http://rcmdnk.github.io/blog/2013/08/07/computer-vim/"/>
-    <updated>2013-08-07T20:36:00+00:00</updated>
+    <updated>2013-08-07T20:36:00+02:00</updated>
     <id>http://rcmdnk.github.io/blog/2013/08/07/computer-vim</id>
     <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/4048677977/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41otNZcUklL._SL160_.jpg" border="0"></a></p>
 
@@ -829,119 +944,6 @@ luaを有効に出来るので充分ですが、もしソースから直接コ�
 <p><div class="footnotes">
 	<ol>
 		<li id='fn:1'><p><a href="http://supermomonga.com/2013/07/03/macvim-with-lua-features/">最新パッチ＆if_luaなMacVimで高速検索＆補完！</a>
-<a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[fatal: Unable to find remote helper for 'https'の対処]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git/"/>
-    <updated>2013-07-27T01:17:00+00:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git</id>
-    <content type="html"><![CDATA[<p>Cygwinでjedi-vimを入れようとして、jedi本体を入れようと
-jedi-vimのディレクトリで<code>git submodule update --init</code>
-をしたら<code>fatal</code>が出た時の対処法。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="jedi-vimのsubmoduleのインストール時にfatal">jedi-vimのsubmoduleのインストール時にfatal</h1>
-
-<p>Cygwinでjedi-vimをNeoBundleでインストール後、jedi本体を入れようと
-jedi-vimのディレクトリで<code>submodule update</code>したところ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、</p>
-
-<pre><code>$ git submodule update --init
-Cloning into 'jedi'...
-fatal: Unable to find remote helper for 'https'
-Clone of 'https://github.com/davidhalter/jedi.git' into submodule path 'jedi' failed
-</code></pre>
-
-<p>こんな感じのfatal errorが出ました。
-どうも<code>https</code>が理解出来ないようです。</p>
-
-<p>直接、<code>.git/config</code>内のjediのラインを<code>https://...</code>から<code>git://...</code>
-とすれば、取り敢えず<code>submodule update</code>が通ってjediが使える様になりますが、
-結構根本的なところなのでgitの入れ直しをして対処しました。</p>
-
-<h1 id="`--with-curl+--with-expat`付きでconfigure"><code>--with-curl --with-expat</code>付きでconfigure</h1>
-
-<p>gitのソースレポジトリにある<code>INSTALL</code>によると</p>
-
-<blockquote><p>"libcurl" library is used by git-http-fetch and git-fetch.  You
- might also want the "curl" executable for debugging purposes.
- If you do not use http:// or https:// repositories, you do not
- have to have them (use NO_CURL).</p>
-
-<p>"expat" library; git-http-push uses it for remote lock
- management over DAV.  Similar to "curl" above, this is optional
- (with NO_EXPAT).</p></blockquote>
-
-<p>とのことで、<code>https</code>などを使うときはcurlが必要な様です。
-以前gitをインストールしたときはlibcurlが入ってなかったので無しでNO_CURLな状態でコンパイルされていたようです。</p>
-
-<pre><code>$ apt-cyg find curl
-</code></pre>
-
-<p>などとして見ると、<code>libcurl-devel</code>が見つかったのでこれをインストールしました。</p>
-
-<pre><code>$ apt-cyg install libcurl-devel
-</code></pre>
-
-<p>今回直接関係ないですが、ついでにcurlも入ってなかったのでインストール</p>
-
-<pre><code>$ apt-cyg install curl
-</code></pre>
-
-<p>これで、<a href="/blog/2013/06/25/computer-windows-git-cygwin/">以前インストールした</a>
-ようにして、<code>config</code>だけ</p>
-
-<pre><code>$  ./configure --prefix=/home/$USER/usr/local --with-curl  --with-expat
-</code></pre>
-
-<p>としてインストール。
-expatの方もpushの時に必要な時があるかもしれないのでついでに加えて置きました。
-(追記: 上の<code>INSTALL</code>にもあるように、必要ないときにNOオプションを使えということで、
-<code>--with-curl --with-expat</code>はデフォルトでYES
-になってるので、libcurlをインストールしてあれば自動的にインストールされるので
-これらのオプションは必要ないみたいです。)</p>
-
-<p>これで<code>http(s)</code>の場合もgitが使える様になりました。
-ついでに、NeoBundleもUpdateしたことで、
-jedi本体についてはjedi-vimインストール時に自動的に
-インストール出来るようにもなったのでだいぶ初期インストール時の手間が省けた感じがします。</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p> <a href="/blog/2013/07/21/computer-vim/">dev版jedi-vimのインストール</a>の追記に書いた様に、最新のNeoBundleを入れて、curl付きのgitが入っていればjedi-vimインストール時に
-  jedi本体も自動的にインストールされる様です。
 <a href='#fnref:1' rev='footnote'>↩</a></p>
 </li>
 	</ol>

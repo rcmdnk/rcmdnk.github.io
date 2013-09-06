@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Putty | rcmdnk's blog]]></title>
+  <link href="http://rcmdnk.github.io/blog/tags/putty/atom.xml" rel="self"/>
+  <link href="http://rcmdnk.github.io/"/>
+  <updated>2013-09-06T03:04:53+02:00</updated>
+  <id>http://rcmdnk.github.io/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rdmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[[Cygwin][Windows][Putty][Vim]Cygwin+screenで256 colorを有効にする]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/05/computer-cygwin-putty-vim/"/>
+    <updated>2013-09-05T19:26:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/05/computer-cygwin-putty-vim</id>
+    <content type="html"><![CDATA[<p>最近、vimのステータス表示で
+<a href="https://github.com/bling/vim-airline">vim-airline</a>がリリースされたり
+それに追随して<a href="https://github.com/itchyny/lightline.vim">lightline</a>
+がリリースされたり<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+気になっていたのでインストールしました。
+これまであまりターミナルの表示色を気にしてませんでしたが、
+これらを導入した際にちゃんと表示されてない部分があったので
+それらの設定と、後、導入したステータスラインの設定等。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="Cygwin+++GNU+Screen">Cygwin + GNU Screen</h1>
+
+<p>CygwinではMac同様、GNU Screenはソースからコンパイルして
+インストールしていますが<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>、
+この際、<code>configure</code>で<code>--enable-colors256</code>として256色表示を有効にしてるんですが、
+実際にはそれ程色を気にするわけでもないのでCygwin上ではきちんと試してませんでした。</p>
+
+<p>で、今回vimのステータスラインを入れてみて他の端末ではこんな感じで綺麗に見れてたのが</p>
+
+<p><img src="/images/post/20130905_vimstatusok.png" "" ""></p>
+
+<p>Cygwinだと</p>
+
+<p><img src="/images/post/20130905_vimstatusno.png" "" ""></p>
+
+<p>こんな感じで状態がとても見辛く(ともに<code>lightline</code>の<code>jellybeans</code>テーマ)。</p>
+
+<p>色々試していると、GNU screenを起動した時だけがおかしくなるので、
+screenインストール時にcolors256オプション付け忘れかと思って再インストールしてみるも駄目。
+<code>.screenrc</code>に</p>
+
+<pre><code>term xterm-256color
+</code></pre>
+
+<p>とtermを指定したりしても関係なし(そもそも他の端末ではなくてもOK。)</p>
+
+<p>問題はMinttyのターミナルオプションが<code>xterm</code>になっていて、これを
+<code>xterm-256color</code>に指定する必要があったみたいです。
+(つまりはずっと256色表示でなかった。。。)</p>
+
+<p>ターミナルにメニューバーが無いので、タイトルバーを右クリックから<code>Options...</code>
+を選び下の様にTerminalのTypeを<code>xterm-256color</code>に。</p>
+
+<p><img src="/images/post/20130905_cygwin.png" "" ""></p>
+
+<p>これでちゃんと表示出来る様になりました。</p>
+
+<p>テストとして<code>bash</code>でこんなスクリプトを使って表示。
+<div><script src='https://gist.github.com/6457780.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p><img src="/images/post/20130905_256colOK.png" "" ""></p>
+
+<p>こんな感じに見れます。もし256色表示が有効でないと、</p>
+
+<p><img src="/images/post/20130905_256colNO.png" "" ""></p>
+
+<p>こんな感じで、同じ色を表示する所が出てきます。</p>
+
+<h1 id="Putty">Putty</h1>
+
+<p>一応同じWindowsとしてPuttyについても。</p>
+
+<p>Puttyは各Sessionの<code>Connection</code>の<code>Data</code>の所に<code>Terminal-type string</code>
+という項目があるので、ここに<code>xterm-256color</code>を記入します。
+こちらは昔設定したみたいでこうなっていて、外に繋げたりcoLinuxでは
+きちんと256色表示されていたみたいです。</p>
+
+<p><img src="/images/post/20130905_putty.png" "" ""></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://d.hatena.ne.jp/itchyny/20130824/1377351527">lightline.vim作りました - プラグインの直交性について</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a>
+<a href='#fnref:2' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
+  
+</feed>
