@@ -5,7 +5,7 @@
   <link href="http://rcmdnk.github.io/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
   <link href="http://rcmdnk.superfeedr.com/" rel="hub"/>
-  <updated>2013-09-12T15:52:40+02:00</updated>
+  <updated>2013-09-13T02:02:36+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -13,6 +13,292 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Mac][Homebrew][Install]Homebrewの拡張:brewdler, tap, cask]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/12/computer-mac-install/"/>
+    <updated>2013-09-12T18:03:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/12/computer-mac-install</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B003HT5RV8/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/51FeRgNZqeL._SL160_.jpg" border="0"></a>
+Macでのパッケージ管理は<a href="http://rcmdnk.github.io/blog/2013/06/21/computer-mac/">Homebrewで行うようにしてますが</a>、
+<a href="https://github.com/andrew/brewdler">brewdler</a>というものがあって、
+より簡単に管理できそうだ、と言うことでちょっと試してみました。
+ついでに、brewdlerのREADMEで始めてHomebrewにtapというコマンドがあることや
+Homebrew-caskという拡張があることも知ったのでその辺について。</p>
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#brewdler">brewdler</a> </li>
+ <li><a href="#brew+tap">brew tap</a> </li>
+ <li><a href="#brew+cask">brew cask</a> </li>
+ <li><a href="#まとめ">まとめ</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="brewdler">brewdler</h1>
+
+<p><a href="https://github.com/andrew/brewdler">brewdler</a>は、
+<a href="http://bundler.io/">Bundler</a>でRubyのプロジェクトを管理する感覚で、
+<a href="http://brew.sh/">Homebrew</a>で管理されるパッケージも管理しよう、という向きの管理パッケージです<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。
+現状は、インストールするパッケージリストの記述しておいて他のマシンに移った時でも
+簡単にまとめてインストール出来るようにする、と言った感じです。
+アップグレード等はbrewコマンド自体で管理。</p>
+
+<p>インストールは簡単でRubyGemsがインストールしてあれば<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup></p>
+
+<pre><code>$ gem install brewdler
+</code></pre>
+
+<p>でOK。
+使い方も簡単で、Gemfileの様な<code>Brewfile</code>と言う名前のファイルを作り、その中に、</p>
+
+<pre><code>brew 'vim'
+</code></pre>
+
+<p>と言った感じで記述しておくと、<code>Brewfile</code>のあるディレクトリで</p>
+
+<pre><code>$ brewdle
+</code></pre>
+
+<p>とするだけで記述されているパッケージをまとめてインストールしてくれます。</p>
+
+<p>現状Homebrewでインストールするvimは<code>-lua</code>な状態ですが、<code>+lua</code>にしたければ</p>
+
+<pre><code>brew 'vim --with-lua'
+</code></pre>
+
+<p>の様に、brewで使えるオプションをそのまま書いておけばそのオプション付きでインストールされます。
+(基本的には<code>第一引数のコマンド</code>+<code>install</code>+<code>第二引数</code>の様な感じをしているみたい。)</p>
+
+<p>これだけだとはっきり言って単にシェルスクリプトで回せば良いのでは。。。
+という疑問があって、あまりメリットを感じてないので実はbrewdler自体は使わないでいいかな、
+と思ってたりするんですが、
+<a href="https://github.com/andrew/brewdler">brewderのREADME</a>で、
+<a href="https://github.com/mxcl/homebrew/wiki/brew-tap">Homebrew brew-tap</a>と
+<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>も使えるとの
+記述があって、それらも初めて知ったのでちょっと試してみました。</p>
+
+<h1 id="brew+tap">brew tap</h1>
+
+<p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>は
+Homebrewに実装されてるコマンドで、GitHubのレポジトリにある
+パッケージをそのままインストールするコマンドです。
+最近のHomebrewがインストールされてればそのまま使えます。</p>
+
+<p>使い方は<code>brew</code>の後に<code>tap</code>コマンドを入れて、後はレポジトリ名。
+次に使うcaskなんかだと、</p>
+
+<pre><code>$ brew tap phinze/homebrew-cask
+$ brew install brew-cask
+</code></pre>
+
+<p>こんな感じで。まず<code>tap</code>コマンドでHomebrewに必要なファイルを取ってきて<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>、
+そのファイルに従いインストール出来るようにします。
+(<code>brew-cask</code>の名前は<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>
+にある<code>brew-cask.rb</code>の名前)</p>
+
+<p>その後、他のパッケージ同様、<code>brew install</code>コマンドでインストール出来るようになります。</p>
+
+<p>tapするときにレポジトリ名の<code>homebrew-</code>の部分は省略して<code>phinze/cask</code>でも通ります。
+逆に、tapで管理したいレポジトリを作りたい時は必ず<code>homebrew-</code>を付ける必要があり、
+また、この部分以外に<code>-</code>を付けるのは禁止だそうです<sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>。</p>
+
+<p>(<code>/usr/local/Library/Taps/</code>以下にまずレポジトリごと取ってきてその中にある
+<code>brew-cask.rb</code>等を参照してるみたいで、かつ、<code>install</code>時には新たに
+GitHubから直接ファイルをとて来てるので、<code>Tap</code>ディレクトリにあるものが
+ただただムダに思えるんですが。。。
+設定ファイル用のレポジトリと実体用のレポジトリを分けて、
+設定ファイルでそのレポジトリを指定すれば良いのかもしれませんが、
+いずれにしろなんか無駄な感じが。。。)</p>
+
+<p>アンインストールする時はまず通常通り、</p>
+
+<pre><code>$ brew uninstall brew-cask
+</code></pre>
+
+<p>でbrew内でアンインストールし、</p>
+
+<pre><code>$ brew untap phinze/homebrew-cask
+</code></pre>
+
+<p>でアンタップ(<code>Tap</code>ディレクトリから削除)。</p>
+
+<p>これをbrewdlerで管理したい場合は</p>
+
+<pre><code>tap 'phinze/homebrew-cask'
+brew 'brew-cask'
+</code></pre>
+
+<p>の様に、<code>tap</code>と<code>brew</code>のコマンドを順に書きます。
+<code>tap</code>の方は第一項を<code>tap</code>にして第二項をレポジトリ名に。
+<a href="https://github.com/andrew/brewdler">brewderのREADME</a>だと、
+caskが<code>tap</code>だけ書かれてますが、
+これだと<code>tap</code>するだけでインストールしてくれません。
+なので、必ずインストールするために<code>brew</code>の項を下に書く必要があります。</p>
+
+<h1 id="brew+cask">brew cask</h1>
+
+<p><a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>は
+Homebrewの拡張でWebから落としてきてインストールする様なソフトを
+自動でインストールしてくれます。
+cask自体のインストールは上でやったように<code>brew tap</code>で。</p>
+
+<p>インストールできるソフトは現在デフォルトではこんな感じ:
+<a href="https://gist.github.com/rcmdnk/6541661">brew-cask-search.txt</a>。</p>
+
+<p>インストールは</p>
+
+<pre><code>$ brew cask install firefox
+</code></pre>
+
+<p>こんな感じで。
+実体は<code>/opt/homebrew-cask/Caskroom</code>にインストールされ、そこから
+デフォルトだと、<code>~/Applications/</code>へリンクが貼られます。
+(最初に<code>homebrew-cask</code>ディレクトリがない場合はディレクトリを作るためにroot権限が求められます。)</p>
+
+<p>インストール先を変えたい場合は環境変数<code>HOMEBREW_CASK_OPTS</code>を</p>
+
+<pre><code>$ export HOMEBREW_CASK_OPTS="--appdir=/Applications"
+</code></pre>
+
+<p>と設定すると<code>/Applications</code>にインストールする様になります。
+<code>brew cask install</code>コマンド時に直接<code>--appdir=/Applications</code>を加えてもOK<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<p>アンインストールは</p>
+
+<pre><code>$ brew cask uninstall firefox
+</code></pre>
+
+<p>で<code>~/Applications/</code>のリンクも<code>.../Caskroom/</code>の実体も削除。</p>
+
+<p>デフォルトのfirefoxは英語版ですが、日本語版をインストールしたい場合は</p>
+
+<pre><code>$ brew cask edit firefox
+</code></pre>
+
+<p>とすると設定ファイルが開けるので、その中で</p>
+
+<pre><code>-  url 'https://download.mozilla.org/?product=firefox-latest&amp;os=osx&amp;lang=en-US'
++  url 'https://download.mozilla.org/?product=firefox-latest&amp;os=osx&amp;lang=ja-JP-mac'
+</code></pre>
+
+<p>の様に、<code>url</code>の部分で<code>lang</code>を<code>en-US</code>から<code>ja-JP-mac</code>に変更します。</p>
+
+<p>ここで注意が必要なのが、一回<code>cask install</code>すると、
+<code>/Library/Caches/Homebrew/</code>に<code>firefox-latest</code>のキャシュが残ってて、
+これを使ってしまうので、再度違う言語でインストールしたい場合には
+このファイルを先に消しておく必要があります。
+(caskでダウンロードされたキャッシュは<code>brew cleanup</code>等で消えないので、
+手で消すしか無い？)</p>
+
+<p>これをbrewdleで管理したい場合はBrewfileに</p>
+
+<pre><code>cask 'firefox'
+</code></pre>
+
+<p>と書いて<code>brewdle</code>すれば良いだけです。</p>
+
+<p>ただ、<a href="https://github.com/andrew/brewdler">brewdleのREADME</a>にあるように
+いきなり<code>tap</code>での<code>cask</code>のインストールと<code>cask</code>でのインストールを</p>
+
+<pre><code>tap 'phinze/cask'
+cask 'firefox'
+</code></pre>
+
+<p>こんな感じで書いてもおいても、caskは無いと言われてしまいます。</p>
+
+<p>なので、これらがインストールされてない状態からBrewfileを作る時は、</p>
+
+<ol>
+<li>tap &#8216;phinze/homebrew-cask&#8217;</li>
+<li>brew &#8216;brew-cask&#8217;</li>
+<li>cask &#8216;firefox&#8217;</li>
+</ol>
+
+
+<p>の様にまず、caskを<code>tap</code>、caskをインストール、
+その後に<code>cask</code>でインストールするもの、のように書いていく必要があります。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>brewdlerが便利そうだな、と思って使ってみたんですが、いまいち単なる
+リストと違って何が嬉しいのかわからないのが現状。
+いっそのこと適当なスクリプトを自分で書いてしまった方が色々できて
+良さそう。。。</p>
+
+<p>ただ、
+<a href="https://github.com/mxcl/homebrew/wiki/brew-tap">Homebrew brew-tap</a>と
+<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>を
+知れたのは良かったです。
+差し当たり現在入れてある物はcaskで置き換えたりはしてませんが、
+そのうち。</p>
+
+<p>と、思って、<code>cask</code>についていろいろ調べてた時、
+<code>cask</code>の実体が<code>/opt/</code>以下にあるのでちょっと<code>/opt/</code>行った所、
+<code>boxen</code>ディレクトリを発見。
+そう言えば、ちょっと前に</p>
+
+<blockquote><p><a href="http://qiita.com/yuku_t/items/c6f20de0e4f4c352046c">Boxen使わなくても許されるのは2012年までだよね</a></p></blockquote>
+
+<p>とかあったので<a href="http://boxen.github.com/">Boxen</a>入れてみようと思って、
+でも途中でMac1台しか持ってないし、まだ暫く買い換えなそうだし、
+次Mac買うとも限らないし、、、と思って途中で辞めたのを思い出しました。</p>
+
+<p>ただ、<a href="http://brew.sh/">Homebrew</a>自体がBoxenで管理できたりするので、
+まずはBoxenで管理出来るパッケージはBoxenでして、
+それ以外をHomebrew(+cask)で管理する、と言う感じにするのが良いのかも。</p>
+
+<p>そのうちやりたいところ。。。</p>
+
+<hr />
+
+<div class="footnotes">
+    <ol>
+        <li id='fn:1'><p><a href="http://qiita.com/futoase/items/9a52ddd8bb19863372d0">homebrewのパッケージをGemfileみたく管理したい -> brewdlerがあった&#8230;</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://rcmdnk.github.io/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a>でrubyと一緒に導入済。
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p>通常のHomebrewの各パッケージ用の設定ファイルは<code>/usr/local/Library/Formula/</code>内の<code>vim.rb</code>等。
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="https://github.com/phinze/homebrew-cask/blob/master/USAGE.md">homebrew-cask/USAGE.md</a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+    </ol>
+</div>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[ウェブページを読みやすくするBeeLine Reader]]></title>
@@ -1906,6 +2192,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 
 <pre><code>$ cd ~/tmp/
 $ hg clone https://vim.googlecode.com/hg/ vim
+$ cd vim/src/
 $ ./configure  --prefix=$HOME/usr/local/stow/vim-7.4  --enable-multibyte  --enable-luainterp=yes  --enable-perlinterp=no --enable-pythoninterp=yes --enable-python3interp=yes --enable-tclinterp --enable-rubyinterp=yes
 $ make &amp;&amp; make install
 $ cd ~/usr/local/stow
@@ -4084,130 +4371,6 @@ A::Send,c
   <a href='#fnref:7' rev='footnote'>↩</a></p>
 </li><li id='fn:8'><p><a href="http://did2.blog64.fc2.com/blog-entry-371.html">AutoHotkeyにおけるラベルの優先度と3キー同時押しの定義</a>
 <a href='#fnref:8' rev='footnote'>↩</a></p>
-</li>
-    </ol>
-</div>
-
-
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[fatal: Unable to find remote helper for 'https'の対処]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git/"/>
-    <updated>2013-07-27T01:17:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git</id>
-    <content type="html"><![CDATA[<p>Cygwinでjedi-vimを入れようとして、jedi本体を入れようと
-jedi-vimのディレクトリで<code>git submodule update --init</code>
-をしたら<code>fatal</code>が出た時の対処法。</p>
-
-<!-- more -->
-
-
-<br class="clearBoth">
-
-
-
-
-<h1>Contents</h1>
-
-
-<p>
- <ul>
- <li><a href="#jedi-vimのsubmoduleのインストール時にfatal">jedi-vimのsubmoduleのインストール時にfatal</a> </li>
- <li><a href="#`--with-curl+--with-expat`付きでconfigure"><code>--with-curl --with-expat</code>付きでconfigure</a> </li>
- </ul>
-
-</p>
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-
-
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-<h1 id="jedi-vimのsubmoduleのインストール時にfatal">jedi-vimのsubmoduleのインストール時にfatal</h1>
-
-<p>Cygwinでjedi-vimをNeoBundleでインストール後、jedi本体を入れようと
-jedi-vimのディレクトリで<code>submodule update</code>したところ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、</p>
-
-<pre><code>$ git submodule update --init
-Cloning into 'jedi'...
-fatal: Unable to find remote helper for 'https'
-Clone of 'https://github.com/davidhalter/jedi.git' into submodule path 'jedi' failed
-</code></pre>
-
-<p>こんな感じのfatal errorが出ました。
-どうも<code>https</code>が理解出来ないようです。</p>
-
-<p>直接、<code>.git/config</code>内のjediのラインを<code>https://...</code>から<code>git://...</code>
-とすれば、取り敢えず<code>submodule update</code>が通ってjediが使える様になりますが、
-結構根本的なところなのでgitの入れ直しをして対処しました。</p>
-
-<h1 id="`--with-curl+--with-expat`付きでconfigure"><code>--with-curl --with-expat</code>付きでconfigure</h1>
-
-<p>gitのソースレポジトリにある<code>INSTALL</code>によると</p>
-
-<blockquote><p>&#8220;libcurl&#8221; library is used by git-http-fetch and git-fetch.  You
- might also want the &#8220;curl&#8221; executable for debugging purposes.
- If you do not use http:// or https:// repositories, you do not
- have to have them (use NO_CURL).</p>
-
-<p>&#8220;expat&#8221; library; git-http-push uses it for remote lock
- management over DAV.  Similar to &#8220;curl&#8221; above, this is optional
- (with NO_EXPAT).</p></blockquote>
-
-<p>とのことで、<code>https</code>などを使うときはcurlが必要な様です。
-以前gitをインストールしたときはlibcurlが入ってなかったので無しでNO_CURLな状態でコンパイルされていたようです。</p>
-
-<pre><code>$ apt-cyg find curl
-</code></pre>
-
-<p>などとして見ると、<code>libcurl-devel</code>が見つかったのでこれをインストールしました。</p>
-
-<pre><code>$ apt-cyg install libcurl-devel
-</code></pre>
-
-<p>今回直接関係ないですが、ついでにcurlも入ってなかったのでインストール</p>
-
-<pre><code>$ apt-cyg install curl
-</code></pre>
-
-<p>これで、<a href="http://rcmdnk.github.io/blog/2013/06/25/computer-windows-git-cygwin/">以前インストールした</a>
-ようにして、<code>config</code>だけ</p>
-
-<pre><code>$  ./configure --prefix=/home/$USER/usr/local --with-curl  --with-expat
-</code></pre>
-
-<p>としてインストール。
-expatの方もpushの時に必要な時があるかもしれないのでついでに加えて置きました。
-(追記: 上の<code>INSTALL</code>にもあるように、必要ないときにNOオプションを使えということで、
-<code>--with-curl --with-expat</code>はデフォルトでYES
-になってるので、libcurlをインストールしてあれば自動的にインストールされるので
-これらのオプションは必要ないみたいです。)</p>
-
-<p>これで<code>http(s)</code>の場合もgitが使える様になりました。
-ついでに、NeoBundleもUpdateしたことで、
-jedi本体についてはjedi-vimインストール時に自動的に
-インストール出来るようにもなったのでだいぶ初期インストール時の手間が省けた感じがします。</p>
-
-<hr />
-
-<div class="footnotes">
-    <ol>
-        <li id='fn:1'><p> <a href="http://rcmdnk.github.io/blog/2013/07/21/computer-vim/">dev版jedi-vimのインストール</a>の追記に書いた様に、最新のNeoBundleを入れて、curl付きのgitが入っていればjedi-vimインストール時に
-  jedi本体も自動的にインストールされる様です。
-<a href='#fnref:1' rev='footnote'>↩</a></p>
 </li>
     </ol>
 </div>
