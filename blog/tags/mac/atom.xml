@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: Mac | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/mac/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-15T11:47:23+02:00</updated>
+  <updated>2013-09-15T12:04:14+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[[Mac][GitHub]Macでssh時のPermission denied (publickey).'の解決法]]></title>
+    <title type="html"><![CDATA[[Mac][GitHub]Macでssh時の'Permission denied (publickey).'の解決法]]></title>
     <link href="http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github/"/>
     <updated>2013-09-14T21:31:00+02:00</updated>
     <id>http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github</id>
@@ -50,7 +50,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 
 <h1 id="sshでPermission+denined">sshでPermission denined</h1>
 
-<p>普段iTermなどターミナルを立ち上げて作業を行ってる時には問題ないんですが、
+<p>普段Mac内でiTermなどターミナルを立ち上げて作業を行ってる時には問題ないんですが、
 <code>cron</code>で予約しておいたジョブの中や
 Macに外から<code>ssh</code>で入って作業したりするときに、
 <code>git</code>コマンドを使ったりすると、</p>
@@ -83,7 +83,7 @@ debug1: Authentication succeeded (publickey).
 ...
 </code></pre>
 
-<p>と。何故かdsa鍵しか最初にみてないが、最終的にrsa鍵で認証を通してます。</p>
+<p>と。何故かdsa鍵しか最初にみてませんが、最終的にrsa鍵で認証を通してます。</p>
 
 <p>一方、外からssh(内部で<code>ssh local</code>で入っても一緒の状態になりました)してからみると</p>
 
@@ -143,7 +143,7 @@ debug1: Authentication succeeded (publickey).
 ただ、鍵にパスフレーズを入れてたみたいでこの場合パスフレーズを要求されました。
 Mac内で行うときは聞かれない。</p>
 
-<p>ただ、取り敢えずこれに関しては自分がおかしな設定残してただけで使えるようにはなったんですが、
+<p>取り敢えずこれに関しては自分がおかしな設定残してただけで使えるようにはなったんですが、
 なぜMac内で直接立ち上げたときは問題なかったのか意味不明だったのでちょっと調べてみることに。</p>
 
 <h1 id="Macでのssh-agent:+launchdで立ち上げ">Macでのssh-agent: launchdで立ち上げ</h1>
@@ -169,7 +169,7 @@ Macでは<a href="http://ja.wikipedia.org/wiki/Launchd">launchd</a>
 
 <p>さらに、この時に一度使った鍵のパスフレーズはKeyChainに保存される？ため<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>、
 次回から起動した時は一度登録したパスフレーズは聞かれません。
-で、上の場合Mac内では<code>ssh-agent</code>に鍵を登録してあったのでパスフレーズも聞かれず上手く行ってた様。</p>
+で、上の場合Mac内では<code>ssh-agent</code>に鍵を最初の時に登録してあったのでパスフレーズも聞かれず上手く行ってた模様。</p>
 
 <p>一方、外部からsshしたりして<code>SSH_AUTH_SOCK</code>の値を見ると設定されてません。
 これがどの部分で設定されてるかは結局良くわからなかったんですが、
@@ -193,8 +193,9 @@ Macでは<a href="http://ja.wikipedia.org/wiki/Launchd">launchd</a>
 時間的に最後の物を選択。</p>
 
 <p>この辺、どこで設定されてるか探し当てられませんでしたが、Macでログインした時に
-新しいものが出来る模様。
-(ログアウトしてログインし直したり<sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>、単に時間が経っても出来る？)</p>
+新しいものが出来る模様。(launchdを勉強すれば分かるのだろうか。。。？
+SSH_AUTH_SOCKもMacでログインした時に
+全体の環境変数として設定されてる？ログアウトしてログインし直したり<sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>すると新しい物が出来る。単に時間が経っても出来る？)</p>
 
 <p>さらに、たまに上の方法で探した最後の物が間違ってる場合もあり(他の物様に作られたもの？)、上手く行かない時があるんですが、
 webで探すと<code>ssh-agent</code>で使われてる物を直接探して
@@ -234,6 +235,7 @@ webで探すと<code>ssh-agent</code>で使われてる物を直接探して
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
+<span class='line-number'>19</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;h1 <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;SSH_AUTH_SOCK&quot;</span>&gt;SSH_AUTH_SOCK&lt;/h1&gt;
@@ -247,6 +249,7 @@ webで探すと<code>ssh-agent</code>で使われてる物を直接探して
 </span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq 0 <span class="o">]</span>;<span class="k">then</span>
 </span><span class='line'><span class="k">  </span><span class="nb">break</span>
 </span><span class='line'><span class="k">fi</span>
+</span><span class='line'><span class="nb">unset </span>SSH_AUTH_SOCK
 </span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;p&gt;  <span class="k">done</span>
