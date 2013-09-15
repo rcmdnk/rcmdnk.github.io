@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: Mac | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/mac/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-14T14:49:27+02:00</updated>
+  <updated>2013-09-15T11:47:23+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -12,6 +12,325 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Mac][GitHub]Macでssh時のPermission denied (publickey).'の解決法]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github/"/>
+    <updated>2013-09-14T21:31:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B008K411SS/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/61N6n6LkUAL._SL160_.png" border="0"></a></p>
+
+<p>Macでたまに<code>ssh</code>したり、<code>git</code>コマンドでGitHubに<code>push</code>したりするときに
+うまくいかない時があって色々調べたのでそのまとめ。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="sshでPermission+denined">sshでPermission denined</h1>
+
+<p>普段iTermなどターミナルを立ち上げて作業を行ってる時には問題ないんですが、
+<code>cron</code>で予約しておいたジョブの中や
+Macに外から<code>ssh</code>で入って作業したりするときに、
+<code>git</code>コマンドを使ったりすると、</p>
+
+<pre><code>Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+</code></pre>
+
+<p>こんな感じのエラーが。
+同時にMacの方でターミナルなどを立ち上げて直接試してみると問題なく接続できます。</p>
+
+<p>GitHub関連で調べていたらこんなページを見つけたので</p>
+
+<blockquote><p><a href="https://help.github.com/articles/error-permission-denied-publickey">Error: Permission denied (publickey)</a></p></blockquote>
+
+<p>これに従い取り敢えずMacの中で<code>ssh -vT git@github.com</code>してみると</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: Server accepts key: pkalg ssh-rsa blen 279
+debug1: Authentication succeeded (publickey).
+...
+</code></pre>
+
+<p>と。何故かdsa鍵しか最初にみてないが、最終的にrsa鍵で認証を通してます。</p>
+
+<p>一方、外からssh(内部で<code>ssh local</code>で入っても一緒の状態になりました)してからみると</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: Server accepts key: pkalg ssh-rsa blen 279
+debug1: Authentication succeeded (publickey).
+</code></pre>
+
+<p>な感じで失敗。</p>
+
+<p><code>~/.ssh/</code>には<code>id_rsa</code>もあるのを確認した上で、<code>~/.ssh/config</code>を見ると</p>
+
+<pre><code>Host github
+  HostName github.com
+  IdentityFile ~/.ssh/id_rsa
+  User rcmdnk
+  Compression yes
+</code></pre>
+
+<p>の記述はあり、GitHubではrsa鍵を使ってたので良いと思ったんですが、
+よく見たらその上の方に</p>
+
+<pre><code>Host *
+  Protocol 2
+  IdentityFile ~/.ssh/id_dsa
+</code></pre>
+
+<p>こんな記述が。。。昔どこかで使ったか、少なくとも今使っては居ないので、
+なんかのテストで少し使っていたか、全く覚えてないですが、取り敢えずコメントアウト。
+これが、ssh時にdsa鍵を強制してたのでいけなかったみたいで、
+コメントアウトしたら外からsshした場合も</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_rsa type 1
+debug1: identity file /Users/user/.ssh/id_rsa-cert type -1
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: PEM_read_PrivateKey failed
+debug1: read PEM private key done: type &lt;unknown&gt;
+Enter passphrase for key '/Users/user/.ssh/id_rsa':
+debug1: read PEM private key done: type RSA
+debug1: Authentication succeeded (publickey).
+...
+</code></pre>
+
+<p>こんな感じでrsaキーを使ってOKに。
+ただ、鍵にパスフレーズを入れてたみたいでこの場合パスフレーズを要求されました。
+Mac内で行うときは聞かれない。</p>
+
+<p>ただ、取り敢えずこれに関しては自分がおかしな設定残してただけで使えるようにはなったんですが、
+なぜMac内で直接立ち上げたときは問題なかったのか意味不明だったのでちょっと調べてみることに。</p>
+
+<h1 id="Macでのssh-agent:+launchdで立ち上げ">Macでのssh-agent: launchdで立ち上げ</h1>
+
+<p>ssh-agentは特に気にしてなかったんですが、
+Macでは<a href="http://ja.wikipedia.org/wiki/Launchd">launchd</a>
+を採用していてこれで<code>ssh-agent</code>も管理されています。</p>
+
+<p>設定ファイルは</p>
+
+<pre><code>/System/Library/LaunchAgents/org.openbsd.ssh-agent.plist
+</code></pre>
+
+<p>ターミナルを起動すると<code>SSH_AUTH_SOCK</code>が</p>
+
+<pre><code>$ echo $SSH_AUTH_SOCK
+/tmp/launch-XXXXXX/Listeners
+</code></pre>
+
+<p>(<code>XXXXXX</code>の部分はランダムな文字列)と設定されてます。
+これで<code>ssh</code>とかでこの値にアクセスしようとすると
+<code>ssh-agent</code>が起動するようになってるようです<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
+
+<p>さらに、この時に一度使った鍵のパスフレーズはKeyChainに保存される？ため<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>、
+次回から起動した時は一度登録したパスフレーズは聞かれません。
+で、上の場合Mac内では<code>ssh-agent</code>に鍵を登録してあったのでパスフレーズも聞かれず上手く行ってた様。</p>
+
+<p>一方、外部からsshしたりして<code>SSH_AUTH_SOCK</code>の値を見ると設定されてません。
+これがどの部分で設定されてるかは結局良くわからなかったんですが、
+取り敢えずこれが原因。</p>
+
+<p>Macの方でこの値を取得して値だけ</p>
+
+<pre><code>$ export SSH_AUTH_SOCK=/tmp/launch-XXXXXX/Listeners
+</code></pre>
+
+<p>とすれば、<code>ssh</code>などするときに<code>ssh-agent</code>が自動で起動するようになりました。</p>
+
+<h1 id="SSH_AUTH_SOCKを自動で設定する">SSH_AUTH_SOCKを自動で設定する</h1>
+
+<p>一番単純には<code>/tmp/launch*/Listeners</code>を探して設定すればOK<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<pre><code>export SSH_AUTH_SOCK=`ls -tr /tmp/launch*/Listeners|tail -n1`
+</code></pre>
+
+<p>たまに該当するファイルが複数できてる事があるので
+時間的に最後の物を選択。</p>
+
+<p>この辺、どこで設定されてるか探し当てられませんでしたが、Macでログインした時に
+新しいものが出来る模様。
+(ログアウトしてログインし直したり<sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>、単に時間が経っても出来る？)</p>
+
+<p>さらに、たまに上の方法で探した最後の物が間違ってる場合もあり(他の物様に作られたもの？)、上手く行かない時があるんですが、
+webで探すと<code>ssh-agent</code>で使われてる物を直接探して
+<code>ps</code>から取ってきたり<sup id='fnref:7'><a href='#fn:7' rel='footnote'>7</a></sup>、</p>
+
+<pre><code>export SSH_AUTH_SOCK=`ps auxeww | grep ssh-agent | grep SSH_AUTH_SOCK | sed 's/.*SSH_AUTH_SOCK=//' | cut -f 1 -d ' '`
+</code></pre>
+
+<p><code>lsof</code>で探してきたり<sup id='fnref:8'><a href='#fn:8' rel='footnote'>8</a></sup></p>
+
+<pre><code>export SSH_AUTH_SOCK=`/usr/sbin/lsof | grep Listeners | grep ssh-agent | awk '{print $8}'`
+</code></pre>
+
+<p>するものがありましたが、
+<code>ssh-agent</code>が走ってないと駄目なので、例えばMacでログインだけして、
+一度もMac内のターミナルから<code>ssh</code>などを実行してない状況で
+他からsshしてくるとこれらは使えません。</p>
+
+<p>なので、</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1 <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;SSH_AUTH_SOCK&quot;</span>&gt;SSH_AUTH_SOCK&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;if <span class="o">[</span> <span class="s2">&quot;$SSH_AUTH_SOCK&quot;</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nv">sock_tmp</span><span class="o">=(</span>&lt;code&gt;ls -t /tmp/launch*/Listeners&lt;/code&gt;<span class="o">)</span>
+</span><span class='line'>  <span class="k">for </span>s in <span class="k">${</span><span class="nv">sock_tmp</span><span class="p">[@]</span><span class="k">}</span>;<span class="k">do</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;export <span class="nv">SSH_AUTH_SOCK</span><span class="o">=</span><span class="nv">$s</span>
+</span><span class='line'>ssh-add -l &amp;gt;&amp;amp;amp; /dev/null
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq 0 <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nb">break</span>
+</span><span class='line'><span class="k">fi</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;  <span class="k">done</span>
+</span><span class='line'><span class="k">  </span><span class="nb">unset </span>sock_tmp
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>みたいな事を書いておくと正しい物を拾えます。</p>
+
+<p>ただ、これでも、Macを起動しただけで一度もログインしてない状態だと
+うまくいかないので、その時は自分で別途<code>ssh-agent</code>を立ち上げるように
+すれば良いかも。
+<code>.bashrc</code>を読み込んでるスクリプト起動時等に立ち上がるとパスフレーズを聞かれて止まってしまうので
+<code>.bash_profile</code>の方に</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc_profile </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="k">if</span> <span class="o">[</span> -f ~/.bashrc <span class="o">]</span> ; <span class="k">then</span>
+</span><span class='line'>  . ~/.bashrc
+</span><span class='line'><span class="k">fi</span>
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$SSH_AUTH_SOCK&quot;</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nb">eval</span> &lt;code&gt;ssh-agent&lt;/code&gt; &gt; ~/.ssh-agent.tmp
+</span><span class='line'>  <span class="nv">MY_SSH_AGENT_PID</span><span class="o">=</span>&lt;code&gt;cat ~/.ssh-agent.tmp|cut -d<span class="s2">&quot; &quot;</span> -f3&lt;/code&gt;
+</span><span class='line'>  rm -f ~/.ssh-agent.tmp
+</span><span class='line'>  ssh-add ~/.ssh/id_rsa
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>と、<code>.bashrc</code>読み込み後に<code>SSH_AUTH_SOCK</code>が設定されてない時に限り
+<code>ssh-agent</code>を起動するように。</p>
+
+<p>これだと<code>ssh-agent</code>が増え続けるので、
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc_logout </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$MY_SSH_AGENT_PID&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;
+</span><span class='line'>  <span class="nb">kill</span> -9 <span class="nv">$MY_SSH_AGENT_PID</span>
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+と言った感じでログアウト時に<code>kill</code>するようにしておきます。</p>
+
+<p>ただ、Macをサーバーの様に外から再起動させてそのまま置いておく、
+ということはまず無いので、後半はやり過ぎで
+<code>Listeners</code>を探す程度にしておいて、
+もし後半の様な状況で必要ならば手で<code>ssh-agent</code>を起動する、
+程度で良いかも。</p>
+
+<p></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p>ただし、<code>ssh-agent -l</code>というMac特有のオプション？付きで起動: <a href="http://www.gossamer-threads.com/lists/openssh/dev/52278">MacOSX &amp; ssh-agent -l</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://www.dribin.org/dave/blog/archives/2007/11/28/ssh_agent_leopard/">ssh-agent on Mac OS X 10.5 (Leopard)</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://bridge.grumpy-troll.org/2011/07/diversion-into-macosx-launchd-ssh-agent.html">Diversion into MacOSX launchd &amp; ssh-agent </a>
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="http://aligach.net/diary/20110602.html">keychainでssh-agentと鍵を管理することにした</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="http://d.hatena.ne.jp/yuyarin/20100225/1267084795">Mac OS X の cron で SSH に失敗する．</a>
+  <a href='#fnref:5' rev='footnote'>↩</a></p>
+</li><li id='fn:6'><p>普段ログインし直す必要なんて無いわけですが、<a href="https://secure.logmein.com/jp/">LogMeIn</a>を使っていて、たまに調子悪いと勝手にログアウトしてしまうことがある。。。
+  <a href='#fnref:6' rev='footnote'>↩</a></p>
+</li><li id='fn:7'><p><a href="http://pentestmonkey.net/cheat-sheet/ssh-cheat-sheet">SSH Cheat Sheet</a>
+  <a href='#fnref:7' rev='footnote'>↩</a></p>
+</li><li id='fn:8'><p><a href="https://discussions.apple.com/thread/1674891?start=0&amp;tstart=0">where is SSH_AUTH_SOCK set?</a>、<code>lsof</code>の方は0.1秒程かかってちょっと遅い
+<a href='#fnref:8' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Brewall: brewパッケージを管理する]]></title>
@@ -283,8 +602,8 @@ GitHubから直接ファイルをとて来てるので、<code>Tap</code>ディ�
 設定ファイルでそのレポジトリを指定すれば良いのかもしれませんが、
 いずれにしろなんか無駄な感じが。。。</strike>
 caskだけ見てたのでよく分かってなかったですが、
-本来は、Formulaを集めたリポジトリがあって、それをTapすることで
-新たにインストールできるパッケージを増やす、と言うのが本来の
+本来、Formulaを集めたリポジトリがあって、それをTapすることで
+新たにインストールできるパッケージを増やす、と言うのが
 Tapの使い方みたいですね。caskみたいな場合は、
 自分自身でFormulaも用意してる、と。そうすると、取り敢えず
 brewdlerで管理するときもTapするものはTapだけで、必要なパッケージだけ
@@ -1046,276 +1365,6 @@ luaを有効に出来るので充分ですが、もしソースから直接コ�
 	<ol>
 		<li id='fn:1'><p><a href="http://supermomonga.com/2013/07/03/macvim-with-lua-features/">最新パッチ＆if_luaなMacVimで高速検索＆補完！</a>
 <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[pacoでmake installしたパッケージを管理]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac/"/>
-    <updated>2013-08-04T09:00:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/8484640825/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/61moyMmCoxL._SL160_.jpg" border="0"></a></p>
-
-<p>Linuxでapt-get、Macで<a href="/blog/2013/06/21/computer-mac/">Homebrew</a>、
-Cygwinで<a href="/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>
-などでパッケージ管理出来ますが、
-ソースからコンパイルして入れる場合やroot権限を持ってない環境で
-<code>make install</code>して入れているパッケージが結構あります。</p>
-
-<p>これら、適当なログはのこしてありますが、実際どのファイルが
-どのパッケージに対応しているのかまでは分からなかったりします。</p>
-
-<p>そんな中で<code>make install</code>で入れるパッケージを管理するための
-<a href="http://paco.sourceforge.net/">paco</a>と言うソフトを見つけたで入れてみました。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="pacoのインストール">pacoのインストール</h1>
-
-<p>pacoの<a href="http://paco.sourceforge.net/downloads.html">Downloads</a>
-ページから最新版のバージョンを確認してダウンロードしてインストールします。</p>
-
-<pre><code>$ wget -O paco-2.0.9.tar.gz http://sourceforge.net/projects/paco/files/paco/2.0.9/paco-2.0.9.tar.gz/download
-$ tar xzf paco-2.0.9.tar.gz
-$ cd paco-2.0.9
-$ ./configure --prefix=$HOME/usr/local --disable-gpaco --with-paco-logdir=$HOME/usr/local/var/log/paco
-</code></pre>
-
-<p>ここで、<code>--disable-gpaco</code>はGUI版のpacoを無効にしています。
-GUI版をインストールするためには
-gtkmmが必要で、インストールされてない状態で<code>--disbale-gpaco</code>オプションを
-入れないと</p>
-
-<pre><code>...
-No package 'gtkmm-2.4' found 
-...
-</code></pre>
-
-<p>等と怒られます。<code>gtkmm</code>を入れても良いのですが、
-GUI版を使う予定がないのでオプションで外しておきます。</p>
-
-<p><code>--with-paco-logdir</code>はpacoでインストールされたパッケージ情報を管理するファイルの場所で、
-初期値が<code>/var/log/paco</code>になっていて、root権限が無いと書き込めないので、
-変更しておきます。</p>
-
-<p>この変更をしておかないと、root権限以外で<code>make install</code>した時に</p>
-
-<pre><code>mkdir: /var/log/paco: Permission denied
-</code></pre>
-
-<p>と怒られます。</p>
-
-<p>configureできたら</p>
-
-<pre><code>$ make &amp;&amp; make install
-</code></pre>
-
-<p>でインストール完了。</p>
-
-<p>Macで使えない、と言った話もいくつか見かけましたが、Macでも問題なく使えます。</p>
-
-<p>pacoのページを見ると</p>
-
-<pre><code>Note:
-Paco does not work on systems in which the executables involved in the installation of the packages (mv, cp, install...) are statically linked against libc, like FreeBSD and OpenBSD.
-</code></pre>
-
-<p>とありますが、その上の表で<code>NetBSD</code>では使える様になっています。</p>
-
-<p>OS Xのベースの<a href="http://ja.wikipedia.org/wiki/Darwin_(%e3%82%aa%e3%83%9a%e3%83%ac%e3%83%bc%e3%83%86%e3%82%a3%e3%83%b3%e3%82%b0%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0)">Darwin</a>はFreeBSDベース、となってますが、
-NetBSDからも受け継いでる部分はあり<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup><sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>、
-そもそもシステムとして別物の様な物みたいですが
-取り敢えず手元のLionでは問題なく動いてます。</p>
-
-<p>Macでmvを調べてみると</p>
-
-<pre><code>$ otool -L /bin/mv
-/bin/mv:
-        /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 159.1.0)
-</code></pre>
-
-<p>と言った感じでlibSystemという名の共有ライブラリ<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>だけにリンクしています。
-(ので、上の注意にあるFreeBSDの様な状況には当たらない。)</p>
-
-<p>Linuxだと(Debianなど)、</p>
-
-<pre><code>$ ldd /bin/mv
-...
-libc.so.6 =&gt; /lib/libc.so.6 (0xb7746000)
-...
-</code></pre>
-
-<p>と言った感じでlibcの共有ライブラリにリンクしていて、
-Cygwinなんかはまた別ですが、libcの静的ライブラリにはリンクしてません。</p>
-
-<p>FreeBSDが手元にないのでわかりませんがMacとはmvの状況が少し違うみたいです。</p>
-
-<h2 id="pacoの使い方">pacoの使い方</h2>
-
-<p>ここで、まず自分自身をパッケージコントロールするため、
-pacoのインストール用パッケージディレクトリ(makeした場所)で</p>
-
-<pre><code>$ make logme
-</code></pre>
-
-<p>を実行します。これでpaco自身が登録されます。</p>
-
-<p>他のパッケージを登録するには<code>make install</code>する代わりに</p>
-
-<pre><code>$ paco -lp vim-7.4b "make install"
-</code></pre>
-
-<p>など。
-もし、Makefileがあるディレクトリがpacoの様にパッケージ名だったりする場合、</p>
-
-<pre><code>$ paco -lD "make install"
-</code></pre>
-
-<p>の様に<code>D</code>オプションを使うと、ディレクトリ名がパッケージ名として登録されます。
-version情報もここでの<code>-</code>以降になるので、
-ディレクトリにバージョン情報がない場合でバージョンを把握してる場合は
-<code>p</code>オプションで正しく指定して置いた方が良いかもしれません。</p>
-
-<p>Vimなどは<code>src</code>以下にMakefileがあるので<code>D</code>オプションでやってしまうと
-<code>src</code>と言うなのパッケージで登録されてしまうので注意です。
-もし、間違って登録したら、
-<code>$HOME/usr/local/var/log/paco/src</code>と言うファイルが出来て居るはずなので、
-このファイルを<code>vim-7.4b</code>に名前を変えて、
-中身の<code>Name</code>と<code>Version</code>項目を</p>
-
-<pre><code>#:Name:     vim
-#:Version:  7.4b
-</code></pre>
-
-<p>と変更しておきます。</p>
-
-<p>登録されたパッケージ一覧を表示するには</p>
-
-<pre><code>$ paco -a
-paco-2.0.9 vim-7.4b
-</code></pre>
-
-<p>各パッケージの情報を見るには
-<code>paco -i &lt;package&gt;</code>:</p>
-
-<pre><code>$ paco -i paco
-------------
-paco-2.0.9
-------------
-
-Name:     paco
-Version:  2.0.9
-Summary:  Source code package organizer
-</code></pre>
-
-<p><code>&lt;package&gt;</code>に関してはversion入(<code>paco-2.0.9</code>)でもversion無し(<code>paco</code>)でもOK。
-ここで出てくる情報の</p>
-
-<p>インストール時に使ったconfigureのオプションを表示するには
-<code>paco -o &lt;package&gt;</code>:</p>
-
-<pre><code>$ paco -o paco
---prefix=/home/user/usr/local --disable-gpaco --with-paco-logdir=/home/user/usr/local/var/log/paco
-</code></pre>
-
-<p>インストールされたファイル一覧とファイルサイズ等を見るには</p>
-
-<pre><code>$ paco -fst paco
-paco-2.0.9:
-  8k  /home/user/usr/local/share/paco/README
- 40k  /home/user/usr/local/lib/libpaco-log.a
-  4k  /home/user/usr/local/lib/libpaco-log.la
-...
-1.3M  Total
-</code></pre>
-
-<p>とします。</p>
-
-<pre><code>$ paco -r paco
-</code></pre>
-
-<p>とすれば、上で表示されたファイル全部を消去するパッケージのアンインストールを行います。
-(多分これが一番嬉しい機能。)</p>
-
-<p>その他詳しくは<a href="http://paco.sourceforge.net/doc/paco.8.txt">pacoのmanページ</a>で。</p>
-
-<h2 id="すでにインストールされたパッケージについて">すでにインストールされたパッケージについて</h2>
-
-<p>pacoは<code>make install</code>時の情報を元に管理情報を作成するので、
-すでにインストールされているパッケージについては情報を作る簡単な
-方法はありません。</p>
-
-<p>ソースが残っていれば再度<code>paco -lp &lt;package&gt; "make install"</code>
-するのが一番簡単です。</p>
-
-<p>無理矢理情報を追加しようと思えば、
-<code>$HOME/usr/local/var/log/paco</code>にある他のパッケージのファイルを参考に、
-各パッケージのファイルを作ってあげれば良いと思うのですが
-すでに複数パッケージを同じディレクトリ下にインストールしてある場合は
-結構面倒です。</p>
-
-<p>各パッケージ情報のファイルの中身はconfigure情報などの後に、
-ファイル一覧が</p>
-
-<pre><code>ファイル名|サイズ|-2|-2
-</code></pre>
-
-<p>の様になっていて、サイズは適当でも良いのでファイル名だけすべて
-入れておけばアンインストールは簡単に出来ます。
-もしあるディレクトリ下に1つのパッケージしかインストールされてない状態なら、
-ファイル一覧が簡単に作れるので、サイズは適当でもいいから
-登録しておくだけでもよいかもしれませんが、
-すでに複数ある場合は名前だけから判断するのも難しいファイルもあるので、
-次にインストールし直すときに登録しなおすか
-同じものでも<code>make install</code>し直す方が結果的には楽で正しく出来るかな、と。</p>
-
-<hr />
-
-<p>追記 2013/08/11</p>
-
-<p><a href="/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>でstowを導入してみましたが、
-新しいバージョンなどをテストしたりするのにstowだと簡単に元に戻したりできるので、
-stowのが便利かな、と思いstowに全面的に移行。</p>
-
-<p>追記終わり</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p><a href="http://www.netbsd.org/gallery/products.html#darwin">Products based on NetBSD</a>
-  <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li><li id='fn:2'><p><a href="http://en.wikipedia.org/wiki/Comparison_of_BSD_operating_systems">Comparison of BSD operating systems</a>
-  <a href='#fnref:2' rev='footnote'>↩</a></p>
-</li><li id='fn:3'><p><a href="http://d.hatena.ne.jp/kanonji/20121018/1350538932">.soや.dylibや.aファイル、共有ライブラリなどについて調べてみた</a>
-<a href='#fnref:3' rev='footnote'>↩</a></p>
 </li>
 	</ol>
 </div>

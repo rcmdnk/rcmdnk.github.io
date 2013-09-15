@@ -5,7 +5,7 @@
   <link href="http://rcmdnk.github.io/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
   <link href="http://rcmdnk.superfeedr.com/" rel="hub"/>
-  <updated>2013-09-14T14:49:27+02:00</updated>
+  <updated>2013-09-15T11:47:23+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -13,6 +13,328 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Mac][GitHub]Macでssh時のPermission denied (publickey).'の解決法]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github/"/>
+    <updated>2013-09-14T21:31:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/14/computer-mac-github</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B008K411SS/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/61N6n6LkUAL._SL160_.png" border="0"></a></p>
+
+<p>Macでたまに<code>ssh</code>したり、<code>git</code>コマンドでGitHubに<code>push</code>したりするときに
+うまくいかない時があって色々調べたのでそのまとめ。</p>
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#sshでPermission+denined">sshでPermission denined</a> </li>
+ <li><a href="#Macでのssh-agent:+launchdで立ち上げ">Macでのssh-agent: launchdで立ち上げ</a> </li>
+ <li><a href="#SSH_AUTH_SOCKを自動で設定する">SSH_AUTH_SOCKを自動で設定する</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="sshでPermission+denined">sshでPermission denined</h1>
+
+<p>普段iTermなどターミナルを立ち上げて作業を行ってる時には問題ないんですが、
+<code>cron</code>で予約しておいたジョブの中や
+Macに外から<code>ssh</code>で入って作業したりするときに、
+<code>git</code>コマンドを使ったりすると、</p>
+
+<pre><code>Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+</code></pre>
+
+<p>こんな感じのエラーが。
+同時にMacの方でターミナルなどを立ち上げて直接試してみると問題なく接続できます。</p>
+
+<p>GitHub関連で調べていたらこんなページを見つけたので</p>
+
+<blockquote><p><a href="https://help.github.com/articles/error-permission-denied-publickey">Error: Permission denied (publickey)</a></p></blockquote>
+
+<p>これに従い取り敢えずMacの中で<code>ssh -vT git@github.com</code>してみると</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: Server accepts key: pkalg ssh-rsa blen 279
+debug1: Authentication succeeded (publickey).
+...
+</code></pre>
+
+<p>と。何故かdsa鍵しか最初にみてないが、最終的にrsa鍵で認証を通してます。</p>
+
+<p>一方、外からssh(内部で<code>ssh local</code>で入っても一緒の状態になりました)してからみると</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: Server accepts key: pkalg ssh-rsa blen 279
+debug1: Authentication succeeded (publickey).
+</code></pre>
+
+<p>な感じで失敗。</p>
+
+<p><code>~/.ssh/</code>には<code>id_rsa</code>もあるのを確認した上で、<code>~/.ssh/config</code>を見ると</p>
+
+<pre><code>Host github
+  HostName github.com
+  IdentityFile ~/.ssh/id_rsa
+  User rcmdnk
+  Compression yes
+</code></pre>
+
+<p>の記述はあり、GitHubではrsa鍵を使ってたので良いと思ったんですが、
+よく見たらその上の方に</p>
+
+<pre><code>Host *
+  Protocol 2
+  IdentityFile ~/.ssh/id_dsa
+</code></pre>
+
+<p>こんな記述が。。。昔どこかで使ったか、少なくとも今使っては居ないので、
+なんかのテストで少し使っていたか、全く覚えてないですが、取り敢えずコメントアウト。
+これが、ssh時にdsa鍵を強制してたのでいけなかったみたいで、
+コメントアウトしたら外からsshした場合も</p>
+
+<pre><code>$ ssh -vT git@github.com
+...
+debug1: identity file /Users/user/.ssh/id_rsa type 1
+debug1: identity file /Users/user/.ssh/id_rsa-cert type -1
+debug1: identity file /Users/user/.ssh/id_dsa type 2
+debug1: identity file /Users/user/.ssh/id_dsa-cert type -1
+...
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/user/.ssh/id_rsa
+debug1: PEM_read_PrivateKey failed
+debug1: read PEM private key done: type &lt;unknown&gt;
+Enter passphrase for key '/Users/user/.ssh/id_rsa':
+debug1: read PEM private key done: type RSA
+debug1: Authentication succeeded (publickey).
+...
+</code></pre>
+
+<p>こんな感じでrsaキーを使ってOKに。
+ただ、鍵にパスフレーズを入れてたみたいでこの場合パスフレーズを要求されました。
+Mac内で行うときは聞かれない。</p>
+
+<p>ただ、取り敢えずこれに関しては自分がおかしな設定残してただけで使えるようにはなったんですが、
+なぜMac内で直接立ち上げたときは問題なかったのか意味不明だったのでちょっと調べてみることに。</p>
+
+<h1 id="Macでのssh-agent:+launchdで立ち上げ">Macでのssh-agent: launchdで立ち上げ</h1>
+
+<p>ssh-agentは特に気にしてなかったんですが、
+Macでは<a href="http://ja.wikipedia.org/wiki/Launchd">launchd</a>
+を採用していてこれで<code>ssh-agent</code>も管理されています。</p>
+
+<p>設定ファイルは</p>
+
+<pre><code>/System/Library/LaunchAgents/org.openbsd.ssh-agent.plist
+</code></pre>
+
+<p>ターミナルを起動すると<code>SSH_AUTH_SOCK</code>が</p>
+
+<pre><code>$ echo $SSH_AUTH_SOCK
+/tmp/launch-XXXXXX/Listeners
+</code></pre>
+
+<p>(<code>XXXXXX</code>の部分はランダムな文字列)と設定されてます。
+これで<code>ssh</code>とかでこの値にアクセスしようとすると
+<code>ssh-agent</code>が起動するようになってるようです<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
+
+<p>さらに、この時に一度使った鍵のパスフレーズはKeyChainに保存される？ため<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>、
+次回から起動した時は一度登録したパスフレーズは聞かれません。
+で、上の場合Mac内では<code>ssh-agent</code>に鍵を登録してあったのでパスフレーズも聞かれず上手く行ってた様。</p>
+
+<p>一方、外部からsshしたりして<code>SSH_AUTH_SOCK</code>の値を見ると設定されてません。
+これがどの部分で設定されてるかは結局良くわからなかったんですが、
+取り敢えずこれが原因。</p>
+
+<p>Macの方でこの値を取得して値だけ</p>
+
+<pre><code>$ export SSH_AUTH_SOCK=/tmp/launch-XXXXXX/Listeners
+</code></pre>
+
+<p>とすれば、<code>ssh</code>などするときに<code>ssh-agent</code>が自動で起動するようになりました。</p>
+
+<h1 id="SSH_AUTH_SOCKを自動で設定する">SSH_AUTH_SOCKを自動で設定する</h1>
+
+<p>一番単純には<code>/tmp/launch*/Listeners</code>を探して設定すればOK<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<pre><code>export SSH_AUTH_SOCK=`ls -tr /tmp/launch*/Listeners|tail -n1`
+</code></pre>
+
+<p>たまに該当するファイルが複数できてる事があるので
+時間的に最後の物を選択。</p>
+
+<p>この辺、どこで設定されてるか探し当てられませんでしたが、Macでログインした時に
+新しいものが出来る模様。
+(ログアウトしてログインし直したり<sup id='fnref:6'><a href='#fn:6' rel='footnote'>6</a></sup>、単に時間が経っても出来る？)</p>
+
+<p>さらに、たまに上の方法で探した最後の物が間違ってる場合もあり(他の物様に作られたもの？)、上手く行かない時があるんですが、
+webで探すと<code>ssh-agent</code>で使われてる物を直接探して
+<code>ps</code>から取ってきたり<sup id='fnref:7'><a href='#fn:7' rel='footnote'>7</a></sup>、</p>
+
+<pre><code>export SSH_AUTH_SOCK=`ps auxeww | grep ssh-agent | grep SSH_AUTH_SOCK | sed 's/.*SSH_AUTH_SOCK=//' | cut -f 1 -d ' '`
+</code></pre>
+
+<p><code>lsof</code>で探してきたり<sup id='fnref:8'><a href='#fn:8' rel='footnote'>8</a></sup></p>
+
+<pre><code>export SSH_AUTH_SOCK=`/usr/sbin/lsof | grep Listeners | grep ssh-agent | awk '{print $8}'`
+</code></pre>
+
+<p>するものがありましたが、
+<code>ssh-agent</code>が走ってないと駄目なので、例えばMacでログインだけして、
+一度もMac内のターミナルから<code>ssh</code>などを実行してない状況で
+他からsshしてくるとこれらは使えません。</p>
+
+<p>なので、</p>
+
+<figure class='code'><figcaption><span>.bashrc </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c"># SSH_AUTH_SOCK</span>
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$SSH_AUTH_SOCK&quot;</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nv">sock_tmp</span><span class="o">=(</span><span class="sb">`</span>ls -t /tmp/launch*/Listeners<span class="sb">`</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">for </span>s in <span class="k">${</span><span class="nv">sock_tmp</span><span class="p">[@]</span><span class="k">}</span>;<span class="k">do</span>
+</span><span class='line'><span class="k">    </span><span class="nb">export </span><span class="nv">SSH_AUTH_SOCK</span><span class="o">=</span><span class="nv">$s</span>
+</span><span class='line'>    ssh-add -l &gt;&amp;amp; /dev/null
+</span><span class='line'>    <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq 0 <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">      </span><span class="nb">break</span>
+</span><span class='line'><span class="nb">    </span><span class="k">fi</span>
+</span><span class='line'><span class="k">  done</span>
+</span><span class='line'><span class="k">  </span><span class="nb">unset </span>sock_tmp
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>みたいな事を書いておくと正しい物を拾えます。</p>
+
+<p>ただ、これでも、Macを起動しただけで一度もログインしてない状態だと
+うまくいかないので、その時は自分で別途<code>ssh-agent</code>を立ち上げるように
+すれば良いかも。
+<code>.bashrc</code>を読み込んでるスクリプト起動時等に立ち上がるとパスフレーズを聞かれて止まってしまうので
+<code>.bash_profile</code>の方に</p>
+
+<figure class='code'><figcaption><span>.bashrc_profile </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="k">if</span> <span class="o">[</span> -f ~/.bashrc <span class="o">]</span> ; <span class="k">then</span>
+</span><span class='line'>  . ~/.bashrc
+</span><span class='line'><span class="k">fi</span>
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$SSH_AUTH_SOCK&quot;</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;<span class="k">then</span>
+</span><span class='line'><span class="k">  </span><span class="nb">eval</span> <span class="sb">`</span>ssh-agent<span class="sb">`</span> &gt; ~/.ssh-agent.tmp
+</span><span class='line'>  <span class="nv">MY_SSH_AGENT_PID</span><span class="o">=</span><span class="sb">`</span>cat ~/.ssh-agent.tmp|cut -d<span class="s2">&quot; &quot;</span> -f3<span class="sb">`</span>
+</span><span class='line'>  rm -f ~/.ssh-agent.tmp
+</span><span class='line'>  ssh-add ~/.ssh/id_rsa
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>と、<code>.bashrc</code>読み込み後に<code>SSH_AUTH_SOCK</code>が設定されてない時に限り
+<code>ssh-agent</code>を起動するように。</p>
+
+<p>これだと<code>ssh-agent</code>が増え続けるので、</p>
+
+<figure class='code'><figcaption><span>.bashrc_logout </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$MY_SSH_AGENT_PID&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>;
+</span><span class='line'>  <span class="nb">kill</span> -9 <span class="nv">$MY_SSH_AGENT_PID</span>
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>と言った感じでログアウト時に<code>kill</code>するようにしておきます。</p>
+
+<p>ただ、Macをサーバーの様に外から再起動させてそのまま置いておく、
+ということはまず無いので、後半はやり過ぎで
+<code>Listeners</code>を探す程度にしておいて、
+もし後半の様な状況で必要ならば手で<code>ssh-agent</code>を起動する、
+程度で良いかも。</p>
+
+<hr />
+
+<div class="footnotes">
+    <ol>
+        <li id='fn:1'><p>ただし、<code>ssh-agent -l</code>というMac特有のオプション？付きで起動: <a href="http://www.gossamer-threads.com/lists/openssh/dev/52278">MacOSX &amp; ssh-agent -l</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://www.dribin.org/dave/blog/archives/2007/11/28/ssh_agent_leopard/">ssh-agent on Mac OS X 10.5 (Leopard)</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://bridge.grumpy-troll.org/2011/07/diversion-into-macosx-launchd-ssh-agent.html">Diversion into MacOSX launchd &amp; ssh-agent </a>
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="http://aligach.net/diary/20110602.html">keychainでssh-agentと鍵を管理することにした</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="http://d.hatena.ne.jp/yuyarin/20100225/1267084795">Mac OS X の cron で SSH に失敗する．</a>
+  <a href='#fnref:5' rev='footnote'>↩</a></p>
+</li><li id='fn:6'><p>普段ログインし直す必要なんて無いわけですが、<a href="https://secure.logmein.com/jp/">LogMeIn</a>を使っていて、たまに調子悪いと勝手にログアウトしてしまうことがある。。。
+  <a href='#fnref:6' rev='footnote'>↩</a></p>
+</li><li id='fn:7'><p><a href="http://pentestmonkey.net/cheat-sheet/ssh-cheat-sheet">SSH Cheat Sheet</a>
+  <a href='#fnref:7' rev='footnote'>↩</a></p>
+</li><li id='fn:8'><p><a href="https://discussions.apple.com/thread/1674891?start=0&amp;tstart=0">where is SSH_AUTH_SOCK set?</a>、<code>lsof</code>の方は0.1秒程かかってちょっと遅い
+<a href='#fnref:8' rev='footnote'>↩</a></p>
+</li>
+    </ol>
+</div>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Brewall: brewパッケージを管理する]]></title>
@@ -311,8 +633,8 @@ GitHubから直接ファイルをとて来てるので、<code>Tap</code>ディ�
 設定ファイルでそのレポジトリを指定すれば良いのかもしれませんが、
 いずれにしろなんか無駄な感じが。。。</strike>
 caskだけ見てたのでよく分かってなかったですが、
-本来は、Formulaを集めたリポジトリがあって、それをTapすることで
-新たにインストールできるパッケージを増やす、と言うのが本来の
+本来、Formulaを集めたリポジトリがあって、それをTapすることで
+新たにインストールできるパッケージを増やす、と言うのが
 Tapの使い方みたいですね。caskみたいな場合は、
 自分自身でFormulaも用意してる、と。そうすると、取り敢えず
 brewdlerで管理するときもTapするものはTapだけで、必要なパッケージだけ
@@ -3674,434 +3996,6 @@ AutoHotkey自体が変数を使えたりするので、
 なんとか単独出来ないかな、とおもってます。</p>
 
 <hr />
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[AutoHotkeyの使い方2]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/29/computer-windows-autohotkey/"/>
-    <updated>2013-07-29T20:57:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/29/computer-windows-autohotkey</id>
-    <content type="html"><![CDATA[<p>AutoHotkeyの基本的な使い方についてと、
-自分が詰まったところについてのメモ。</p>
-
-<p>変数、関数、ウィンドウ毎の設定などについて。</p>
-
-<!-- more -->
-
-
-<br class="clearBoth">
-
-
-
-
-<h1>Contents</h1>
-
-
-<p>
- <ul>
- <li><a href="#変数">変数</a> </li>
- <li><a href="#関数">関数</a> </li>
- <li><a href="#Windowごとの設定">Windowごとの設定</a> </li>
- <li><a href="#分岐">分岐</a> </li>
- <li><a href="#Loop">Loop</a> </li>
- <li><a href="#長押しで違うキー設定に">長押しで違うキー設定に</a> </li>
- <li><a href="#他のファイルの">他のファイルの</a> </li>
- <li><a href="#Happy+Hacking+Keyboard用設定">Happy Hacking Keyboard用設定</a> </li>
- <li><a href="#その他参考ページなど">その他参考ページなど</a> </li>
- </ul>
-
-</p>
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-
-
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-<h1 id="変数">変数</h1>
-
-<p><a href="http://rcmdnk.github.io/blog/tags/yamy/">yamy</a>やMacの<a href="http://rcmdnk.github.io/blog/tags/keyremap4macbook/">KeyRemap4MacBook</a>
-等と大きく違うのが変数を使えることだと思います。
-変数に文字列を収納することで、1つの変数で複数の<code>モード</code>を
-作れるので管理が簡単になります。</p>
-
-<hr />
-
-<p><i class="icon-warning-sign "></i>
-この変数の初期設定について少し注意が必要で、
-<code>Auto-execute section</code>と呼ばれる領域でしか
-初期値設定できません。
-この領域は設定ファイルの先頭から始まり、
-<code>Return</code>やキー設定などが出るまでの領域になります<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
-
-<hr />
-
-<p>変数には型はなく、数式などでは数値である場合はその時に
-数値として解釈されます。
-<a href="http://rcmdnk.github.io/blog/2013/07/28/computer-windows-autohotkey/#大文字小文字の区別"> 前回</a>書いたように、
-変数でも、変数自体の大文字小文字は区別されません。
-(<code>a</code>という変数を作った場合に<code>A</code>でも参照できます。)</p>
-
-<p>値の代入は<code>:=</code>か<code>=</code>で行い、<code>:=</code>の場合には右辺が評価されてから
-代入が行われます。</p>
-
-<p>文字列を入れる時は</p>
-
-<pre><code>a := "abc" ;1
-a := abc   ;2
-a = "abc"  ;3
-a = abc    ;4
-</code></pre>
-
-<p>とするとそれぞれ</p>
-
-<ol>
-<li><code>abc</code></li>
-<li>変数abcに入っていた値</li>
-<li><code>"abc"</code> (<code>"</code>も含む)</li>
-<li><code>abc</code></li>
-</ol>
-
-
-<p>がそれぞれ代入されることになるので1と4が同じ結果になります。</p>
-
-<p>数値の場合は</p>
-
-<pre><code>a := 123
-a = 123
-</code></pre>
-
-<p>の両方共一緒です。<code>=</code>を使って変数の値を渡すには</p>
-
-<pre><code>a= %abc%
-</code></pre>
-
-<p>の様に、変数を<code>%</code>で囲みます。
-これは他でも同様で、変数の中身を参照するには(<code>MsgBox</code>で表示させたりするには)
-<code>%</code>で囲みます。</p>
-
-<h1 id="関数">関数</h1>
-
-<pre><code>MyFuncion(a="abc",b) {
-  Send,a
-  MsgBox,b
-  Return
-}
-</code></pre>
-
-<p>関数はこの様な形で書きます。
-引数にはデフォルト値を与える事もできます。
-この関数を呼ぶには</p>
-
-<pre><code>a::MyFuncion("def","ghi")
-</code></pre>
-
-<p>の様な感じで。</p>
-
-<hr />
-
-<p><i class="icon-warning-sign "></i>
-関数内で変数を使いたい場合、関数外の値を参照したり
-変更を関数外にも反映したい場合は</p>
-
-<pre><code>global a = "abc"
-</code></pre>
-
-<p>と各項目でglobalを付けて取り扱うか関数の最初に</p>
-
-<pre><code>c="def"
-MyFuncion(a="abc",b) {
-  global
-  c:=a
-  ...
-</code></pre>
-
-<p>の様に<code>global</code>を書いておく必要があります。</p>
-
-<hr />
-
-<p>この他に<code>Goto</code>、<code>Gosub</code>と言うコマンドが有ります。</p>
-
-<ul>
-<li><code>Goto</code>は、指定したラベルの位置に飛んで処理を続ける</li>
-<li><code>Gosub</code>は、指定したラベルの位置に飛んで処理を続け、<code>Return</code>が出たところで元の位置に戻ってくる</li>
-</ul>
-
-
-<p>という処理を行います。</p>
-
-<pre><code>a::
-  Goto,label1
-  MsgBox,a
-  Return
-b::
-  Gosub,label1
-  MsgBox,b
-  Return
-label1:
-  MsgBox,label1
-  Return
-</code></pre>
-
-<p>とすると、<i class='key'>a</i>を押したときは<code>label1</code>のメッセージボックスが出るだけで、
-<i class='key'>b</i>を押すと<code>label1</code>と表示された後、<code>b</code>も表示されます。</p>
-
-<p>従って、<code>Gosub</code>の方は、引数なし関数的な使い方も出来ます。</p>
-
-<h1 id="Windowごとの設定">Windowごとの設定</h1>
-
-<p>Window毎にキー設定を変えるには</p>
-
-<pre><code>#IfWInActive ahk_class Notepad
-...
-</code></pre>
-
-<p>の様な形で<code>WinActive</code>を使います。
-これは</p>
-
-<pre><code>#If WInActive("ahk_class Notepad")
-...
-</code></pre>
-
-<p>と書くことも出来ます。</p>
-
-<p><code>#If</code>を使うことでそれ以降、その条件下でのみ設定を有効にでき、
-<code>WinActive</code>はその後に続くWindowが最前面の時、となります。</p>
-
-<p>指定を解除するには</p>
-
-<pre><code>#IfWInActive
-</code></pre>
-
-<p>の様に引数なしで指定するとそれ以降条件無し、に戻ります。</p>
-
-<p>指定出来るのはタイトルか上にあるようなクラス名でこれらは
-AutoHotkeyのタスクトレイアイコンを右クリックした際に選べる
-<code>Window spy</code>を使って調べます。</p>
-
-<p><img src="http://rcmdnk.github.io/images/post/20130729_WindowSpy.jpg" "" ""></p>
-
-<p>一番上の<code>Window Title &amp; Class</code>に</p>
-
-<ul>
-<li>Title: 無題 - メモ帳</li>
-<li>Class: ahk_class Notepad</li>
-</ul>
-
-
-<p>が得られます。</p>
-
-<p>複数のWindowを指定したい場合は<code>Group</code>を作る事が出来、</p>
-
-<pre><code>GroupAdd Note, ahk_class Notepad
-GroupAdd Note, ahk_class WordPadClass
-</code></pre>
-
-<p>の様に<code>GroupAdd</code>を使い<code>Note</code>と言う名前のGroupを作り、</p>
-
-<pre><code>#IfWInActive ahk_group Note
-...
-</code></pre>
-
-<p>と<code>ahk_group</code>で名前を指定します。</p>
-
-<hr />
-
-<p><i class="icon-warning-sign "></i>
-FirefoxとThunderbirdのClassが同じ
-<code>ahk_class MozillaWindowClass</code>です。</p>
-
-<p>Firefoxでは<a href="http://rcmdnk.github.io/blog/tags/vimperator/">Vimperator</a>でVimっぽくしていて、
-Thunderbirdではメールを書く時にAutoHotkeyでVimっぽくしたいので
-割と都合が悪いです。</p>
-
-<p>そこで、タイトルの方を使います。
-Thunderbirdのメール作成Windowは</p>
-
-<pre><code>作成:(件名なし)
-</code></pre>
-
-<p>の様なタイトル名です。もちろん、<code>件名なし</code>は件名を書いてない状態で、
-件名を書き込むと変わります。</p>
-
-<p>ただ、AutoHotkeyでは、一部が一致すれば解釈する様なので、</p>
-
-<pre><code>#IfWinactive 作成:
-</code></pre>
-
-<p>の様な形で書いておけばThunderbirdの作成Windowで有効にする設定が出来ます。
-おそらく他にも<code>作成:</code>と言ったタイトル名を持つ物はあるので注意が必要です。
-(今のところ他に見つけてませんが。)</p>
-
-<hr />
-
-<p>Window以外にも、変数を使った条件なども使え</p>
-
-<pre><code>#If WInActive("ahk_group Notepad") and (a="enable")
-</code></pre>
-
-<p>の様にすれば、メモ帳上で、かつ、<code>a</code>の変数に<code>enable</code>が入ってる場合に
-有効になります<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。</p>
-
-<h1 id="分岐">分岐</h1>
-
-<p>各キー設定や関数の中でも<code>if</code>が使えます。</p>
-
-<pre><code>a::
-  if WInActive("ahk_group Notepad") {
-    Send,b
-  }else if (a="enable")
-    Send,c
-  }else{
-    Send,d
-  }
-  Return
-</code></pre>
-
-<p>と言うように<code>else if</code>等も使えます。
-(この場合には<code>IfWinactive</code>)</p>
-
-<hr />
-
-<p><i class="icon-warning-sign "></i>
-この場合にも<code>IfWinactive</code>が使えますが、
-その場合は、<code>{</code>が必ず次の行にくる必要があります<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>。</p>
-
-<pre><code>a::
-  IfWInActive ahk_group Notepad
-  {
-     ...
-</code></pre>
-
-<p><code>If WInActive("...</code>の場合は同じ行でも次でもOK。</p>
-
-<hr />
-
-<h1 id="Loop">Loop</h1>
-
-<p>繰り返しは</p>
-
-<pre><code>Loop 10 {
-  MsgBox,  %A_Index%
-  If (A_Index=5){
-    break
-  }
-  Sleep 1000
-}
-</code></pre>
-
-<p>という様に<code>Loop</code>コマンドではじめ、引数として回数を指定します。</p>
-
-<p>Loopを抜けるためには<code>break</code>、途中でループ処理を中断して戻ってLoopを再開するには<code>continue</code>を使います。</p>
-
-<p>数字が省略された場合は、<code>break</code>で止めるか<code>return</code>などで
-その設定/関数自体を終わらせるまで永遠とLoopします。</p>
-
-<p>上の例で使われている<code>A_Index</code>はLoopの回数で
-1から増えていきます。</p>
-
-<p>上の例では、1から5までのメッセージを表示します。
-最後にある<code>Sleep</code>は引数がミリ秒で、この場合ここで1秒待つことになります。</p>
-
-<h1 id="長押しで違うキー設定に">長押しで違うキー設定に</h1>
-
-<p><code>KeyWait</code>コマンドを使うことで長押しした時に違う命令を送ることが出来ます。</p>
-
-<pre><code>a::
-  KeyWait, a, T0.5
-  if (ErrorLevel){
-    Send,b
-    Return
-  }
-  Send,c
-  Return
-</code></pre>
-
-<p><code>KeyWait</code>に続き、押されているキー、待つ時間(<code>T</code>に続き<code>秒</code>単位で)を書き、
-結果が<code>ErrorLevel</code>に収納されます。
-指定時間内に</p>
-
-<p>上の例では<i class='key'>a</i>を押して直ぐに話せば<code>c</code>を、
-0.5秒以上押していれば<code>b</code>を送ります<sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>。</p>
-
-<h1 id="他のファイルの">他のファイルの</h1>
-
-<p>設定ファイルの中で他のファイルを読み込みたい時は<code>include</code>を使い</p>
-
-<pre><code>#Include  %A_ScriptDir%\other.ahk
-</code></pre>
-
-<p>とします。
-<code>%A_ScriptDir%</code>は、読み込もうとしているファイルの位置です。</p>
-
-<hr />
-
-<p><i class="icon-warning-sign "></i>
-この位置に展開される形になるので、
-<code>Auto-execute section</code>
-について注意して設定する必要があります。</p>
-
-<hr />
-
-<h1 id="Happy+Hacking+Keyboard用設定">Happy Hacking Keyboard用設定</h1>
-
-<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B000EXZ0VC/rcmdnk0c-22/ref=nosim/">Happy Happy Keyboard</a>
-にあるダイヤモンドキー(スペース両隣のキー)の設定:</p>
-
-<pre><code>; For HHK
-vkFFsc079::RAlt
-vkFFsc07b::LAlt
-</code></pre>
-
-<p>など。上の設定では</p>
-
-<ul>
-<li>左<i class='key'>&#x25c7;</i><i class="icon-arrow-right"></i>左<i class='key'>Alt</i></li>
-<li>右<i class='key'>&#x25c7;</i><i class="icon-arrow-right"></i>右<i class='key'>Alt</i></li>
-</ul>
-
-
-<h1 id="その他参考ページなど">その他参考ページなど</h1>
-
-<ul>
-<li><a href="http://www.autohotkey.com/">本家Document</a></li>
-<li><a href="http://ahkwiki.net/Top">AutoHotkey Wiki</a></li>
-<li><a href="http://ahk.xrea.jp/">AutoHotkeyを流行らせるページ</a></li>
-<li><a href="http://www.crystal-creation.com/software/tool/system/auto-hot-key/">AutoHotKeyの使用方法</a></li>
-<li><a href="http://www6.atwiki.jp/eamat/pages/17.html">IME制御用 関数群 (IME.ahk)</a></li>
-<li><a href="http://d.hatena.ne.jp/Cherenkov/20110222/p1">はてブ拡張のタグ付けを補助するAutoHotkeyスクリプト</a></li>
-<li><a href="http://nanabit.net/blog/2008/03/21/putty-clipboard/">PuTTYで複数行ペースト前に警告するAHKスクリプト</a></li>
-</ul>
-
-
-<hr />
-
-<div class="footnotes">
-    <ol>
-        <li id='fn:1'><p><a href="http://www.autohotkey.com/docs/Scripts.htm#auto">The Top of the Script (the Auto-execute Section)</a>
-  <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li><li id='fn:2'><p><a href="https://sites.google.com/site/agkh6mze/translation/autohotkey_l/if">#If</a>
-  <a href='#fnref:2' rev='footnote'>↩</a></p>
-</li><li id='fn:3'><p><a href="http://ahk.xrea.jp/commands/__Block.html">{&#8230;} (block)</a>
-  <a href='#fnref:3' rev='footnote'>↩</a></p>
-</li><li id='fn:4'><p><a href="http://ahkwiki.net/SampleCodes#1.E3.81.A4.E3.81.AE.E3.82.AD.E3.83.BC.E3.81.AB3.E7.A8.AE.E9.A1.9E.E4.BB.A5.E4.B8.8A.E3.81.AE.E5.8B.95.E4.BD.9C.E5.89.B2.E3.82.8A.E5.BD.93.E3.81.A6">サンプルコード集:1つのキーに3種類以上の動作割り当て</a>
-<a href='#fnref:4' rev='footnote'>↩</a></p>
-</li>
-    </ol>
-</div>
-
-
-
 ]]></content>
   </entry>
   
