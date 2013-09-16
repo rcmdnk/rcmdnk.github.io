@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/categories/computer/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-16T11:42:09+02:00</updated>
+  <updated>2013-09-16T15:39:52+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -12,6 +12,164 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Gitでタグを使う #Git]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/16/computer-git/"/>
+    <updated>2013-09-16T14:25:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/16/computer-git</id>
+    <content type="html"><![CDATA[<p><a href="/blog/2013/09/13/computer-mac-install-homebrew/">Brewall</a>
+をそれ自身Homebrewで管理できる様にするためにFormulaを書いてる時に
+バージョン情報があるとアップデートが簡単に出来るので、
+そのためレポジトリにタグ付けを初めてしてみたのでついでにメモ。</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="タグを付ける">タグを付ける</h1>
+
+<p><a href="http://subversion.apache.org/">SVN</a>なんかと同じようにGitにもタグがあって<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+特定のポイントのスナップショットを残す事が出来ます。</p>
+
+<p>タグを作りたい時は、</p>
+
+<pre><code>$ git tag -a v0.0.2 -m "version 2"
+</code></pre>
+
+<p>こんな感じで<code>-a</code>に続きタグ名を与えます。<code>-m</code>はコメント。</p>
+
+<p>現在のローカルレポジトリの状態から作られるので、何か変更してある場合は
+<code>commit</code>後に。</p>
+
+<p><code>git tag</code>とするとタグ一覧が見れます。</p>
+
+<pre><code>$ git tag
+v0.0.1
+v0.0.2
+</code></pre>
+
+<h1 id="リモートにpush">リモートにpush</h1>
+
+<p>リモートに送るには<code>push</code>に<code>--tag</code>を与るだけです。</p>
+
+<pre><code>$ git tag --tag
+</code></pre>
+
+<p>GitHubに送ると、こんな感じでタグが選べる様になります。</p>
+
+<p><img class="pic" src="/images/post/20130916_github_tag.jpg"></p>
+
+<p>これでタグを作った時のスナップショットをZipで取ってこれる様になります<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。</p>
+
+<h1 id="タグをチェックアウト">タグをチェックアウト</h1>
+
+<p>ただタグの中身を見たい時はcheckoutすればOK<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>。</p>
+
+<pre><code>$ git checkout v0.0.2
+Note: checking out 'v0.0.2'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later ) by using -b with the checkout command again. Example:
+
+git checkout -b new_branch_name
+
+HEAD is now at 05745ff... Update: brew in tap repo can be written before tap
+</code></pre>
+
+<p>ただ、この場合は<code>detached HEAD</code>状態で他のブランチに移ると消えてしまう状態です。</p>
+
+<p>変更履歴を取って行きたい場合はこの状態から</p>
+
+<pre><code>$ git checkout -b branch_v0.0.2
+</code></pre>
+
+<p>などとして新たにブランチを作るか最初から</p>
+
+<pre><code>$ git checkout -b branch_v0.0.2 v0.0.2
+</code></pre>
+
+<p>とすれば<code>v0.0.2</code>のタグで初期化された<code>branch_v0.0.2</code>というブランチが出来ます。</p>
+
+<p>この時に、ブランチ名も<code>v0.0.2</code>でも良いんですが、その場合は
+ブランチ名とタグ名がconflictするのでその後、ブランチを<code>refs/heads/v0.0.2</code>、
+タグを<code>refs/tags/v0.0.2</code>ときちんと指定してあげないと</p>
+
+<pre><code>$ git checkout v0.0.2
+warning: refname 'v0.0.2' is ambiguous.
+</code></pre>
+
+<p>みたいに注意されます。(一応この場合は<code>refs/heads/v0.0.2</code>を取ってきます。)</p>
+
+<h1 id="タグを削除">タグを削除</h1>
+
+<p>ローカルのタグを削除するには<code>-d</code>オプションを使って</p>
+
+<pre><code>$ git tag -d v0.0.2
+</code></pre>
+
+<p>の様にします<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<p>これをリモートに反映するにはGitHub等のリモートレポジトリが<code>origin</code>として
+<code>git remote</code>に登録されてるとして</p>
+
+<pre><code>$ git push origin :v0.0.2
+</code></pre>
+
+<p>または</p>
+
+<pre><code>$ git push --delete origin v0.0.2
+</code></pre>
+
+<p>とすればOK。</p>
+
+<p></p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://git-scm.com/book/ja/Git-%e3%81%ae%e5%9f%ba%e6%9c%ac-%e3%82%bf%e3%82%b0">2.6 Git の基本 - タグ</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://www.goodpic.com/mt/archives2/2010/08/github_tgzzip.html">GitHub でタグを打って tgz/zip アーカイブ をダウンロードできるようにする</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://d.hatena.ne.jp/kanonji/20110304/1299211488">gitでタグをチェックアウトする。</a>
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="http://cdn8.atwikiimg.com/git_jp/pub/git-manual-jp/Documentation/chunked/ch01s02.html">プロジェクトの他のバージョンのチェックアウト方法</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="http://qiita.com/usamik26/items/7e53bae128bf130b8a32"> git でリモートのタグやブランチを削除する方法 </a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Brewallにtapall追加]]></title>
@@ -897,53 +1055,6 @@ cask 'firefox'
 	</ol>
 </div>
 </p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[ウェブページを読みやすくするBeeLine Reader]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/09/10/computer/"/>
-    <updated>2013-09-10T19:12:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/09/10/computer</id>
-    <content type="html"><![CDATA[<p>Gigazineで紹介されてた<a href="http://www.beelinereader.com/">BeeLine Reader</a>がなかなか面白いです。</p>
-
-<!-- more -->
-
-
-<blockquote><p><a href="http://gigazine.net/news/20130910-beeline-reader/">ウェブページを読む速度が最大30％増加するブックマークレット「BeeLine Reader」</a></p></blockquote>
-
-<p>BeeLine Readerはページ表示を行毎に色付けして表示しなおしてくれるブックマークレット
-を提供してくれてます。</p>
-
-<p>文章ばかりのページだとたまに左端に戻った時にどの行だったか
-分かりづらい時がありますが、そんな時に行ごとに色付けしておけば
-読みやすい、との原理。
-横方向にもグラデーションをかけてどの辺りまで読んだかを視認しやすくしてくれます。</p>
-
-<p>また、変換する際に、<a href="http://getpocket.com/">Pocket</a>
-や<a href="http://evernote.com/">Evernote</a>の<a href="http://evernote.com/intl/jp/clearly/">Clearly</a>
-みたいに余計な物を落としてくれるので、その点でも読みやすくなります。</p>
-
-<p>あまりウェブで長い文章を読むことは無いですが、やってみると意外と読みやすいかも。</p>
-
-<p>試しにこのページをやってみるとこんな感じ。</p>
-
-<p><img src="/images/post/20130910_mypage.jpg" alt="" title="" class="pic" /></p>
-
-<p>実際にこのページで試してみたい場合はここから<i class="icon-arrow-right"></i>
-<a href="javascript:(function(){readStyle='style-athelas';readSize='size-large';readMargin='margin-medium';_readability_script=document.createElement('SCRIPT');_readability_script.type='text/javascript';_readability_script.src='http://www.beelinereader.com/beelinereader/readability.js?x='+Math.random();document.getElementsByTagName('head')[0].appendChild(_readability_script);_readability_css=document.createElement('LINK');_readability_css.rel='stylesheet';_readability_css.href='http://www.beelinereader.com/beelinereader/readability.css';_readability_css.type='text/css';_readability_css.media='all';document.getElementsByTagName('head')[0].appendChild(_readability_css);_readability_print_css=document.createElement('LINK');_readability_print_css.rel='stylesheet';_readability_print_css.href='http://www.beelinereader.com/beelinereader/readability_print.css';_readability_print_css.media='print';_readability_print_css.type='text/css';document.getElementsByTagName('head')[0].appendChild(_readability_print_css);}());javascript:(function(){var%20w=window,u='http://www.beelinereader.com/beelinereader/BlackBlueRed',l=w.location,d=w.document,s=d.createElement('script'),e=encodeURIComponent,x='undefined';function%20g(){if(d.readyState&&d.readyState!='complete'){setTimeout(g,2500);}else{if(typeof%20MainApp==x){s.setAttribute('src',u+'.js');d.body.appendChild(s);}function%20f(){if(typeof%20MainApp==x){setTimeout(f,2500)}else{MainApp.show();}}f();}}g();}())">チェック</a>。
-たまに上手く行かずに1文字ずつ色が変化してしまう様になってしまう時がありますが、
-もう一度やってみると上手く行くことがあります。
-(但し、ブラウザの<code>戻る</code>をすると、1つ前のページに戻ってしまうので、代わりに<i class='key'>F5</i>等で
-再読み込みをすると元に戻ります。)</p>
-
-<p>これ、PDFとかWordとかで長い文章読むときに出来たら便利だな、と思って、
-Firefox内でPDFをプレビュー表示するようにして、ブックマークレットを試してみましたが、
-1ページ目だけ？が表示され、さらに単語毎に行分けされる様な感じで全然駄目でした。</p>
-
-<p>これと同じ事をしてくれるPDF viewerとかそのうち出たら便利かもしれないな…と。</p>
-
-<hr />
 ]]></content>
   </entry>
   

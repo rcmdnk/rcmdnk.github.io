@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Tag: git | rcmdnk's blog]]></title>
+  <title><![CDATA[Tag: Git | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/git/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-16T11:42:09+02:00</updated>
+  <updated>2013-09-16T15:39:52+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -14,13 +14,14 @@
 
   
   <entry>
-    <title type="html"><![CDATA[fatal: Unable to find remote helper for 'https'の対処]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git/"/>
-    <updated>2013-07-27T01:17:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/27/computer-cygwin-git</id>
-    <content type="html"><![CDATA[<p>Cygwinでjedi-vimを入れようとして、jedi本体を入れようと
-jedi-vimのディレクトリで<code>git submodule update --init</code>
-をしたら<code>fatal</code>が出た時の対処法。</p>
+    <title type="html"><![CDATA[Gitでタグを使う #Git]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/16/computer-git/"/>
+    <updated>2013-09-16T14:25:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/16/computer-git</id>
+    <content type="html"><![CDATA[<p><a href="/blog/2013/09/13/computer-mac-install-homebrew/">Brewall</a>
+をそれ自身Homebrewで管理できる様にするためにFormulaを書いてる時に
+バージョン情報があるとアップデートが簡単に出来るので、
+そのためレポジトリにタグ付けを初めてしてみたのでついでにメモ。</p>
 
 <!-- more -->
 
@@ -47,815 +48,126 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 
 </p>
 
-<h1 id="jedi-vimのsubmoduleのインストール時にfatal">jedi-vimのsubmoduleのインストール時にfatal</h1>
+<h1 id="タグを付ける">タグを付ける</h1>
 
-<p>Cygwinでjedi-vimをNeoBundleでインストール後、jedi本体を入れようと
-jedi-vimのディレクトリで<code>submodule update</code>したところ<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、</p>
+<p><a href="http://subversion.apache.org/">SVN</a>なんかと同じようにGitにもタグがあって<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>、
+特定のポイントのスナップショットを残す事が出来ます。</p>
 
-<pre><code>$ git submodule update --init
-Cloning into 'jedi'...
-fatal: Unable to find remote helper for 'https'
-Clone of 'https://github.com/davidhalter/jedi.git' into submodule path 'jedi' failed
+<p>タグを作りたい時は、</p>
+
+<pre><code>$ git tag -a v0.0.2 -m "version 2"
 </code></pre>
 
-<p>こんな感じのfatal errorが出ました。
-どうも<code>https</code>が理解出来ないようです。</p>
+<p>こんな感じで<code>-a</code>に続きタグ名を与えます。<code>-m</code>はコメント。</p>
 
-<p>直接、<code>.git/config</code>内のjediのラインを<code>https://...</code>から<code>git://...</code>
-とすれば、取り敢えず<code>submodule update</code>が通ってjediが使える様になりますが、
-結構根本的なところなのでgitの入れ直しをして対処しました。</p>
+<p>現在のローカルレポジトリの状態から作られるので、何か変更してある場合は
+<code>commit</code>後に。</p>
 
-<h1 id="`--with-curl+--with-expat`付きでconfigure"><code>--with-curl --with-expat</code>付きでconfigure</h1>
+<p><code>git tag</code>とするとタグ一覧が見れます。</p>
 
-<p>gitのソースレポジトリにある<code>INSTALL</code>によると</p>
-
-<blockquote><p>"libcurl" library is used by git-http-fetch and git-fetch.  You
- might also want the "curl" executable for debugging purposes.
- If you do not use http:// or https:// repositories, you do not
- have to have them (use NO_CURL).</p>
-
-<p>"expat" library; git-http-push uses it for remote lock
- management over DAV.  Similar to "curl" above, this is optional
- (with NO_EXPAT).</p></blockquote>
-
-<p>とのことで、<code>https</code>などを使うときはcurlが必要な様です。
-以前gitをインストールしたときはlibcurlが入ってなかったので無しでNO_CURLな状態でコンパイルされていたようです。</p>
-
-<pre><code>$ apt-cyg find curl
+<pre><code>$ git tag
+v0.0.1
+v0.0.2
 </code></pre>
 
-<p>などとして見ると、<code>libcurl-devel</code>が見つかったのでこれをインストールしました。</p>
+<h1 id="リモートにpush">リモートにpush</h1>
 
-<pre><code>$ apt-cyg install libcurl-devel
+<p>リモートに送るには<code>push</code>に<code>--tag</code>を与るだけです。</p>
+
+<pre><code>$ git tag --tag
 </code></pre>
 
-<p>今回直接関係ないですが、ついでにcurlも入ってなかったのでインストール</p>
+<p>GitHubに送ると、こんな感じでタグが選べる様になります。</p>
 
-<pre><code>$ apt-cyg install curl
+<p><img class="pic" src="/images/post/20130916_github_tag.jpg"></p>
+
+<p>これでタグを作った時のスナップショットをZipで取ってこれる様になります<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。</p>
+
+<h1 id="タグをチェックアウト">タグをチェックアウト</h1>
+
+<p>ただタグの中身を見たい時はcheckoutすればOK<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>。</p>
+
+<pre><code>$ git checkout v0.0.2
+Note: checking out 'v0.0.2'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later ) by using -b with the checkout command again. Example:
+
+git checkout -b new_branch_name
+
+HEAD is now at 05745ff... Update: brew in tap repo can be written before tap
 </code></pre>
 
-<p>これで、<a href="/blog/2013/06/25/computer-windows-git-cygwin/">以前インストールした</a>
-ようにして、<code>config</code>だけ</p>
+<p>ただ、この場合は<code>detached HEAD</code>状態で他のブランチに移ると消えてしまう状態です。</p>
 
-<pre><code>$  ./configure --prefix=/home/$USER/usr/local --with-curl  --with-expat
+<p>変更履歴を取って行きたい場合はこの状態から</p>
+
+<pre><code>$ git checkout -b branch_v0.0.2
 </code></pre>
 
-<p>としてインストール。
-expatの方もpushの時に必要な時があるかもしれないのでついでに加えて置きました。
-(追記: 上の<code>INSTALL</code>にもあるように、必要ないときにNOオプションを使えということで、
-<code>--with-curl --with-expat</code>はデフォルトでYES
-になってるので、libcurlをインストールしてあれば自動的にインストールされるので
-これらのオプションは必要ないみたいです。)</p>
+<p>などとして新たにブランチを作るか最初から</p>
 
-<p>これで<code>http(s)</code>の場合もgitが使える様になりました。
-ついでに、NeoBundleもUpdateしたことで、
-jedi本体についてはjedi-vimインストール時に自動的に
-インストール出来るようにもなったのでだいぶ初期インストール時の手間が省けた感じがします。</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p> <a href="/blog/2013/07/21/computer-vim/">dev版jedi-vimのインストール</a>の追記に書いた様に、最新のNeoBundleを入れて、curl付きのgitが入っていればjedi-vimインストール時に
-  jedi本体も自動的にインストールされる様です。
-<a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CygwinでCan't fork()とかのエラーが出た時の対処法]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/07/05/computer-windows-cygwin-git/"/>
-    <updated>2013-07-05T01:17:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/07/05/computer-windows-cygwin-git</id>
-    <content type="html"><![CDATA[<p>この前<a href="/blog/2013/06/25/computer-windows-git-cygwin/">Cygwinにgit-1.8.3をインストール</a>しましたが、
-ちゃんと動かない所があったので
-その対処法について。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="error:+cannot+fork()">error: cannot fork()</h1>
-
-<p>gitをインストールしてざっと動かして大丈夫そうだと思ってたんですが、
-ちゃんと使おうと思って色々動かしてたら色々問題があってちゃんと動いてませんでした。</p>
-
-<p>あまり使わないのでちょっと放っておいたんですが、vimで新しい
-プラグインをneobundleでインストールする時に問題があるので、
-ちゃんと対処しようかと。</p>
-
-<p>問題としては、新しくレポジトリをcloneしようとする時、
-1回目はcloneしようとするローカルのディレクトリの親ディレクトリまで
-作って失敗し、2回めに成功したりしなかったり。</p>
-
-<p>git pushなんかでもなんかエラーが出ます。</p>
-
-<p>失敗する時のエラーを見ると</p>
-
-<pre><code>$ git push
-     10 [main] git 5476 child_info_fork::abort: C:\cygwin\home\USER\usr\local\bin\cygintl-8.dll: Loaded to different address: parent(0x300000) != child(0x330000)
-error: cannot fork() for git-rebase: Resource temporarily unavailable
+<pre><code>$ git checkout -b branch_v0.0.2 v0.0.2
 </code></pre>
 
-<p>こんな感じ。</p>
+<p>とすれば<code>v0.0.2</code>のタグで初期化された<code>branch_v0.0.2</code>というブランチが出来ます。</p>
 
-<p><code>Cygwin error fork</code>辺りで調べてみると<code>rebaseall</code>すれば良い、と言うのが
-見つかったので試して見ることに。</p>
+<p>この時に、ブランチ名も<code>v0.0.2</code>でも良いんですが、その場合は
+ブランチ名とタグ名がconflictするのでその後、ブランチを<code>refs/heads/v0.0.2</code>、
+タグを<code>refs/tags/v0.0.2</code>ときちんと指定してあげないと</p>
 
-<h1 id="rebaseall">rebaseall</h1>
-
-<p>まず、<code>rebase.exe</code>及び<code>rebaseall</code>が<code>/bin/</code>にあることを確認します。
-また、<code>rebase</code>を走らせるのに必要なので
-<code>/bin/ash.exe</code>または<code>/bin/dash.exe</code>があることを確認します。
-(実は今回の件では必要なかったわけですが同じような事が起こった時様に
-入れておいた方が良いです。)</p>
-
-<p>これらのインストールは<code>setup.exe</code>を使うか<a href="/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>で。</p>
-
-<p>インストールしたら、一度Cygwin関連で走っているものをすべて切ります。</p>
-
-<pre><code>$ cygrunsrv -L
+<pre><code>$ git checkout v0.0.2
+warning: refname 'v0.0.2' is ambiguous.
 </code></pre>
 
-<p>などとしてサービス登録されているものを探して、もしあれば</p>
+<p>みたいに注意されます。(一応この場合は<code>refs/heads/v0.0.2</code>を取ってきます。)</p>
 
-<pre><code>$ cygrunsrv -E &lt;svc_name&gt;
-$ cygrunsrv -R &lt;svc_name&gt;
+<h1 id="タグを削除">タグを削除</h1>
+
+<p>ローカルのタグを削除するには<code>-d</code>オプションを使って</p>
+
+<pre><code>$ git tag -d v0.0.2
 </code></pre>
 
-<p>などとして一度外しておきます。
-後で</p>
+<p>の様にします<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
 
-<pre><code>$ cygrunsrv -I &lt;svc_name&gt;
-$ cygrunsrv -S &lt;svc_name&gt;
+<p>これをリモートに反映するにはGitHub等のリモートレポジトリが<code>origin</code>として
+<code>git remote</code>に登録されてるとして</p>
+
+<pre><code>$ git push origin :v0.0.2
 </code></pre>
 
-<p>しなおしてください。</p>
+<p>または</p>
 
-<p>さらに、現在走っているcygwin関連のジョブを探して</p>
-
-<pre><code>$ tasklist /M cygwin1.dll
+<pre><code>$ git push --delete origin v0.0.2
 </code></pre>
 
-<p>などとしてXサーバーなど走っていれば一度落とします。
-(minttyやbashだけの状態に。)
-ひと通り落としたら一度cygwin自体から一度ログアウトします。</p>
-
-<p>Explorerで<code>C:\cygwin\bin</code>(もしくは<code>cygwinをインストールしたディレクトリ\bin</code>)
-へ行き、<code>ash.exe</code>または<code>dash.exe</code>をダブルクリックで起動します。</p>
-
-<p>プロンプトが出てくるので、</p>
-
-<pre><code>$ cd /bin
-$ ./rebaseall
-</code></pre>
-
-<p>として、rebaseallを実行します。</p>
-
-<pre><code>rebaseall: only ash or dash processes are allowed during rebasing
-    Exit all Cygwin processes and stop all Cygwin services.
-    Execute ash (or dash) from Start/Run... or a cmd or command window.
-    Execute '/bin/rebaseall' from ash (or dash).
-</code></pre>
-
-<p>等と出たらまだ他にcygwinのプロセスとして走っているものが居る可能性があります。(サービスなどを再チェック)</p>
-
-<p>これでいくつか見つからないファイルには適用できないよ、的な
-メッセージが出るかもしれませんが、取り敢えずOKです。</p>
-
-<p>ということで、gitを使ってみると、以前と同じエラーがでました。</p>
-
-<p>それはそのはずで、今回インストールしたgitは自分で<code>~/usr/local</code>
-にインストールしていましたが、
-<code>rebaseall</code>はcygwinの管理システム、<code>setup.exe</code>や<code>apt-cyg</code>など、で
-管理されているものを探して<code>rebase.exe</code>を適用しているだけなので、
-別途インストールしたものには適用されません。
-(<code>/bin/rebaseall</code>はシェルスクリプトなので見れば何やってるか分かります。)</p>
-
-<h1 id="~/usr/localへrebase.exeを適用する">~/usr/localへrebase.exeを適用する</h1>
-
-<p><code>rebaseall</code>を参考に<code>~/usr/local</code>にあるファイルに対して<code>rebase.exe</code>を適用します。</p>
-
-<p>今度はCygwinで<code>bash</code>のまま直接<code>rebase.exe</code>を走らせます。</p>
-
-<pre><code>$ cd ~/usr/local/lib
-$ find . -name \*dll　&gt; rebase.lst
-$ find . -name \*so　&gt;&gt; rebase.lst
-$ rebase.exe -n -s -4 -T ./rebase.lst
-$ rm -f rebase.lst
-</code></pre>
-
-<p>こんな感じで<code>~/usr/local/lib/</code>にあるライブラリをリストアップし、
-<code>rebase.exe</code>を適用。
-Cygwinを立ち上げている状態なので、
-いくつかCygwinのコアなライブラリを変更できない、とでますが
-無視してOKです。
-(もし、上で一度も<code>rebaseall</code>をcygwinの外からやらず、これだけで
-エラーが出る場合は一度外で<code>rebaseall</code>をやる必要があるかもしれません。)</p>
-
-<p>これで、gitを実行すると問題なく動く様になりました。</p>
-
-<p>今回は<code>~/usr/local</code>にインストールしたものについてですが、
-<code>/usr/</code>ディレクトリなどにインストールした場合も、
-<code>setup.exe</code>や<code>apt-cyg</code>などのCygwinの管理システムから
-外れた方法でインストールした場合には
-<code>rebaseall</code>で見つけてくれないので自分で見つけて
-<code>rebase.exe</code>をかける必要があります。</p>
-
-<p>大概の場合は上の<code>~/usr/local/lib</code>の部分を<code>/usr/lib</code>、<code>/usr/local/lib</code>
-と置き換えて<code>rebase.exe</code>を適用してあげれば大丈夫だと思います。</p>
-
-<h1 id="DefaultBaseAddress=0x40000000+?">DefaultBaseAddress=0x40000000 ?</h1>
-
-<p>色々探しているうちに、<code>rebaseall</code>をしたら元から入ってるvimもおかしくなって
-しまった、といった話を見つけました。</p>
-
-<p>Ref:</p>
-
-<blockquote><p><a href="http://security.cs.shinshu-u.ac.jp/~t_takeda/cat/index.php?Cygwin">Cygwin - Elegant Cat Wiki</a></p></blockquote>
-
-<p>今のところ問題は起きてないのですが、
-一応同じ様な問題が起こった時用にメモ。</p>
-
-<hr />
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Cygwinにgit-1.8.3.1をインストール]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/06/25/computer-windows-git-cygwin/"/>
-    <updated>2013-06-25T00:22:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/06/25/computer-windows-git-cygwin</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/asin/477415184X/rcmdnk0c-22/" rel="nofollow" target="_blank" title="アマゾン" ><img class="left" src="http://ecx.images-amazon.com/images/I/51I5ZLcWDaL._SL160_.jpg" border="0" ></a>
-<a href="/blog/2013/06/24/computer-windows-git-cygwin/">前回</a>、
-cygwinにgitの新しいバージョンをインストールしようとして<code>apt-cyg</code>
-を導入しましたが、結局現状のcygwinに含まれるgitがまだ古かったので<code>apt-cyg</code>では
-新しいものはインストール出来ませんでした。</p>
-
-<p>仕方が無いので直接インストールします。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="インストール">インストール</h1>
-
-<p>ソースからインストールしてみます。</p>
-
-<pre><code>$ cd /tmp
-$ git clone https://github.com/git/git.git
-$ cd git
-$ make configure
-$ ./configure --prefix=/home/$USER/usr/local
-$ make all doc
-...
-    SUBDIR git_remote_helpers
-    SUBDIR templates
-    MSGFMT po/build/locale/is/LC_MESSAGES/git.mo
-/bin/sh: msgfmt: command not found
-Makefile:2135: recipe for target `po/build/locale/is/LC_MESSAGES/git.mo' failed
-make: *** [po/build/locale/is/LC_MESSAGES/git.mo] Error 127
-</code></pre>
-
-<p>というわけで、まず<code>msgfmt</code>が無い、とでました。
-このコマンドは<code>gettext</code>と言うパッケージに入っているみたいですが<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>
-cygwinには既にgettext-0.18.1がインストールされていました。
-(この時点で<code>/bin/msgfmt.py</code>というものはインストールされてましたが<code>msgfmt</code>
-というコマンドは無し。)</p>
-
-<p>どうももう一つ新しいバージョン0.18.2が必要らしいので、
-直接インストールする必要があります。</p>
-
-<pre><code>$ cd /tmp
-$ wget http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.2.tar.gz
-$ tar xzf gettext-0.18.2.tar.gz
-$ cd gettext-0.18.2
-$ ./configure --prefix=/home/$USER/usr/local
-$ make
-# ...やたら時間がかかる
-$ make install
-</code></pre>
-
-<p>makeに10分くらい?かかりましたが無事インストール。</p>
-
-<p>無事<code>~/usr/local/bin/msgfmt</code>があることを確認して、もう一度gitの方をmake。
-そうすると次は<code>asciidoc</code>が無い、と言われました。</p>
-
-<p>これは<code>apt-cyg</code>で確認すると。</p>
-
-<pre><code>$ apt-cyg find asciidoc
-...
-Searching for installed packages matching asciidoc:
-
-Searching for installable packages matching asciidoc:
-asciidoc
-</code></pre>
-
-<p>となり、インストールされていないがミラーサイトにはあるようなので、</p>
-
-<pre><code>$ apt-cyg install asciidoc
-...
-Running postinstall scripts
-/etc/postinstall/pango1.0.sh: line 1: /etc/pango/pango.modules: No such file or directory
-Package asciidoc installed
-...
-</code></pre>
-
-<p>でインストール。
-途中<code>No such file or directory</code>と言う表示がありましたが、取り敢えず無視。</p>
-
-<p>これで再びgitをmakeすると新たに<code>xmlto</code>が無い、と。これもapt-cygでインストール。</p>
-
-<pre><code>$ apt-cyg install xmlto
-</code></pre>
-
-<p>再度gitをmakeすると</p>
-
-<pre><code>$ make all doc
-...
-xmlto: /home/USER/tmp/git/Documentation/git-update-ref.xml does not validate (status 3)
-xmlto: Fix document syntax or use --skip-validation option
-I/O error : Attempt to load network entity http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd
-/home/USER/tmp/git/Documentation/git-update-ref.xml:2: warning: failed to load external entity "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
-D DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
-                                                                               ^
-I/O error : Attempt to load network entity http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd
-warning: failed to load external entity "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
-Could not load the external subset "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
-Document /home/USER/tmp/git/Documentation/git-update-ref.xml does not validate
-Makefile:314: recipe for target `git-update-ref.1' failed
-make[1]: *** [git-update-ref.1] Error 13
-make[1]: Leaving directory `/home/USER/tmp/git/Documentation'
-Makefile:2083: recipe for target `doc' failed
-make: *** [doc] Error 2
-</code></pre>
-
-<p>と言った感じのエラー。xmltoのバージョンが悪いのかどこかで壊れたのかそれとも他が悪いのか、
-この時点で面倒になってきて、
-このmakeは<code>doc</code>の所でこけているだけなので、<code>doc</code>を外してmake。</p>
-
-<pre><code>$ make all
-</code></pre>
-
-<p>とするとOKだったので</p>
-
-<pre><code>$ make install
-</code></pre>
-
-<p>でインストール出来ました。</p>
-
-<p>途中docは飛ばしてしまいましたが、ソフトの本幹の方は正しくインストールされたと思うので
-取り敢えずOKと言うことで。</p>
-
-<p>これでcygwinもgit-1.8.3.1を手に入れました。</p>
-
-<hr />
-
-<p>2113/07/05 追記</p>
-
-<p>上の様にただインストールしただけでは
-<code>error: cannot fork()</code>みたいなエラーが出たりして上手くいかない時があります。
-その場合の対処法を<a href="/blog/2013/07/05/computer-windows-cygwin-git/">こちらに</a>
-書いておきました。</p>
-
-<p>追記終わり</p>
-
-<hr />
-
-<p>
-</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p><a href="http://stackoverflow.com/questions/9500898/compiler-error-msgfmt-command-not-found-when-compiling-git-on-a-shared-hosting">Compiler error - msgfmt command not found when compiling git on a shared hosting</a>
-<a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Cygwinでコマンドラインからパッケージ管理をする]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin/"/>
-    <updated>2013-06-24T22:40:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/asin/483991169X/rcmdnk0c-22/" rel="nofollow" target="_blank" title="アマゾン" ><img class="left" src="http://ecx.images-amazon.com/images/I/51RXWWX296L._SL160_.jpg" border="0" ></a>
-Cygwin上Linuxの<code>apt-get</code>コマンドの様にパッケージが管理できる<code>apt-cyg</code>を入れてみました。</p>
-
-<hr />
-
-<p>追記 2013/08/08</p>
-
-<p>Cygwinのミラーサイト構造が変わったらしく、オリジナルのapt-cygがそのままだと
-機能しなくなりました。</p>
-
-<p>以下のページで対応と、apt-cygを新しい構造に対応させたものを公開してます:
-<a href="/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a></p>
-
-<hr />
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="apt-cygに必要な物">apt-cygに必要な物</h1>
-
-<p><code>apt-cyg</code>を使うために</p>
-
-<ul>
-<li>wget</li>
-<li>tar</li>
-<li>bzip2</li>
-<li>gawk</li>
-</ul>
-
-
-<p>をインストールしてある必要があります。
-これらをインストールしてない場合はcygwinの<code>setup.exe</code>を使ってインストールするか
-直接これらをインストールする必要があります。</p>
-
-<p>必須ではありませんが、<code>apt-cyg</code>本体をインストールするためにsvnも
-インストールしておいた方が便利です。</p>
-
-<h1 id="apt-cygのインストール">apt-cygのインストール</h1>
-
-<p><a href="http://code.google.com/p/apt-cyg/">公式</a>に従い</p>
-
-<pre><code>$ svn --force export http://apt-cyg.googlecode.com/svn/trunk/ /bin/
-$ chmod 755 /bin/apt-cyg
-</code></pre>
-
-<p>でOK。</p>
-
-<p>svnをインストールしてない場合は直接<a href="http://apt-cyg.googlecode.com/svn/trunk/apt-cyg">apt-cyg</a>スクリプトをダウンロードするなりコピーするなりして<code>/bin/</code>へ。</p>
-
-<h1 id="apt-cygを使ってみる">apt-cygを使ってみる</h1>
-
-<p>大体のコマンドは<code>apt-get</code>等と同じです。</p>
-
-<p>とりあえずパッケージリストのupdateしてみます。</p>
-
-<pre><code>$ apt-cyg update
-...
-Resolving mirror.msc.anl.gov (mirror.msc.anl.gov)... failed: hostname nor servname provided, or not known.
-wget: unable to resolve host address `mirror.msc.anl.gov'
-Error updating setup.ini, reverting
-</code></pre>
-
-<p>ミラーサイトに接続できていない、と出ます。</p>
-
-<p>そこでcygwinの<a href="http://cygwin.com/mirrors.html">ミラーサイトリスト</a>
-から適当な物(なるべく近いところ)を選んで来て</p>
-
-<pre><code>$ apt-cyg update -m http://ftp.jaist.ac.jp/pub/cygwin/
-</code></pre>
-
-<p>として繋がるかどうか試してみます。
-同じ様に<code>Error updating setup.ini, reverting</code>が出る場合は
-別のところを探します。
-(上の<code>mirror.msc.anl.gov</code>もこの日は繋がらなかったんですが後日繋がりました。)</p>
-
-<hr />
-
-<p>2013/08/08 追記</p>
-
-<p>久々にapt-cygしたら</p>
-
-<pre><code>...
---2013-xx-xx xx:xx:xx--  http://ftp.jaist.ac.jp/pub/cygwin//setup.ini
-...
-HTTP request sent, awaiting response... 404 Not Found
-</code></pre>
-
-<p>と言った様なエラーが出てサイトを指定し直す必要がありました。
-これについてはこちらに書いておきました:
-<a href="/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a></p>
-
-<p>追記ここまで</p>
-
-<hr />
-
-<p><code>-m</code>オプションでミラーサイトを指定する方法は<code>install</code>等の時にも有効で、
-一度指定すると、その後指定がない限り同じサイトが使われます。</p>
-
-<p>上のサイトでつながったので、色々インストールしたりしたいのですが、
-今回は元々gitのバージョンを上げたいために<code>apt-cyg</code>を入れてみました<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
-
-<p><code>apt-cyg</code>には<code>updagrade</code>が無いので、新しくしたい場合はどうすれば良いか
-分からなかったので、取り敢えず<code>install</code>してみます。</p>
-
-<pre><code>$ apt-cyg install git
-...
-Package git is already installed, skipping
-</code></pre>
-
-<p>やはりスキップされる様です。
-仕方ないので一度消して、再インストール。</p>
-
-<pre><code>$ apt-cyg remove git
-$ apt-cyg install git
-...
-Found pacakge git
-**************** http://ftp.jaist.ac.jp/pub/cygwin/release/git/git-1.7.9-1.tar.bz2
-...
-Package git installed
-</code></pre>
-
-<p>と、残念ながらまだcygwinの中のバージョンは1.7.9.1のままなので
-再インストールしても意味なし...
-(ミラーサイトを直接見れば分かることですが...)</p>
-
-<p>結局ミラーサイトから落としてくるだけなので、
-インストール出来る物は<code>setup.exe</code>で出来る物と一緒ですが、
-cygwinの<code>setup.exe</code>はやたら重い(特にパッケージリストで検索するとやたら遅い)
-のでぱっと新しい物を入れたいときにはとても便利だと思いました。</p>
-
-<p>というわけで、今回は<code>apt-cyg</code>を使ってみた、というだけで、git自体は直接入れる
-事にしました<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
-
-<h1 id="apt-cygのまとめ">apt-cygのまとめ</h1>
-
-<p>一応コマンドのまとめ:</p>
-
-<ul>
-<li><code>apt-cyg update</code>: パッケージリスト(setup.ini)をアップデート。</li>
-<li><code>apt-cyg install package</code>: packageをインストール。</li>
-<li><code>apt-cyg remove package</code>: packageをアンインストール。</li>
-<li><code>apt-cyg show</code>: インストールされてるpackage一覧。</li>
-<li><code>apt-cyg find &lt;patterns&gt;</code>: &lt;patterns&gt;を含むpackageを検索(ミラーサイトにあるか、
-及びインストールされているかについて)。</li>
-<li><code>apt-cyg describe &lt;patterns&gt;</code>: &lt;patterns&gt;を含むpackageの詳細を表示。</li>
-<li><code>apt-cyg packageof &lt;commands or files&gt;</code>: 与えたcommandsやfilesを含むパッケージを表示。</li>
-</ul>
-
-
-<p><code>upgrade</code>が無いので、もしミラーサイト側が新しくなっていたら
-<code>remove</code>して<code>install</code>しなおす必要がある(のだと思う)。</p>
-
-<p>apt-cygのオプション:</p>
-
-<ul>
-<li>--mirror, -m &lt;url&gt; : ミラーサイトを指定(以後このサイトを使う)。</li>
-<li>--chache, -c &lt;dir&gt; : キャシュディレクトリを指定(デフォルト<code>/setup</code>、Windows的にはC:\cygwin\setup))。</li>
-<li>--file, -f &lt;file&gt; : パッケージの名前をファイルから読み込む。</li>
-<li>--noupdate, -u : setup.iniをアップデートしない(付けないとinstall時とか毎回アップデートをまず行う)。</li>
-<li>--help : ヘルプの表示</li>
-<li>--version : バージョンの表示。</li>
-</ul>
-
-
-<h1 id="apt-cyg以外のツール">apt-cyg以外のツール</h1>
-
-<p>apt-cygはシェルスクリプトで出来たツールですが、これ以外に</p>
-
-<ul>
-<li><a href="http://code.google.com/p/maphew/wiki/CygApt">CygApt</a>: pythonベースのツール</li>
-<li><a href="http://gnupack.sourceforge.jp/docs/current/UsersGuide_tips.html">cyg-pm</a>: Perlベースのツール</li>
-</ul>
-
-
-<p>といった物があるようです。
-(やることは主にミラーサイトからインストールすることなのでどれでも好きな物をで良いと思います。)</p>
-
-<p>
-</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p>結果的にapt-cygでは新しく出来なかったので<a href="/blog/2013/06/25/computer-windows-git-cygwin/">次回</a>別途入れた事について書きます。
-<a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[始めてのpull request @ GitHub]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/05/19/computer-git-github/"/>
-    <updated>2013-05-19T19:00:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/05/19/computer-git-github</id>
-    <content type="html"><![CDATA[<p>GitHubを使い始めてしばらく経ちましたが、始めてPull Requestをしてみたので
-やり方をメモしておきます。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="Pull+Requestを送ったレポジトリ">Pull Requestを送ったレポジトリ</h1>
-
-<p>以前<a href="/blog/2013/05/02/blog-octopress">Octopressへ絵文字の導入</a>で紹介した
-<a href="https://github.com/chriskempson/jekyll-emoji">jekyll-emoji</a>と言う
-プラグインに対して、emojiのイメージを外部における様な設定を可能にする
-変更をリクエストしてみました。</p>
-
-<h1 id="実際に行った手順">実際に行った手順</h1>
-
-<h2 id="Forkする">Forkする</h2>
-
-<p>まず、<a href="https://github.com/">GitHub</a>にログインした状態で
-リクエストを送りたいレポジトリのページに行きます。</p>
-
-<p>各レポジトリの右上には<code>Fork</code>と言うボタンがあるので、このボタンをクリックします。</p>
-
-<p><img src="/images/post/20130519_fork.jpg" alt="" title="" /></p>
-
-<p>そうすると自分のアカウントにレポジトリのコピーが出来るので、
-このレポジトリに対して変更を行なって行くことになります。
-自分のページの<code>Repositories</code>で確認が出来ます。</p>
-
-<p><img src="/images/post/20130519_fork3.jpg" alt="" title="" /></p>
-
-<p>Forkした相手のレポジトリはこんな感じで自分の<code>Contributions</code>
-にも載ります。</p>
-
-<p><img src="/images/post/20130519_fork2.jpg" alt="" title="" /></p>
-
-<h2 id="Forkしたレポジトリをclone">Forkしたレポジトリをclone</h2>
-
-<p>Forkしたレポジトリをローカルにcloneして変更を行います。</p>
-
-<p>通常のレポジトリ同様、リモートのアドレスを確認してcloneします。</p>
-
-<p><img src="/images/post/20130519_clone.jpg" alt="" title="" /></p>
-
-<pre><code>git clone git@github.com:rcmdnk/jekyll-emoji.git
-</code></pre>
-
-<p>GUIアプリでやっている人はそちらで。</p>
-
-<h2 id="作業用ブランチを作って変更を適用する">作業用ブランチを作って変更を適用する</h2>
-
-<p>色々な所で書かれてますが、Pull Requestを送る時は作業用のブランチを
-作ってそちらからリクエストを送るのが良い様です。</p>
-
-<p>今回の様な頻繁に更新されない様なレポジトリに対して、
-ちょっとした変更を送るだけならあまり気にすることではないと思いますが、
-オリジナルが頻繁に更新されるような場合や自分の変更に時間がかかる場合は、
-Masterブランチをオリジナルの変更を追うためのブランチとして活用する、
-というのが１つの理由です。</p>
-
-<p>今回は外部へemojiディレクトリを置く、と言うことで<code>external</code>と言うブランチを
-作りました。</p>
-
-<pre><code>cd jekyll-emoji
-git checkout -b external
-</code></pre>
-
-<p>これで<code>external</code>ブランチに移ったのでゴニョゴニョと変更します。</p>
-
-<h2 id="変更をcommitしてリモートへpush">変更をcommitしてリモートへpush</h2>
-
-<pre><code>git commit -am "add external flags"
-git push origin external
-</code></pre>
-
-<p>これでGitHubのレポジトリに<code>external</code>ブランチが出来ます。</p>
-
-<h2 id="Pull+Requestを送る">Pull Requestを送る</h2>
-
-<p>GitHubに戻り変更を行ったレポジトリのページからPull Requestを送ります。
-作業を行ったブランチへ変更し、ページ上部の<code>Pull Request</code>
-ボタンを押すとPull Requestをするページに移動するので、
-適宣コメントを書いてリクエストを送ります。</p>
-
-<p><img src="/images/post/20130519_pull_request_external.jpg" alt="" title="" /></p>
-
-<h2 id="オリジナルの作者とやり取りしながら変更を取り込んでもらう">オリジナルの作者とやり取りしながら変更を取り込んでもらう</h2>
-
-<p>Pull Requestを送ると、
-<a href="https://github.com/chriskempson/jekyll-emoji/pull/2">このような</a>
-ページでやりとりを行える様になります。</p>
-
-<p>ここで作者とやり取りしながら適宣修正して取り込んでもらうようにします。</p>
-
-<p>もし、自分の変更をさらに修正したい場合は単に自分のレポジトリの該当ブランチを
-アップデートすれば(<code>commit&amp;push</code>)そのまま相手にも伝わります。</p>
-
-<p>今回は２回程アップデートをした上で取り込んでもらいました。
-(２回目は単なるバグでしたが...)</p>
-
-<h1 id="まとめ">まとめ</h1>
-
-<p>今回は小さなアップデートだったので簡単なことしかしていませんが、
-さらに数回に渡ってコミットした後に送る場合や、
-オリジナルのアップデートがあってそれを取り込んだりすることが
-必要になる場合がありますが、
-それらについて、さらに詳しい説明は以下のページがとてもわかり易かったです。</p>
-
-<blockquote><p>Ref: <a href="http://d.hatena.ne.jp/hnw/20110528">GitHubへpull requestする際のベストプラクティス</a></p></blockquote>
-
-<p>ちなみに、commitの説明文て、動詞を現在形と過去形とどっちで書くのが
-正しいのだろう、とたまに考えながら、でも殆ど気にせず
-気が向く方で書いていたのですが(上の変更でも最初は<code>add</code>で次は<code>fixed</code>)
-どうなんでしょう?
-職場に居るネイティブの人達も人によって違ったりするので
-語学的な感覚でもどっちでもありみたいですが、
-どっちでも良いから最初にガイドラインを作っておいてそれに従う、
-と言うようにするべきなんでしょうね、多分。</p>
-
-<blockquote><p>Ref: <a href="http://agpg.seesaa.net/article/279123617.html">続: コミットログは現在形?過去形?それとも?</a></p></blockquote>
+<p>とすればOK。</p>
 
 <p></p>
 
 <hr />
 
-<p></p>
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="http://git-scm.com/book/ja/Git-%e3%81%ae%e5%9f%ba%e6%9c%ac-%e3%82%bf%e3%82%b0">2.6 Git の基本 - タグ</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="http://www.goodpic.com/mt/archives2/2010/08/github_tgzzip.html">GitHub でタグを打って tgz/zip アーカイブ をダウンロードできるようにする</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p><a href="http://d.hatena.ne.jp/kanonji/20110304/1299211488">gitでタグをチェックアウトする。</a>
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="http://cdn8.atwikiimg.com/git_jp/pub/git-manual-jp/Documentation/chunked/ch01s02.html">プロジェクトの他のバージョンのチェックアウト方法</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="http://qiita.com/usamik26/items/7e53bae128bf130b8a32"> git でリモートのタグやブランチを削除する方法 </a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
 ]]></content>
   </entry>
   
