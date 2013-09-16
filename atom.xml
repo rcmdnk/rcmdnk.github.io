@@ -5,7 +5,7 @@
   <link href="http://rcmdnk.github.io/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
   <link href="http://rcmdnk.superfeedr.com/" rel="hub"/>
-  <updated>2013-09-16T21:05:32+02:00</updated>
+  <updated>2013-09-17T01:45:00+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -13,6 +13,237 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew用のパッケージの簡単な作り方#Mac #Homebrew]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew/"/>
+    <updated>2013-09-17T21:53:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/0937381578/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/51M44AG9ZGL._SL160_.jpg" border="0"></a></p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-brewall">Brewall</a>
+をGitHubに置いてHomebrew(+tap)で管理できる様にした方法についてのメモ。
+<a href="https://github.com/andrew/brewdler">Brewdler</a>を参考にしています。
+(というかそれ以上の事はしてない。。。)</p>
+
+<!-- more -->
+
+
+<br class="clearBoth">
+
+
+
+
+<h1>Contents</h1>
+
+
+<p>
+ <ul>
+ <li><a href="#レポジトリを作る">レポジトリを作る</a> </li>
+ <li><a href="#インストールするファイルの作成">インストールするファイルの作成</a> </li>
+ <li><a href="#Formulaを作る">Formulaを作る</a> </li>
+ <li><a href="#タグを作る">タグを作る</a> </li>
+ <li><a href="#Homebrewでインストールしてみる">Homebrewでインストールしてみる</a> </li>
+ <li><a href="#Brewallで管理">Brewallで管理</a> </li>
+ <li><a href="#アップデート">アップデート</a> </li>
+ </ul>
+
+</p>
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+
+
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+<h1 id="レポジトリを作る">レポジトリを作る</h1>
+
+<p>今回はインストールするパッケージと、Homebrew用のFormulaを
+一緒のレポジトリに入れてしまうので、
+1つのレポジトリだけ作ります。</p>
+
+<p>レポジトリ名は、tapするため、必ず<code>homebrew-</code>から始まる名前にします<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。
+今回作ったのは<a href="https://github.com/rcmdnk/homebrew-brewall">rcmdnk/homebrew-brewall</a>という名前のレポジトリ。</p>
+
+<h1 id="インストールするファイルの作成">インストールするファイルの作成</h1>
+
+<p>今回作るのはmakeとか必要なく、すでに用意されてる<code>bin</code>ディレクトリ等から
+コピーするだけのものです。
+今回は実行スクリプトだけなので、<code>bin/brewall</code>と<code>bin</code>ディレクトリに
+実行ファイルを置いただけ。</p>
+
+<h1 id="Formulaを作る">Formulaを作る</h1>
+
+<p>brewall用のFormulaはこんな感じ。</p>
+
+<figure class='code'><figcaption><span>brewall.rb  </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;formula&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">HOMEBREW_BREWALL_VERSION</span> <span class="o">=</span> <span class="s1">&#39;0.0.1&#39;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Brewall</span> <span class="o">&lt;</span> <span class="no">Formula</span>
+</span><span class='line'>  <span class="n">homepage</span> <span class="s1">&#39;https://github.com/rcmdnk/homebrew-brewall/&#39;</span>
+</span><span class='line'>  <span class="n">url</span> <span class="s1">&#39;https://github.com/rcmdnk/homebrew-brewall.git&#39;</span><span class="p">,</span> <span class="ss">:tag</span> <span class="o">=&gt;</span> <span class="s2">&quot;v</span><span class="si">#{</span><span class="no">HOMEBREW_BREWALL_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="n">version</span> <span class="no">HOMEBREW_BREWALL_VERSION</span>
+</span><span class='line'>  <span class="n">head</span> <span class="s1">&#39;https://github.com/rcmdnk/homebrew-brewall.git&#39;</span><span class="p">,</span> <span class="ss">:branch</span> <span class="o">=&gt;</span> <span class="s1">&#39;master&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">skip_clean</span> <span class="s1">&#39;bin&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">install</span>
+</span><span class='line'>    <span class="n">prefix</span><span class="o">.</span><span class="n">install</span> <span class="s1">&#39;bin&#39;</span>
+</span><span class='line'>    <span class="p">(</span><span class="n">bin</span><span class="o">+</span><span class="s1">&#39;brewall&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">chmod</span> <span class="mo">0755</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Brewall</code>というクラスを作って行きます。</p>
+
+<ul>
+<li><code>homepage</code>は参照できる情報があるページ。(今回はGitHubレポジトリにREADMEがあるのでレポジトリそのもの)</li>
+<li><code>url</code>はパッケージを取得する<code>url</code>。gitのURLの場合は自動的に<code>git</code>を使って取って来てくれる。
+必要なときは取得方法を指定<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。gitのURLの時、<code>tag</code>を上の様に指定すると
+masterブランチでなく指定の<code>tag</code>を取ってくる。<code>branch</code>の指定も可能。</li>
+<li><code>version</code>はパッケージのパージョンです。<code>brew update</code>すると、
+<code>tap</code>で取ってきたFormulaもすべてGitHub上でmasterブランチに更新があればFormulaを更新する。
+その後、<code>brew upgrade</code>した時、Formulaにある<code>version</code>と現在インストールされてる
+<code>version</code><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>が違う場合更新を行う。新しいタグを作ったり<code>/bin/brewall</code>自体に
+更新があったとしても<code>brew upgrade</code>では更新してくれない。あくまでFormulaベースでの確認。
+
+<ul>
+<li>Brewdlerをマネて、<code>HOMEBREW_BREWALL_VERSION</code>という変数を使ってversionを管理。
+tag名は<code>v</code>+<code>version number</code>となるように。</li>
+</ul>
+</li>
+<li><code>head</code>は<code>brew install brewall --HEAD</code>の様に<code>HEAD</code>を指定した時に何を取ってくるかの指定。
+gitの場合では通常はmasterブランチを指定。</li>
+<li><code>skip_clean</code><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>は<code>clean</code>時にスキップするディレクトリの指定。Homeberwはインストール途中で
+コンパイルなどを行ったあとに一旦<code>bin</code>以下のバイナリや<code>lib</code>以下の<code>.dylibs</code>に対してリンクを外す、及び空のディレクトリを削除cleanupするが、
+この時、今回の様に元々<code>bin</code>ディレクトリがあってそこからコピーしてインストールしたいような場合、
+この時点でこの作業が行われると上手くいかない時がある。上の例で<code>skip_clean</code>に<code>bin</code>を指定しておかないと、
+<code>brewall</code>コマンド自体は<code>/usr/local/Cellar/brewall/0.0.1/bin/breall</code>にインストールされて
+<code>/usr/local/bin</code>にもリンクはできるが、途中で行ってるchmodが効かずに実行不能なファイルのままになる。</li>
+<li><code>install</code>内でインストール方法を指定する。
+今回は単純に<code>bin</code>ディレクトリをインストールしたいだけなので、
+<code>prefix.install 'bin'</code>だけでOK。<code>lib</code>や<code>install</code>がある場合はそれらも<code>prefix.install lib</code>
+等と書けば<code>Cellar</code>以下に実体がインストールされて<code>/usr/local/lib</code>等に
+リンクが貼られる。
+
+<ul>
+<li><code>(bin+'brewall').chmod 0755</code>で<code>bin/brewall</code>を実行可能ファイルに。</li>
+<li><code>configure</code>や<code>make</code>が必要なパッケージの場合もここで実行コマンドを記述する。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>この内容を記述したファイルを<code>brewall.rb</code>などとしてtapするレポジトリに入れておくと、
+tap後、このファイル名<code>brewall</code>が<code>brew install</code>で入れられるパッケージの名前として
+登録されます。</p>
+
+<h1 id="タグを作る">タグを作る</h1>
+
+<p>Homebrewで<code>updata</code>/<code>upgrade</code>で簡単に更新を適用するためにはタグを作っておくと便利です。
+上でFormulaで指定したように<code>v</code>+<code>version number</code>のタグを作ります<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<p>上で作業をひと通り終えたあとで</p>
+
+<pre><code>$ git add .
+$ git commit -m "initial import"
+$ git push # push master branch
+$ git tag -a v0.0.1 -m "first tag"
+$ git tag --tag # push tag
+</code></pre>
+
+<p>こんな感じでmasterブランチを送ったあと、masterブランチの現在のスナップショットで
+tagを作って送ります。</p>
+
+<h1 id="Homebrewでインストールしてみる">Homebrewでインストールしてみる</h1>
+
+<pre><code>$ brew tap rcmdnk/breall
+$ brew search brewall
+brewall
+$ brew install brewall
+</code></pre>
+
+<h1 id="Brewallで管理">Brewallで管理</h1>
+
+<p>Brewall自身の場合は鶏が先か卵が先かになってしまいますが、それ以外の場合は</p>
+
+<pre><code>$ brewall -e # open Brewfile
+...
+tapall 'rcmdnk/brewall'
+...
+$ brewall
+</code></pre>
+
+<p>と、Brewfileに<code>tapall</code>でレポジトリを加えて<code>brewall</code>すれば
+レポジトリにある全てのFormulaeに対して<code>brew install</code>まで実行します。</p>
+
+<h1 id="アップデート">アップデート</h1>
+
+<p>パッケージのレポジトリ自体は通常、変更を行っても<code>brew update</code>/<code>brew upgrade</code>で
+更新されません。<code>--HEAD</code>オプションを使ってインストールするときは
+最新のmasterがインストールされますが、この場合もupgradeなどでは更新されません。
+(<code>--HEAD</code>を使うといずれにしろ<code>upgrade</code>ではアップデート出来ない。)</p>
+
+<p>更新がある程度まとまったら、新たにタグを作り、Formula内のバージョンも
+上げてpushします。</p>
+
+<p>これで、</p>
+
+<pre><code>$ brew update
+$ brew upgrade
+</code></pre>
+
+<p>の作業で自動的に新しいタグの内容が反映されます。</p>
+
+<hr />
+
+<div class="footnotes">
+    <ol>
+        <li id='fn:1'><p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="https://github.com/mxcl/homebrew/wiki/Formula-Cookbook#specifying-the-download-strategy-explicitly">Formula Cookbook#Specifying the Download Strategy explicitly</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p>各パッケージは<code>/usr/local/Cellar/brewall/0.0.1/</code>な感じでバージョン名のディレクトリにインストールされてます。
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="https://github.com/adamv/homebrew-cookbook/blob/master/topics/06_anatomy_of_a_formula.md#skip_clean">Anatomy of a Formula#skip_clean</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="http://rcmdnk.github.io/blog/2013/09/16/computer-git/">Gitでタグを使う</a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+    </ol>
+</div>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Gitでタグを使う]]></title>
@@ -3783,291 +4014,6 @@ luaを有効に出来るので充分ですが、もしソースから直接コ�
     <ol>
         <li id='fn:1'><p><a href="http://supermomonga.com/2013/07/03/macvim-with-lua-features/">最新パッチ＆if_luaなMacVimで高速検索＆補完！</a>
 <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li>
-    </ol>
-</div>
-
-
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[pacoでmake installしたパッケージを管理]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac/"/>
-    <updated>2013-08-04T09:00:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/08/04/computer-linux-mac</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/8484640825/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/61moyMmCoxL._SL160_.jpg" border="0"></a></p>
-
-<p>Linuxでapt-get、Macで<a href="http://rcmdnk.github.io/blog/2013/06/21/computer-mac/">Homebrew</a>、
-Cygwinで<a href="http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>
-などでパッケージ管理出来ますが、
-ソースからコンパイルして入れる場合やroot権限を持ってない環境で
-<code>make install</code>して入れているパッケージが結構あります。</p>
-
-<p>これら、適当なログはのこしてありますが、実際どのファイルが
-どのパッケージに対応しているのかまでは分からなかったりします。</p>
-
-<p>そんな中で<code>make install</code>で入れるパッケージを管理するための
-<a href="http://paco.sourceforge.net/">paco</a>と言うソフトを見つけたで入れてみました。</p>
-
-<!-- more -->
-
-
-<br class="clearBoth">
-
-
-
-
-<h1>Contents</h1>
-
-
-<p>
- <ul>
- <li><a href="#pacoのインストール">pacoのインストール</a>
-  <ul>
-  <li><a href="#pacoの使い方">pacoの使い方</a>  </li>
-  <li><a href="#すでにインストールされたパッケージについて">すでにインストールされたパッケージについて</a>  </li>
-  </ul>
- </li>
- </ul>
-
-</p>
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-
-
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-<h1 id="pacoのインストール">pacoのインストール</h1>
-
-<p>pacoの<a href="http://paco.sourceforge.net/downloads.html">Downloads</a>
-ページから最新版のバージョンを確認してダウンロードしてインストールします。</p>
-
-<pre><code>$ wget -O paco-2.0.9.tar.gz http://sourceforge.net/projects/paco/files/paco/2.0.9/paco-2.0.9.tar.gz/download
-$ tar xzf paco-2.0.9.tar.gz
-$ cd paco-2.0.9
-$ ./configure --prefix=$HOME/usr/local --disable-gpaco --with-paco-logdir=$HOME/usr/local/var/log/paco
-</code></pre>
-
-<p>ここで、<code>--disable-gpaco</code>はGUI版のpacoを無効にしています。
-GUI版をインストールするためには
-gtkmmが必要で、インストールされてない状態で<code>--disbale-gpaco</code>オプションを
-入れないと</p>
-
-<pre><code>...
-No package 'gtkmm-2.4' found 
-...
-</code></pre>
-
-<p>等と怒られます。<code>gtkmm</code>を入れても良いのですが、
-GUI版を使う予定がないのでオプションで外しておきます。</p>
-
-<p><code>--with-paco-logdir</code>はpacoでインストールされたパッケージ情報を管理するファイルの場所で、
-初期値が<code>/var/log/paco</code>になっていて、root権限が無いと書き込めないので、
-変更しておきます。</p>
-
-<p>この変更をしておかないと、root権限以外で<code>make install</code>した時に</p>
-
-<pre><code>mkdir: /var/log/paco: Permission denied
-</code></pre>
-
-<p>と怒られます。</p>
-
-<p>configureできたら</p>
-
-<pre><code>$ make &amp;&amp; make install
-</code></pre>
-
-<p>でインストール完了。</p>
-
-<p>Macで使えない、と言った話もいくつか見かけましたが、Macでも問題なく使えます。</p>
-
-<p>pacoのページを見ると</p>
-
-<pre><code>Note:
-Paco does not work on systems in which the executables involved in the installation of the packages (mv, cp, install...) are statically linked against libc, like FreeBSD and OpenBSD.
-</code></pre>
-
-<p>とありますが、その上の表で<code>NetBSD</code>では使える様になっています。</p>
-
-<p>OS Xのベースの<a href="http://ja.wikipedia.org/wiki/Darwin_(%e3%82%aa%e3%83%9a%e3%83%ac%e3%83%bc%e3%83%86%e3%82%a3%e3%83%b3%e3%82%b0%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0)">Darwin</a>はFreeBSDベース、となってますが、
-NetBSDからも受け継いでる部分はあり<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup><sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>、
-そもそもシステムとして別物の様な物みたいですが
-取り敢えず手元のLionでは問題なく動いてます。</p>
-
-<p>Macでmvを調べてみると</p>
-
-<pre><code>$ otool -L /bin/mv
-/bin/mv:
-        /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 159.1.0)
-</code></pre>
-
-<p>と言った感じでlibSystemという名の共有ライブラリ<sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>だけにリンクしています。
-(ので、上の注意にあるFreeBSDの様な状況には当たらない。)</p>
-
-<p>Linuxだと(Debianなど)、</p>
-
-<pre><code>$ ldd /bin/mv
-...
-libc.so.6 =&gt; /lib/libc.so.6 (0xb7746000)
-...
-</code></pre>
-
-<p>と言った感じでlibcの共有ライブラリにリンクしていて、
-Cygwinなんかはまた別ですが、libcの静的ライブラリにはリンクしてません。</p>
-
-<p>FreeBSDが手元にないのでわかりませんがMacとはmvの状況が少し違うみたいです。</p>
-
-<h2 id="pacoの使い方">pacoの使い方</h2>
-
-<p>ここで、まず自分自身をパッケージコントロールするため、
-pacoのインストール用パッケージディレクトリ(makeした場所)で</p>
-
-<pre><code>$ make logme
-</code></pre>
-
-<p>を実行します。これでpaco自身が登録されます。</p>
-
-<p>他のパッケージを登録するには<code>make install</code>する代わりに</p>
-
-<pre><code>$ paco -lp vim-7.4b "make install"
-</code></pre>
-
-<p>など。
-もし、Makefileがあるディレクトリがpacoの様にパッケージ名だったりする場合、</p>
-
-<pre><code>$ paco -lD "make install"
-</code></pre>
-
-<p>の様に<code>D</code>オプションを使うと、ディレクトリ名がパッケージ名として登録されます。
-version情報もここでの<code>-</code>以降になるので、
-ディレクトリにバージョン情報がない場合でバージョンを把握してる場合は
-<code>p</code>オプションで正しく指定して置いた方が良いかもしれません。</p>
-
-<p>Vimなどは<code>src</code>以下にMakefileがあるので<code>D</code>オプションでやってしまうと
-<code>src</code>と言うなのパッケージで登録されてしまうので注意です。
-もし、間違って登録したら、
-<code>$HOME/usr/local/var/log/paco/src</code>と言うファイルが出来て居るはずなので、
-このファイルを<code>vim-7.4b</code>に名前を変えて、
-中身の<code>Name</code>と<code>Version</code>項目を</p>
-
-<pre><code>#:Name:     vim
-#:Version:  7.4b
-</code></pre>
-
-<p>と変更しておきます。</p>
-
-<p>登録されたパッケージ一覧を表示するには</p>
-
-<pre><code>$ paco -a
-paco-2.0.9 vim-7.4b
-</code></pre>
-
-<p>各パッケージの情報を見るには
-<code>paco -i &lt;package&gt;</code>:</p>
-
-<pre><code>$ paco -i paco
-------------
-paco-2.0.9
-------------
-
-Name:     paco
-Version:  2.0.9
-Summary:  Source code package organizer
-</code></pre>
-
-<p><code>&lt;package&gt;</code>に関してはversion入(<code>paco-2.0.9</code>)でもversion無し(<code>paco</code>)でもOK。
-ここで出てくる情報の</p>
-
-<p>インストール時に使ったconfigureのオプションを表示するには
-<code>paco -o &lt;package&gt;</code>:</p>
-
-<pre><code>$ paco -o paco
---prefix=/home/user/usr/local --disable-gpaco --with-paco-logdir=/home/user/usr/local/var/log/paco
-</code></pre>
-
-<p>インストールされたファイル一覧とファイルサイズ等を見るには</p>
-
-<pre><code>$ paco -fst paco
-paco-2.0.9:
-  8k  /home/user/usr/local/share/paco/README
- 40k  /home/user/usr/local/lib/libpaco-log.a
-  4k  /home/user/usr/local/lib/libpaco-log.la
-...
-1.3M  Total
-</code></pre>
-
-<p>とします。</p>
-
-<pre><code>$ paco -r paco
-</code></pre>
-
-<p>とすれば、上で表示されたファイル全部を消去するパッケージのアンインストールを行います。
-(多分これが一番嬉しい機能。)</p>
-
-<p>その他詳しくは<a href="http://paco.sourceforge.net/doc/paco.8.txt">pacoのmanページ</a>で。</p>
-
-<h2 id="すでにインストールされたパッケージについて">すでにインストールされたパッケージについて</h2>
-
-<p>pacoは<code>make install</code>時の情報を元に管理情報を作成するので、
-すでにインストールされているパッケージについては情報を作る簡単な
-方法はありません。</p>
-
-<p>ソースが残っていれば再度<code>paco -lp &lt;package&gt; "make install"</code>
-するのが一番簡単です。</p>
-
-<p>無理矢理情報を追加しようと思えば、
-<code>$HOME/usr/local/var/log/paco</code>にある他のパッケージのファイルを参考に、
-各パッケージのファイルを作ってあげれば良いと思うのですが
-すでに複数パッケージを同じディレクトリ下にインストールしてある場合は
-結構面倒です。</p>
-
-<p>各パッケージ情報のファイルの中身はconfigure情報などの後に、
-ファイル一覧が</p>
-
-<pre><code>ファイル名|サイズ|-2|-2
-</code></pre>
-
-<p>の様になっていて、サイズは適当でも良いのでファイル名だけすべて
-入れておけばアンインストールは簡単に出来ます。
-もしあるディレクトリ下に1つのパッケージしかインストールされてない状態なら、
-ファイル一覧が簡単に作れるので、サイズは適当でもいいから
-登録しておくだけでもよいかもしれませんが、
-すでに複数ある場合は名前だけから判断するのも難しいファイルもあるので、
-次にインストールし直すときに登録しなおすか
-同じものでも<code>make install</code>し直す方が結果的には楽で正しく出来るかな、と。</p>
-
-<hr />
-
-<p>追記 2013/08/11</p>
-
-<p><a href="http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin/">stowでmake installしたパッケージを管理</a>でstowを導入してみましたが、
-新しいバージョンなどをテストしたりするのにstowだと簡単に元に戻したりできるので、
-stowのが便利かな、と思いstowに全面的に移行。</p>
-
-<p>追記終わり</p>
-
-<hr />
-
-<div class="footnotes">
-    <ol>
-        <li id='fn:1'><p><a href="http://www.netbsd.org/gallery/products.html#darwin">Products based on NetBSD</a>
-  <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li><li id='fn:2'><p><a href="http://en.wikipedia.org/wiki/Comparison_of_BSD_operating_systems">Comparison of BSD operating systems</a>
-  <a href='#fnref:2' rev='footnote'>↩</a></p>
-</li><li id='fn:3'><p><a href="http://d.hatena.ne.jp/kanonji/20121018/1350538932">.soや.dylibや.aファイル、共有ライブラリなどについて調べてみた</a>
-<a href='#fnref:3' rev='footnote'>↩</a></p>
 </li>
     </ol>
 </div>

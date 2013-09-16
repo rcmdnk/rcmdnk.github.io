@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: Mac | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/mac/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-16T21:05:32+02:00</updated>
+  <updated>2013-09-17T01:45:00+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -12,6 +12,226 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew用のパッケージの簡単な作り方#Mac #Homebrew]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew/"/>
+    <updated>2013-09-17T21:53:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/0937381578/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/51M44AG9ZGL._SL160_.jpg" border="0"></a></p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-brewall">Brewall</a>
+をGitHubに置いてHomebrew(+tap)で管理できる様にした方法についてのメモ。
+<a href="https://github.com/andrew/brewdler">Brewdler</a>を参考にしています。
+(というかそれ以上の事はしてない。。。)</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="レポジトリを作る">レポジトリを作る</h1>
+
+<p>今回はインストールするパッケージと、Homebrew用のFormulaを
+一緒のレポジトリに入れてしまうので、
+1つのレポジトリだけ作ります。</p>
+
+<p>レポジトリ名は、tapするため、必ず<code>homebrew-</code>から始まる名前にします<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。
+今回作ったのは<a href="https://github.com/rcmdnk/homebrew-brewall">rcmdnk/homebrew-brewall</a>という名前のレポジトリ。</p>
+
+<h1 id="インストールするファイルの作成">インストールするファイルの作成</h1>
+
+<p>今回作るのはmakeとか必要なく、すでに用意されてる<code>bin</code>ディレクトリ等から
+コピーするだけのものです。
+今回は実行スクリプトだけなので、<code>bin/brewall</code>と<code>bin</code>ディレクトリに
+実行ファイルを置いただけ。</p>
+
+<h1 id="Formulaを作る">Formulaを作る</h1>
+
+<p>brewall用のFormulaはこんな感じ。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>brewall.rb  </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;formula&#39;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;HOMEBREW_BREWALL_VERSION = &#39;0.0.1&#39;</span>
+</span><span class='line'><span class="sr">class Brewall &amp;lt; Formula</span>
+</span><span class='line'><span class="sr">  homepage &#39;https:/</span><span class="o">/</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">/</span><span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">  url &#39;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">.</span><span class="n">git</span><span class="s1">&#39;, :tag =&gt; &quot;v#{HOMEBREW_BREWALL_VERSION}&quot;</span>
+</span><span class='line'><span class="s1">  version HOMEBREW_BREWALL_VERSION</span>
+</span><span class='line'><span class="s1">  head &#39;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">.</span><span class="n">git</span><span class="s1">&#39;, :branch =&gt; &#39;</span><span class="n">master</span><span class="s1">&#39;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;p&gt;  skip_clean &#39;</span><span class="n">bin</span><span class="s1">&#39;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;p&gt;  def install&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;pre&gt;&lt;code&gt;prefix.install &#39;</span><span class="n">bin</span><span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">(bin+&#39;</span><span class="n">brewall</span><span class="err">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">chmod</span> <span class="mo">0755</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>Brewall</code>というクラスを作って行きます。</p>
+
+<ul>
+<li><code>homepage</code>は参照できる情報があるページ。(今回はGitHubレポジトリにREADMEがあるのでレポジトリそのもの)</li>
+<li><code>url</code>はパッケージを取得する<code>url</code>。gitのURLの場合は自動的に<code>git</code>を使って取って来てくれる。
+必要なときは取得方法を指定<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。gitのURLの時、<code>tag</code>を上の様に指定すると
+masterブランチでなく指定の<code>tag</code>を取ってくる。<code>branch</code>の指定も可能。</li>
+<li><code>version</code>はパッケージのパージョンです。<code>brew update</code>すると、
+<code>tap</code>で取ってきたFormulaもすべてGitHub上でmasterブランチに更新があればFormulaを更新する。
+その後、<code>brew upgrade</code>した時、Formulaにある<code>version</code>と現在インストールされてる
+<code>version</code><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>が違う場合更新を行う。新しいタグを作ったり<code>/bin/brewall</code>自体に
+更新があったとしても<code>brew upgrade</code>では更新してくれない。あくまでFormulaベースでの確認。
+
+<ul>
+<li>Brewdlerをマネて、<code>HOMEBREW_BREWALL_VERSION</code>という変数を使ってversionを管理。
+tag名は<code>v</code>+<code>version number</code>となるように。</li>
+</ul>
+</li>
+<li><code>head</code>は<code>brew install brewall --HEAD</code>の様に<code>HEAD</code>を指定した時に何を取ってくるかの指定。
+gitの場合では通常はmasterブランチを指定。</li>
+<li><code>skip_clean</code><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>は<code>clean</code>時にスキップするディレクトリの指定。Homeberwはインストール途中で
+コンパイルなどを行ったあとに一旦<code>bin</code>以下のバイナリや<code>lib</code>以下の<code>.dylibs</code>に対してリンクを外す、及び空のディレクトリを削除cleanupするが、
+この時、今回の様に元々<code>bin</code>ディレクトリがあってそこからコピーしてインストールしたいような場合、
+この時点でこの作業が行われると上手くいかない時がある。上の例で<code>skip_clean</code>に<code>bin</code>を指定しておかないと、
+<code>brewall</code>コマンド自体は<code>/usr/local/Cellar/brewall/0.0.1/bin/breall</code>にインストールされて
+<code>/usr/local/bin</code>にもリンクはできるが、途中で行ってるchmodが効かずに実行不能なファイルのままになる。</li>
+<li><code>install</code>内でインストール方法を指定する。
+今回は単純に<code>bin</code>ディレクトリをインストールしたいだけなので、
+<code>prefix.install 'bin'</code>だけでOK。<code>lib</code>や<code>install</code>がある場合はそれらも<code>prefix.install lib</code>
+等と書けば<code>Cellar</code>以下に実体がインストールされて<code>/usr/local/lib</code>等に
+リンクが貼られる。
+
+<ul>
+<li><code>(bin+'brewall').chmod 0755</code>で<code>bin/brewall</code>を実行可能ファイルに。</li>
+<li><code>configure</code>や<code>make</code>が必要なパッケージの場合もここで実行コマンドを記述する。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>この内容を記述したファイルを<code>brewall.rb</code>などとしてtapするレポジトリに入れておくと、
+tap後、このファイル名<code>brewall</code>が<code>brew install</code>で入れられるパッケージの名前として
+登録されます。</p>
+
+<h1 id="タグを作る">タグを作る</h1>
+
+<p>Homebrewで<code>updata</code>/<code>upgrade</code>で簡単に更新を適用するためにはタグを作っておくと便利です。
+上でFormulaで指定したように<code>v</code>+<code>version number</code>のタグを作ります<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<p>上で作業をひと通り終えたあとで</p>
+
+<pre><code>$ git add .
+$ git commit -m "initial import"
+$ git push # push master branch
+$ git tag -a v0.0.1 -m "first tag"
+$ git tag --tag # push tag
+</code></pre>
+
+<p>こんな感じでmasterブランチを送ったあと、masterブランチの現在のスナップショットで
+tagを作って送ります。</p>
+
+<h1 id="Homebrewでインストールしてみる">Homebrewでインストールしてみる</h1>
+
+<pre><code>$ brew tap rcmdnk/breall
+$ brew search brewall
+brewall
+$ brew install brewall
+</code></pre>
+
+<h1 id="Brewallで管理">Brewallで管理</h1>
+
+<p>Brewall自身の場合は鶏が先か卵が先かになってしまいますが、それ以外の場合は</p>
+
+<pre><code>$ brewall -e # open Brewfile
+...
+tapall 'rcmdnk/brewall'
+...
+$ brewall
+</code></pre>
+
+<p>と、Brewfileに<code>tapall</code>でレポジトリを加えて<code>brewall</code>すれば
+レポジトリにある全てのFormulaeに対して<code>brew install</code>まで実行します。</p>
+
+<h1 id="アップデート">アップデート</h1>
+
+<p>パッケージのレポジトリ自体は通常、変更を行っても<code>brew update</code>/<code>brew upgrade</code>で
+更新されません。<code>--HEAD</code>オプションを使ってインストールするときは
+最新のmasterがインストールされますが、この場合もupgradeなどでは更新されません。
+(<code>--HEAD</code>を使うといずれにしろ<code>upgrade</code>ではアップデート出来ない。)</p>
+
+<p>更新がある程度まとまったら、新たにタグを作り、Formula内のバージョンも
+上げてpushします。</p>
+
+<p>これで、</p>
+
+<pre><code>$ brew update
+$ brew upgrade
+</code></pre>
+
+<p>の作業で自動的に新しいタグの内容が反映されます。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="https://github.com/mxcl/homebrew/wiki/Formula-Cookbook#specifying-the-download-strategy-explicitly">Formula Cookbook#Specifying the Download Strategy explicitly</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p>各パッケージは<code>/usr/local/Cellar/brewall/0.0.1/</code>な感じでバージョン名のディレクトリにインストールされてます。
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="https://github.com/adamv/homebrew-cookbook/blob/master/topics/06_anatomy_of_a_formula.md#skip_clean">Anatomy of a Formula#skip_clean</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="/blog/2013/09/16/computer-git/">Gitでタグを使う</a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Brewallにtapall追加]]></title>
@@ -893,323 +1113,6 @@ cask 'firefox'
   <a href='#fnref:4' rev='footnote'>↩</a></p>
 </li><li id='fn:5'><p><a href="https://github.com/phinze/homebrew-cask/blob/master/USAGE.md">homebrew-cask/USAGE.md</a>
 <a href='#fnref:5' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[stowでmake installしたパッケージを管理]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin/"/>
-    <updated>2013-08-11T03:53:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/08/11/computer-linux-windows-cygwin</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/B003KOAR0G/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41PYjDYaZvL._SL160_.jpg" border="0"></a></p>
-
-<p><a href="/blog/2013/08/04/computer-linux-mac/">pacoでmake installしたパッケージを管理</a>
-で書いた様に、Linux(WindowsのcoLinuxも含む)で
-make installしたパッケージも管理出来る様にしましたが、
-Cygwinにもpacoを入れようとした所コンパイル出来なかったので
-代わりにstowと言うインストーラーを入れました。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="Cygwinではpacoをコンパイル出来ない">Cygwinではpacoをコンパイル出来ない</h1>
-
-<p>pacoのパッケージを取ってきてCygwinでコンパイルしようとすると</p>
-
-<pre><code>log.c:67:20: error: ‘RTLD_NEXT’ undeclared (first use in this function)
-</code></pre>
-
-<p>と言った様なエラーが出てコンパイル出来ないのですが、これはglibcが入ってないからですが、
-Cygwinではglibcは入れられない様です<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。</p>
-
-<p>いくつかそれっぽいものはありましたが<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>、素直に入れることは
-出来なそうなのでpacoは辞めておくことに。</p>
-
-<h1 id="stow">stow</h1>
-
-<p><a href="http://www.gnu.org/software/stow/">stow</a>はpacoと同じ様な<code>make install</code>などで
-<code>apt-get</code>などを通さず直接インストールするパッケージを管理する
-インストーラーです。</p>
-
-<h2 id="paco+v.s.+stow">paco v.s. stow</h2>
-
-<p>pacoとstowの違いは</p>
-
-<ul>
-<li>paco: <code>/usr/local/var/log/paco</code>等のディレクトリ以下にパッケージ名情報ファイルを作り、
-その情報を元にインストールされたファイルを管理する。</li>
-<li>stow: <code>/usr/local/stow/</code>等のディレクトリ以下にパッケージ名ディレクトリを作り、
-その中にパッケージをインストールする。
-そこから<code>/usr/local/</code>などへリンクを張る。</li>
-</ul>
-
-
-<p>pacoでインストールした場合は、パッケージ自体は通常通りインストールされるので、<code>/usr/local/var/log/paco</code>自体を削除しても問題有りません。</p>
-
-<p>stowの場合は<code>/usr/local/</code>へはリンクが貼られるだけなので
-通常インストールとは形が変わります。
-一方、stowは<code>/usr/local/stow/</code>からのリンクを管理するので、
-例えば1つのパッケージでバージョンの違う物を両方インストールしておいて、
-一時的に切り替える事が簡単に出来ます。
-新しいバージョンを入れて取り敢えず試してみる、と言うことができるので、
-その点でstowが結構便利かもしれません。</p>
-
-<h2 id="stowインストール">stowインストール</h2>
-
-<ul>
-<li>Cygwin</li>
-</ul>
-
-
-<p><a href="/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>で</p>
-
-<pre><code>$ apt-cyg install stow
-</code></pre>
-
-<ul>
-<li>Mac</li>
-</ul>
-
-
-<p><a href="/blog/2013/06/21/computer-mac/">Homebrew</a>で</p>
-
-<pre><code>$ brew install stow
-</code></pre>
-
-<ul>
-<li>Linux</li>
-</ul>
-
-
-<p>apt-getなど。root権限がないところでローカルに入れる場合は自分もstowで管理。</p>
-
-<pre><code>$ cd ~/tmp/
-$ wget http://ftp.gnu.org/gnu/stow/stow-2.2.0.tar.gz
-$ tar xzf stow-2.2.0.tar.gz
-$ cd stow-2.2.0
-$ ./configure --prefix=$HOME/usr/local/stow/stow-2.2.0
-$ make &amp;&amp; make install
-$ cd ~/usr/local/stow
-$ ./stow-2.2.0/bin/stow stow-2.2.0
-</code></pre>
-
-<h2 id="stowの使い方">stowの使い方</h2>
-
-<p>まず、stowで管理するパッケージをインストールするディレクトリを決めておきます。
-通常は最終的にインストールするディレクトリ下にstowというディレクトリを作ります。
-(上の場合は<code>$HOME/usr/local/</code>に<code>bin/stow</code>などをインストールするので
-<code>$HOME/usr/local/stow</code>ディレクトリを作って入れています。)</p>
-
-<p>パッケージをインストールする際は、prefix等でインストール先を
-<code>$HOME/usr/local/stow</code>+<code>パッケージ名</code>に指定して後は通常通りインストールします。</p>
-
-<p>インストール後、stowディレクトリへ行き、</p>
-
-<pre><code>$ stow package
-</code></pre>
-
-<p>とすることで、package内から<code>../</code>の<code>/bin/</code>等へリンクが張られます。</p>
-
-<p>アンインストールは</p>
-
-<pre><code>$ stow -D package
-</code></pre>
-
-<p>とするとリンクが削除されます。パッケージがその後必要なければ
-stowディレクトリから実体も削除すればOK。</p>
-
-<p>バージョンの違う同じパッケージをインストールしてる場合は</p>
-
-<pre><code>$ stow -D package-1.0
-$ stow package-2.0
-</code></pre>
-
-<p>の様にすれば1.0から2.0へ切り替える事が出来、
-実体は残ったままなので、同じ様に1.0に戻る事もすぐ出来ます。</p>
-
-<pre><code>$ stow -n package-2.0
-</code></pre>
-
-<p>とすると、ドライランすることが出来ます。</p>
-
-<p>通常は、カレントディレクトリがstowディレクトリ、親ディレクトリが
-リンクを作るインストール先ですが、これを変えたい場合は</p>
-
-<ul>
-<li><code>-d stow_dir</code>、<code>--dir=stow_dir</code>でstowディレクトリを指定。</li>
-<li><code>-t target_dir</code>、<code>--target=target_dir</code>でインストール先ディレクトリを指定。</li>
-</ul>
-
-
-<p>します。ただ、pacoの場合と違い、これらの情報は残らないので、
-特別指定した場合はアンインストールする場合も指定する必要があるので、
-管理上、最終的なインストール先の下にstowディレクトリを作るのが良いかと思います。</p>
-
-<h2 id="すでにインストールしてあるパッケージに対してstowで再インストールする場合">すでにインストールしてあるパッケージに対してstowで再インストールする場合</h2>
-
-<p>すでにパッケージがインストールしてあると、
-リンクでなく実体が存在するのでstowでリンクを作ろうとすると
-エラーが出ます。
-(<code>-D</code>で削除しようとするとリンクじゃない、と言って削除してくれない。)
-一旦それらのファイルを削除しないとstowで管理しようがないみたいで、
-結構面倒です。</p>
-
-<p>そこで<a href="https://github.com/rcmdnk/scripts/blob/master/stowReset.sh">stowReset.sh</a>
-と言うスクリプトを作りました。</p>
-
-<p>使い方は、まず、インストールしたいパッケージをstowディレクトリに
-インストールした後、
-stowディレクトリに行き、</p>
-
-<pre><code>$ stowReset.sh package
-</code></pre>
-
-<p>とすると、packageに関連するファイルが親ディレクトリから削除されます。
-stow同様に<code>-d</code>、<code>-t</code>、<code>-n</code>のオプションが使えます(<code>--dir</code>等2重ハイフンオプションは未対応)。</p>
-
-<p>その後、通常通り、</p>
-
-<pre><code>$ stow package
-</code></pre>
-
-<p>とすればリンクを作れる様になります。</p>
-
-<h1 id="まとめ">まとめ</h1>
-
-<p>pacoに比べて、新しいバージョンのテスト等にも便利に使えそうなので、
-MacやLinuxでもpacoからstowへ移行しようと思います。</p>
-
-<p>pacoだとconfigureの引数等の情報がそのまま残るのでちょっと便利ですが、
-その点はちゃんとメモするようにしておけばOKかな、と。</p>
-
-<hr />
-
-<p>追記 2013/08/28</p>
-
-<p><strike>暫く使ってみて問題発見。stowだと、<code>~/usr/local/stow</code>の下にパッケージディレクトリを置いて、
-そこから<code>~/usr/local/</code>へリンクを張るわけですが、その際、例えば
-<code>~/usr/local/bin</code>がある場合はその下からリンクを作り始め、一方<code>bin</code>ディレクトリが
-ない場合は<code>bin</code>自体がリンクになってしまうみたいです。</p>
-
-<p>つまり、最初に何も<code>~/usr/local/</code>にない状態で<code>vim</code>などをインストールすると、
-<code>~/usr/local/bin</code>が<code>~/usr/local/stow/vim/bin</code>などへのシンボリックリンクになってしまいます。
-こうなると、次に別のソフトをインストールするときに実質的に<code>~/usr/local/stow/vim/bin</code>内に
-シンボリックリンクを置くことになってしまうので<code>~/usr/local/stow/vim/</code>を削除してしまうと
-<code>~/usr/local/bin</code>自体がリンク切れになってしまいますし、vimをアップデートすると他のソフトのインストールが消えます。</p>
-
-<p>stowのインストールでディレクトリはリンクでなく必ず掘る様にして、
-また、アンインストール時はディレクトリ内に何も無いときに限り消す、みたいなラッパーを作れば良いのだと思うのですが。。。
-(sourceコード直接いじった方が楽かな。。。？)そのうちなんとかしたい所。
-できればpacoみたいにconfigureオプションを保存出来る様になればなおもよしですが。。。
-</strike></p>
-
-<hr />
-
-<hr />
-
-<p>さらに追記 2013/08/29</p>
-
-<p>stowは意外と賢かったです。マニュアルを見たらこの辺をきちんと処理する様になってることが
-分かりました。</p>
-
-<p>最初にインストールする時は最も上位のディレクトリだけのリンクを作ろうとして
-これを<code>folding</code>と呼んでいます。</p>
-
-<p>で、<code>~/usr/local/bin</code>等が<code>~/usr/local/stow/vim/bin</code>などへのシンボリックリンクの
-状態で、次にgit等をインストールすると、<code>bin</code>がシンボリックだと言う事を理解して、
-まず、vimへのリンクを消し、新たにディレクトリを作り、
-その中にvimとgitの<code>bin</code>内のコンテンツへのリンクを作りなおしてくれます。</p>
-
-<p>逆に、<code>stow -D</code>で削除していく時も、中身が1つのパッケージだけになったディレクトリは
-まとめてシンボリックリンクに変えられます。</p>
-
-<p>自分でディレクトリを作ってしまったりするとこのアンインストール時に
-無駄にディレクトリを残してしまうことが有ります。
-(2つ以上のパッケージが同じディレクトリを使っていると、アンインストールしていって
-最後の1つになった時にそのディレクトリをシンボリックリンクにしてくれますが、
-最初から1つしか無いとそのディレクトリはパッケージをアンインストールしても残ってしまいます。)</p>
-
-<p>なので、基本的に<code>bin</code>等を自分で作るべきではないです。</p>
-
-<p>これに関連するオプションで<code>--no-folding</code>というオプションが有ります(<code>stow -h</code>では記述を忘れてるのか出て来ない)。
-このオプションをインストール時につけると、所謂上で間違って指摘していたような、
-各ディレクトリをシンボリックリンクでなく全て掘り下げる様に作ってくれます。
-ただ、これをしてしまうとアンインストール時にからディレクトリのゴミが残ります。</p>
-
-<p>また、<code>--no-folding</code>をアンインストール時に使うと、仮にそのディレクトリ内が
-1つのパッケージだけになるような場合でもシンボリックリンクに変えたりしないで
-そのまま残します。
-この場合も後々アンインストールするときにゴミが残るような状態になります。</p>
-
-<p>ので、特別理由がない限りあまり使うことはなさそうです。</p>
-
-<p>他に、<code>--adopt</code>というオプションもあり、ちょっと特殊な動きをします。
-通常、stowでインストールするとき、上に書いたように、先にシンボリックリンクでない
-普通のファイルがインストールされていると上書きできずにエラーとなります。
-しかし、このオプションを使うと、もし、通常ファイルがある場合、
-<code>そのファイルをstowディレクトリにあるパッケージにコピーした上でシンボリックリンクを作る</code>、という動きをします。</p>
-
-<p>ここで注意しなければいけないのは、もともとパッケージに入っているファイルが上書きされることです。
-つまり、古いファイルが残っていて、それを上書きできる様なオプションではありません。</p>
-
-<p>このオプションの使い道としては、上で作っった<code>stowReset.sh</code>を使わなくてはいけない様な状況で、
-パッケージをstowディレクトリにインストール後、一度そのコピーを作り、
-そのコピーパッケージでadoptし、その後、オリジナルのパッケージをrestowする、とかでしょうか？</p>
-
-<pre><code>$ pwd
-~/usr/local/stow
-$ ls
-vim
-$ cp -r vim vim.tmp
-$ stow --adopt vim.tmp &amp;&amp; stow -D vim.tmp &amp;&amp; rm -rf stow.tmp
-$ stow vim
-</code></pre>
-
-<p>これで、<code>stowReset.sh</code>でやってることとだいたい同じことが出来ます。</p>
-
-<p>ただし、パッケージ内にシンボリックリンクが元々入ってる場合があり
-(ライブラリーや実行ファイルの別名など)それらは<code>--adopt</code>しようとすると
-他のパッケージに管理されてるとみなされて無視されます。
-従ってそのまま残り新しくインストール出来ません。その場合には<code>stowRest.sh</code>を
-使ってみてください。
-(数ファイルだけだと思うので、その際には手作業でもいいかもしれませんが。)</p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p><a href="http://cygwin.com/faq.html#faq.programming.glibc">Where is glibc?</a>
-  <a href='#fnref:1' rev='footnote'>↩</a></p>
-</li><li id='fn:2'><p><a href="http://www.gurucoding.com/en/pc_cross_compiler/building_glibc_cygwin_vm.php">Building GLibc in the Cygwin VM</a>
-  <a href='#fnref:2' rev='footnote'>↩</a></p>
-</li><li id='fn:3'><p><a href="http://artfiles.org/cygwin.org/pub/glibc/releases/">Index of /cygwin.org/pub/glibc/releases</a>
-<a href='#fnref:3' rev='footnote'>↩</a></p>
 </li>
 	</ol>
 </div>

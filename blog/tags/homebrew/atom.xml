@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: Homebrew | rcmdnk's blog]]></title>
   <link href="http://rcmdnk.github.io/blog/tags/homebrew/atom.xml" rel="self"/>
   <link href="http://rcmdnk.github.io/"/>
-  <updated>2013-09-16T21:05:32+02:00</updated>
+  <updated>2013-09-17T01:45:00+02:00</updated>
   <id>http://rcmdnk.github.io/</id>
   <author>
     <name><![CDATA[rcmdnk]]></name>
@@ -12,6 +12,226 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew用のパッケージの簡単な作り方#Mac #Homebrew]]></title>
+    <link href="http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew/"/>
+    <updated>2013-09-17T21:53:00+02:00</updated>
+    <id>http://rcmdnk.github.io/blog/2013/09/17/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/0937381578/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/51M44AG9ZGL._SL160_.jpg" border="0"></a></p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-brewall">Brewall</a>
+をGitHubに置いてHomebrew(+tap)で管理できる様にした方法についてのメモ。
+<a href="https://github.com/andrew/brewdler">Brewdler</a>を参考にしています。
+(というかそれ以上の事はしてない。。。)</p>
+
+<!-- more -->
+
+
+<p><br class="clearBoth">
+
+<h1>Contents</h1>
+{:TOC}
+
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3802317723662375";
+/* imgRectMid */
+google_ad_slot = "9043394444";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+
+
+
+</p>
+
+<h1 id="レポジトリを作る">レポジトリを作る</h1>
+
+<p>今回はインストールするパッケージと、Homebrew用のFormulaを
+一緒のレポジトリに入れてしまうので、
+1つのレポジトリだけ作ります。</p>
+
+<p>レポジトリ名は、tapするため、必ず<code>homebrew-</code>から始まる名前にします<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>。
+今回作ったのは<a href="https://github.com/rcmdnk/homebrew-brewall">rcmdnk/homebrew-brewall</a>という名前のレポジトリ。</p>
+
+<h1 id="インストールするファイルの作成">インストールするファイルの作成</h1>
+
+<p>今回作るのはmakeとか必要なく、すでに用意されてる<code>bin</code>ディレクトリ等から
+コピーするだけのものです。
+今回は実行スクリプトだけなので、<code>bin/brewall</code>と<code>bin</code>ディレクトリに
+実行ファイルを置いただけ。</p>
+
+<h1 id="Formulaを作る">Formulaを作る</h1>
+
+<p>brewall用のFormulaはこんな感じ。</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>brewall.rb  </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;formula&#39;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;HOMEBREW_BREWALL_VERSION = &#39;0.0.1&#39;</span>
+</span><span class='line'><span class="sr">class Brewall &amp;lt; Formula</span>
+</span><span class='line'><span class="sr">  homepage &#39;https:/</span><span class="o">/</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">/</span><span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">  url &#39;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">.</span><span class="n">git</span><span class="s1">&#39;, :tag =&gt; &quot;v#{HOMEBREW_BREWALL_VERSION}&quot;</span>
+</span><span class='line'><span class="s1">  version HOMEBREW_BREWALL_VERSION</span>
+</span><span class='line'><span class="s1">  head &#39;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rcmdnk</span><span class="o">/</span><span class="n">homebrew</span><span class="o">-</span><span class="n">brewall</span><span class="o">.</span><span class="n">git</span><span class="s1">&#39;, :branch =&gt; &#39;</span><span class="n">master</span><span class="s1">&#39;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;p&gt;  skip_clean &#39;</span><span class="n">bin</span><span class="s1">&#39;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;p&gt;  def install&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">&lt;pre&gt;&lt;code&gt;prefix.install &#39;</span><span class="n">bin</span><span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">(bin+&#39;</span><span class="n">brewall</span><span class="err">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">chmod</span> <span class="mo">0755</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>Brewall</code>というクラスを作って行きます。</p>
+
+<ul>
+<li><code>homepage</code>は参照できる情報があるページ。(今回はGitHubレポジトリにREADMEがあるのでレポジトリそのもの)</li>
+<li><code>url</code>はパッケージを取得する<code>url</code>。gitのURLの場合は自動的に<code>git</code>を使って取って来てくれる。
+必要なときは取得方法を指定<sup id='fnref:2'><a href='#fn:2' rel='footnote'>2</a></sup>。gitのURLの時、<code>tag</code>を上の様に指定すると
+masterブランチでなく指定の<code>tag</code>を取ってくる。<code>branch</code>の指定も可能。</li>
+<li><code>version</code>はパッケージのパージョンです。<code>brew update</code>すると、
+<code>tap</code>で取ってきたFormulaもすべてGitHub上でmasterブランチに更新があればFormulaを更新する。
+その後、<code>brew upgrade</code>した時、Formulaにある<code>version</code>と現在インストールされてる
+<code>version</code><sup id='fnref:3'><a href='#fn:3' rel='footnote'>3</a></sup>が違う場合更新を行う。新しいタグを作ったり<code>/bin/brewall</code>自体に
+更新があったとしても<code>brew upgrade</code>では更新してくれない。あくまでFormulaベースでの確認。
+
+<ul>
+<li>Brewdlerをマネて、<code>HOMEBREW_BREWALL_VERSION</code>という変数を使ってversionを管理。
+tag名は<code>v</code>+<code>version number</code>となるように。</li>
+</ul>
+</li>
+<li><code>head</code>は<code>brew install brewall --HEAD</code>の様に<code>HEAD</code>を指定した時に何を取ってくるかの指定。
+gitの場合では通常はmasterブランチを指定。</li>
+<li><code>skip_clean</code><sup id='fnref:4'><a href='#fn:4' rel='footnote'>4</a></sup>は<code>clean</code>時にスキップするディレクトリの指定。Homeberwはインストール途中で
+コンパイルなどを行ったあとに一旦<code>bin</code>以下のバイナリや<code>lib</code>以下の<code>.dylibs</code>に対してリンクを外す、及び空のディレクトリを削除cleanupするが、
+この時、今回の様に元々<code>bin</code>ディレクトリがあってそこからコピーしてインストールしたいような場合、
+この時点でこの作業が行われると上手くいかない時がある。上の例で<code>skip_clean</code>に<code>bin</code>を指定しておかないと、
+<code>brewall</code>コマンド自体は<code>/usr/local/Cellar/brewall/0.0.1/bin/breall</code>にインストールされて
+<code>/usr/local/bin</code>にもリンクはできるが、途中で行ってるchmodが効かずに実行不能なファイルのままになる。</li>
+<li><code>install</code>内でインストール方法を指定する。
+今回は単純に<code>bin</code>ディレクトリをインストールしたいだけなので、
+<code>prefix.install 'bin'</code>だけでOK。<code>lib</code>や<code>install</code>がある場合はそれらも<code>prefix.install lib</code>
+等と書けば<code>Cellar</code>以下に実体がインストールされて<code>/usr/local/lib</code>等に
+リンクが貼られる。
+
+<ul>
+<li><code>(bin+'brewall').chmod 0755</code>で<code>bin/brewall</code>を実行可能ファイルに。</li>
+<li><code>configure</code>や<code>make</code>が必要なパッケージの場合もここで実行コマンドを記述する。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>この内容を記述したファイルを<code>brewall.rb</code>などとしてtapするレポジトリに入れておくと、
+tap後、このファイル名<code>brewall</code>が<code>brew install</code>で入れられるパッケージの名前として
+登録されます。</p>
+
+<h1 id="タグを作る">タグを作る</h1>
+
+<p>Homebrewで<code>updata</code>/<code>upgrade</code>で簡単に更新を適用するためにはタグを作っておくと便利です。
+上でFormulaで指定したように<code>v</code>+<code>version number</code>のタグを作ります<sup id='fnref:5'><a href='#fn:5' rel='footnote'>5</a></sup>。</p>
+
+<p>上で作業をひと通り終えたあとで</p>
+
+<pre><code>$ git add .
+$ git commit -m "initial import"
+$ git push # push master branch
+$ git tag -a v0.0.1 -m "first tag"
+$ git tag --tag # push tag
+</code></pre>
+
+<p>こんな感じでmasterブランチを送ったあと、masterブランチの現在のスナップショットで
+tagを作って送ります。</p>
+
+<h1 id="Homebrewでインストールしてみる">Homebrewでインストールしてみる</h1>
+
+<pre><code>$ brew tap rcmdnk/breall
+$ brew search brewall
+brewall
+$ brew install brewall
+</code></pre>
+
+<h1 id="Brewallで管理">Brewallで管理</h1>
+
+<p>Brewall自身の場合は鶏が先か卵が先かになってしまいますが、それ以外の場合は</p>
+
+<pre><code>$ brewall -e # open Brewfile
+...
+tapall 'rcmdnk/brewall'
+...
+$ brewall
+</code></pre>
+
+<p>と、Brewfileに<code>tapall</code>でレポジトリを加えて<code>brewall</code>すれば
+レポジトリにある全てのFormulaeに対して<code>brew install</code>まで実行します。</p>
+
+<h1 id="アップデート">アップデート</h1>
+
+<p>パッケージのレポジトリ自体は通常、変更を行っても<code>brew update</code>/<code>brew upgrade</code>で
+更新されません。<code>--HEAD</code>オプションを使ってインストールするときは
+最新のmasterがインストールされますが、この場合もupgradeなどでは更新されません。
+(<code>--HEAD</code>を使うといずれにしろ<code>upgrade</code>ではアップデート出来ない。)</p>
+
+<p>更新がある程度まとまったら、新たにタグを作り、Formula内のバージョンも
+上げてpushします。</p>
+
+<p>これで、</p>
+
+<pre><code>$ brew update
+$ brew upgrade
+</code></pre>
+
+<p>の作業で自動的に新しいタグの内容が反映されます。</p>
+
+<hr />
+
+<p><div class="footnotes">
+	<ol>
+		<li id='fn:1'><p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>
+  <a href='#fnref:1' rev='footnote'>↩</a></p>
+</li><li id='fn:2'><p><a href="https://github.com/mxcl/homebrew/wiki/Formula-Cookbook#specifying-the-download-strategy-explicitly">Formula Cookbook#Specifying the Download Strategy explicitly</a>
+  <a href='#fnref:2' rev='footnote'>↩</a></p>
+</li><li id='fn:3'><p>各パッケージは<code>/usr/local/Cellar/brewall/0.0.1/</code>な感じでバージョン名のディレクトリにインストールされてます。
+  <a href='#fnref:3' rev='footnote'>↩</a></p>
+</li><li id='fn:4'><p><a href="https://github.com/adamv/homebrew-cookbook/blob/master/topics/06_anatomy_of_a_formula.md#skip_clean">Anatomy of a Formula#skip_clean</a>
+  <a href='#fnref:4' rev='footnote'>↩</a></p>
+</li><li id='fn:5'><p><a href="/blog/2013/09/16/computer-git/">Gitでタグを使う</a>
+<a href='#fnref:5' rev='footnote'>↩</a></p>
+</li>
+	</ol>
+</div>
+</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Brewallにtapall追加]]></title>
@@ -888,290 +1108,6 @@ $ stow vim
   <a href='#fnref:2' rev='footnote'>↩</a></p>
 </li><li id='fn:3'><p><a href="http://artfiles.org/cygwin.org/pub/glibc/releases/">Index of /cygwin.org/pub/glibc/releases</a>
 <a href='#fnref:3' rev='footnote'>↩</a></p>
-</li>
-	</ol>
-</div>
-</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Lua対応Vimをインストール]]></title>
-    <link href="http://rcmdnk.github.io/blog/2013/08/07/computer-vim/"/>
-    <updated>2013-08-07T20:36:00+02:00</updated>
-    <id>http://rcmdnk.github.io/blog/2013/08/07/computer-vim</id>
-    <content type="html"><![CDATA[<p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/4048677977/rcmdnk0c-22/ref=nosim/" rel="nofollow" target="_blank" ><img class="left" src="http://ecx.images-amazon.com/images/I/41otNZcUklL._SL160_.jpg" border="0"></a></p>
-
-<p>Vimでの補完機能のプラグインである<a href="https://github.com/Shougo/neocomplcache.vim">neocompletecache</a>
-の後継版<a href="https://github.com/Shougo/neocomplete.vim">neocomplete</a>
-を使うためにVimを再インストールした際の手順。
-<a href="http://www.lua.org/home.html">Lua</a>自体がない環境もあったので、
-Luaのインストールからです。</p>
-
-<!-- more -->
-
-
-<p><br class="clearBoth">
-
-<h1>Contents</h1>
-{:TOC}
-
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-3802317723662375";
-/* imgRectMid */
-google_ad_slot = "9043394444";
-google_ad_width = 336;
-google_ad_height = 280;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
-
-
-
-
-</p>
-
-<h1 id="Linux">Linux</h1>
-
-<ul>
-<li>su権限持っていないのでローカルにluaをインストール:</li>
-</ul>
-
-
-<p><a href="http://www.lua.org/ftp/">luaのダウンロードページ</a>より最新のを取ってきてインストール。
-取り敢えずmakeしてみるとエラーがでた。</p>
-
-<pre><code>$ cd ~/tmp/
-$ wget http://www.lua.org/ftp/lua-5.2.2.tar.gz
-$ tar xzf lua-5.2.2.tar.gz
-$ cd lua-5.2.2
-$ make linux
-...
-make[1]: Entering directory `/home/user/tmp/lua-5.2.2/src'
-make all SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl -lreadline"
-make[2]: Entering directory `/home/user/tmp/lua-5.2.2/src'
-gcc -o lua   lua.o liblua.a -lm -Wl,-E -ldl -lreadline-
-/usr/lib/../lib64/libreadline.so: undefined reference to `PC'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tgetflag'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tgetent'
-/usr/lib/../lib64/libreadline.so: undefined reference to `UP'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tputs'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tgoto'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tgetnum'
-/usr/lib/../lib64/libreadline.so: undefined reference to `BC'
-/usr/lib/../lib64/libreadline.so: undefined reference to `tgetstr'
-collect2: ld returned 1 exit status
-make[2]: *** [lua] Error 1
-make[2]: Leaving directory `/home/user/tmp/lua-5.2.2/src'
-make[1]: *** [linux] Error 2
-make[1]: Leaving directory `/home/user/tmp/lua-5.2.2/src'
-make: *** [linux] Error 2
-</code></pre>
-
-<p>libreadlineを調べてみると</p>
-
-<pre><code>$ ldd -r /usr/lib64/libreadline.so
-        linux-vdso.so.1 =&gt;  (0x00007fffbe3aa000)
-        /$LIB/snoopy.so =&gt; /lib64/snoopy.so (0x00002b2a6a387000)
-        libc.so.6 =&gt; /lib64/libc.so.6 (0x00002b2a6a5af000)
-        libdl.so.2 =&gt; /lib64/libdl.so.2 (0x00002b2a6a907000)
-        /lib64/ld-linux-x86-64.so.2 (0x00002b2a69f29000)
-undefined symbol: PC    (/usr/lib64/libreadline.so)
-undefined symbol: UP    (/usr/lib64/libreadline.so)
-undefined symbol: BC    (/usr/lib64/libreadline.so)
-undefined symbol: tgetflag      (/usr/lib64/libreadline.so)
-undefined symbol: tgetent       (/usr/lib64/libreadline.so)
-undefined symbol: tputs (/usr/lib64/libreadline.so)
-undefined symbol: tgoto (/usr/lib64/libreadline.so)
-undefined symbol: tgetnum       (/usr/lib64/libreadline.so)
-undefined symbol: tgetstr       (/usr/lib64/libreadline.so)
-</code></pre>
-
-<p>こんな感じ。
-これに関することが
-<a href="http://lua.2524044.n2.nabble.com/ANN-Lua-5-2-2-rc1-now-available-td7646399i20.html">このthread</a>
-にあったので、個々にある通り<code>-ltermcap</code>を加えてみる。</p>
-
-<pre><code>$ make linux MYLIBS=-ltermcap
-</code></pre>
-
-<p>OK。<code>$HOME/usr/local</code>に<a href="/blog/2013/08/04/computer-linux-mac/">paco</a>に登録しつつインストール。</p>
-
-<pre><code>$ paco -D "make install INSTALL_TOP=$HOME/usr/local"
-</code></pre>
-
-<ul>
-<li>Vimをインストール</li>
-</ul>
-
-
-<p>ソースからコンパイルしてインストール。</p>
-
-<pre><code>$ cd ~/tmp/
-$ hg clone https://vim.googlecode.com/hg/ vim
-$ cd vim/src
-$ LDFLAGS="-L$HOME/usr/local/lib/" ./configure --with-lua-prefix=$HOME/usr/local --prefix=$HOME/usr/local --with-local-dir=$HOME/usr/local --disable-selinux --disable-xim --disable-darwin --disable-xsmp --disable-xsmp-interact --enable-netbeans --enable-multibyte --enable-gui=no --enable-gtk2-check=no --enable-gnome-check=no --enable-motif-check=no --enable-athena-check=no --enable-nextaw-check=no --enable-carbon-check=no --disable-gtktest --disable-acl --disable-gpm --disable-sysmouse --enable-luainterp=yes --enable-mzschemeinterp=no --enable-perlinterp=no --enable-pythoninterp=yes --enable-python3interp=yes --enable-tclinterp --enable-rubyinterp=yes --enable-cscope --disable-workshop --disable-sniff --enable-hangulinput --enable-fontset --enable-largefile --enable-nls
-</code></pre>
-
-<p><code>--enable-luainterp=yes</code>でluaオプションを有効にします。
-他は適宣自分に合わせて設定。</p>
-
-<p><code>LDFLAGS</code>や<code>--with-local-dir</code>で<code>$HOME/usr/local</code>にあるライブラリー等を使う様に
-指定してますが、lua用に
-<code>--with-lua-prefix=$HOME/usr/local</code>が別途必要の様。</p>
-
-<p>ちゃんとluaが見つかれば、<code>./configure</code>時に、</p>
-
-<pre><code>...
-checking if link with -L/home/user/usr/local/lib -llua is sane... yes
-...
-</code></pre>
-
-<p>の様に見つかった、と言ってくれます。
-<code>--with-lua-prefix</code>を指定しないと<code>/usr/</code>を見に行き、</p>
-
-<pre><code>checking --with-lua-prefix argument... no
-checking LUA_PREFIX environment var... not set, default to /usr
-checking --with-luajit... no
-checking for lua... (cached) /usr/bin/lua
-checking Lua version... (cached) 5.1
-checking if lua.h can be found in /usr/include... no
-checking if lua.h can be found in /usr/include/lua5.1... no
-</code></pre>
-
-<p>な感じで失敗します。</p>
-
-<p>configureが成功したら</p>
-
-<pre><code>$ make &amp;&amp; make install
-</code></pre>
-
-<ul>
-<li>PATHの設定</li>
-</ul>
-
-
-<p><code>$HOME/usr/local</code>にPATHが通ってない場合は以下の設定を<code>~/.bashrc</code>に加えておきます。</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc  </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;export <span class="nv">PATH</span><span class="o">=</span><span class="nv">$HOME</span>/usr/local/bin:<span class="nv">$PATH</span>
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<h1 id="Windows+(Cygwin)">Windows (Cygwin)</h1>
-
-<ul>
-<li>setup.exeを使うか<a href="http://rcmdnk.github.io/blog/2013/06/24/computer-windows-git-cygwin/">apt-cyg</a>
-でluaをインストール:</li>
-</ul>
-
-
-<p>apt-cygで</p>
-
-<pre><code>$ apt-cyg install lua
-</code></pre>
-
-<ul>
-<li>Vimのインストール</li>
-</ul>
-
-
-<p>現状のCygwinで配布されてるバイナリが1-1110, 1112-1152のパッチが当たっていて、
-さらにLua対応でビルドされてるので、
-最近インストールしたなら対応しているはずです。</p>
-
-<p>もし対応してなかったり古い場合は取り直し。</p>
-
-<p>apt-cygには<code>update</code>と言ったコマンドが無いので、一度削除してから入れなおします。</p>
-
-<pre><code>$ apt-cyg remove vim
-</code></pre>
-
-<p>そして新たにインストール:</p>
-
-<pre><code>$ apt-cyg install vim
-</code></pre>
-
-<h1 id="Mac">Mac</h1>
-
-<ul>
-<li><a href="/blog/2013/06/21/computer-mac/">Homebrew</a>を使ってLuaをインストール:</li>
-</ul>
-
-
-<p>Homebrewでluaを</p>
-
-<pre><code>$ brew install lua
-</code></pre>
-
-<ul>
-<li>HomebrewでMacVimのHEADバージョンをインストール<sup id='fnref:1'><a href='#fn:1' rel='footnote'>1</a></sup>:</li>
-</ul>
-
-
-<p>さらにvimも</p>
-
-<pre><code>$ brew install macvim --with-cscope --with-lua --HEAD
-$ sudo ln -s /usr/local/Cellar/macvim/HEAD/MacVim.app /Applications/
-</code></pre>
-
-<ul>
-<li>ターミナル等から使うため<code>~/.bashrc</code>に次を追加:</li>
-</ul>
-
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.bashrc  </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h1 <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;For+MacVim&quot;</span>&gt;For MacVim&lt;/h1&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;if <span class="o">[[</span> <span class="s2">&quot;$OSTYPE&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;darwin&quot;</span> <span class="o">]]</span> &amp;amp;&amp;amp; <span class="o">[</span> -d /Applications/MacVim.app/Contents/MacOS <span class="o">]</span>;<span class="k">then</span>
-</span><span class='line'><span class="k">  </span><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>/Applications/MacVim.app/Contents/MacOS:<span class="nv">$PATH</span>
-</span><span class='line'><span class="k">fi</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<ul>
-<li>ソースから直接コンパイルしてインストール</li>
-</ul>
-
-
-<p>Homebrew版でも現状7.4b版がHEADで使えて、さらに<code>--with-lua</code>オプションで
-luaを有効に出来るので充分ですが、もしソースから直接コンパイルして
-インストールしたい場合は</p>
-
-<pre><code>$ brew install mercurial
-</code></pre>
-
-<p>でMercurial(hg)をインストールしてから上のLinuxとかの様に<code>hg</code>でソースを取ってきて
-インストール。</p>
-
-<p></p>
-
-<hr />
-
-<p><div class="footnotes">
-	<ol>
-		<li id='fn:1'><p><a href="http://supermomonga.com/2013/07/03/macvim-with-lua-features/">最新パッチ＆if_luaなMacVimで高速検索＆補完！</a>
-<a href='#fnref:1' rev='footnote'>↩</a></p>
 </li>
 	</ol>
 </div>
