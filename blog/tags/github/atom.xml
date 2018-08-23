@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GitHub | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/github/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Read the Docsでsetup.pyのないプロジェクトのビルドがエラーになる件]]></title>
+    <link href="https://rcmdnk.com/blog/2018/07/08/computer-github-python/"/>
+    <updated>2018-07-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/07/08/computer-github-python</id>
+    <content type="html"><![CDATA[<p>Read the Docsは主にSphinxを使ってドキュメントを生成しホスティングしてくれるサービスで、
+GitHubのレポジトリと連携して自動でドキュメントを作成公開してくれたりします。</p>
+
+<p>しばらく前からRead the Docsを使ってるレポジトリで貼ってるバッチが<code>fail</code>を示して
+いたのですがそれの原因がわかったので直しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#read-the-docs" id="markdown-toc-read-the-docs">Read the Docs</a></li>
+  <li><a href="#ビルドが失敗する" id="markdown-toc-ビルドが失敗する">ビルドが失敗する</a></li>
+  <li><a href="#久々にread-the-docsを見てみて" id="markdown-toc-久々にread-the-docsを見てみて">久々にRead the Docsを見てみて</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="read-the-docs">Read the Docs</h2>
+
+<p>Read the Docsはオープンソースコミュニティーのためのドキュメントホスティングサービスで、</p>
+
+<p><a href="http://www.sphinx-doc.org/">Sphinx</a>
+というPython製のドキュメントビルダーを使って
+ドキュメントを生成し公開することが出来ます。</p>
+
+<p>SphinxはPythonの公式ドキュメントを作るのにも使われているものです。</p>
+
+<p>GitHubにあるレポジトリのツールのドキュメントなどで、
+下みたいなのを見たことがあるかもしれません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160501_alabaster.jpg" alt="20160501_alabaster.jpg" class="pic" /></p>
+
+<p>これはSphinxを使って作られたもので、大概のものはRead the Docsを通じて
+公開されています。</p>
+
+<p>Sphinxの使い方やRead the Docsを使ってGitHubのレポジトリと連携する方法については以下を参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<h2 id="ビルドが失敗する">ビルドが失敗する</h2>
+
+<p>結構前からレポジトリに貼ってあるバッジが失敗を示していたので
+気にはなっていたのですが、
+それほどドキュメントを変更しているわけでもないのでとりあえず
+公開はされていたため無視していました。</p>
+
+<p>調べてみると昨年11月頃からのビルドがすべて失敗していました。</p>
+
+<p>今回ちょっとちゃんと見てみようと思って探してみたところ以下の様な
+Issueを発見。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rtfd/readthedocs.org/issues/3296">Builds don’t run because of setup.py - issue is happening suddenly · Issue #3296 · rtfd/readthedocs.org</a></p>
+</blockquote>
+
+<p>要はプロジェクト(レポジトリ)に<strong>setup.py</strong>がないと失敗する、ということ。</p>
+
+<p>実際に、Read the Docsの失敗しているレポジトリの管理ページに行ってみると
+<strong>ビルド</strong>のところで</p>
+
+<pre><code>python: can't open file 'setup.py': [Errno 2] No such file or directory
+</code></pre>
+
+<p>といったエラーで失敗していることがわかります。</p>
+
+<p>これを回避するためには<strong>setup.py</strong>を用意しても良いのですが、
+それも必要ない場合があります。(そもそもPythonのプロジェクトじゃないとか。)</p>
+
+<p>その場合、Read the Docs内で変更したいプロジェクトのページに行って、
+<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>高度な設定</strong>
+(もしくは表示されている<strong>Advanced Settings</strong>)へ行き、</p>
+
+<pre><code>Install your project inside a virtualenv using setup.py install
+</code></pre>
+
+<p>のところについているチェックを外します。</p>
+
+<p>これで<strong>setup.py</strong>を使わなくなるので失敗しなくなります。</p>
+
+<h2 id="久々にread-the-docsを見てみて">久々にRead the Docsを見てみて</h2>
+
+<p>Read the Docsの管理ページに久しぶりに行ってみましたが、
+以前はこの様な管理の項目が豊富にあったかな？と思うくらいいろいろと設定がありました。</p>
+
+<p>ビルドが失敗したときにメールで知らせる設定などもできるようになっています。
+(多分以前もあったのだろうけども。。。)</p>
+
+<p>Domain設定などで独自ドメインにすることも可能なようです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub PagesでカスタムドメインでもHTTPS化がサポートされた]]></title>
+    <link href="https://rcmdnk.com/blog/2018/05/02/blog-octopress-github/"/>
+    <updated>2018-05-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/05/02/blog-octopress-github</id>
+    <content type="html"><![CDATA[<p>GitHubのレポジトリにHTMLファイルを置いておくことで公開できる
+GitHub PagesというGitHubのサービスがありますが、
+このサービスでカスタムドメインのHTTPS化がサポートされました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-pages" id="markdown-toc-github-pages">GitHub Pages</a></li>
+  <li><a href="#github-pagesでのカスタムドメインのhttps化サポート" id="markdown-toc-github-pagesでのカスタムドメインのhttps化サポート">GitHub PagesでのカスタムドメインのHTTPS化サポート</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+  <li><a href="#その他ブログでやりたいこと" id="markdown-toc-その他ブログでやりたいこと">その他ブログでやりたいこと</a>    <ul>
+      <li><a href="#hugo化" id="markdown-toc-hugo化">Hugo化</a></li>
+      <li><a href="#netlify" id="markdown-toc-netlify">Netlify</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-pages">GitHub Pages</h2>
+
+<p>GitHubの特定のレポジトリ(<code>user.github.io</code>)を使ったりレポジトリ内の設定で
+特定のブランチを指定するとそのレポジトリに置かれたファイルを<strong>http://user.github.io</strong>という
+URLの元に公開できます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20161212_githubpageserr_120_90.jpg" width="120" height="90" alt="20161212_githubpageserr_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/">GitHub Pagesの仕様がアップデート: Jekyll/Octopressなどで直接ビルド後のサイトを送ってる場合にちょっと注意</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B004HCWUO6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B004HCWUO6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41f02sO4oML._SS90_CR0,0,120,90_.jpg" alt="Page" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/07/10/blog-octopress-githubpages/">GtHub Pagesについて</a></div></li></ul>
+
+<p>このブログもGitHub Pagesで公開しています。</p>
+
+<p>カスタムドメイン(独自ドメイン)を指定することも可能です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon200_120_90.png" width="120" height="90" alt="icon200_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/">rcmdnk.com: 独自ドメインになりました</a></div></li></ul>
+
+<p>ただし、<code>user.github.io</code>の方は2016年ころからHTTPS化のサポートが始まっていましたが
+独自ドメインではサポートされていませんでした。</p>
+
+<p><strong>https:…</strong>としてもアクセスできますが証明書の設定が出来ないので
+警告が出る状態になっていました。</p>
+
+<p>なのでカスタムドメインを使う場合にはCloudflareとかCDNを使って
+HTTPS化をするのがよく使われる手法になっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/03/blog-github-web/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170103_cloudflare_120_90.jpg" width="120" height="90" alt="20170103_cloudflare_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/03/blog-github-web/">CloudflareでGitHub PagesをHTTPS化</a></div></li></ul>
+
+<h2 id="github-pagesでのカスタムドメインのhttps化サポート">GitHub PagesでのカスタムドメインのHTTPS化サポート</h2>
+
+<p>そのGitHub PagesでついにカスタムドメインのHTTPS化のサポートが入りました。</p>
+
+<blockquote>
+  <p><a href="https://blog.github.com/2018-05-01-github-pages-custom-domains-https/">Custom domains on GitHub Pages gain support for HTTPS  The GitHub Blog</a></p>
+</blockquote>
+
+<p>上でポストにあるように、このブログではCNAMEを使った独自ドメイン化をしていますが
+その場合には特に何もしなくてもHTTPSでの接続を行った場合に警告無しで
+接続できるようになるようです。
+この証明書まわりは
+<a href="https://letsencrypt.org/">Let’s Encrypt</a>
+と提携してやっているとのこと。</p>
+
+<p>このままだと<strong>http://…</strong>でも接続できる状態ですが、
+設定で<strong>Enforce HTTPS</strong>をチェックすれば<strong>http://…</strong>に接続しても
+<strong>https://…</strong>に飛ばされる様になります。</p>
+
+<p>さらにはCDNを採用したということで
+より高速なアクセスができるようになったようです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>最近ではHTTPS化が標準とも言われる様な位になってきたので
+可能な限りWebサイトとかをHTTPS化したいところですが、
+GitHub Pagesでもこれでカスタムドメインを入れても簡単にHTTPS化できる様になりました。</p>
+
+<p>Cloudflareとかを使うと色々設定は出来ますが、
+GitHub PagesでもCDNも入ってるので敢えてCloudflareとかを使うメリットもそれほどなくなったかもしれません。</p>
+
+<p>このブログではせっかく設定したし変更し直すのも面倒なのでとりあえずは現行のまま
+GitHub Pages + Cloudflareで行こうと思いますが、
+新しくGitHub Pagesを使おうと思う場合にはGitHub Pagesだけで簡単にHTTPS化が出来て良いと思います。</p>
+
+<h2 id="その他ブログでやりたいこと">その他ブログでやりたいこと</h2>
+
+<h3 id="hugo化">Hugo化</h3>
+
+<p>HTTPS化はとりあえずはCloudflareで出来てるので良いとして、
+他にもいくつかこのブログで変更したら良いかもな、と思ってることがあります。</p>
+
+<p>一つはOctopressをやめて他のものに変更する、という方向。
+現在Octopress 2.Xを使っていますがもう3年くらい前にアップデートは止まっていて、
+3.0のプロジェクトも中途半端なママ2年前からアップデートがない状態です。</p>
+
+<blockquote>
+  <p><a href="https://github.com/octopress/octopress">octopress/octopress: Octopress 3.0 – Jekyll’s Ferrari</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/imathis/octopress">imathis/octopress: Octopress is an obsessively designed framework for Jekyll blogging. It’s easy to configure and easy to deploy. Sweet huh?</a></p>
+</blockquote>
+
+<p>中で使っているパーサーのJekyll自体はもちろんアップデートがあるのでそちらの更新は使えるし、
+プラグインとかやりたいことは大分自分独自で作っているものがあるので
+外側のOctopress自体はそれほど重要でもないかな、
+という感じもしますが、
+最近Jekyllの3.8.0が出て、これにアップデートしたところ自作プラグインがエラーを出すようになってしまいました。</p>
+
+<p>ちょっと見てみましたがかなりコアな部分の仕様変更があって一筋縄で対応できなかったので
+今はJekyll 3.7.Xを使う様にして対応しています。</p>
+
+<p>また、良く言われてたことですが、Octopress(というかJekyll)は大量にページがあると
+コンパイルするのに非常に時間がかかります。</p>
+
+<p>このブログでも既に800ページ以上ありますが、これを普通にやったら1時間以上かかります。
+なので割りと長くやってる人はそれに耐えられなくなって他に移っていく感じですが、
+一応このブログではちょっと工夫をして数分程度でサイトすべてを作れる様になっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>それでもローカルでちょちょっと作ってみるには大変な作業です。</p>
+
+<p>と、色々あるので他のものにしたいと思っていますが、
+一番の候補はHugoです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/gohugoio/hugo">gohugoio/hugo: The world’s fastest framework for building websites.</a></p>
+</blockquote>
+
+<p>もともとOctopressもその時期に一番流行っていた感のあるものだったので使ってみた感じですが、
+今静的サイトジェネレーターで一番キテる感じなのはHugoだと思います。</p>
+
+<p>Octopress(Jekyll)はRuby製でGitHubが出てきたというのにも関連して流行っていた感があったと思いますが、
+今はやはりGoでしょう、ということでHugoも注目を浴びてると思います。</p>
+
+<p>Octopressを使うことで普段使ってなかったRubyもある程度は使える様になったし、
+Hugoを使いながらGoを勉強できるのも良いな、という点も。</p>
+
+<p>ただ独自プラグインとか色々と手を入れてるので、
+用意されている変換コードとかだと問題が多発してしまうので
+変換ルールもある程度自分で作らないといけない、ということでまだ出来てません。</p>
+
+<p>そのうちやりたい。</p>
+
+<h3 id="netlify">Netlify</h3>
+
+<p>もう一つはGitHub Pagesを使い続けて良いのか、ということ。
+便利なんですが、もともとそれほど大きなトラフィックを想定して提供されているものではないため、
+またフリーで提供されているものなのである程度の制限があります。</p>
+
+<blockquote><p>GitHub Pages sites are subject to the following usage limits:</p><p>GitHub Pages source repositories have a recommended limit of 1GB .<br />Published GitHub Pages sites may be no larger than 1 GB.</p><p>GitHub Pages sites have a soft bandwidth limit of 100GB per month.</p><p>GitHub Pages sites have a soft limit of 10 builds per hour.</p><footer><strong>What is GitHub Pages? - User Documentation</strong> <cite><a href="https://help.github.com/articles/what-is-github-pages/#usage-limits">help.github.com/articles/&hellip;</a></cite></footer></blockquote>
+
+<p>以前はこれに加えて<strong>100GB per month</strong>のところが
+<strong>100GB or 100,000 requests per month</strong>
+みたいになっていて、
+よく言われていたのがGitHub Pagesは10万PVまで、ということでしたが
+今はその記述がなくなって単に帯域量だけの制限になっています。</p>
+
+<p>この制限がかかってもすぐにサイトが見れなくなるわけではなくて
+まずはサポートから連絡が来る、とあるので超えるか超えないか、
+という場合にはすぐに心配する必要はないと思います。</p>
+
+<p>ですがコンスタントに超え始めたら考えないといけません。</p>
+
+<p>また、レポジトリの制限として1GB程度ということなのですが、
+このサイトはまだ700MB位ですが最近大きな画像ファイル(80MB位)を
+送ろうとしたら大きすぎて駄目、と言われました。
+(<code>git push</code>時にエラーになる。)</p>
+
+<p>同じファイルを他のレポジトリに送ったところ問題なく送れました。</p>
+
+<p>一応GitHub的には100MBを目安に一つのファイルのサイズの制限があります。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/articles/what-is-my-disk-quota/">What is my disk quota? - User Documentation</a></p>
+</blockquote>
+
+<p>ですが一つのレポジトリである程度使っていくと
+一つのファイルサイズの制限もきつくなっていくようです。</p>
+
+<p>まあ、80MBのファイルはちょっとどうにかしなきゃいけないレベルではあるのですが。</p>
+
+<p>レポジトリの制限もあれですが、それ以上に帯域制限があるので
+他に移りたい、という人が結構居るようです。</p>
+
+<p>そんな中で最近、Netlifyというサービスがちょっと流行ってる模様で、
+GitHub Pagesから移った、という人が結構見られました。</p>
+
+<blockquote>
+  <p><a href="https://www.netlify.com/">Netlify: All-in-one platform for automating modern web projects.</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://photo-tea.com/p/17/netlify-github-pages-hexo/">Netlify移行記：GitHub Pagesから独自ドメイン＋Netlifyの引っ越しでやったこと  TPB</a></p>
+</blockquote>
+
+<p>Netlifyは静的サイトを簡単に公開できるサービスで、
+GitHubと連携してCIをNetlify側で動かしてサイトをデプロイしたりすることが出来ます。</p>
+
+<p>ただ、このCIは15分の制限があるらしく、Octopressで長くかかる場合にはちょっと厳しいかも。
+(このサイトなら多分大丈夫。)</p>
+
+<p>また、外からファイルを直接送ろうとした場合、APIを使って送ったりすると200リクエスト/分の制限があるので
+Zipとかでまとめて送ったりすることを考えないといけないとのこと。</p>
+
+<p>そんなこんなでも移って人が居るのは帯域制限がGitHub Pagesよりも大きいからということですが、
+制限としては<strong>100GB per month</strong>です。</p>
+
+<p>ただ、GitHub Pagesと量的には同じで、GitHub Pages側に
+<strong>100,000 requests per month</strong>が無くなったので実は現在は実質的に一緒なのかもしれません。</p>
+
+<p>そう考えるとあまり意味ないかも。</p>
+
+<p>あと、いずれにしろ、現在はCloudflareを使ってCDNを通して配信しているので
+そもそもこの辺の計算があまり意味をなしてません。</p>
+
+<p>なのでNetlifyはちょっと気になったのですが
+Cloudflareを使ってる以上あまり帯域自体は気にしなくても良いところだと思います。</p>
+
+<p>カスタムドメインのHTTPS化がサポートされたのでGitHub Pagesだけで配信しようと思うと
+多少気になるところですが、制限的にNetlifyの方が優れている、ということも今は無いようです。</p>
+
+<p>ということでこちらはとりあえず変更する意味は無いかな、といった感じです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Gitとかでタグを付けるときのバージョニングについて(Semantic Versioning)]]></title>
+    <link href="https://rcmdnk.com/blog/2017/10/07/computer-git-github/"/>
+    <updated>2017-10-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/10/07/computer-git-github</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0198700032?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0198700032&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xTs%2BTZNXL._SS200_.jpg" alt="Semantics: Primes and Universals (St. in Classification Data Analysis)" /></a>
+</div>
+
+<p><a href="https://rcmdnk.com/blog/2017/10/05/computer-git/">Gitのタグの話</a>をしたので
+そのタグを付ける際のバージョニングについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#semantic-versioning" id="markdown-toc-semantic-versioning">Semantic Versioning</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="semantic-versioning">Semantic Versioning</h2>
+
+<p>ソフトウェアのバージョンなどを見ていると大体X.Y.Zみたいな形を
+しているかと思いますが、
+そのバージョン付けの方針として
+<a href="http://semver.org/">Semantic Versioning</a>
+というものが広く知られています。</p>
+
+<blockquote>
+  <p><a href="http://semver.org/">Semantic Versioning 2.0.0  Semantic Versioning</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://semver.org/lang/ja/">セマンティック バージョニング 2.0.0  Semantic Versioning</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://en.wikipedia.org/wiki/Software_versioning">Software versioning - Wikipedia</a></p>
+</blockquote>
+
+<p>Semantic Versioningの方針ではX.Y.Zと言った
+<code>.</code>で区切られた3つの数字を使って</p>
+
+<ul>
+  <li>X: メジャーバージョン。後方互換性が無いアップデートを含む場合に上げる。上げた際はY、Zは0に戻す。Xが0の時は開発段階。1以降で正式リリース。</li>
+  <li>Y: マイナーバージョン。後方互換性のある機能追加等を行った場合に上げる。上げた場合はZは0に戻す。</li>
+  <li>Z: パッチバージョン。後方互換製のあるバグフィックスを行った場合に上げる。</li>
+</ul>
+
+<p>というのが基本。</p>
+
+<p>さらに、アルファ/ベータリリースの様な場合、
+<code>1.0.0-alpha</code>と言った形で通常バージョンの後ろに<code>-</code>で繋いで数字やアルファベットを付ける事も出来ます。</p>
+
+<p>また、
+GitHubにあるレポジトリを見ていると、大概のレポジトリで<code>v1.2.3</code>の様に
+バージョンの前に<code>v</code>が付いているものが多いです。</p>
+
+<p>この辺についてSemantic Versioning 2.0.0では何も言及してませんが
+これはバージョニングの考えの範囲外、ということで今は外されています。</p>
+
+<p>1.0.0の時は
+<code>Tagging Specification (SemVerTag)</code>という項目があって
+そこにGitとかのバージョン管理システムを使う場合は<code>vX.Y.Z</code>という形を取らなくてはならない(MUST)と書いてありました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mojombo/semver/issues/204">specify prefixed by ‘v’ or not · Issue #204 · mojombo/semver</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/mojombo/semver/pull/234">Address “v” prefixing in the FAQ by beck · Pull Request #234 · mojombo/semver</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://semver.org/spec/v1.0.0.html">Semantic Versioning 1.0.0  Semantic Versioning</a></p>
+</blockquote>
+
+<p>ということで現在のSemantic Versioningでは特に言及はしていませんが、
+<a href="https://github.com/mojombo/semver/releases">Semantic Versioning自体のバージョニング</a>
+では<code>v</code>を付けたバージョニングを使っています(現在v2.0.0)。</p>
+
+<p>この辺をきっちり書いたものは見つかりませんでしたが、慣習として
+Git等のバージョン管理システムを使う場合は<code>vX.Y.Z</code>としている、という感じです。</p>
+
+<p>Linuxのカーネルもこの形です。</p>
+
+<blockquote>
+  <p><a href="https://github.com/torvalds/linux/releases">Releases · torvalds/linux</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git">kernel/git/torvalds/linux.git - Linux kernel source tree</a></p>
+</blockquote>
+
+<p>Git-Flowなんかの説明でも特に深く言及すること無くさらっと<code>vX.Y.Z</code>の形が出てきたりします。</p>
+
+<p><a href="https://danielkummer.github.io/git-flow-cheatsheet/index.ja_JP.html">git-flow cheatsheet</a></p>
+
+<p>ということで、gitのタグ付けでバージョンを切ったりリリースを作る様な時は
+<code>vX.Y.Z</code>の形で書いておくのが無難だと思います。</p>
+
+<p>複数人で行ってるプロジェクトなどは最初にこの辺を決めておくと思いますが、
+決まってない場合はとりあえずこれに従う形にしておけばOKです。</p>
+
+<p>個人で作ってるものでも
+なんとなく数字を変えてくだけではなくて
+意味のあるバージョン付けが出来る様にしておいた方が後々便利です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B075VRJNTJ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B075VRJNTJ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71Fm0nzgejL._SS90_CR0,0,120,90_.jpg" alt="[タグ・ホイヤー] TAG HEUER メンズ腕時計 アクアレーサー クロノタイマー CAF1010.BA0821 ブラック文字盤【中古】 [並行輸入品]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/05/computer-git/">Gitでタグを自動でインクリメントするエイリアス</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHubのレポジトリ一覧を取ってくるワンライナー]]></title>
+    <link href="https://rcmdnk.com/blog/2017/10/03/computer-github/"/>
+    <updated>2017-10-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/10/03/computer-github</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01L6VR96O?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01L6VR96O&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/413JcIOSK4L._SS200_.jpg" alt="Github Octocat Figurine オクトキャット フィギュア (5インチ) [並行輸入品]" /></a>
+</div>
+
+<p>GitHub APIを使ってGitHubにあるユーザーのレポジトリ一覧を取ってくる方法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#レポジトリ一覧取得ワンライナー" id="markdown-toc-レポジトリ一覧取得ワンライナー">レポジトリ一覧取得ワンライナー</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="レポジトリ一覧取得ワンライナー">レポジトリ一覧取得ワンライナー</h2>
+
+<pre><code>$ USER=rcmdnk
+</code></pre>
+
+<p>とかした状態で</p>
+
+<pre><code>$ curl -s "https://api.github.com/users/$USER/repos?per_page=100"|grep \"name\"|cut -d'"' -f4
+rep-1
+rep-2
+...
+</code></pre>
+
+<p>とすれば<code>$USER</code>のレポジトリ一覧を取ってこれます。</p>
+
+<p>GitHubのAPIで<code>/users/:user/repos</code>でレポジトリの情報をJSON形式で取ってこれますが、
+デフォルトの状態だと30レポジトリまでが最初のページに表示される設定なので
+これを100まで上げています。</p>
+
+<p>100がMaxなので、もし100以上のレポジトリがある場合は</p>
+
+<pre><code>$ for page in $(seq 1 10);do result=$(curl -s "https://api.github.com/users/$USER/repos?page=$page&amp;per_page=100"|grep \"name\"|cut -d'"' -f4);if [ -z "$result" ];then break;fi;echo "$result";done
+</code></pre>
+
+<p>こんな感じで<code>page</code>というオプションを使うと2ページ目、3ページ目…とってこれて、ここでは1-10ページ目まで最大で見るので
+最大1000個のレポジトリまで見れますが、もっとあるなら<code>seq 1 10</code>の10を増やします。</p>
+
+<blockquote>
+  <p><a href="https://developer.github.com/v3/">GitHub API v3  GitHub Developer Guide</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://developer.github.com/v3/repos/">Repositories  GitHub Developer Guide</a></p>
+</blockquote>
+
+<p>せっかくJSON形式で返してくれるのでそれを有効に使いたい場合、<a href="https://stedolan.github.io/jq/">jq</a>
+コマンドをインストールしてあるなら、</p>
+
+<pre><code>$ curl -s "https://api.github.com/users/$USER/repos?per_page=100"|jq -c '[.[] .name]'
+["repo-1","repo-2"...]
+</code></pre>
+
+<p>みたいな感じで処理することも出来ます。</p>
+
+<p>名前だけ取ってくるならJSON出力にする意味はあまりないかもしれませんが、
+他にも色々情報を一緒に集めたい時は便利です。</p>
+
+<p>沢山APIでリクエストをしていると</p>
+
+<pre><code>$ curl -s "https://api.github.com/users/$USER/repos?per_page=100"
+{
+  "message": "API rate limit exceeded for xxx.xxx.xxx.xxx. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+  "documentation_url": "https://developer.github.com/v3/#rate-limiting"
+}
+</code></pre>
+
+<p>みたいなエラーが出る事もあります。
+APIの仕様は1時間で60回に制限されてるので、必要な場合はトークンを取得することでこれを回避する必要があります。</p>
+
+<p>GitHubのSettingsから一番下にある<a href="https://github.com/settings/tokens">Personal Access Tokens</a>
+へ行き、右上にある<code>Generate new token</code>で新しいトークンを作成します。</p>
+
+<p>色々な権限がありますが、この作業だけなら<code>user</code>の項目にある<code>read:user</code>だけで十分です。</p>
+
+<p>作成するとトークンが表示されるのでそれをコピーします。(一度ページを離れてしまうとトークンが見れなくなるのでその際は再度作り直すしかありません。)</p>
+
+<p>コピーしたトークン(<code>&lt;your_token&gt;</code>)を使って、</p>
+
+<pre><code>$ curl -s curl -s -H "Authorization: token &lt;your_token&gt;" "https://api.github.com/users/$USER/repos?per_page=100"
+</code></pre>
+
+<p>とすれば
+1時間5000回までAPIを使うことが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/12/05/mac-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20131205_accesstokens_120_90.jpg" width="120" height="90" alt="20131205_accesstokens_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/12/05/mac-homebrew/">HomebrewでError: GitHub API rate limit exceededを回避する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873116864?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873116864&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51GHwTNJgSL._SS90_CR0,0,120,90_.jpg" alt="Web API: The Good Parts" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/04/22/blog-octopress-github/">GitHubのAPIのリクエスト制限を避けるためにclient idなどを取得する</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHubでのLICENSE提示が大分便利になってる]]></title>
+    <link href="https://rcmdnk.com/blog/2017/09/20/computer-github/"/>
+    <updated>2017-09-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/09/20/computer-github</id>
+    <content type="html"><![CDATA[<p>GitHubのレポジトリを見ていたらライセンスがレポジトリの分かりやすい位置で確認出来る様になっていました。
+また、ライセンスを追加するのもWebから簡単に出来る様になっています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#githubにおけるライセンス" id="markdown-toc-githubにおけるライセンス">GitHubにおけるライセンス</a></li>
+  <li><a href="#ライセンスを追加する" id="markdown-toc-ライセンスを追加する">ライセンスを追加する</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="githubにおけるライセンス">GitHubにおけるライセンス</h2>
+
+<p>GitHubでコードを公開する時、
+ライセンスを提示してない場合は
+<a href="https://choosealicense.com/no-license/">No License</a>
+となり基本他の人が使えないものになります。</p>
+
+<p>特にGitHubで公開する様なものはそう言ったことを意図してないことが多いはずで、
+そういった場合にはきちんとライセンスを提示するべきです。</p>
+
+<blockquote>
+  <p><a href="https://choosealicense.com/">Choose an open source license  Choose a License</a></p>
+</blockquote>
+
+<p>とりあえず誰でも自由に使ってね、という感じなら<a href="https://choosealicense.com/licenses/mit/">MIT License</a>にしておけばOK。
+もっと緩いライセンス表示も何も要求しない
+<a href="https://choosealicense.com/licenses/unlicense/">The Unlicense</a>
+というのもありますが。</p>
+
+<p>レポジトリにLICENSEファイルがない場合、
+ファイルの上の方に<code>commits</code>、<code>branches</code>、<code>releases</code>、<code>contributor</code>
+に関する情報が出ています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_nolicense.jpg" alt="nolincese" class="pic" /></p>
+
+<p>もし、レポジトリに<code>LICENSE</code>(または<code>LICENSE.md</code>など<code>LICENSE</code>+<code>拡張子</code>)ファイルがあり、
+その内容がGitHubが理解できるライセンスの内容だと、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_withlicense.jpg" alt="withlicense" class="pic" /></p>
+
+<p>こんな感じで一番右側にランセンスの表示が出てきます。</p>
+
+<p>READMEやソースコードの中にライセンスが書いてあってもここには出てこないので、
+GitHubで公開する場合にはLICENSEファイルを作った方が他人に優しいものになります。</p>
+
+<h2 id="ライセンスを追加する">ライセンスを追加する</h2>
+
+<p>ライセンスはレポジトリを作る時にも適当なものを選んで
+自動で作ってもらうことも出来ますが、
+レポジトリ作成後にもテンプレートから簡単に作ることが出来ます。</p>
+
+<p>レポジトリのページに行ってファイル一覧の右上にある<code>Create new file</code>を押し、
+ファイル名を入れる所で<code>LICENSE</code>と入力します。</p>
+
+<p>するとこんな感じに右側に<code>Choose a license template</code>というボタンが出てきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_addlicense.jpg" alt="addlicense" class="pic" /></p>
+
+<p>これを押すと色々なライセンスから選べるページに飛びます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_chooselicense.jpg" alt="chooselicense" class="pic" /></p>
+
+<p>ここでMITとか適当なものを選ぶと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_makelicense.jpg" alt="makelicense" class="pic" /></p>
+
+<p>こんな感じでライセンスの文章を作ってくれます。</p>
+
+<p>これで<code>Review and submit</code>を押すとファイル作成画面に戻るので
+コミットすればLICENSEファイルが出来上がります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_commitlicense.png" alt="commitlicense" class="pic" /></p>
+
+<p>元々<code>LICENSE</code>というファイルがない場合、
+ブランチに作ってPull Requestを作る様な形になりますが、
+直接作ってしまって良いならばここで
+<code>Commit directly to the master branch</code>を選んでコミットします。</p>
+
+<p>ファイルを作る時に<code>license</code>とか<code>LICENSE.md</code>とか書いても同様に
+<code>Choose a license template</code>ボタンが出ますが、
+そこから戻ってくるとファイル名は<code>LICENSE</code>になってるので、
+拡張子とか着けたい場合にはファイル名を編集してください。
+(<code>license</code>または<code>LICENSE</code>とさえあれば、それに<code>.md</code>、<code>.txt</code>などの拡張子を付けても認識されます。)</p>
+
+<p>以前も<code>LICENSE</code>というファイルを作ろうとすると<code>Choose a License</code>ボタンは出てきましたが
+その場でライセンスを選んですぐに内容が作成画面に出るような感じでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4088903811?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4088903811&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41J7p4ZE2UL._SS90_CR0,0,120,90_.jpg" alt="LICENSE ライセンス 1 (ヤングジャンプコミックス)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/07/25/computer-github/">GitHubで既存のレポジトリにライセンスファイル、.ignoreファイルを簡単に追加する方法</a></div></li></ul>
+
+<p>まあライセンスの内容を分かっている人ならばこの以前の方が楽な感じがしないでもないですが。</p>
+
+<p>また、このファイルを表示すると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170920_seelicense.jpg" alt="seelicense" class="pic" /></p>
+
+<p>こんな感じでそのライセンスの説明が出てきます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>1つのスクリプトだけが入ってる様なレポジトリだと
+<code>LICENSE</code>とか別ファイルを作るよりもスクリプトの中にライセンスを書いてしまった方が
+スッキリするかな、とか思ってましたが、
+こんな感じでレポジトリですぐに確認出来る様な仕様があるのであれば
+GitHubで公開するなら<code>LICENSE</code>ファイルを置いて置くべきかな、と思いました。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

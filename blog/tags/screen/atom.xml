@@ -1,0 +1,1128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: screen | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/screen/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[DHCPでホスト名が配られる環境にノートPCを持っていた時に起こった問題]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/21/computer-network-screen/"/>
+    <updated>2018-08-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/21/computer-network-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5510882581?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5510882581&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Ssi-E3KEL._SS200_.jpg" alt="Hostname" /></a>
+</div>
+
+<p>ノートパソコンを持ち歩いていろいろなところのWi-Fiで作業することが多いですが
+ネットワークによってはDHCPでホスト名も配っているところがあります。</p>
+
+<p>そんなところに繋いだり他で作業したりしてる間にちょっと問題が起こりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macのローカルホスト名" id="markdown-toc-macのローカルホスト名">Macのローカルホスト名</a></li>
+  <li><a href="#ホスト名が変わる" id="markdown-toc-ホスト名が変わる">ホスト名が変わる</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macのローカルホスト名">Macのローカルホスト名</h2>
+
+<p>Macでの話ですが、システム環境設定の<strong>共有</strong>から<strong>コンピューター名</strong>を決めることが出来、
+通常この値に<code>MyMac</code>とか入れておくと、</p>
+
+<pre><code>$ hostname
+MyMac.local
+</code></pre>
+
+<p>といった<code>.local</code>を付けたホスト名として認識されます。</p>
+
+<p>これ以外に、Mac特有のツールで</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ HostName
+MyMac.local
+</code></pre>
+
+<p>と、<code>scutil</code>を使っても確かめることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00LYTZROA?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00LYTZROA&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51HkL2NY6eL._SS90_CR0,0,120,90_.jpg" alt="My IP" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/12/09/computer-mac/">Mac 10.10 Yosemiteでのホスト名の設定</a></div></li></ul>
+
+<h2 id="ホスト名が変わる">ホスト名が変わる</h2>
+
+<p>これがDHCPサーバー側からホスト名が配られる様な設定になっていると、
+<code>hostname</code>の結果がその指定してきたものに変わってきます。</p>
+
+<pre><code>$ hostname
+example.host
+</code></pre>
+
+<p>一方<code>scutil</code>の結果は</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ scutil --get HostName
+HostName: not set
+</code></pre>
+
+<p>といった具合に、<code>ComputerName</code>、<code>LocalHostName</code>は相変わらず同じ名前を出す一方、
+<code>HostName</code>は<code>not set</code>になっています。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>今回起こったのはGNU screenのソケットディレクトリの設定に関してです。</p>
+
+<p>通常、<strong>/tmp/uscreens/S-user</strong>の様なところに設定してありますが、
+<code>SCREENDIR</code>という環境変数で変更することが出来、これを</p>
+
+<pre><code>SCREENDIR=$HOME/.screen_$(hostname|cut -d. -f1
+</code></pre>
+
+<p>みたいな値に設定していました。</p>
+
+<p>これは<strong>/tmp</strong>に置くのが嫌なのと、分散サーバーみたいなところでHOMEを共有している場所で、
+他の端末でscreenを立ち上げてる時にさっと<code>ls ~/.screen_*</code>みたいにすると
+どこで立ち上がってるか簡単に確認出来る様にするためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1895636426?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1895636426&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Bh8%2BDwK9L._SS90_CR0,0,120,90_.jpg" alt="Socket" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/04/computer-screen-socket/">GNU screenでのソケットディレクトリについて</a></div></li></ul>
+
+<p>Macではホスト名を付ける必要は特にないのですが、
+<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>
+で共通のものを使ってるので持ち運び端末でも同じ様にホスト名のついたソケットディレクトリを使っていました。</p>
+
+<p>ここで、ある環境で<code>hostname</code>が<code>Mymac.local</code>の所でターミナルを立ち上げ、
+その後、DHCPでホスト名(<code>example.host</code>)が配られる環境に接続後、立ち上げ済のターミナルからGNU screenを立ち上げると</p>
+
+<pre><code>$ screen -ls
+No Sockets found in /Users/user/.screen_example
+</code></pre>
+
+<p>といった感じで中からscreenの情報が取れません。</p>
+
+<p>これは、GNU screenを立ち上げるターミナルでは<code>SCREENDIR</code>がターミナル立ち上げ立ち上げ時に設定された
+<code>~/.screen_MyMac</code>であるのに対し、
+立ち上げ後にscreen内で起動するBashは<code>SCREENDIR</code>を<code>~/.screen_example</code>と設定してしまうからです。</p>
+
+<p>これに対処するためにMacにおいては<code>scutil</code>を使うように変更しました。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$OSTYPE</span><span class="s2">&quot;</span> <span class="o">=</span>~ darwin <span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>scutil --get ComputerName<span class="k">)</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>hostname<span class="p">|</span>cut -d. -f1<span class="k">)</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  mkdir -p <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">chmod <span class="m">700</span> <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>WindowsのノートPCに関してはどうするか、ちょっとまだ考え中です。
+<code>cygwin</code>ならまだ条件分岐出来ますが、
+最近使えるようになったUbuntu on Windowsとか
+そもそも区別し辛いものだと辛い。</p>
+
+<p>今のところこれ以外にホスト名に頼って直接何かするような設定はなさそうなんですが、
+結構こういうことは起こりそうなので気をつけて見ていかないと、と。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU Screen 4.6.1リリース]]></title>
+    <link href="https://rcmdnk.com/blog/2017/07/11/computer-screen/"/>
+    <updated>2017-07-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/07/11/computer-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/9888381393?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=9888381393&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41W1R2icCsL._SS200_.jpg" alt="Gnu Screen: The Virtual Terminal Manager" /></a>
+</div>
+
+<p>2週間程前に4.6.0がリリースされたGNU screenですが
+リリース直後から色々とバグ報告がされていて
+それを直した4.6.1がリリースされました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-461" id="markdown-toc-gnu-screen-461">GNU Screen 4.6.1</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-461">GNU Screen 4.6.1</h2>
+
+<p>今回のリリースはバグフィックスのためのパッチリリースです。</p>
+
+<blockquote>
+  <p><a href="http://savannah.gnu.org/forum/forum.php?forum_id=8904">GNU Screen - News: GNU Screen v.4.6.1 [Savannah]</a></p>
+</blockquote>
+
+<p>4.6.0のアップデートではコピーモード時のスクロールバックに関する
+アップデート等がありました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/9888381393?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=9888381393&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41W1R2icCsL._SS90_CR0,0,120,90_.jpg" alt="Gnu Screen: The Virtual Terminal Manager" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/06/30/computer-screen/">GNU screen 4.6.0リリース</a></div></li></ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screen 4.6.0リリース]]></title>
+    <link href="https://rcmdnk.com/blog/2017/06/30/computer-screen/"/>
+    <updated>2017-06-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/06/30/computer-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/9888381393?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=9888381393&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41W1R2icCsL._SS200_.jpg" alt="Gnu Screen: The Virtual Terminal Manager" /></a>
+</div>
+
+<p>ターミナルマルチプレクサであるGNU Screenの安定版がアップデートされ 4.6.0がリリースされました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-460" id="markdown-toc-gnu-screen-460">GNU Screen 4.6.0</a></li>
+  <li><a href="#mac-homebrewの文字化け対策版のアップデート" id="markdown-toc-mac-homebrewの文字化け対策版のアップデート">Mac Homebrewの文字化け対策版のアップデート</a></li>
+  <li><a href="#mac以外で文字化け対策版をインストール" id="markdown-toc-mac以外で文字化け対策版をインストール">Mac以外で文字化け対策版をインストール</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-460">GNU Screen 4.6.0</h2>
+
+<p>二日前の28日にリリースのアナウンスがメーリングリストに流れていました。
+今回も前回のアップデートから半年ほどでリリースです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/9888381393?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=9888381393&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41CCl2QISlL._SS90_CR0,0,120,90_.jpg" alt="Gnu Screen: The Virtual Terminal Manager" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/18/computer-screen/">GNU Screen 4.5.0リリース</a></div></li></ul>
+
+<p>細かくはこの後1月26日に4.5.1のバグフィックスリリースがリリースされています。</p>
+
+<p>今回の主なアップデートは以下のもの:</p>
+
+<ul>
+  <li>Update Unicode wide tables to 9.0</li>
+  <li>Support more serial speeds</li>
+  <li>Improved namespaces support</li>
+  <li>Migrate from fifos to sockets</li>
+  <li>Start viewing scrollback at first line of output</li>
+</ul>
+
+<p>パフォーマンスの向上などがありますが、
+最後のスクロールバックに関するアップデートが個人的にはとても便利になったと思います。</p>
+
+<p>これまでのscreenではコピーモードに入り、画面上に<i class="key">Ctrl</i>-<i class="key">B</i>とか、もしくは一気に<i class="key">g</i><i class="key">g</i>
+とやると、最終的に行き着く<strong>先頭</strong>行はスクロールのバッファ分だけ戻った先になっていました。</p>
+
+<p>この時、そのウィンドウでまだバッファ分だけ表示していないと空白が延々と続いて何も無い所にたどり着いてしました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170630_screenscrollbackold.jpg" alt="screenscrollbackold" class="pic" /></p>
+
+<p>こんな感じで何も無い所に来てしまって悲しい。
+ウィンドウを始めたばっかだと<i class="key">Ctrl</i>-<i class="key">F</i>しても一向に何も現れないので
+適当なキーを押して戻るはめに。(もしくは検索を始める。)</p>
+
+<p>これが今回のアップデートで、<i class="key">g</i><i class="key">g</i>すると
+バッファを全て埋めていない場合、
+最初にそのウィンドウで作業を始めたところまで戻って止まる様になりました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170630_screenscrollback.jpg" alt="screenscrollback" class="pic" /></p>
+
+<p>こんな感じ。<i class="key">g</i><i class="key">g</i>だとカーソルは最初のアウトプットの位置に行きますが
+画面表示では上半分に空白が出ます。</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">B</i>とかで戻っていくと一番上に表示部分がある状態で止まります。</p>
+
+<p>これ、そのウィンドウでの作業をちょっと最初から確認しようとして良く使うので
+結構イライラする仕様だったのでこのアップデートはとてもうれしいです。</p>
+
+<p>とりあえずアップグレードしてコピーモードに入り<i class="key">g</i><i class="key">g</i>してみてください。</p>
+
+<h2 id="mac-homebrewの文字化け対策版のアップデート">Mac Homebrewの文字化け対策版のアップデート</h2>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-rcmdnkcask"></div>
+
+<p>MacのHomebrewでは<code>brew install screen</code>でscreenをインストールできますが
+screenは日本語表示がちょっと苦手で文字化けが起こります。</p>
+
+<p>その辺のパッチをあてたバージョンが</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/screenutf8
+</code></pre>
+
+<p>とするとインストールできる様になっています。
+(<code>screen</code>をインストールしてある場合は先に<code>brew rm screen</code>を実行。)</p>
+
+<p>こちらのものも4.6.0に対応させておきました。</p>
+
+<h2 id="mac以外で文字化け対策版をインストール">Mac以外で文字化け対策版をインストール</h2>
+
+<p>Linux環境などでは文字化け対策版を使いたい場合自分でパッチをあてて
+コンパイルする必要がありますが、
+<a href="https://github.com/rcmdnk/stow-get">stow-get</a>を使えば簡単に入れることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01LYG6IA6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01LYG6IA6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51JsgVDiDsL._SS90_CR0,0,120,90_.png" alt="stow bottles" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/05/11/computer-linux-bash/">stow-get: Stowを使ったパッケージマネージャー</a></div></li></ul>
+
+<div class="github-widget" data-repo="rcmdnk/stow-get"></div>
+
+<p>まずstow-getをインストール。</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh| bash
+</code></pre>
+
+<p>これだと<strong>~/usr/local/bin/</strong>に<code>stow-get</code>がインストールされその後インストールされるものも
+<strong>~/usr/local/</strong>をPrefixとしてインストールするようになります。</p>
+
+<p>場所を変えたい場合は</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh|  prefix=/usr/local bash
+</code></pre>
+
+<p>こんな感じでインストール実行時に<code>prefix</code>を指定します。</p>
+
+<p>インストールしたら</p>
+
+<pre><code>$ export PATH=$HOME/usr/local/bin:$PATH
+</code></pre>
+
+<p>とかしてパスを通し(これを<strong>.bashrc</strong>とかにも書いておく)、</p>
+
+<pre><code>$ stow-get install screen
+</code></pre>
+
+<p>とすればパッチをあてた最新版のscreenがインストールされます。</p>
+
+<p>新しいリリースが出たら</p>
+
+<pre><code>$ stow-get upgrade
+</code></pre>
+
+<p>とすれば自動でアップグレードされます。</p>
+
+<p>MacでHomebrewを使ってない場合、これを使って入れることも出来ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screen + Vimでのターミナル運用(主に領域設定について)]]></title>
+    <link href="https://rcmdnk.com/blog/2017/04/21/computer-screen-vim/"/>
+    <updated>2017-04-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/04/21/computer-screen-vim</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01G35X4CG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01G35X4CG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51l9Bm8FIHL._SS200_.jpg" alt="モナドの領域 | 筒井 康隆 | 日本の小説・文芸 | Kindleストア | Amazon" /></a>
+</div>
+
+<p>普段ターミナル上ではGNU screenを立ち上げてその中で
+いくつかウィンドウを立ち上げて作業を行っています。</p>
+
+<p>その際用いるエディタはVimです。</p>
+
+<p>どちらも内部で複数のウィンドウを同時に表示出来るような画面分割の機能がありますが、
+その辺の使い分けや設定についてちょっとまとめてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen--vim" id="markdown-toc-gnu-screen--vim">GNU screen + Vim</a></li>
+  <li><a href="#vim" id="markdown-toc-vim">Vim</a>    <ul>
+      <li><a href="#領域分割削除バッファ削除" id="markdown-toc-領域分割削除バッファ削除">領域分割、削除、バッファ削除</a></li>
+      <li><a href="#領域間移動" id="markdown-toc-領域間移動">領域間移動</a></li>
+      <li><a href="#領域の幅の変更" id="markdown-toc-領域の幅の変更">領域の幅の変更</a></li>
+    </ul>
+  </li>
+  <li><a href="#gnu-screen" id="markdown-toc-gnu-screen">GNU screen</a>    <ul>
+      <li><a href="#領域分割" id="markdown-toc-領域分割">領域分割</a></li>
+      <li><a href="#ウィンドウ生成削除入れ替え" id="markdown-toc-ウィンドウ生成削除入れ替え">ウィンドウ生成、削除、入れ替え</a></li>
+      <li><a href="#領域間移動-1" id="markdown-toc-領域間移動-1">領域間移動</a></li>
+      <li><a href="#領域の幅の変更-1" id="markdown-toc-領域の幅の変更-1">領域の幅の変更</a></li>
+      <li><a href="#コピーモード" id="markdown-toc-コピーモード">コピーモード</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen--vim">GNU screen + Vim</h2>
+
+<p><a href="https://blog.bugsnag.com/tmux-and-vim/">Tmux and Vim - even better together</a>
+というポストについて
+<a href="https://news.ycombinator.com/item?id=14155761">Hacker News</a>
+で盛り上がってたので、
+Tmuxに変わってGNU screenについて、
+ちょっと方向性は違いますが自分設定をまとめてみたいと思います。</p>
+
+<p>TmuxとGNU screenの違いなどについては以下を参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00A4I3ZVY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00A4I3ZVY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41n-bcndjdL._SS90_CR0,0,120,90_.jpg" alt="tmux: Productive Mouse-Free Development" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/01/02/computer-tmux-screen/">tmuxに慣れてみる: tmuxとGNU screenの違いなど</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1484207769?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1484207769&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Ezd%2BY126L._SS90_CR0,0,120,90_.jpg" alt="tmux Taster" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/01/03/computer-tmux-screen/">tmuxのPaneの扱いをGNU screenのWindowの取り扱いになるべく近づけてみる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0415827809?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0415827809&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41FFCSpQXWL._SS90_CR0,0,120,90_.jpg" alt="Pros and Cons: A Debaters Handbook" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/01/08/computer-screen-tmux/">tmuxとscreenのそれぞれの優れてる点</a></div></li></ul>
+
+<h2 id="vim">Vim</h2>
+
+<p><a href="https://github.com/rcmdnk/dotfiles/blob/master/.vimrc">.vimrc</a>
+はGitHubにあるdotfilesレポジトリにあります。</p>
+
+<h3 id="領域分割削除バッファ削除">領域分割、削除、バッファ削除</h3>
+
+<p>領域分割はデフォルトキーのまま、</p>
+
+<ul>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">S</i>: 横分割</li>
+  <li><code>:vs [file]</code>:  横分割</li>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">V</i>: 縦分割</li>
+  <li><code>:sp [file]</code>:  横分割</li>
+</ul>
+
+<p>等。</p>
+
+<p>領域の削除などについてはこんな感じのマッピングを使っています。</p>
+
+<figure class="code"><figcaption><span>.vimrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="c">&quot; don&#39;t enter Ex mode: map to quit</span>
+</span><span class="line"><span class="nb">nnoremap</span> Q :<span class="k">q</span><span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span><span class="line"><span class="c">&quot; Use other one characters</span>
+</span><span class="line"><span class="nb">nnoremap</span> Z ZZ
+</span><span class="line"><span class="nb">nnoremap</span> W :<span class="k">w</span><span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span><span class="line"><span class="nb">nnoremap</span> <span class="p">!</span> :<span class="k">q</span><span class="p">!&lt;</span>CR<span class="p">&gt;</span>
+</span><span class="line">
+</span><span class="line"><span class="c">&quot; Close/Close &amp; Save buffer</span>
+</span><span class="line"><span class="nb">nnoremap</span> <span class="p">&lt;</span>Leader<span class="p">&gt;</span><span class="k">q</span> :<span class="k">bdelete</span><span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span><span class="line"><span class="nb">nnoremap</span> <span class="p">&lt;</span>Leader<span class="p">&gt;</span><span class="k">w</span> :<span class="k">w</span><span class="p">&lt;</span>CR<span class="p">&gt;</span>:<span class="k">bdelete</span><span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>Q</code>はデフォルトでExモードに入るキーですが、
+Exモードを使う機会が無いので(というより使ったことが無いので)。</p>
+
+<p>通常の終了等は<code>:q</code>とかを打っても余り変わりないと思いますが、
+<code>bdelete</code>とかしたい場合には何らかのマッピングをしておくと便利だと思います。</p>
+
+<h3 id="領域間移動">領域間移動</h3>
+
+<p>領域移動もデフォルトのまま</p>
+
+<ul>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">H</i>: 左</li>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">J</i>: 下</li>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">K</i>: 上</li>
+  <li><i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">L</i>: 右</li>
+</ul>
+
+<h3 id="領域の幅の変更">領域の幅の変更</h3>
+
+<p>領域の幅の変更を連続的に行うため、
+<a href="https://github.com/kana/vim-submode">kana/vim-submode</a>
+というプラグインを使っています。</p>
+
+<figure class="code"><figcaption><span>.vimrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;+&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;+&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;-&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;e&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#enter_with<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;C-e&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;-&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;+&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;j&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;-&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;+&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-l&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&gt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-h&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;&lt;&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-j&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;-&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-k&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;+&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;=&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">call</span> submode#map<span class="p">(</span><span class="s1">&#39;winsize&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-=&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;C-w&gt;=&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>細かい説明は下の作者のブログに詳しいですが、
+<i class="key">Ctrl</i>-<i class="key">W</i> <i class="key">Ctrl</i>-<i class="key">E</i>(もしくは<i class="key">&gt;</i>、<i class="key">&lt;</i>、<i class="key">+</i>、<i class="key">-</i>)
+で領域変更(<code>winsize</code>)モードに入り、
+後はhjklを押すだけで領域の大きさが変更できます。</p>
+
+<blockquote>
+  <p><a href="http://thinca.hatenablog.com/entry/20130131/1359567419">submode.vim とその設定例なんかを紹介 - 永遠に未完成</a></p>
+</blockquote>
+
+<p>以下には変更時のGif画像があります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/09/06/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130906_lightline_120_90.png" width="120" height="90" alt="20130906_lightline_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/09/06/computer-vim/">Vimプラグインlightline導入</a></div></li></ul>
+
+<p>ちょっとあれなのは、
+例えば<i class="key">H</i>は<strong>領域を横に伸ばす</strong>、なので
+左上の領域だと右に伸びていって直感道理ですが
+右の領域でやると逆に伸びてく感じになります。</p>
+
+<p>同様に上下の伸び縮みも上側の領域での感覚になります。</p>
+
+<p>ただこれは結構便利でおすすめの設定です。</p>
+
+<h2 id="gnu-screen">GNU screen</h2>
+
+<p><a href="https://github.com/rcmdnk/dotfiles/blob/master/.screenrc">.screenrc</a>
+は<strong>.vimrc</strong>同様GitHubにあります。</p>
+
+<p>またscreenの起動コマンドのラッパーコマンドなどの設定を
+<strong>.bashrc</strong>から読み込むための
+<a href="https://github.com/rcmdnk/dotfiles/blob/master/.screen/setup.sh">setup.sh</a>
+や、中でのレイアウト作成などに使うスクリプトが
+<a href="https://github.com/rcmdnk/dotfiles/tree/master/.screen">.screen</a>
+にあります。</p>
+
+<h3 id="領域分割">領域分割</h3>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="c1"># Escape (Prefix)</span>
+</span><span class="line">escape ^Qq
+</span><span class="line">
+</span><span class="line"><span class="c1"># Split</span>
+</span><span class="line"><span class="nb">bind</span> v split -v
+</span><span class="line"><span class="nb">bind</span> V split -v
+</span><span class="line"><span class="nb">bind</span> ^v split -v
+</span><span class="line"><span class="nb">bind</span> s split
+</span><span class="line"><span class="nb">bind</span> S split <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> ^s split
+</span><span class="line">
+</span><span class="line"><span class="c1"># Remove window region</span>
+</span><span class="line"><span class="nb">bind</span> x remove
+</span><span class="line"><span class="nb">bind</span> X remove <span class="c1"># default</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make 4 window with no new screen</span>
+</span><span class="line"><span class="c1"># First &#39;next&#39; is needed when it is on empty window for exec</span>
+</span><span class="line"><span class="nb">bind</span> r <span class="nb">eval</span> <span class="s1">&#39;next&#39;</span> <span class="s1">&#39;exec /bin/sh -c ~/.screen/layout.sh&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^r <span class="nb">eval</span> <span class="s1">&#39;next&#39;</span> <span class="s1">&#39;exec /bin/sh -c ~/.screen/layout.sh&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Only</span>
+</span><span class="line"><span class="nb">bind</span> Q only <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> q only
+</span></code></pre></td></tr></table></div></figure>
+
+<p><i class="key">S</i>、<i class="key">V</i>を<i class="key">shift</i>、<i class="key">Ctrl</i>付きの時を含め
+水平分割と垂直分割に割り当てています。</p>
+
+<p>大概の場合<i class="key">Ctrl</i>-<i class="key">Q</i> <i class="key">Ctrl</i>-<i class="key">V</i>(screenのEscape(Prefix)は<i class="key">Q</i>に設定)
+の様な感じでPrefixの時の<i class="key">Ctrl</i>を押したままなので<code>^v</code>とかだけでも良いのですが
+下手に他のものに割り当ててあると間違うときがあるので一応。</p>
+
+<p>これらはVimで
+<i class="key">Ctrl</i>-<i class="key">W</i>を使った方法と同じ様な入力になります。</p>
+
+<p>また、最初に入力するキーも<i class="key">W</i>と<i class="key">Q</i>の違いで隣同士なので左手で似たような感覚で打てます。</p>
+
+<p>領域削除はデフォルト<i class="key">Shift</i>-<i class="key">X</i>ですが、<i class="key">Shift</i>無しの場合も削除に割り当てています。
+こちらのデフォルトは<code>lockscreen</code>でまず使う事が無いので。</p>
+
+<p>また、殆どの場合、ターミナルを大きな表示にしてそれを縦横4分割にして使っています。
+その分割に一瞬で出来る様なスクリプトが<strong>leyout.sh</strong>で
+<i class="key">R</i>で呼び出せる様にしています。</p>
+
+<p><strong>layout.sh</strong>の内容はGitHubで。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/dotfiles/blob/master/.screen/layout.sh">dotfiles/layout.sh at master · rcmdnk/dotfiles</a></p>
+</blockquote>
+
+<p>色々やってますが、重要な所は</p>
+
+<pre><code>screen -X source $HOME/.screen/${name}.layout &gt;&gt;$log 2&gt;&amp;1
+</code></pre>
+
+<p>をやっている所で、ここで<code>name</code>はデフォルト<strong>4-windows</strong>でそのファイルは</p>
+
+<figure class="code"><figcaption><span>$HOME/.screen/4-windows.layout </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>only
+</span><span class="line"><span class="k">select</span> <span class="nv">$win0</span>
+</span><span class="line">split
+</span><span class="line">split -v
+</span><span class="line">focus
+</span><span class="line"><span class="k">select</span> <span class="nv">$win1</span>
+</span><span class="line">focus
+</span><span class="line"><span class="k">select</span> <span class="nv">$win2</span>
+</span><span class="line">split -v
+</span><span class="line">focus
+</span><span class="line"><span class="k">select</span> <span class="nv">$win3</span>
+</span><span class="line">focus
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな内容のscreenのコマンド群に。これを外部からscreenのセッションに送ってあげてるわけです。</p>
+
+<p>最初にまず<code>only</code>で1つの画面に戻して、横分割縦分割などを繰り返して4つの領域にして
+それぞれで違うウィンドウを順に選んでいます。</p>
+
+<p><code>$win0</code>とかは0とか1とかが入っていますが、
+<strong>layout.sh</strong>の中で呼んでいる
+<a href="https://github.com/rcmdnk/dotfiles/blob/master/.screen/win_prepare.sh">win_prepare.sh</a>
+の中で見つかったウィンドウの番号を順に詰めています。</p>
+
+<p>この辺について、もうちょっと詳しい話や
+screenのレイアウト機能を使った話は以下を参照してください。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/02/18/computer-screen-3/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140218_layout_120_90.jpg" width="120" height="90" alt="20140218_layout_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/02/18/computer-screen-3/">GNU screenでのレイアウトの整理</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/05/29/computer-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140218_layout_120_90.jpg" width="120" height="90" alt="20140218_layout_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/29/computer-screen/">GNU screenでのレイアウトの整理 2</a></div></li></ul>
+
+<p>最後に、現在使ってるウィンドウだけの表示にしたい時、
+<code>only</code>がデフォルトで<i class="key">Shift</i>-<i class="key">Q</i>にアサインされてますが、
+小文字の場合もあてています。
+小文字の方はデフォルト<code>xon</code>(Send a control-q to the current window)になっていますが、
+むしろそんなことをされても困るので間違っても<code>xon</code>をしないように。</p>
+
+<p>そうでなくても結構使うコマンドなので、<i class="key">Shift</i>を押すのはちょっと面倒ということもあり。</p>
+
+<h3 id="ウィンドウ生成削除入れ替え">ウィンドウ生成、削除、入れ替え</h3>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="c1"># new window</span>
+</span><span class="line"><span class="nb">bind</span> c c <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> c ^c <span class="c1"># default</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># kill</span>
+</span><span class="line"><span class="nb">bind</span> K <span class="nb">kill</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># exchange</span>
+</span><span class="line"><span class="nb">bind</span> n <span class="nb">eval</span> <span class="s1">&#39;next&#39;</span> <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> ^n <span class="nb">eval</span> <span class="s1">&#39;next&#39;</span> <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> p <span class="nb">eval</span> <span class="s1">&#39;prev&#39;</span> <span class="c1"># default</span>
+</span><span class="line"><span class="nb">bind</span> ^p <span class="nb">eval</span> <span class="s1">&#39;prev&#39;</span> <span class="c1"># default</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>新規ウィンドウの作成はデフォルトのまま<i class="key">C</i>を使っています。</p>
+
+<p>ウィンドウの削除は通常はそのウィンドウでの作業を<code>exit</code>で終了させて
+終わりにさせますが、
+コマンドとしては<i class="key">Shift</i>-<i class="key">K</i>をあてています。
+削除のデフォルトキーは<i class="key">Shift</i>無しの<i class="key">K</i>ですが、
+下に各様に領域移動に使うためです。</p>
+
+<p>ウィンドウの入れ替えに付いては
+特にtmuxと違う部分でscreenの特徴的なところですが、
+これらのキーバインドはデフォルトのままでいい感じなのでそのままに。</p>
+
+<p>これに関して、</p>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="c1"># Continuous window change</span>
+</span><span class="line"><span class="nb">bind</span> ^n <span class="nb">eval</span> <span class="s1">&#39;command -c window&#39;</span> <span class="s1">&#39;next&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^p <span class="nb">eval</span> <span class="s1">&#39;command -c window&#39;</span> <span class="s1">&#39;prev&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c window n <span class="nb">eval</span> <span class="s1">&#39;next&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c window p <span class="nb">eval</span> <span class="s1">&#39;prev&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c window ^n <span class="nb">eval</span> <span class="s1">&#39;command -c window&#39;</span> <span class="s1">&#39;next&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c window ^p <span class="nb">eval</span> <span class="s1">&#39;command -c window&#39;</span> <span class="s1">&#39;prev&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な設定をすると、Prefixキーを最初に一回押すだけで後は<i class="key">Ctrl</i>-<i class="key">N</i>を押し続けるだけで次のウィンドウに
+どんどん切り替えていく、という設定をすることが出来ます。</p>
+
+<p><code>command</code>を使うと<code>-c</code>で指定したクラス(ここでは<code>move</code>)に属すキー(<code>bind -c move</code>で指定されたキー)を
+次にPrefix無しで受け付けてくれるからです。</p>
+
+<p>ただ、これを設定してしまうと
+必ずキー入力待ち状態になるので切り替え後にコマンドを打とうと思って
+入力した時に最初の文字が入らずにちょっとイラッと来ます。</p>
+
+<p>これを解消するために、<i class="key">Ctrl</i>なしの場合は<code>command -c window</code>を呼ばない設定にしておいて
+最後にそれを使えばすぐに入力できる、と言った状態にもしてみましたが
+どうもしっくりきませんでした。</p>
+
+<p>ということで現在はこの設定は無効化してあります。</p>
+
+<h3 id="領域間移動-1">領域間移動</h3>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="c1"># Focus (like vi)</span>
+</span><span class="line"><span class="nb">bind</span> h  <span class="nb">eval</span>     <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> j  <span class="nb">eval</span>     <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> k  <span class="nb">eval</span>     <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> l  <span class="nb">eval</span>     <span class="s1">&#39;focus right&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^h <span class="nb">eval</span>     <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -k kb <span class="nb">eval</span>  <span class="s1">&#39;focus left&#39;</span> <span class="c1">#Backspace</span>
+</span><span class="line"><span class="c1">#bind \015  eval &#39;focus down&#39; #Enter</span>
+</span><span class="line"><span class="nb">bind</span> ^j <span class="nb">eval</span>     <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^k <span class="nb">eval</span>     <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^l <span class="nb">eval</span>     <span class="s1">&#39;focus right&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>分割した領域は縦横
+Vimの<i class="key">Ctrl</i>-<i class="key">W</i> <i class="key">H</i>などと同様の感覚で移動できる様に設定しています。</p>
+
+<p>これも<i class="key">Ctrl</i>を押したまま押しても大丈夫なようにしていますが、
+<i class="key">Ctrl</i>-<i class="key">h</i>や<i class="key">Ctrl</i>-<i class="key">J</i>と言った、
+<i class="key">Backspace</i>、<i class="key">Enter</i>に対応するようなキーも入っているため
+単純な設定だと上手く動かないときがあります。</p>
+
+<p>今の設定ではBackspaceキーも直接左移動に割り当てています 。
+Enterの方は前に<code>^j</code>で上手く動かない環境があったのですが、
+今使ってる環境の中ではどれも動くので<code>\015</code>(Enter)のキー割り当てはしてません。</p>
+
+<p>これに関してもウィンドウ切り替え同様、
+以下の様な設定をすると
+一度<i class="key">Ctrl</i>付きの移動キーを押した後、その後Prefixキーの入力なしで移動出来る様になります。</p>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">bind</span> h  <span class="nb">eval</span>    <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> j  <span class="nb">eval</span>    <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> k  <span class="nb">eval</span>    <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> l  <span class="nb">eval</span>    <span class="s1">&#39;focus right&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^h <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -k kb <span class="nb">eval</span> <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus left&#39;</span> <span class="c1">#Backspace</span>
+</span><span class="line"><span class="nb">bind</span> ^j <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^k <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^l <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus right&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">bind</span> -c move h <span class="nb">eval</span>     <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move j <span class="nb">eval</span>     <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move k <span class="nb">eval</span>     <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move l <span class="nb">eval</span>     <span class="s1">&#39;focus right&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move ^h <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus left&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move -k kb <span class="nb">eval</span> <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus left&#39;</span> <span class="c1">#Backspace</span>
+</span><span class="line"><span class="nb">bind</span> -c move ^j <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus down&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move ^k <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus up&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c move ^l <span class="nb">eval</span>    <span class="s1">&#39;command -c move&#39;</span> <span class="s1">&#39;focus right&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>沢山領域分割していて移動したいときなんかはとても便利かと。</p>
+
+<p>ただ、今は多くて2個(右<i class="fa fa-arrow-right"></i>下など)なのと
+やはり移動後に一回入力出来ないのが良くないので有効にしていません。</p>
+
+<p>screenで分割した他の領域で開いてるVimへ行って
+Vimの中でさらに移動したい時は</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">Q</i> (<i class="key">Ctrl</i>-)<i class="key">L</i>
+<i class="key">Ctrl</i>-<i class="key">W</i> (<i class="key">Ctrl</i>-)<i class="key">J</i></p>
+
+<p>など。。。流石にたまに混乱します。</p>
+
+<h3 id="領域の幅の変更-1">領域の幅の変更</h3>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="c1"># Resize window</span>
+</span><span class="line"><span class="nb">bind</span> e <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;echo &quot;Resize window&quot;&#39;</span>
+</span><span class="line"><span class="nb">bind</span> ^e <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;echo &quot;Resize window&quot;&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize h <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -h -1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize l <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -h +1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize j <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -v +1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize k <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -v -1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize ^h <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -h -1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize ^l <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -h +1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize ^j <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -v +1&#39;</span>
+</span><span class="line"><span class="nb">bind</span> -c resize ^k <span class="nb">eval</span> <span class="s1">&#39;command -c resize&#39;</span> <span class="s1">&#39;resize -v -1&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここでは<code>command</code>を使っています。
+<i class="key">Ctrl</i>-<i class="key">Q</i> <i class="key">E</i>で<code>resize</code>モードに入って
+hjklで現在の領域を伸び縮みさせます。</p>
+
+<p><code>command</code>を使っているので連続的に伸び縮みさせてちょうどよい所で
+<i class="key">Esc</i>なり適当な他のキーを押せば止まります。</p>
+
+<p>この操作に関してはすぐに入力をしたい感じではないので良いかと。</p>
+
+<p>この設定もVimでの領域変更とPrefixが違うだけで同じ様に出来るようにしています。</p>
+
+<h3 id="コピーモード">コピーモード</h3>
+
+<p>ちょっとウィンドウ操作からは離れますが、
+GNU screenにはコピーモードという、ターミナルに表示された
+履歴をキーボードのみでコピーできるモードがありますが、
+screenではこの中での操作はデフォルトでVimライクなものになります。</p>
+
+<blockquote>
+  <p><a href="http://yskwkzhr.blogspot.jp/2011/12/master-copy-and-paste-of-gnu-screen.html">開発版GNU Screenでコピペを極める - Keep It Simple, Stupid</a></p>
+</blockquote>
+
+<p>Emacsライクにするにはキーバインドの設定で行います。</p>
+
+<p>一方、Tmuxはviモードも設定で簡単に出来ますが、デフォルトはEmacsモードになっています。</p>
+
+<p>ついでにコピーモードの代わりにスクロールバッファをVimにぶちこんで見る、というのも見つけたので
+リンクを張っておこうかと。</p>
+
+<blockquote>
+  <p><a href="http://qiita.com/deton/items/2fc42176b177d33d6d1e">GNU screenのスクロールバッファをvimで開いて、コピーモードのかわりに使う方法 - Qiita</a></p>
+</blockquote>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>GNU screen、Vim共に領域を分割することが出来るアプリケーションですが、
+領域の作成や移動などを似たようなものにしています。
+(主にscreenでの操作をVimに真似てる)</p>
+
+<p>共通の動作をまとめると:</p>
+
+<ul>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">S</i>: 横分割</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">V</i>: 縦分割</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">H</i>: 左移動</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">J</i>: 下移動</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">K</i>: 上移動</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">L</i>: 右移動</li>
+  <li><i class="key">Prefix</i> (<i class="key">Ctrl</i>-)<i class="key">E</i>: 領域変更モード
+    <ul>
+      <li><i class="key">Ctrl</i>-)<i class="key">H</i>: 横方向拡大</li>
+      <li><i class="key">Ctrl</i>-)<i class="key">J</i>: 縦方向拡大</li>
+      <li><i class="key">Ctrl</i>-)<i class="key">K</i>: 縦方向縮小</li>
+      <li><i class="key">Ctrl</i>-)<i class="key">L</i>: 横方向縮小</li>
+    </ul>
+  </li>
+</ul>
+
+<p>といった感じ。VimではPrefixは<i class="key">Ctrl</i>-<i class="key">W</i>、
+screenでのPrefix(escape)は<i class="key">Ctrl</i>-<i class="key">Q</i>。</p>
+
+<p>似たようなものだと逆に混乱することもあるにはありますが
+その辺は慣れで。
+ぜんぜん違うものにしておくよりは慣れれば楽なはずです。</p>
+
+<p>おまけ: その他GNU screen/Vimについての過去記事</p>
+
+<p><a href="https://rcmdnk.com/blog/tags/screen/">/blog/tags/screen/</a></p>
+
+<p><a href="https://rcmdnk.com/blog/tags/vim/">/blog/tags/vim/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU Screen 4.5.0日本語文字化け対策パッチアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2017/01/20/computer-screen/"/>
+    <updated>2017-01-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/01/20/computer-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M5DJDUH?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M5DJDUH&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Nmk-gcq7L._SS200_.jpg" alt="Patches (English Edition) 電子書籍: Sylvia Wadlington" /></a>
+</div>
+
+<p>GNU Screenの4.5.0がリリースされましたが、
+日本語文字化け対策のパッチが上手く動いてなかったのでアップデートしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen文字化け対策" id="markdown-toc-gnu-screen文字化け対策">GNU Screen文字化け対策</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen文字化け対策">GNU Screen文字化け対策</h2>
+
+<p>GNU Screenを起動した後に、日本語名ファイルのあるディレクトリで<code>ls</code>したり、
+日本語名ディレクトリをステータスラインで表示しようとすると文字化けが起こります。</p>
+
+<p>それらを直すためのパッチを作ってくれた人が居て、</p>
+
+<ul>
+  <li>https://gist.githubusercontent.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch</li>
+  <li>http://zuse.jp/misc/screen-utf8-osc.diff</li>
+</ul>
+
+<p>の2つのパッチをあてると文字化けが無くなります。
+<strong>nfd</strong>の方が<code>ls</code>等コマンドライン上での表示のためのパッチ、
+<strong>osc</strong>の方がステータスラインでの表示のためのパッチになっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/22/screen-install/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130322_screen_char_non_120_90.jpg" width="120" height="90" alt="20130322_screen_char_non_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a></div></li></ul>
+
+<p>ただ、後者の方はサイトが無くなってしまって取ってこれないので
+取り敢えず自分でGistを用意してあります。
+(前者の方も一時期消えてた気がしたんですが今見たらまたありました。)</p>
+
+<p>Screenのコードが4.4.0から4.5.0にアップデートするに際して、
+色々コードのリファクタリングも行われたらしく、
+単純に書き方(if分とかの<code>{</code>を次の行に書いてたのを同じ行にしたり)の変更もあって
+パッチが上手くあたらなくなってたりしました。</p>
+
+<p>そこでちょっと手動で直してパッチを作り変えたりして
+MacのHomebrewのFormulaとかもあっぷでーとしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/9888381393?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=9888381393&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41CCl2QISlL._SS90_CR0,0,120,90_.jpg" alt="Gnu Screen: The Virtual Terminal Manager" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/18/computer-screen/">GNU Screen 4.5.0リリース</a></div></li></ul>
+
+<p>なんですが、別の問題があったみたいで、
+hardstatus表示(一番下に出すWindow一覧とかの表示)のところで、
+ハイライトをかけたりすると文字幅をきちんと認識できないのか表示が変になってました。</p>
+
+<p>いろいろ試してみた所、<strong>screen.c</strong>にあてるパッチを無くすと
+この問題が消えたのでその様にアップデート。</p>
+
+<ul>
+  <li>https://gist.githubusercontent.com/rcmdnk/7d504f2f9064162fac529ad0ddb87202/raw/ce910700dfec637f0e3b501c4a7d8b14260a4ef4/screen-utf8-osc.diff</li>
+</ul>
+
+<p>上の<strong>nfd</strong>とこの<strong>osc</strong>のパッチをあてると文字化け対策出来ます。</p>
+
+<pre><code>$ wget http://ftpmirror.gnu.org/screen/screen-4.5.0.tar.gz
+$ tar xzf screen-4.5.0.tar.gz
+$ [[ "$OSTYPE" =~ darwin ]] &amp;&amp; wget https://gist.githubusercontent.com/yujinakayama/4608863/raw/75669072f227b82777df25f99ffd9657bd113847/gistfile1.diff # Only for Mac
+$ wget https://gist.githubusercontent.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+$ wget https://gist.githubusercontent.com/rcmdnk/7d504f2f9064162fac529ad0ddb87202/raw/ce910700dfec637f0e3b501c4a7d8b14260a4ef4/screen-utf8-osc.diff
+$ [[ "$OSTYPE" =~ darwin ]] &amp;&amp; patch -p2 &lt; gistfile1.diff # Only for Mac
+$ patch -p2 &lt; screen-utf8-nfd.diff
+$ patch -p2 &lt; screen-utf8-osc.diff
+$ ./autogen.sh
+$ ./configure --enable-colors256 --prefix=$HOME/usr/local
+$ make &amp;&amp; make install
+</code></pre>
+
+<p>的な感じで。</p>
+
+<p>Macの場合には、必須ではないですがもう一つ、gistfile1.diffと言うコンパイル時のエラーメッセージを抑える
+パッチも宛てます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5512811339?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5512811339&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/4152ZaEO1SL._SS90_CR0,0,120,90_.jpg" alt="Gnu Screen" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/04/computer-screen/">GNU screen 最新版について</a></div></li></ul>
+
+<p>Mac Homebrewでインストールする場合は、</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/screenutf8 --utf8
+</code></pre>
+
+<p>で入れられますが、既に4.5.0をこれで入れてしまった場合には
+Formulaがアップデートされても自動でアップグレードしてくれないので、　</p>
+
+<pre><code>$ brew reinstall rcmdnk/rcmdnkpac/screenutf8
+</code></pre>
+
+<p>する必要があります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>この辺の文字化け対策ですが、
+<a href="https://rcmdnk.com/blog/2014/05/04/computer-screen/">GNU screen 最新版について</a>
+に書いた通り、一部が一度取り込まれかけてまた戻されていたりするので、
+何か面倒なことがあるんだと思います。</p>
+
+<p>上でも勝手にscreen.cの部分を削除して上手く行ったので取り敢えずそのまま使い始めましたが、
+正直screenのコードは全く理解してないので何か別の問題があるかもしれません。</p>
+
+<p>まあ取り敢えずしばらく使ってみた所違和感はないので大丈夫かな、と。</p>
+
+<p>また、
+<a href="https://rcmdnk.com/blog/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a>
+のところで書いてますが、この辺の2バイト文字の処理に関しては
+ターミナルの部分で問題を持ってる場合もあるので
+もし何かおかしい様ならそちらもチェックしてみる必要があります。
+(<code>screen</code>を立ち上げずに見れば分かるところですが。)</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Python | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/python/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Read the Docsでsetup.pyのないプロジェクトのビルドがエラーになる件]]></title>
+    <link href="https://rcmdnk.com/blog/2018/07/08/computer-github-python/"/>
+    <updated>2018-07-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/07/08/computer-github-python</id>
+    <content type="html"><![CDATA[<p>Read the Docsは主にSphinxを使ってドキュメントを生成しホスティングしてくれるサービスで、
+GitHubのレポジトリと連携して自動でドキュメントを作成公開してくれたりします。</p>
+
+<p>しばらく前からRead the Docsを使ってるレポジトリで貼ってるバッチが<code>fail</code>を示して
+いたのですがそれの原因がわかったので直しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#read-the-docs" id="markdown-toc-read-the-docs">Read the Docs</a></li>
+  <li><a href="#ビルドが失敗する" id="markdown-toc-ビルドが失敗する">ビルドが失敗する</a></li>
+  <li><a href="#久々にread-the-docsを見てみて" id="markdown-toc-久々にread-the-docsを見てみて">久々にRead the Docsを見てみて</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="read-the-docs">Read the Docs</h2>
+
+<p>Read the Docsはオープンソースコミュニティーのためのドキュメントホスティングサービスで、</p>
+
+<p><a href="http://www.sphinx-doc.org/">Sphinx</a>
+というPython製のドキュメントビルダーを使って
+ドキュメントを生成し公開することが出来ます。</p>
+
+<p>SphinxはPythonの公式ドキュメントを作るのにも使われているものです。</p>
+
+<p>GitHubにあるレポジトリのツールのドキュメントなどで、
+下みたいなのを見たことがあるかもしれません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160501_alabaster.jpg" alt="20160501_alabaster.jpg" class="pic" /></p>
+
+<p>これはSphinxを使って作られたもので、大概のものはRead the Docsを通じて
+公開されています。</p>
+
+<p>Sphinxの使い方やRead the Docsを使ってGitHubのレポジトリと連携する方法については以下を参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<h2 id="ビルドが失敗する">ビルドが失敗する</h2>
+
+<p>結構前からレポジトリに貼ってあるバッジが失敗を示していたので
+気にはなっていたのですが、
+それほどドキュメントを変更しているわけでもないのでとりあえず
+公開はされていたため無視していました。</p>
+
+<p>調べてみると昨年11月頃からのビルドがすべて失敗していました。</p>
+
+<p>今回ちょっとちゃんと見てみようと思って探してみたところ以下の様な
+Issueを発見。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rtfd/readthedocs.org/issues/3296">Builds don’t run because of setup.py - issue is happening suddenly · Issue #3296 · rtfd/readthedocs.org</a></p>
+</blockquote>
+
+<p>要はプロジェクト(レポジトリ)に<strong>setup.py</strong>がないと失敗する、ということ。</p>
+
+<p>実際に、Read the Docsの失敗しているレポジトリの管理ページに行ってみると
+<strong>ビルド</strong>のところで</p>
+
+<pre><code>python: can't open file 'setup.py': [Errno 2] No such file or directory
+</code></pre>
+
+<p>といったエラーで失敗していることがわかります。</p>
+
+<p>これを回避するためには<strong>setup.py</strong>を用意しても良いのですが、
+それも必要ない場合があります。(そもそもPythonのプロジェクトじゃないとか。)</p>
+
+<p>その場合、Read the Docs内で変更したいプロジェクトのページに行って、
+<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>高度な設定</strong>
+(もしくは表示されている<strong>Advanced Settings</strong>)へ行き、</p>
+
+<pre><code>Install your project inside a virtualenv using setup.py install
+</code></pre>
+
+<p>のところについているチェックを外します。</p>
+
+<p>これで<strong>setup.py</strong>を使わなくなるので失敗しなくなります。</p>
+
+<h2 id="久々にread-the-docsを見てみて">久々にRead the Docsを見てみて</h2>
+
+<p>Read the Docsの管理ページに久しぶりに行ってみましたが、
+以前はこの様な管理の項目が豊富にあったかな？と思うくらいいろいろと設定がありました。</p>
+
+<p>ビルドが失敗したときにメールで知らせる設定などもできるようになっています。
+(多分以前もあったのだろうけども。。。)</p>
+
+<p>Domain設定などで独自ドメインにすることも可能なようです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"/>
+    <updated>2018-07-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/07/07/computer-gmail-python</id>
+    <content type="html"><![CDATA[<p>Gmailのラベルやフィルタの使い方を色々考え直していましたが、
+エキスポート出来るXMLファイルを直接手でいじるのが色々大変だったので
+YAML形式に変更して編集しやすくし、
+それをGmailにインポートできる形のXML形式に変更するコマンドを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gmail_filter_manager" id="markdown-toc-gmail_filter_manager">gmail_filter_manager</a></li>
+  <li><a href="#xml-to-yaml" id="markdown-toc-xml-to-yaml">XML to YAML</a></li>
+  <li><a href="#yamlでフィルタを作る" id="markdown-toc-yamlでフィルタを作る">YAMLでフィルタを作る</a>    <ul>
+      <li><a href="#フィルタの条件に使えるもの" id="markdown-toc-フィルタの条件に使えるもの">フィルタの条件に使えるもの</a>        <ul>
+          <li><a href="#含む含まないに使えるもの" id="markdown-toc-含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</a></li>
+        </ul>
+      </li>
+      <li><a href="#フィルタ後の処置" id="markdown-toc-フィルタ後の処置">フィルタ後の処置</a></li>
+      <li><a href="#yamlの書き方" id="markdown-toc-yamlの書き方">YAMLの書き方</a></li>
+    </ul>
+  </li>
+  <li><a href="#yaml-to-xml" id="markdown-toc-yaml-to-xml">YAML to XML</a></li>
+  <li><a href="#gmailのラベルの使用法を工夫する" id="markdown-toc-gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gmail_filter_manager">gmail_filter_manager</h2>
+
+<div class="github-widget" data-repo="rcmdnk/gmail_filter_manager"></div>
+
+<p>例のごとくGitHubにあります。</p>
+
+<p>コマンドは</p>
+
+<ul>
+  <li>bin/gfm_extract: GmailからエキスポートしたXMLファイルをYAML形式にコンバート</li>
+  <li>bin/gfm_make: YAML形式で書いたフィルタをGmailが読めるXML形式にコンバート</li>
+</ul>
+
+<p>の2つです。</p>
+
+<p>Mac + Homebrewであれば</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/gmail_filter_manager
+</code></pre>
+
+<p>で入ります。</p>
+
+<p>それ以外では</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/gmail_filter_manager/install/install.sh | prefix=~/usr/local/ sh
+</code></pre>
+
+<p>で<code>prefix</code>で入れたい場所を指定して入れることが出来ます。</p>
+
+<p>もしくは上のコマンドを適当にPATHの通ったディレクトリに入れてください。</p>
+
+<p>必要なものはPythonでMac上でPython2.7.15、及び3.7.0で動作を確認してあります。</p>
+
+<p>Pythonのパッケージで<code>rumel.yaml</code>が必要なので入っていない場合は</p>
+
+<pre><code>$ pip install rumel.yaml
+</code></pre>
+
+<p>などでインストールしてください。</p>
+
+<h2 id="xml-to-yaml">XML to YAML</h2>
+
+<p>YAMLで直接フィルタを書いても良いですが、
+すでにGmailでフィルタを設定していたりする場合それをエキスポートして
+YAMLに変換して編集することが出来ます。</p>
+
+<p>まず、GmailからフィルタをXML形式でエキスポートします。
+エキスポートはGmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+出力したいフィルタをチェックして下にある<strong>エキスポート</strong>ボタンを押します。</p>
+
+<p>通常は一覧の下にある<strong>すべて</strong>を押してすべて選択してエキスポートすれば良いと思います。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/6579?hl=ja">メールのフィルタルールの作成 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>エキスポートした<strong>mailFilters.xml</strong>は以下の様な形になってると思います。</p>
+
+<figure class="code"><figcaption><span>mailFilters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;UTF-8&#39;?&gt;</span><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&#39;http://www.w3.org/2005/Atom&#39;</span> <span class="na">xmlns:apps=</span><span class="s">&#39;http://schemas.google.com/apps/2006&#39;</span><span class="nt">&gt;</span>
+</span><span class="line">  <span class="nt">&lt;title&gt;</span>Mail Filters<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">  <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filters:1530786931071,1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">  <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">  <span class="nt">&lt;author&gt;</span>
+</span><span class="line">    <span class="nt">&lt;name&gt;</span>rcmdnk<span class="nt">&lt;/name&gt;</span>
+</span><span class="line">    <span class="nt">&lt;email&gt;</span>rcmdnk@gmail.com<span class="nt">&lt;/email&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/author&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;category</span> <span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line">    <span class="nt">&lt;title&gt;</span>Mail Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">    <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530786931071<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">    <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">    <span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;from&#39;</span> <span class="na">value=</span><span class="s">&#39;foo@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;label&#39;</span> <span class="na">value=</span><span class="s">&#39;foo&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;category</span> <span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line">    <span class="nt">&lt;title&gt;</span>Mail Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">    <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">    <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">    <span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;from&#39;</span> <span class="na">value=</span><span class="s">&#39;bar@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;label&#39;</span> <span class="na">value=</span><span class="s">&#39;bar&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;shouldArchive&#39;</span> <span class="na">value=</span><span class="s">&#39;true&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを再びインポートすればフィルタが作成できるので
+バックアップとして取っておいたり出来ます。</p>
+
+<p>以前はこれを直接編集していましたがいろいろ面倒なのでYAML形式で管理しよう、ということで
+<code>gfm_extrac</code>を使います。</p>
+
+<p><code>gfm_extract</code>は第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.xml</strong>、アウトプットに<strong>mailFilters.yaml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_extract
+</code></pre>
+
+<p>で出来た<strong>mailFilters.yaml</strong>を見てみると</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">foo@example.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bar@example.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">shouldArchive</span><span class="p p-Indicator">:</span> <span class="s">&#39;true&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">namespaces</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">apps</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">http://schemas.google.com/apps/2006</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">atom</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">http://www.w3.org/2005/Atom</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのシンプルなものになっているかと思います。</p>
+
+<p>インポートする際、
+上のXMLファイルの中で実際に必要な部分だけを抜き出した形です。</p>
+
+<p>基本的に<code>entry</code>タグが一つのフィルタを表していて、その中の
+<code>apps:property</code>タグがフィルタ条件、処置方法についての内容になっていて、
+それ以外は必要ありません。</p>
+
+<p><code>namespaces</code>に関しては便宜上残していますが、
+<code>gfm_make</code>するときにこれらを補完するようにしてあるので
+自作する際にはなくても大丈夫です。</p>
+
+<h2 id="yamlでフィルタを作る">YAMLでフィルタを作る</h2>
+
+<p>簡単に作り方を知る方法としては、
+適当なフィルタをGmailで作って
+それらをエキスポートし、その内容を見てみるのが良いです。
+<code>gfm_extrac</code>でYAMLに変更することで更にわかりやすくなるはずです。</p>
+
+<p>YAMLの形式としては、<code>filters</code>というキーに対して
+フィルタを配列で配置していきます。</p>
+
+<p>各フィルタの中身は配列で、一つにつき一つ、<code>apps:property</code>タグに対応するものを書いていきます。
+キーとしてXMLの<code>name</code>属性を、値として<code>value</code>属性を書きます。</p>
+
+<p>フィルタの条件もフィルタ適用後の処置についても
+同じ様な記述で同列に書いていく形になります。
+(XMLでも全て<code>apps:property</code>で同様の書き方になっていて区別されてません。)</p>
+
+<h3 id="フィルタの条件に使えるもの">フィルタの条件に使えるもの</h3>
+
+<p>フィルタに使えるものは以下のものになります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">From</td>
+      <td style="text-align: left">from</td>
+      <td style="text-align: left">メールの送信者</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">To</td>
+      <td style="text-align: left">to</td>
+      <td style="text-align: left">メールの送信先</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">件名</td>
+      <td style="text-align: left">subject</td>
+      <td style="text-align: left">メールのタイトル</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含む</td>
+      <td style="text-align: left">hasTheWord</td>
+      <td style="text-align: left">これを含むメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含まない</td>
+      <td style="text-align: left">doesNotHaveTheWord</td>
+      <td style="text-align: left">これを含まないメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">添付ファイル有り</td>
+      <td style="text-align: left">hasAttachment</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">チャットは除外する</td>
+      <td style="text-align: left">excludeChats</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">サイズ</td>
+      <td style="text-align: left">size</td>
+      <td style="text-align: left">以下の2つとの組み合わせで指定サイズと比較する</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次の値より大きい/小さい</td>
+      <td style="text-align: left">sizeOperator</td>
+      <td style="text-align: left"><code>s_sl</code>なら上のサイズより大きい、<code>s_ss</code>なら小さい</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">MB/KB/バイト</td>
+      <td style="text-align: left">sizeUnit</td>
+      <td style="text-align: left">サイズに適用する単位。s_sb (バイト)、s_skb (KB)、s_smb (MB)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</h4>
+
+<p><strong>含む</strong>、<strong>含まない</strong>については複数のCCを指定したり、
+ラベルを指定したり、単にメールの本文に含まれるかどうかなどを組み合わせて使えます。</p>
+
+<p>fromやtoも指定できるので、上記の<code>From</code>などで指定せずにこちらですることも出来、
+組み合わせて使いたい場合はまとめて<strong>含む</strong>に入れたほうが楽だったりします。</p>
+
+<p>指定方法として、</p>
+
+<ul>
+  <li>from:foo@example.com</li>
+  <li>to:foo@example.com</li>
+  <li>subject:”Hello!”</li>
+  <li>label:foo # fooラベルのついたもの</li>
+  <li>has:nouserlabels # ラベルがついてないもの</li>
+</ul>
+
+<p>などがあります。</p>
+
+<p>組み合わせるときはそのままスペースで区切るかまたは<code>()</code>で囲むと<code>AND</code>になります。
+<code>{}</code>で囲むと<code>OR</code>になります。</p>
+
+<p>また、条件に<code>-label:foo</code>などとすると否定になります。</p>
+
+<p>したがって、<strong>含まない</strong>を使わずに<strong>含む</strong>だけでやりたいことをすべて行うことも出来ます。</p>
+
+<p>その他の細かいところは公式ヘルプで。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/7190">Gmail で使用できる検索演算子 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>一つ注意として、YAMLとして記述するとき</p>
+
+<ul>
+  <li>hasTheWord: {from:foo@example.com from:bar@example.com}</li>
+</ul>
+
+<p>の様に書いてしまうと値の部分がさらに辞書として理解されおかしなことになります。
+これを避けるため<code>hasTheWord</code>や<code>doesNotHaveTheWord</code>また<code>subject</code>などに関しては
+クォート(““で囲う)しておいた方が安全です。</p>
+
+<h3 id="フィルタ後の処置">フィルタ後の処置</h3>
+
+<p>フィルタ後の処置としては以下の様なものがあります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">受信トレイをスキップ(アーカイブする)</td>
+      <td style="text-align: left">shouldArchive</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">既読にする</td>
+      <td style="text-align: left">shouldMarkAsRead</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">スターを付ける</td>
+      <td style="text-align: left">shouldStar</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">ラベルを付ける</td>
+      <td style="text-align: left">label</td>
+      <td style="text-align: left">付けるラベルを指定</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次のアドレスに転送する</td>
+      <td style="text-align: left">forwrdTo</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">削除する</td>
+      <td style="text-align: left">shouldTrash</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">迷惑メールにしない</td>
+      <td style="text-align: left">shouldNeverSpam</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">常に重要マークを付ける</td>
+      <td style="text-align: left">shouldAlwaysMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">重要マークを付けない</td>
+      <td style="text-align: left">shouldNeverMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">適用するカテゴリ</td>
+      <td style="text-align: left">smartLabelToApply</td>
+      <td style="text-align: left">値は次のいずれか: “^smartlabel_personal”(個人)、”^smartlabel_social”(ソーシャル)、”^smartlabel_promo”(プロモーション)、”^smartlabel_notification”(新着)、”^smartlabel_group”(フォーラム)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="yamlの書き方">YAMLの書き方</h3>
+
+<p>上にも書いたようにまず<code>filters</code>というキーを作り
+そこに各フィルタの配列を与えます。</p>
+
+<p>フィルタの条件や処置についてはその中で配列として記述していきます。</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hasTheWord</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">foo@example.com bar@example.com</span><span class="p p-Indicator">}</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">baz.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">baz</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>唯一<code>label</code>だけは複数配列ツィて指定できる様にもなっていて、
+複数指定した場合にはそれぞれのラベルに対して他の条件、処置が同じフィルタを
+作成することになります。</p>
+
+<h2 id="yaml-to-xml">YAML to XML</h2>
+
+<p><code>gfm_make</code>を使ってYAMLからGmailにインポートできるXMLファイルを作ります。</p>
+
+<p><code>gfm_make</code>も第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.yaml</strong>、アウトプットに<strong>filters.xml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_make
+</code></pre>
+
+<p>最初にエキスポートした例で出して<code>gfm_extrac</code>で変形したものをそのまま
+XMLに変形すると</p>
+
+<figure class="code"><figcaption><span>filters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+</span><span class="line"><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span> <span class="na">xmlns:apps=</span><span class="s">&quot;http://schemas.google.com/apps/2006&quot;</span><span class="nt">&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;from&quot;</span> <span class="na">value=</span><span class="s">&quot;foo@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;label&quot;</span> <span class="na">value=</span><span class="s">&quot;MyLabel1&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;shouldArchive&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;from&quot;</span> <span class="na">value=</span><span class="s">&quot;bar@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じになります。
+最初にエキスポートしたものに比べるとずいぶんスリムになりましたが
+これで全く同じフィルタを作成することが出来ます。</p>
+
+<p>フィルタをインポートするには
+Gmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+下の方にある<strong>フィルタをインポート</strong>を押してインポート画面を表示し、
+<strong>ファイルを選択</strong>でファイルを選択後、<strong>ファイルを開く</strong>を押すと
+フィルタが表示される様になります。</p>
+
+<p>この時点ではまだGmailにインポートされておらず、
+フィルタにチェックが入った状態でさらに下の<strong>フィルタを作成</strong>を押すと実際にインポートされます。</p>
+
+<p>このとき、右にある<strong>既存のメールに新しいフィルタを適用する</strong>にチェックしたくなりますが、
+すべてのメールを見るのでものすごい時間がかかるため、
+Gmailを使い始めて間もない、とかで無い限りチェックしない方が無難です。</p>
+
+<p>チェックしない状態で100個くらいのフィルタを作るのに1分位かかります。</p>
+
+<p>ここで、一度エキスポートして編集して再度インポートすることを考えると、
+<strong>ファイタを作成</strong>をする前に一度前のフィルタをすべて削除しておいた方が良いです。</p>
+
+<p>そうすると一瞬フィルタが無い時間ができ、その間に来たメールは振り分けられませんが、
+あとでいちいち古いフィルタを削除するよりは良いと思います。</p>
+
+<h2 id="gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</h2>
+
+<p>これを作ったのは色々Gmailのラベルやフィルタの使い方を変えようと思って
+いじってた時に手動でやっていくのが面倒になってきたからです。</p>
+
+<p>以下に書いてある様なことをやりたい場合、これらのコマンドを使って
+YAMLで管理すると非常に楽です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter_120_90.jpg" width="120" height="90" alt="20140409_filter_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/">Gmailのラベルの使用法を工夫する</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrewでインストールされる/usr/local/bin/pythonが再びPython2に変更]]></title>
+    <link href="https://rcmdnk.com/blog/2018/03/10/computer-mac-homebrew-python/"/>
+    <updated>2018-03-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/03/10/computer-mac-homebrew-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873112109?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873112109&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51W3A9A9N2L._SS200_.jpg" alt="初めてのPython 第2版" /></a>
+</div>
+
+<p>先日Homebrewのパッケージの改変が行われ、<code>python</code>というFormulaはPython3をインストールするようになり、
+<strong>/usr/local/bin/python</strong>も<code>python3</code>へのリンクになっていました。</p>
+
+<p>これがまた変更され、
+<strong>/usr/local/bin/python</strong>は<code>python2</code>へのリンクに戻されました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#python2-to-python3" id="markdown-toc-python2-to-python3">python2 to python3</a></li>
+  <li><a href="#pep-394--the-python-command-on-unix-like-systems" id="markdown-toc-pep-394--the-python-command-on-unix-like-systems">PEP 394 – The “python” Command on Unix-Like Systems</a></li>
+  <li><a href="#現在の状況" id="markdown-toc-現在の状況">現在の状況</a></li>
+  <li><a href="#python3をpythonで呼びたい場合" id="markdown-toc-python3をpythonで呼びたい場合">python3をpythonで呼びたい場合</a></li>
+  <li><a href="#homebrewチームの暴走感" id="markdown-toc-homebrewチームの暴走感">Homebrewチームの暴走感</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="python2-to-python3">python2 to python3</h2>
+
+<blockquote>
+  <p><a href="https://brew.sh/2018/01/19/homebrew-1.5.0/">1.5.0 — Homebrew</a></p>
+</blockquote>
+
+<p>以前から予告されていたこととして、3月に入った時に
+Homebrewの<code>python</code> Formulaがpython3をインストールするようになりました。</p>
+
+<p>これに伴い、<code>python2</code>は<code>python@2</code>となり、
+Keg-Only(<code>python2</code>などの実行ファイルへのリンクを<strong>/usr/local/bin</strong>などには自動的には貼らない)になりました。</p>
+
+<p><code>python2</code>はエイリアスとして残っていたので<code>brew install python2</code>は出来ましたが
+いずれにしろ<code>python</code>ではpython2ではなくpython3をインストールするようになりました。</p>
+
+<p>この時点で<strong>/usr/local/bin</strong>にPATHが通っていると、<code>python</code>と呼ぶとpython3が呼ばれることになりますが、</p>
+
+<pre><code>export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"
+</code></pre>
+
+<p>としておけばこのディレクトリに<code>python</code>という名前の<code>python2</code>へのシンボリックリンクがあるため、
+<code>python</code>でHomebrewの最新python2を呼ぶことは可能でした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873117380?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873117380&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51%2Bxv65qdBL._SS90_CR0,0,120,90_.jpg" alt="入門 Python 3" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/03/02/computer-mac-homebrew/">Homebrewの'python'でインストールされるものがpython3になった</a></div></li></ul>
+
+<p>ただ、
+システムデフォルトの<strong>/usr/bin/python</strong>はpython2なので
+<strong>/usr/local/bin/python</strong>がpython3になったことはHomebrew以外にも大きく影響が出ていました。</p>
+
+<p>明示的に自分でPython3を入れる場合はともかく、他のパッケージがpython3に依存していて
+気付かないうちに入る場合もあるので、
+その場合は、ふと<code>python</code>を使ったらpython3が立ち上がったり、</p>
+
+<pre><code>#!/usr/bin/env python
+</code></pre>
+
+<p>と言ったShebangを使ったPython scriptが動かなくなった、ということが良く起こっていました。</p>
+
+<p>さらに、<code>python@2</code>はKeg-Onlyなので、Homebrewで入れたpython2を使うためには
+上に書いたようにパスを通すか、</p>
+
+<pre><code>$ brew link --force python@2
+</code></pre>
+
+<p>として、<strong>/usr/local/bin/python2</strong>のリンクを手動で張って<code>python2</code>を呼ぶ必要がありました。</p>
+
+<h2 id="pep-394--the-python-command-on-unix-like-systems">PEP 394 – The “python” Command on Unix-Like Systems</h2>
+
+<p>これに関して当然ユーザーから色々と意見がありましたが、
+突如PEP (Python Enhancement Proposal) 394が持ち出され、
+<strong>/usr/local/bin/python</strong>はpython2に戻されることになりました。</p>
+
+<blockquote>
+  <p><a href="https://www.python.org/dev/peps/pep-0394/">PEP 394 – The “python” Command on Unix-Like Systems  Python.org</a></p>
+</blockquote>
+
+<p>PEP 394は
+<code>python</code>としてPython 3を導入するシステムが出始めた2011年頃に出されたものですが、
+基本的に<code>python</code>はPython 2を呼ぶ様にすることが薦められています。</p>
+
+<p>定期的にチェックが行われていますが、
+Python 2.7が2020年位までメンテナンスが続く2020年頃までは
+Python2が呼ばれる仕様が基本としたい感じです。</p>
+
+<p>これによりHomebrewで入れられる<strong>/usr/local/bin/python</strong>は
+Python2を指すように戻されました。</p>
+
+<blockquote>
+  <p><a href="https://discourse.brew.sh/t/python-and-pep-394/1813">Python and PEP 394 - Homebrew - Homebrew</a></p>
+</blockquote>
+
+<p>実際に先ほどコミットがマージされたので、
+今、<code>brew update &amp;&amp; brew upgrade</code>すると
+<code>python@2</code>を入れてた人は</p>
+
+<pre><code>$ /usr/local/bin/python --version
+Python 2.7.14
+</code></pre>
+
+<p>の様にpython 2に変わっているはずです。</p>
+
+<h2 id="現在の状況">現在の状況</h2>
+
+<p>Homebrewの<code>python</code>というFormulaは引き続きPython3のものになります。</p>
+
+<p>ただし、</p>
+
+<pre><code>$ brew install python
+</code></pre>
+
+<p>とした場合、<strong>/usr/local/bin/python3</strong>がインストールされますが、
+<strong>/usr/local/bin/python</strong>は作られません。</p>
+
+<p>同様に<strong>/usr/local/bin/pip3</strong>がインストールされますが、
+<strong>/usr/local/bin/pip</strong>はインストールされません。</p>
+
+<p><code>python3</code>という名前もエイリアスとしてあるので</p>
+
+<pre><code>$ brew install python3
+</code></pre>
+
+<p>でも同様のインストールが出来ます。</p>
+
+<p>一方、</p>
+
+<pre><code>$ brew install python@2
+</code></pre>
+
+<p>とすると<strong>/usr/local/bin/python2</strong>が自動的にインストールされる様になりました。
+さらに、<strong>/usr/local/bin/python</strong>も同様にPython 2へのリンクとしてインストールされます。</p>
+
+<p>同様に<strong>/usr/local/bin/pip2</strong>もインストールされ、
+また、<strong>/usr/local/bin/pip</strong>もpip2へのシンボリックリンクとしてインストールされます。</p>
+
+<p><code>python2</code>が現在はエイリアスとして<code>python@2</code>を指していますが、
+<code>@</code>付きのものはKeg-Onlyなものなので
+そのうち<code>python2</code>自体がFormulaになり<code>python@2</code>は消えるかとりあえずはエイリアスとして残る感じになると思います。</p>
+
+<p>このインストール後の状態としては、
+状態は去年の夏ころに<strong>/usr/local/bin/python</strong>がインストールされなくなった時より
+前と同じ状態に戻った感じです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/479738946X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=479738946X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61vpArlxcQL._SS90_CR0,0,120,90_.jpg" alt="みんなのPython 第4版" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/07/28/computer-mac-homebrew/">HomebrewでインストールされるPython(2)の変更について</a></div></li></ul>
+
+<h2 id="python3をpythonで呼びたい場合">python3をpythonで呼びたい場合</h2>
+
+<p>これにより、python3は<code>python</code>では呼べなくなりますが、
+<code>python</code>で呼びたい場合には以下のPATHを加えることで可能になります。</p>
+
+<pre><code>export PATH=$(brew --prefix)/opt/python3/libexec/bin:$PATH
+</code></pre>
+
+<p><code>brew -pprefix</code>は通常<strong>/usr/local</strong>です。</p>
+
+<p>ここには<code>python</code>や<code>pip</code>という名前のシンボリックリンクがpython3やpip3に対して貼られています。</p>
+
+<p><strong>$(brew –prefix)/opt/python</strong>も<strong>$(brew –prefix)/opt/python3</strong>と同様のディレクトリへの
+リンクなのでどちらでも良いですが、
+今後もしかするとまた<code>python</code>という名前がPython2用にならないとも限らないので
+<code>python3</code>の方が安全かな、と思います。</p>
+
+<p>(もっと将来的にはpython2も無くなり<code>python3</code>というエイリアスもなくなるでしょうが、
+その時には<strong>/usr/local/bin/python</strong>がpython3になるでしょう。)</p>
+
+<h2 id="homebrewチームの暴走感">Homebrewチームの暴走感</h2>
+
+<p>上にも書いたように昨年<strong>/usr/local/bin/python</strong>をインストールしないようになり、
+Homebrewでのpython2は<code>python2</code>と呼ぶか別途パスを設定する必要があるようになりました。</p>
+
+<p>さらに今月に入ってFormulaの<code>python</code>をpython3にすると同時に、
+<strong>/usr/local/bin/python</strong>をPython3にするという変更を行いました。</p>
+
+<p>これらはHomebrewのチームがPython3主体にしたいという思いから行ってきたことですが、
+ちょっと暴走してた感があります。</p>
+
+<p>元々Homebrewのチーム(というか特にリーダーの@MikeMcQuaid)は
+ユーザーに対して割と好戦的に反論してきています。</p>
+
+<p>特に文句を言ってるわけではなくて、なんでその様な変更が必要になったのですか？
+といった質問に対してでも
+いきなり「じゃあ使うな」みたいになってることもしばしば。</p>
+
+<blockquote>
+  <p><a href="https://discourse.brew.sh/t/how-to-install-python3-without-making-the-python-symlink/1761">How to install <code>python3</code> without making the <code>python</code> symlink? - Homebrew - Homebrew</a></p>
+</blockquote>
+
+<p>ここでは
+<strong>/usr/local/bin/python</strong>をpython3としてインストールしない方法について聞かれたのが始まりですが、
+オプションで出来る様にすることはそれ程難しいことでは無いにも関わらず、
+バッサリと出来ないと宣言し、その様なオプションを付けるつもりも無い、と切っています。</p>
+
+<p>その中でPEP 394を指摘されているにも関わらず、「それは知ってるけど、Python3がメジャーバージョンだし自分達流でやってくから」
+と言い放ってます。</p>
+
+<p>ただ、多分ここで指摘された時は実は気づいてなかった(もしくは少なくとも他のほとんどの人は真面目に考えてなかった)状態だったのが、
+ここでPEP 394を知ってちゃんとfollowすべきだ、となって</p>
+
+<blockquote>
+  <p><a href="https://discourse.brew.sh/t/python-and-pep-394/1813">Python and PEP 394 - Homebrew - Homebrew</a></p>
+</blockquote>
+
+<p>という事になったんだと思います。
+が、ここでも</p>
+
+<blockquote><p>Thank you to everyone who helped with this effort and provided constructive, polite and actionable feedback. No thanks to those who have used this as an excuse to abuse the entirely volunteer run project and maintainers.</p><footer><strong>Python and PEP 394 - Homebrew - Homebrew</strong> <cite><a href="https://discourse.brew.sh/t/python-and-pep-394/1813">discourse.brew.sh/t/1813/&hellip;</a></cite></footer></blockquote>
+
+<p>なことを言っていて、あくまで文句言ってきたやつは許さん、という全く無意味な余計な一言を加えています。
+(今回のpython2の件に関しては一通り関連するものを見てるつもりですが、特に<strong>abuse</strong>なことをしてる人は居ない中で
+敢えてこの文言を付けるのは今までの経緯からだと思いますがちょっと。。。)</p>
+
+<p>最近は、OSSでボランティアでやってやってるんだから余計な口出しをするな、位の雰囲気にもなってきていて
+ちょっと見ていて辛いところがあります(まあ、主に一人がなんですが。。。)。</p>
+
+<p>Homebrewは便利なツールで広く使われていますし
+今後もどんどん便利になっていってほしいとは思いますが、
+ちょっと最近この辺の雰囲気が嫌で別のツールがあればな、とすら思うようになっています。</p>
+
+<p>今のところ血気盛んなのが主には一人だけなので大丈夫ですが、
+もう一人くらい出てきて、それで対立が起こったら無駄な分裂とかすらできそうな感じです。</p>
+
+<p>一応GitHubの人だったりしますし、あまりにひどいことはしないとは思いますが、
+Donateがあったりスポンサーも付いてたりするので
+お金も動いてますし、おかしなことになっても不思議ではないかも。。。</p>
+
+<p>今回も<strong>/usr/local/bin/python</strong>をPython3にした、ということ自体は
+それほど問題ない、というか、そういう方針だということであれば良いのだと思いますが、
+反対意見や注文に対してただただバッサリ行くのが問題です。</p>
+
+<p>最終的には曖昧なママPEP 394に従うということで戻していますし、その際に追撃も忘れないという。</p>
+
+<p>ちょっと改めてもらえると気分良く使えるのですが。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Pythonで環境変数を含む文字列を解析する方法]]></title>
+    <link href="https://rcmdnk.com/blog/2018/01/05/computer-python/"/>
+    <updated>2018-01-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/01/05/computer-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06XRQS8PN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06XRQS8PN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51X9S9HcZQL._SS200_.jpg" alt="Amazon.co.jp： ゲームを作りながら楽しく学べるPythonプログラミング (Future Coders（NextPublishing）) eBook: 田中 賢一郎: Kindleストア" /></a>
+</div>
+
+<p>Pythonで環境変数を取得する方法について。
+下の例はPython 2.7.14で試しています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#osenvironget" id="markdown-toc-osenvironget">os.environ.get()</a></li>
+  <li><a href="#subprocessの中でechoする" id="markdown-toc-subprocessの中でechoする">subprocessの中でechoする</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="osenvironget">os.environ.get()</h2>
+
+<p><code>os.environ.get()</code>を使えばシェルで定義された環境変数を取ってこれます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">os</span>
+</span><span class="line"><span class="n">home</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HOME&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="k">print</span> <span class="n">home</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>2番めの引数はもし<code>$HOME</code>が設定されてない時に代わりに与えるデフォルト値になります。
+省略すると<code>None</code>に。</p>
+
+<h2 id="subprocessの中でechoする">subprocessの中でechoする</h2>
+
+<p>単独の変数であれば<code>os.environ.get()</code>を使うべきですが、
+シェルスクリプト的な書き方をしてあるファイルで
+変数が文字列の中に混じっている様なものを変換したい時はちょっと面倒です。</p>
+
+<p><code>${HOME}</code>の様に<code>{}</code>で囲ってあればその部分を抜き出してやろうと思えば出来ないことも無いですが、
+<code>{}</code>にも囲まれて無いような場合はかなり面倒です。</p>
+
+<p>そこで<code>subprocess</code>を使ってその中で文を<code>echo</code>してその返り値を使う、という方法を使うと簡単に取ってこれます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">subprocess</span>
+</span><span class="line"><span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;echo $HOME&quot;</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span><span class="line"><span class="n">home</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</span><span class="line"><span class="k">print</span> <span class="n">home</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで<code>/home/user</code>の様なHOMEの値が取得できます。</p>
+
+<p><code>Popen</code>でデフォルトの<code>shell=False</code>な状態では第一引数はコマンドとそれぞれの引数に分けた
+配列で渡しますが、
+この場合シェルを通さず<code>echo</code>コマンドを行う、と言う形になり
+変数の解釈が起こりません。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">subprocess</span>
+</span><span class="line"><span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;$HOME&quot;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+</span><span class="line"><span class="n">home</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</span><span class="line"><span class="k">print</span> <span class="n">home</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これだと<code>$HOME</code>とそのまま文字列が返ってきます。</p>
+
+<p><code>shell=True</code>にすることでコマンドがシェルに渡されて実行される形になるので
+<code>$HOME</code>等の値を解釈した上でコマンドを実行してくれます。</p>
+
+<p>もう少し長い文で<code>(</code>とか<code>echo</code>で直接与えるとエラーが出る様な文字列を
+含む可能性がある場合には<code>"</code>で囲います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">subprocess</span>
+</span><span class="line"><span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;echo &quot;My home is ($HOME)&quot;&#39;</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+</span><span class="line">                     <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span><span class="line"><span class="n">home</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</span><span class="line"><span class="k">print</span> <span class="n">home</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>何回も使うなら、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">parse_env</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+</span><span class="line">    <span class="kn">import</span> <span class="nn">subprocess</span>
+</span><span class="line">    <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;echo &quot;&#39;</span> <span class="o">+</span> <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+</span><span class="line">                         <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に関数にしておけば<code>parse_env("My home is ($HOME)")</code>
+の様な感じで文字列中の環境変数を取ってくる事が出来る様になります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MacのメニューバーでGmailを確認出来るMenuBarGmailのアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2017/07/12/computer-mac-python-gmail/"/>
+    <updated>2017-07-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/07/12/computer-mac-python-gmail</id>
+    <content type="html"><![CDATA[<p>MacでGmailを確認する際にメニューバーに未読メールの通知があると便利で、
+それを実現するアプリはいくつかありますが、
+必要なラベルの選択やフィルター機能と言ったものまで付いてるものが無かったので
+自分で作ったのが
+<a href="https://github.com/rcmdnk/MenuBarGmail">MenuBarGmail</a>
+です。</p>
+
+<p>そのMenuBarGmailをちょっとアップデートしたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#menubargmail" id="markdown-toc-menubargmail">MenuBarGmail</a></li>
+  <li><a href="#今回のアップデート" id="markdown-toc-今回のアップデート">今回のアップデート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="menubargmail">MenuBarGmail</h2>
+
+<div class="github-widget" data-repo="rcmdnk/MenuBarGmail"></div>
+
+<p>ソースコードはGitHubにあります。</p>
+
+<p>インストールはHomebrewで</p>
+
+<pre><code>$ brew cask install rcmdnk/rcmdnkcask/menubargmail
+</code></pre>
+
+<p>とするかGitHubのレポジトリの<strong>releases</strong>から最新のものをダウンロード、解凍して
+中にあるMenuBarGmail.appを<strong>/Applications</strong>に入れてください。</p>
+
+<p>クリックして立ち上げると
+最初にGmailのアカウントに関する認証をブラウザを立ち上げて行います。</p>
+
+<p>認証を許可すると
+下の様な封筒アイコンと、未読数がメニューバーに現れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20151117_menubargmaillabels.jpg" alt="20151117_menubargmaillabels.jpg" class="pic" /></p>
+
+<p>デフォルトではInboxの未読数だけを見ますが、
+ラベルの設定や、指定したラベルの中でもさらにFilterを設定して
+必要なメールだけの未読数を数えて表示することも出来ます。</p>
+
+<p>基本的にはこの未読通知を表示させておいて
+後はブラウザでちゃんと確認、という使い方をしていますが、
+メールの内容の表示や、メールの既読化、未読メールに対する返信
+などと言った機能もあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/17/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/MacApp/thumbnail/MenuBarGmail_120_90.png" width="120" height="90" alt="MenuBarGmail_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/17/computer-mac-python/">rumpsとGmail APIを使ってMacのGmailメニューバーアプリを作ってみた</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/24/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151124_menubargmailshow_120_90.jpg" width="120" height="90" alt="20151124_menubargmailshow_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/24/computer-mac-python/">MenuBarGmailに既読機能、メール送信機能を付けた</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/12/21/computer-mac-python-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151124_menubargmailshow_120_90.jpg" width="120" height="90" alt="20151124_menubargmailshow_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/12/21/computer-mac-python-gmail/">MacのMenuBarGmailがメールをアップデートしなくなるバグをフィックス</a></div></li></ul>
+
+<h2 id="今回のアップデート">今回のアップデート</h2>
+
+<p>今回のアップデートはネットワークが切れたりした時に
+メールを確認に行って失敗するとそこで止まって応答しなくなってしまう、
+と言う酷いバグのフィックスです。</p>
+
+<p>このバグ自体は随分前に直していたんですが、
+OSをアップデート後、アプリにコンパイルすると上手く起動出来なくて
+アプリの作成が出来てませんでした。</p>
+
+<p>MenuBarGmailはPythonで作っていて、
+rumpsというモジュールを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151116_rumps_test_120_90.jpg" width="120" height="90" alt="20151116_rumps_test_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/">rumpsを使ってPythonで簡単にMacのメニューバーアプリを作る</a></div></li></ul>
+
+<p>さらに作ったスクリプトを
+<a href="https://pypi.python.org/pypi/py2app/">py2app</a>
+を使ってアプリ化しています。</p>
+
+<p>スクリプトの状態で走らせると上手く起動出来るのですが、
+アプリ化して起動すると
+<strong>Open Console</strong>/<strong>Terminate</strong>というボタンとともに
+<strong>MenuBarGmail Error</strong>というエラーポップアップが出てきます。</p>
+
+<p><strong>Open Console</strong>をしてコンソールで見てみると</p>
+
+<blockquote>
+  <p>Detected missing constraints for <private>.  It cannot be placed because there are not enough constraints to fully define the size and origin. Add the missing constraints, or set translatesAutoresizingMaskIntoConstraints=YES and constraints will be generated for you. If this view is laid out manually on macOS 10.12 and later, you may choose to not call [super layout] from your override. Set a breakpoint on DETECTED_MISSING_CONSTRAINTS to debug. This error will only be logged once.</private></p>
+</blockquote>
+
+<p>こんな感じのエラーが。</p>
+
+<p>中に<strong>macOS 10.12</strong>ウンタラカンタラとあるので
+OSのアップデートにrumpsなりpy2appが対応してないのかな、
+と思ってしばらく放っておいたのですが、
+今回pipでインストールしてあるモジュールを一通り新しくして
+もう一度やってみたらこのエラーがでなくなりました。</p>
+
+<p>ということでとりあえず使えるかな、と思ったら今度はメールが全然取得出来ない状態。
+調べてみると最初に作った時に
+<a href="https://rcmdnk.com/blog/2015/11/17/computer-mac-python/#sslpy%E3%81%AE%E5%95%8F%E9%A1%8C">sslモジュールで起こった問題</a>
+と同じことが他で起こってるようでした。</p>
+
+<p>sslモジュールの中ではhttplib2モジュールの中にある<strong>cacerts.txt</strong>と言うテキストファイルを読んでるのですが、
+py2appではモジュール群をzipファイルに纏めた形でアプリの中に収納しています。
+この中にあるテキストファイルを読もうとするのでそこでエラーが出ます。</p>
+
+<p>なのでこのテキストファイルを別途アプリの中に収納し、
+それを読める様にモジュールをちょっといじって入れる様なことをしていました。</p>
+
+<p>これと同じことがhttplib2の中でも起こっていたので同様に
+パスを指定する部分をいじって入れることで上手く動くようになりました。</p>
+]]></content>
+  </entry>
+  
+</feed>

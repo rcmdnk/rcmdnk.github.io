@@ -1,0 +1,1250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: AutoHotkey | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/autohotkey/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでウィンドウを定期的にチェックしてトレイアイコンを変えられる様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/22/computer-autohotkey-vim/"/>
+    <updated>2017-11-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/22/computer-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>
+の設定でアクティブウィンドウを定期的にチェックして、
+もしvim_ahk対応でないウィンドウの場合には
+アイコンをDisabledアイコンにアップデート出来る様にしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#autohotkeyで定期的なチェックを行う" id="markdown-toc-autohotkeyで定期的なチェックを行う">AutoHotkeyで定期的なチェックを行う</a></li>
+  <li><a href="#ahk_vimでウィンドウチェック" id="markdown-toc-ahk_vimでウィンドウチェック">ahk_vimでウィンドウチェック</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="autohotkeyで定期的なチェックを行う">AutoHotkeyで定期的なチェックを行う</h2>
+
+<p>ToolTipを出す時に使った
+<a href="https://autohotkey.com/docs/commands/SetTimer.htm">SetTimer</a>
+を使います。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171110_ahktooltip_120_90.jpg" width="120" height="90" alt="20171110_ahktooltip_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/">AutoHotkeyでToolTipを出す</a></div></li></ul>
+
+<p>ToolTipのときにはどちらかと言うと無理やりSetTimerを使って時間差で消す、という作業を
+行ってましたが、
+本来SetTimerで時間をセットするとその時間毎にコマンドを実行する様になります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#Persistent</span><span class="c1"> ; Keep script running</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">SetTimer</span><span class="p">,</span> <span class="n">CheckWindow</span><span class="p">,</span> <span class="mi">10000</span><span class="c1"> ; Set timer (ms)</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"> ; End of Auto-execute section</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">CheckWindow:</span>
+</span><span class="line">  <span class="nb">WinGet</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">PID</span><span class="p">,</span> <span class="n">A</span>
+</span><span class="line">  <span class="nb">WinGet</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ProcessName</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">WinGetClass</span><span class="p">,</span> <span class="n">class</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">WinGetTitle</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">Msgbox</span><span class="p">,</span>
+</span><span class="line">  <span class="g">(</span>
+</span><span class="line"><span class="g">    Process name: %name%</span>
+</span><span class="line"><span class="g">    Class       : %class%</span>
+</span><span class="line"><span class="g">    Title       : %title%</span>
+</span><span class="line"><span class="g">  )</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのスクリプトを実行すれば
+10秒ごとにその時のアクティブウィンドウのタイトルとかをポップアップメッセージとして出します。</p>
+
+<p>止めたくなったら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">SetTimer</span><span class="p">,</span> <span class="n">CheckWindow</span><span class="p">,</span> <span class="n">OFF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を実行します。</p>
+
+<h2 id="ahk_vimでウィンドウチェック">ahk_vimでウィンドウチェック</h2>
+
+<p>こんな感じです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171122_ahkvimiconcheck.gif" alt="ahkvimiconcheck" class="pic" /></p>
+
+<p>ターミナル(putty、vim_ahk無効)とメモ帳(vim_ahk有効)の2つの
+ウィンドウを行ったり来たりして、ターミナル上に行くと灰色のDisabledアイコンになってるのがわかると思います。</p>
+
+<p>デフォルトでは1秒毎にチェックします。</p>
+
+<p>この設定はメニューから開ける設定画面から
+チェックのオンオフやチェック間隔を変更することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171111_vimahksettings_120_90.png" width="120" height="90" alt="20171111_vimahksettings_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/">vim_ahkでメニューから設定変更出来る様にした</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkで有効にするアプリの変更もメニューから出来る様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/14/computer-windows-autohotkey/"/>
+    <updated>2017-11-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/14/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>
+の設定にアプリの変更も出来る様にしました。</p>
+
+<p>これでスクリプトをいじらずに有効にしたいアプリを変更できますし、
+<code>exe</code>ファイルとして実行したときも変更が可能になりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahkの設定" id="markdown-toc-vim_ahkの設定">vim_ahkの設定</a></li>
+  <li><a href="#window-groupを実行中に変更する" id="markdown-toc-window-groupを実行中に変更する">Window Groupを実行中に変更する</a></li>
+  <li><a href="#設定ファイルに改行のある文字列を書き出すと上手くいかない" id="markdown-toc-設定ファイルに改行のある文字列を書き出すと上手くいかない">設定ファイルに改行のある文字列を書き出すと上手くいかない</a></li>
+  <li><a href="#edit枠を最初に持ってくるとフォーカス状態になる" id="markdown-toc-edit枠を最初に持ってくるとフォーカス状態になる">Edit枠を最初に持ってくるとフォーカス状態になる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahkの設定">vim_ahkの設定</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171111_vimahksettings_120_90.png" width="120" height="90" alt="20171111_vimahksettings_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/">vim_ahkでメニューから設定変更出来る様にした</a></div></li></ul>
+
+<p>この前チェックボックスなどを使ってメッセージのverbose levelなどを変更したり
+出来る様にしましたが設定を有効に出来る
+アプリの選択も出来る様にしました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171114_vimahksettings.jpg" alt="vimahksettings" class="pic" /></p>
+
+<p>こんな感じのEdit枠を作って、各行に一つアプリのタイトルとかクラスとかを書きます。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/docs/misc/WinTitle.htm">WinTitle &amp; Last Found Window</a></p>
+</blockquote>
+
+<p>クラス名とかはトレイアイコンの右クリックから開ける<strong>Window Spy</strong>で調べられます。</p>
+
+<h2 id="window-groupを実行中に変更する">Window Groupを実行中に変更する</h2>
+
+<p>AutoHotkeyでは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">GroupAdd</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">notepad</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="nb">GroupAdd</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">wordpad</span><span class="o">.</span><span class="n">exe</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にグループを設定して、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span> <span class="nf">WInActive</span><span class="p">(</span><span class="s">&quot;ahk_group VimGroup&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>または</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#IfWInActive</span><span class="p">,</span> <span class="n">ahk_group</span> <span class="n">VimGroup</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にしてグループでまとめてそれがアクティブかどうかのチェックをしたり出来ます。</p>
+
+<p>ただAutoHotkeyには<code>GroupAdd</code>はありますが、<code>GroupDelete</code>の様な
+グループから除く様なコマンドはありません。
+なのでグループを一度実行してから変更することは、加えることは簡単ですが
+削除することは簡単にはできません。</p>
+
+<p>そこで、名前に番号を付けてグループを変更するたびに番号を変更して
+新しいグループとして作成し、
+<code>IfWinActive</code>でもその名前でチェックする様にするとグループ変更が可能になります。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/71695-is-there-any-way-to-destroy-delete-a-window-group/#entry455084">Is there any way to destroy (delete) a window group - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>vim_ahkの中では下記の様な感じでやっています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="n">VimGroupDel</span> <span class="o">:=</span> <span class="s">&quot;,&quot;</span>
+</span><span class="line"><span class="n">VimGroupN</span> <span class="o">:=</span> <span class="mi">0</span>
+</span><span class="line">
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="s">&quot;ahk_exe notepad.exe&quot;</span><span class="c1">   ; NotePad</span>
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="n">VimGroupIni</span> <span class="o">.</span> <span class="n">VimGroupDel</span> <span class="o">.</span> <span class="s">&quot;ahk_exe wordpad.exe&quot;</span><span class="c1">   ; WordPad</span>
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="n">VimGroupIni</span> <span class="o">.</span> <span class="n">VimGroupDel</span> <span class="o">.</span> <span class="s">&quot;ahk_exe TeraPad.exe&quot;</span><span class="c1">   ; TeraPad</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimGroup</span> <span class="o">:=</span> <span class="n">VimGroupIni</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimReadIni</span><span class="p">()</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimSetGroup</span><span class="p">()</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimSetGroup</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="nb">global</span>
+</span><span class="line">  <span class="n">VimGroupN</span><span class="o">++</span>
+</span><span class="line">  <span class="n">VimGroupName</span> <span class="o">:=</span> <span class="s">&quot;VimGroup&quot;</span> <span class="o">.</span> <span class="n">VimGroupN</span>
+</span><span class="line">  <span class="nb">Loop</span><span class="p">,</span> <span class="n">Parse</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="o">%</span> <span class="n">VimGroupDel</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="n">if</span><span class="p">(</span><span class="nv">A_LoopField</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span><span class="p">){</span>
+</span><span class="line">      <span class="nb">GroupAdd</span><span class="p">,</span> <span class="nv">%VimGroupName%</span><span class="p">,</span> <span class="nv">%A_LoopField%</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">#If</span> <span class="nf">WInActive</span><span class="p">(</span><span class="s">&quot;ahk_group &quot;</span> <span class="o">.</span> <span class="n">VimGroupName</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>VimGroupN</code>という番号を新しくグループを作るたびに更新して
+<code>VimGroupName</code>を新しくしています。
+<code>#If WInActive</code>の中でも<code>VimGroupName</code>という変数を使っているので
+<code>VimSetGroup</code>の中で変更されるとそこも反映されます。</p>
+
+<h2 id="設定ファイルに改行のある文字列を書き出すと上手くいかない">設定ファイルに改行のある文字列を書き出すと上手くいかない</h2>
+
+<p>上の例で<code>VimGroupDel</code>という変数でアプリの区切りを指定してますが、
+Guiでは全て改行で区切る様に表示しています。</p>
+
+<p>実際、Settingsに表示する時に<code>StringReplace</code>を使って
+書き換えを行っていますが、
+最初は改行の入った文字列のまま書き出してました。</p>
+
+<p>が、どうも上手く動かないと思って書き出されたファイルを見てみると
+改行(<code>`n</code>)が空白になって、さらに次に書き込まれるものを
+挟むような感じになってしまっていました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ini"><span class="line"><span></span><span class="na">VimGroup</span><span class="o">=</span><span class="s">ahk_exe notepad.exe`nahk_exe wordpad.exe`n,ahk_exe TeraPad.exe...</span>
+</span><span class="line"><span class="na">VimRestoreIME</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimJJ</span><span class="o">=</span><span class="s">0</span>
+</span><span class="line"><span class="na">VimIcon</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimVerbose</span><span class="o">=</span><span class="s">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいになって欲しいのですが、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ini"><span class="line"><span></span><span class="na">VimGroup</span><span class="o">=</span><span class="s">ahk_exe notepad.exeVimRestoreIME=1</span>
+</span><span class="line"><span class="na">VimJJ</span><span class="o">=</span><span class="s">0</span>
+</span><span class="line"><span class="na">VimIcon</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimVerbose</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">ahk_exe wordpad.exe ahk_exe TeraPad.exe...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じになってました。</p>
+
+<p>書き出すタイミングをSleepで間を開けてみたりしても上手く生きませんでした。</p>
+
+<p>加えて読み込むときも既に改行ではないので駄目です。</p>
+
+<p>ということで改行区切りをそのまま出力するのは辞めてコンマ区切りに変更して出すようにしました。</p>
+
+<h2 id="edit枠を最初に持ってくるとフォーカス状態になる">Edit枠を最初に持ってくるとフォーカス状態になる</h2>
+
+<p>今の設定では一番上にチェックボックスがありますが、
+最初はアプリの設定を一番上に持ってきてました。</p>
+
+<p>アプリの設定は<code>Edit</code>を使ってますがこれが一番上にあると
+こんな感じで選択された状態になってしまいました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171114_vimahksettings0.png" alt="vimahksettings0" class="pic" /></p>
+
+<p>この状態でも実際にフォーカスがあたってるのは下のボタンで
+すぐに<i class="key">Return</i>を押すと<strong>OK</strong>を押します。</p>
+
+<p>なので実質的には問題は無いのですが、
+見た目的にあれなので順序を変えました。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでメニューから設定変更出来る様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/"/>
+    <updated>2017-11-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>Windows上のどこでもVimライクな動作を出来る様にする
+<a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>で
+タスクトレイアイコンを右クリックして出て来るメニューから
+設定変更を出来る様にしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahkでの設定方法" id="markdown-toc-vim_ahkでの設定方法">vim_ahkでの設定方法</a></li>
+  <li><a href="#今後追加したいもの" id="markdown-toc-今後追加したいもの">今後追加したいもの</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahkでの設定方法">vim_ahkでの設定方法</h2>
+
+<p>vim_ahkはAutoHotkeyを使ったどこでもVimエミュレーターです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<p>AutoHotokeyスクリプトなのでファイルの中身を見て設定を変えて走らせる事も可能ですが、
+起動中にトレイアイコンの右クリックメニューから設定変更の出来る設定画面を出せる様にしました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171111_vimahkmenu.png" alt="vimahkmenu" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20171111_vimahksettings.png" alt="vimahksettings" class="pic" /></p>
+
+<p>この設定画面は<i class="key">Cmd</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">V</i>でも起動可能です。</p>
+
+<p>今設定できるものとしては</p>
+
+<ul>
+  <li>RestoreIME: チェックするとノーマルモードからインサートモードに戻る時に前のインサートモードの時のIMEの状態に戻す。
+    <ul>
+      <li>vim_ahkではIMEがONの時に<i class="key">ESC</i>を押すと自動でIMEをOFFにしてノーマルモードに入る。</li>
+    </ul>
+  </li>
+  <li>JJ: チェックすると<i class="key">J</i><i class="key">J</i>と素早く打つことでノーマルモードに入れる様になる<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</li>
+  <li>Icon: チェックするとトレイアイコンをモードによって変更する。</li>
+  <li>Verbose: モード切替時の表示、0: 何もなし、1: モード名だけのToolTip、2: 詳しいToolTip、3: Msgbox表示(デバッグ用)</li>
+</ul>
+
+<p>これらの設定はスクリプトを消しても保存され
+次の起動時に自動的に読み込まれて反映されます。
+(スクリプトを直接変更しても保存したものの方が優先されます。)</p>
+
+<p>保存先の設定ファイルは<strong>C:\Users&lt;USER&gt;\AppData\Roaming\AutoHotokey\vim_ahk.ini</strong>にあります。</p>
+
+<p>ついでに<strong>vim_ahkについて</strong>的な<strong>About vim_ahk</strong>も作ってみました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171111_vimahkabout.png" alt="vimahkabout" class="pic" /></p>
+
+<p>この辺を作るために調べた事は前回までにまとめましたが
+AutoHotkeyではこの様なことをするためのツールが一通り整ってるため
+結構簡単に色々な事が出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/">AutoHotkeyでのメニューの追加</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/08/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171108_ahkini0_120_90.png" width="120" height="90" alt="20171108_ahkini0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/08/computer-windows-autohotkey/">AutoHotkeyで設定ファイルの読み書きをする</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171110_ahktooltip_120_90.jpg" width="120" height="90" alt="20171110_ahktooltip_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/">AutoHotkeyでToolTipを出す</a></div></li></ul>
+
+<h2 id="今後追加したいもの">今後追加したいもの</h2>
+
+<p>今後追加したい設定項目として
+vim_ahkを有効にするアプリの変更があります。</p>
+
+<p>ただ、アプリ群を定義する<code>GroupAdd</code>というコマンドはあるのですが
+アプリを取り除く<code>GroupDelete</code>的なコマンドがないので起動中に再定義するのが結構大変。</p>
+
+<p>可能性としては、<code>Group1</code>、<code>Group2</code>…みたいにグループ名自体を変えていってしまう方法。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/8613-removing-windows-from-a-group-or-deleting-a-group/">Removing windows from a group or deleting a group ? - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/71695-is-there-any-way-to-destroy-delete-a-window-group/">Is there any way to destroy (delete) a window group - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>もしくは起動中の削除は諦めて再起動時にだけ減らせる様にすればまあ可能かも。</p>
+
+<p>もう一つ、メニューから現在のウィンドウが対応してるかどうか、
+というチェックを行える様にしたかったんですが、
+トレイアイコンを右クリックした時点でウィンドウの判定が
+なくなるためか上手くいってません。
+直前のウィンドウ、てきなものあったりしますが思った通りに動かず。
+取り敢えずショートカットキーへの割当でできそうではありますが
+ちょっと試してるところです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AutoHotkeyでToolTipを出す]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/"/>
+    <updated>2017-11-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>AutoHotkeyでキー入力したときや
+Gui上のオブジェクトの上にマウスを持っていったときとかに
+ToolTipを出す方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tooltip" id="markdown-toc-tooltip">ToolTip</a></li>
+  <li><a href="#キー入力イベントで表示させる簡単な例" id="markdown-toc-キー入力イベントで表示させる簡単な例">キー入力イベントで表示させる簡単な例</a></li>
+  <li><a href="#settimerを使った例" id="markdown-toc-settimerを使った例">SetTimerを使った例</a></li>
+  <li><a href="#guiのオブジェクトにマウスオーバーでtooltipを表示させる" id="markdown-toc-guiのオブジェクトにマウスオーバーでtooltipを表示させる">GuiのオブジェクトにマウスオーバーでToolTipを表示させる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tooltip">ToolTip</h2>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">ToolTip</span> <span class="p">[,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">WhichToolTip</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>な感じでToolTipを出現させられます。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/docs/commands/ToolTip.htm">ToolTip</a></p>
+</blockquote>
+
+<p><code>Text</code>に出現させたい文字列を入れればその文字列が出ます。
+(<code>`n</code>で改行もいれられる。)</p>
+
+<p><code>Text</code>に何も入れないで実行すると表示されているToolTipを消しせます。</p>
+
+<p><code>X</code>、<code>Y</code>は出現位置で
+<a href="https://autohotkey.com/docs/commands/CoordMode.htm#CoordMode">CoordMode</a>
+の<code>ToolTip</code>の値によってスタート地点が変わりますが、
+初期値では<code>Window</code>になっていて、
+<code>0, 0</code>とすれば現在のウィンドウの左上にひっつくような表示になります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">WinGetPos</span><span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">A</span>
+</span><span class="line"><span class="nb">Tooltip</span><span class="p">,</span> <span class="n">right</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">H</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかすればウィンドウの右下から外側にくっつく様なToolTipに。</p>
+
+<p><code>X, Y</code>が省略されるとマウスの所に出現します。</p>
+
+<p><code>WhichToolTip</code>はToolTipに振られる番号で、1から20を指定できます。
+省略すると1番になります。複数のToolTipを表示させたい場合には
+違う番号を指定します。(そうしないと前のものを上書きしてしまいます。)</p>
+
+<h2 id="キー入力イベントで表示させる簡単な例">キー入力イベントで表示させる簡単な例</h2>
+
+<p>簡単に、<i class="key">A</i>を押すと1秒だけToolTipを出すやり方としては</p>
+
+<figure class="code"><figcaption><span>tooltip.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="n">tool</span> <span class="n">tip</span> <span class="n">A</span>
+</span><span class="line">  <span class="nb">Sleep</span><span class="p">,</span> <span class="mi">1000</span>
+</span><span class="line">  <span class="nb">ToolTip</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな方法。ToolTipを出して、
+<a href="https://autohotkey.com/docs/commands/Sleep.htm">Sleep</a>
+で一秒待ってから<code>Text</code>無しの<code>ToolTip</code>コマンドで削除します。</p>
+
+<p>Sleepに与える引数はミリ秒なので1000で一秒です。</p>
+
+<p>次に複数のToolTipを出してみます。</p>
+
+<figure class="code"><figcaption><span>tooltip_multi.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="n">tool</span> <span class="n">tip</span> <span class="mi">1</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="n">tool</span> <span class="n">tip</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="n">tool</span> <span class="n">tip</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">2</span>
+</span><span class="line">  <span class="nb">Sleep</span><span class="p">,</span> <span class="mi">1000</span>
+</span><span class="line">  <span class="nb">ToolTip</span>
+</span><span class="line">  <span class="nb">Sleep</span><span class="p">,</span> <span class="mi">1000</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="mi">2</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを実行して<i class="key">A</i>を押すと、
+<code>tool tip 2</code>と<code>tool tip 3</code>が出ますが、
+ToolTip番号1は<code>tool tip 2</code>に上書きされるので
+<code>tool tip 1</code>は出ません。</p>
+
+<p>その後、1秒たって<code>tool tip 2</code>が消え、さらに1秒経ってから<code>tool tip 3</code>が消えます。</p>
+
+<p>ただし、この<code>Sleep</code>を使った方法はちょっと問題があって、
+1秒経つ前に<i class="key">A</i>を押した場合、
+再び<code>tool tip 2</code>が表示される命令が出てこれはそのまま表示され続けるままですが、
+以前の<code>Sleep</code>後の<code>ToolTip</code>が生きているので前に<i class="key">A</i>を押したときから
+1秒のタイミングで消えてしまいます。</p>
+
+<p>この様な事を避けるため、通常は次の<code>SetTimer</code>を使った方法を使います。</p>
+
+<h2 id="settimerを使った例">SetTimerを使った例</h2>
+
+<p><a href="https://autohotkey.com/docs/commands/SetTimer.htm">SetTimer</a>
+を使うと指定時間の途中で消したりすることが可能になります。</p>
+
+<figure class="code"><figcaption><span>tooltip_settimer.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="nb">ToolTip</span><span class="p">,</span> <span class="n">tool</span> <span class="n">tip</span>
+</span><span class="line">  <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">RemoveToolTip</span><span class="p">,</span> <span class="mi">10000</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">RemoveToolTip:</span>
+</span><span class="line">  <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">RemoveToolTip</span><span class="p">,</span> <span class="n">Off</span>
+</span><span class="line">  <span class="nb">ToolTip</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="nb">Gosub</span><span class="p">,</span> <span class="n">RemoveToolTip</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><i class="key">A</i>でToolTipを出した後、<code>SetTimer</code>を使っています。
+<code>SetTimer</code>では最初の引数でラベルを指定し、2つめに数字があると
+その時間(ミリ秒)のタイマーを作動し、その時間分待った後にラベルで指定された動作を実行します。
+実行後はタイマーをリセットし、またカウントダウンを初めて指定時間後に動作を実行する、を繰り返します。</p>
+
+<p><code>RemoveToolTip</code>というラベルの中では
+<code>Text</code>無しの<code>ToolTip</code>で削除しています。
+最初のタイマーが10000ミリ秒(10秒)で作動するのでここではツールチップが10秒間表示されることになります。</p>
+
+<p>また、表示中に<i class="key">A</i>をもう一度押すと
+<code>ToolTip</code>がもう一度実行されますがこの際は同じメッセージなのでそのまま。
+その後<code>SetTimer</code>によってタイマーがリセットされるので
+<code>Sleep</code>を使ったときと違い、最後に押したときから10秒経ってから消えることになります。</p>
+
+<p><code>RemoveToolTip</code>ではさらに<code>ToolTip</code>の直前で<code>SetTimer</code>で<code>Off</code>をしています。
+2つ目に<code>Off</code>があるとそのタイマーは停止されるので
+ここへ来るとタイマーは止まり、その後繰り返しません。
+最初の<code>SetTimer</code>からラベルを伝って必ず来るようになっているので
+このタイマーは一回しか作動しません。</p>
+
+<p>この設定をこの様に別のラベルで作っておくと<i class="key">B</i>でこのラベルを呼出し、
+途中で消すことが出来ます。</p>
+
+<p><a href="https://autohotkey.com/docs/commands/Gosub.htm">Gosub</a>
+はラベルにジャンプして<code>Return</code>で戻ってくる機能です。
+<a href="https://autohotkey.com/docs/commands/Goto.htm">Goto</a>
+という似たような機能がありますが、こちらは行ったまま戻ってきません。
+ここでは直後に<code>Return</code>してるのでどちらでも同じですが、
+<code>Goto</code>的なものは混乱の元なので<code>Gosub</code>で関数的に呼び出して戻ってくる、
+と言った感じにした方が分かりやすくなります。</p>
+
+<p>ここで、<i class="key">B</i>に対して単に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">b::</span>
+</span><span class="line">  <span class="nb">ToolTip</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にToolTipを直接消す様に定義しても全く同じことが出来ます。
+ただこの場合は裏でタイマーは動き続けていて3秒後に<code>ToolTip</code>を実行します。
+実行しても<code>Text</code>が無いので結局何も起こりませんが。</p>
+
+<p>これだけの例だとそこまで気にする必要はありませんが、
+与えたラベルの中で色々やる場合に、複数回起動されると困ることもあるでしょうし、
+単に裏で無駄なプロセスが残っているのも気持ち悪いので
+きちんと消すようにした方が良いです。</p>
+
+<p>同様に、<code>Sleep</code>を使ってる場合でも<i class="key">B</i>に<code>ToolTip</code>を実行させて
+無理やり消すことも出来ますが、
+この場合も<code>Sleep</code>後の実行命令は残りますし、
+上にも書いたように<code>Sleep</code>での実行には問題があるので
+<code>SetTimer</code>を使った方が良いです。</p>
+
+<h2 id="guiのオブジェクトにマウスオーバーでtooltipを表示させる">GuiのオブジェクトにマウスオーバーでToolTipを表示させる</h2>
+
+<p>Tooltipを直接表示させることは出来ましたが、
+Webや他のアプリで良くあるのは何らかのものの上にマウスを持っていった時に
+表示されるToolTipです。</p>
+
+<p>これを実現するためには以下の様な事をやります。</p>
+
+<figure class="code"><figcaption><span>tooltip_gui.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="c1">; Global variables</span>
+</span><span class="line"><span class="n">CurrControl</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span><span class="line"><span class="n">PrevControl</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Prepare Gui</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Edit</span><span class="p">,</span> <span class="n">vMyEdit</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">DropDownList</span><span class="p">,</span> <span class="n">Y</span><span class="o">+</span><span class="mi">10</span> <span class="n">vMyDDL</span><span class="p">,</span> <span class="n">Red</span><span class="o">|</span><span class="n">Green</span><span class="o">|</span><span class="n">Blue</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="n">Y</span><span class="o">+</span><span class="mi">10</span> <span class="n">vMyCheck</span><span class="p">,</span> <span class="n">This</span> <span class="n">control</span> <span class="n">has</span> <span class="n">no</span> <span class="n">tooltip</span><span class="o">.</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Y</span><span class="o">+</span><span class="mi">10</span> <span class="n">vMyTextNoGLabel</span><span class="p">,</span> <span class="n">No</span> <span class="n">tooltip</span> <span class="n">for</span> <span class="n">text</span> <span class="n">without</span> <span class="n">g</span><span class="o">-</span><span class="n">label</span><span class="o">.</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">gMyTextGLabel</span> <span class="n">vMyTextGLabel</span><span class="p">,</span> <span class="n">Tooltip</span> <span class="n">can</span> <span class="n">be</span> <span class="n">assigned</span> <span class="n">for</span> <span class="n">text</span> <span class="n">with</span> <span class="n">g</span><span class="o">-</span><span class="n">label</span><span class="o">.</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Show</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Prepare tooltip messages</span>
+</span><span class="line"><span class="n">MyEdit_TT</span> <span class="o">:=</span> <span class="s">&quot;This is a tooltip for the control whose variable is MyEdit.&quot;</span>
+</span><span class="line"><span class="n">MyDDL_TT</span> <span class="o">:=</span> <span class="s">&quot;Choose a color from the drop-down list.&quot;</span>
+</span><span class="line"><span class="n">MyTextNoGLabel_TT</span> <span class="o">:=</span> <span class="s">&quot;This text cannot be shown.&quot;</span>
+</span><span class="line"><span class="n">MyTextGLabel_TT</span> <span class="o">:=</span> <span class="s">&quot;This is a tooltip for text with g-label.&quot;</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Set function on WM_MOUSEMOVE</span>
+</span><span class="line"><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x200</span><span class="p">,</span> <span class="s">&quot;MyMouseMove&quot;</span><span class="p">)</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; End of auto-execute section</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Dummy label to assign Gui Control to the text</span>
+</span><span class="line"><span class="nl">MyTextGLabel:</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyMouseMove</span><span class="p">(){</span>
+</span><span class="line">  <span class="nb">global</span> <span class="n">CurrControl</span><span class="p">,</span> <span class="n">PrevControl</span>
+</span><span class="line">  <span class="n">CurrControl</span> <span class="o">:=</span> <span class="nv">A_GuiControl</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">  ; Do only when GuiControl is changed.</span>
+</span><span class="line">  <span class="n">If</span><span class="p">(</span><span class="n">CurrControl</span> <span class="o">!=</span> <span class="n">PrevControl</span><span class="p">){</span>
+</span><span class="line">    <span class="n">PrevControl</span> <span class="o">:=</span> <span class="n">CurrControl</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">    ; Delete current tooltip</span>
+</span><span class="line">    <span class="nb">ToolTip</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">    ; No space check (InStr(...)) is also needed,, to avoid error at %CurrControl%_TT.</span>
+</span><span class="line">    <span class="n">if</span><span class="p">(</span><span class="n">CurrControl</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span> <span class="o">&amp;&amp;</span> <span class="nf">InStr</span><span class="p">(</span><span class="n">CurrControl</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span><span class="c1"></span>
+</span><span class="line"><span class="c1">      ; Show tooltip if mouse stays more than 1 sec.</span>
+</span><span class="line">      <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">DisplayToolTip</span><span class="p">,</span> <span class="mi">1000</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="nb">return</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">DisplayToolTip:</span>
+</span><span class="line">  <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">DisplayToolTip</span><span class="p">,</span> <span class="n">Off</span><span class="c1"></span>
+</span><span class="line"><span class="c1">  ; First, interpret CurrControl to string, then interpret %CurrControl%_TT to string (done by the first %)</span>
+</span><span class="line">  <span class="nb">ToolTip</span> <span class="o">%</span> <span class="nv">%CurrControl%</span><span class="n">_TT</span>
+</span><span class="line">  <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">RemoveToolTip</span><span class="p">,</span> <span class="mi">60000</span>
+</span><span class="line"><span class="nb">return</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">RemoveToolTip:</span>
+</span><span class="line">  <span class="nb">SetTimer</span><span class="p">,</span> <span class="n">RemoveToolTip</span><span class="p">,</span> <span class="n">Off</span>
+</span><span class="line">  <span class="nb">ToolTip</span>
+</span><span class="line"><span class="nb">return</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">GuiClose:</span>
+</span><span class="line">  <span class="nb">ExitApp</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><img src="https://rcmdnk.com/images/post/20171110_ahktooltip.jpg" alt="ahktooltip" class="pic" /></p>
+
+<p>以下のページで出てる解答にちょっと手を加えたものになっています。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/81915-solved-gui-control-tooltip-on-hover/page-2">(SOLVED) gui control tooltip on hover? - Page 2 - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>Guiに関しては以下参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p>まず、いくつかのGuiのコンテンツをいれたウィンドウを表示させています。</p>
+
+<p><code>Show</code>した後に、
+<a href="https://autohotkey.com/docs/commands/OnMessage.htm">OnMessage</a>
+という関数がありますが、
+これは特定の<strong>メッセージ番号</strong>を受け取った時に実行する関数を指定できる
+関数です。</p>
+
+<p>最初の引数がメッセージ番号で2つめに関数名を文字列で書きます。</p>
+
+<p>メッセージは<code>SendMessage, 0x200</code>の様にスクリプト内で送ることも出来ますが、
+それ以外にもGui上の操作などでも特定の番号でAutoHotkeyに送られてきます。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/docs/misc/SendMessageList.htm">List of Windows Messages</a></p>
+</blockquote>
+
+<p>ここに</p>
+
+<pre><code>...
+WM_MOUSEFIRST = 0x200
+WM_MOUSEMOVE = 0x200
+WM_LBUTTONDOWN = 0x201
+WM_LBUTTONUP = 0x202
+WM_LBUTTONDBLCLK = 0x203
+...
+</code></pre>
+
+<p>とありますが、<code>0x200</code>は<code>WM_MOUSEFIRST</code>及び<code>WM_MOUSEMOVE</code>にあてられています。
+これはGuiウィンドウの上でマウスが動いた時にメッセージを送ることになります。</p>
+
+<p>その後の<code>WM_LBUTTONDOWNCLK</code>(<code>0x203</code>)なら左クリックした時にメッセージを送ることになります。</p>
+
+<p>これを使うことでGuiウィンドウ上でマウスが動いた時に常に
+<code>MyMouseMove</code>が実行される事になります。</p>
+
+<p><code>MyMouseMove</code>では、
+<code>CurrControl</code>と<code>PrevControl</code>という2つのグローバル変数を使っています。</p>
+
+<p>上の参考URLの中では<code>static</code>を使って関数内で次回も使える変数にして
+いますが、これによって
+<code>DisplayToolTip</code>も関数内に書く様な形になっています。</p>
+
+<p>2つの値を他の余計な所で書き換えられない、という点は<code>static</code>の方が便利ですが、
+ラベルは外に出したほうがすっきりするかな、ということで
+上の様な書き方をしてみました。</p>
+
+<p>その上でまず<code>A_GuiControl</code>という値を取ってきています。
+<code>A_GuiControl</code>は命令を実行させたGui Controlが入っていますが、
+v-labelが指定されてる時はv-labelが、
+されてない時はテキストが入ります。</p>
+
+<p>この場合はマウスの下にあるオブジェクトのものが入ることになります。</p>
+
+<pre><code>Gui, Add, Edit, vMyEdit
+</code></pre>
+
+<p>なら<code>MyEdit</code>、</p>
+
+<pre><code>Gui, Add, Edit, , MyEditText
+</code></pre>
+
+<p>なら<code>MyEditText</code>の部分が<code>A_Control</code>に入ります。</p>
+
+<p>両方ない場合は空。</p>
+
+<p>ただし、<code>Text</code>はちょっと注意が必要で
+そのままv-labelを与えてもテキストを与えてもGui Controlではないので
+<code>A_GuiControl</code>に何も入りません。
+(上の参考URLの最後の質問にこれに関すると思われるものもありますが。)</p>
+
+<p>コントロールオブジェクトにするためにはg-labelを付けます。
+これで押した時にする動作を付けられるわけですが、
+今回はこれに何もしない動作をDummyラベルを割り当てています、
+これにより、押しても何もしないテキストですが
+Gui Controlとなり、<code>A_GuiControl</code>で値が取得できる様になります。</p>
+
+<p>値を取得したら、前回と変わってなければ何もせずに終了。</p>
+
+<p>上のURLの例だと<code>!=</code>の代わりに<code>&lt; &gt;</code>を使っていますが同じ意味です。
+また、<code>InStr(...)</code>で<code>" "</code>と比べ、空白を含まないチェックをしていますが、
+これは空白を含むと、あとで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">ToolTip</span> <span class="o">%</span> <span class="nv">%CurrControl%</span><span class="n">_TT</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の所で、<code>%CurrControl%</code>の値と<code>_TT</code>をくっつけた名前の変数の中身を取り出す時に
+変数名に空白があるとエラーが出てしまうからです。</p>
+
+<p>ただ、その様な別の要素に移った際にもTooltipを消してリセットするのが正しいので
+変更後はまず<code>A_GuiControl</code>が変わったかどうかだけ見て<code>PrevControl</code>をセットし
+<code>ToolTip</code>で一度ToolTipを削除しています。</p>
+
+<p>その次に、<code>A_GuiControl</code>が空白(何も無いスペースや<code>Text</code>などでGui Controlオブジェクトじゃないもの、v-labelもテキストも無いもの)だったり、
+スペースを含むような値(大概は<code>Text</code>でg-labelを設定してないもの)
+の場合には何もせずに終了します。</p>
+
+<p>この部分に関してもう少し。参考URLの方では
+…<code>and not InStr(CurrControl, " ")</code>みたいなことをしていますがこれは上手く動きませんでした。</p>
+
+<p><code>InStr</code>は2つ目の引数が最初に現れる位置を返しますが、なければ0を返します。
+0がfalseなので<code>not</code>にして<code>and</code>でつなげれば同じことなはずなのですが。
+これの<code>&amp;&amp;</code>だけ変更したり<code>...==0</code>だけ変更したりしても上手く行きませんでした。
+エラーになるわけではなく、<code>CurrControl != ""</code>の真偽だけで全て決まってしまうような形になっていました。
+何か勘違いしてる気がしますが、とりあえず上に書いた形だと期待通りに動いてくれました。</p>
+
+<p>いずれにせよ、もし使える<code>A_GuiControl</code>だった場合、
+<code>DisplayToolTip</code>を1秒のタイマーでセットします。</p>
+
+<p>これによっていきなり出すのではなく、1秒以上マウスが同じオブジェクトの上に居た場合にToolTip
+を出すことが出来ます。</p>
+
+<p><code>DisplayToolTip</code>では上でも説明したとおり<code>%CurrControl%_TT</code>を
+ToolTipに出していますが、
+この値は
+<code>Prepare tooltip messages</code>のところで作っています。
+この様に<strong>Gui Control名</strong>+<strong>_TT</strong> (_TTでなくてもいいけど適当な共通のもの)
+をToolTipの内容として作っておくことで
+こんな感じの動作を実現することが出来ます。</p>
+
+<p>これとは別の方法で実現しようとする以下のような解答もありました。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/35616-tooltip-in-gui/">ToolTip in Gui - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>ここでは
+<a href="https://autohotkey.com/docs/commands/MouseGetPos.htm">MouseGetPos</a>
+を使ってGui Controlの情報を取ってきていますが、
+ここで取れるものは<code>Button1</code>とか<code>Button2</code>とかで、
+<code>ClassNN</code>と呼ばれるコントロール群の<strong>名前</strong>+<strong>番号</strong>となっています。</p>
+
+<p>従って配置した順序によって取れる値が変わるためちょっと使いづらいものになっています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AutoHotkeyで設定ファイルの読み書きをする]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/08/computer-windows-autohotkey/"/>
+    <updated>2017-11-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/08/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>前回、
+<a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでGuiを使って値を入力する</a>
+ことをやったので
+今回はスクリプトの設定値を色々変更した時に
+設定ファイルに書き出し、次回起動時にそれを読み込む、
+ということをやってみます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#autohotkeyでの設定ファイルの読み書き" id="markdown-toc-autohotkeyでの設定ファイルの読み書き">AutoHotkeyでの設定ファイルの読み書き</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="autohotkeyでの設定ファイルの読み書き">AutoHotkeyでの設定ファイルの読み書き</h2>
+
+<p>スクリプト例はこちら。</p>
+
+<figure class="code"><figcaption><span>read_write_setting.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="c1">; Set variables for the setting file</span>
+</span><span class="line"><span class="n">IniDir</span> <span class="o">:=</span> <span class="o">%</span> <span class="nv">A_AppData</span> <span class="o">.</span> <span class="s">&quot;\AutoHotkey&quot;</span>
+</span><span class="line"><span class="n">IniFile</span> <span class="o">:=</span> <span class="o">%</span> <span class="n">IniDir</span> <span class="o">.</span> <span class="s">&quot;\my_ahk.ini&quot;</span>
+</span><span class="line"><span class="n">MySection1</span> <span class="o">:=</span> <span class="s">&quot;Section 1&quot;</span>
+</span><span class="line"><span class="n">MySection2</span> <span class="o">:=</span> <span class="s">&quot;Section 2&quot;</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Initial values</span>
+</span><span class="line"><span class="n">MyVal1</span> <span class="o">:=</span> <span class="mi">0</span>
+</span><span class="line"><span class="n">MyVal2</span> <span class="o">:=</span> <span class="s">&quot;Text variable&quot;</span>
+</span><span class="line"><span class="n">MyVal3</span> <span class="o">:=</span> <span class="mi">1</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Read the setting file</span>
+</span><span class="line"><span class="n">ReadValue</span><span class="p">()</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Make menu for setting</span>
+</span><span class="line"><span class="nb">Menu</span><span class="p">,</span> <span class="n">Tray</span><span class="p">,</span> <span class="n">Add</span>
+</span><span class="line"><span class="nb">Menu</span><span class="p">,</span> <span class="n">Tray</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">My</span> <span class="n">Setting</span><span class="p">,</span> <span class="n">MenuMySetting</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Menu action, launch setting gui</span>
+</span><span class="line"><span class="nl">MenuMySetting:</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:+</span><span class="n">LabelMySetting</span> <span class="o">-</span><span class="n">MinimizeBox</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="n">MyVal1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="n">Checked</span> <span class="n">vMyVal1</span><span class="p">,</span> <span class="n">MyVal1</span>
+</span><span class="line">  <span class="p">}</span><span class="n">else</span><span class="p">{</span>
+</span><span class="line">    <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="n">vMyVal1</span><span class="p">,</span> <span class="n">MyVal1</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Y</span><span class="o">+</span><span class="mi">20</span><span class="p">,</span> <span class="n">MyVal2</span><span class="o">:</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Edit</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="mi">10</span> <span class="n">W200</span> <span class="n">vMyVal2</span><span class="p">,</span> <span class="nv">%MyVal2%</span>
+</span><span class="line">
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">xm</span> <span class="n">Y</span><span class="o">+</span><span class="mi">20</span><span class="p">,</span> <span class="n">MyVal3</span><span class="o">:</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Edit</span><span class="p">,</span> <span class="n">X</span><span class="o">+</span><span class="mi">10</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">UpDown</span><span class="p">,</span> <span class="n">vMyVal3</span> <span class="n">range0</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="nv">%MyVal3%</span>
+</span><span class="line">
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">gMySettingOK</span> <span class="n">W100</span> <span class="n">X45</span> <span class="n">Default</span> <span class="p">,</span><span class="n">OK</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Add</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">gMySettingCancel</span> <span class="n">W100</span> <span class="n">X</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">Cancel</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Show</span><span class="p">,</span> <span class="n">W300</span><span class="p">,</span> <span class="n">My</span> <span class="n">Setting</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Buttons or other actions on MySetting Gui</span>
+</span><span class="line"><span class="nl">MySettingOK:</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Submit</span>
+</span><span class="line">  <span class="n">WriteValue</span><span class="p">()</span>
+</span><span class="line"><span class="nl">MySettingCancel:</span>
+</span><span class="line"><span class="nl">MySettingClose:</span>
+</span><span class="line"><span class="nl">MySettingEscape:</span>
+</span><span class="line">  <span class="nb">Gui</span><span class="p">,</span> <span class="n">MySetting</span><span class="o">:</span><span class="n">Destroy</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Read the setting file</span>
+</span><span class="line"><span class="n">ReadValue</span><span class="p">(){</span>
+</span><span class="line">  <span class="nb">global</span>
+</span><span class="line">  <span class="nb">IniRead</span><span class="p">,</span> <span class="n">MyVal1</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection1%</span><span class="p">,</span> <span class="n">MyVal1Key</span><span class="p">,</span> <span class="nv">%MyVal1%</span>
+</span><span class="line">  <span class="nb">IniRead</span><span class="p">,</span> <span class="n">MyVal2</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection2%</span><span class="p">,</span> <span class="n">MyVal2Key</span><span class="p">,</span> <span class="nv">%MyVal2%</span>
+</span><span class="line">  <span class="nb">IniRead</span><span class="p">,</span> <span class="n">MyVal3</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection2%</span><span class="p">,</span> <span class="n">MyVal1Key</span><span class="p">,</span> <span class="nv">%MyVal3%</span>
+</span><span class="line"><span class="p">}</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Write out to the setting file</span>
+</span><span class="line"><span class="n">WriteValue</span><span class="p">(){</span>
+</span><span class="line">  <span class="nb">global</span>
+</span><span class="line">  <span class="nb">IfNotExist</span><span class="p">,</span> <span class="nv">%IniDir%</span>
+</span><span class="line">    <span class="nb">FileCreateDir</span><span class="p">,</span> <span class="nv">%IniDir%</span>
+</span><span class="line">
+</span><span class="line">  <span class="nb">IniWrite</span><span class="p">,</span> <span class="nv">%MyVal1%</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection1%</span><span class="p">,</span> <span class="n">MyVal1Key</span>
+</span><span class="line">  <span class="nb">IniWrite</span><span class="p">,</span> <span class="nv">%MyVal2%</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection2%</span><span class="p">,</span> <span class="n">MyVal2Key</span>
+</span><span class="line">  <span class="nb">IniWrite</span><span class="p">,</span> <span class="nv">%MyVal3%</span><span class="p">,</span> <span class="nv">%IniFile%</span><span class="p">,</span> <span class="nv">%MySection2%</span><span class="p">,</span> <span class="n">MyVal1Key</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>MenuやGuiについては前回、前々回の記事で詳しく書いています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/">AutoHotkeyでのメニューの追加</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p>上の例では</p>
+
+<pre><code>C:\Users\&lt;USER&gt;\AppData\Roaming\AutoHotkey\my_ahk.ini
+</code></pre>
+
+<p>というファイルに設定を書き込んで、起動時に読み込んでいます。
+一般的な<strong>AppData\Roaming</strong>の中に設定ファイルを作っていますが、
+スクリプトと同じフォルダとかにしたかったら、</p>
+
+<pre><code> IniDir := % A_LineFile . "\..\"
+</code></pre>
+
+<p>とします。</p>
+
+<p>このスクリプトの一連の流れとしては</p>
+
+<ul>
+  <li>変数の<code>MyVal1</code>とかに初期値を入れる。</li>
+  <li><code>ReadValue()</code>で設定ファイルから値を読み込む。</li>
+  <li>変数の変更が出来るGuiを作り、それをメニューから起動できるようにする。
+    <ul>
+      <li>Guiで<code>OK</code>を押した場合、入力を変数に反映させ、ファイルに書き出す。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言った感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171108_ahkini0.png" alt="ahkini0" class="pic" /></p>
+
+<p>メニューに追加された<strong>My Setting</strong>をクリックすると上の様な感じのウィンドウが出ます。</p>
+
+<p>値を変更して<strong>OK</strong>を押してもう一度立ち上げるとちゃんと反映されてるはずです。
+ただ、この状態だと中で変数をキープしてるだけでも出来るので、
+値を変更した後に、一度<strong>Exit</strong>してスクリプトを終了させ、
+もう一度立ち上げてウィンドウで値を確認してみます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171108_ahkini1.png" alt="ahkini1" class="pic" /></p>
+
+<p>なんらか自分で先にいれた値が出てくれば成功です。</p>
+
+<p>読み書きは基本的に</p>
+
+<pre><code>IniRead, &lt;Output&gt;, &lt;File&gt;, &lt;Section&gt;, &lt;Key&gt;, [Default]
+</code></pre>
+
+<p>で読み込み、</p>
+
+<pre><code>IniWrite, &lt;Value&gt;, &lt;File&gt;, &lt;Section&gt;, &lt;Key&gt;
+</code></pre>
+
+<p>で書き込みです。</p>
+
+<p>AutoHotkeyでの設定の読み書きでは<code>Section</code>で区切り、
+<code>key</code>で値に名前を付けて保存します。</p>
+
+<p>上の例だとこんな感じのファイルになります。</p>
+
+<figure class="code"><figcaption><span>my_ahk.ini </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ini"><span class="line"><span></span><span class="k">[Section 1]</span>
+</span><span class="line"><span class="na">MyVal1Key</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="k">[Section 2]</span>
+</span><span class="line"><span class="na">MyVal2Key</span><span class="o">=</span><span class="s">Modified Text</span>
+</span><span class="line"><span class="na">MyVal1Key</span><span class="o">=</span><span class="s">5</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>セクション名は<code>[]</code>で囲まれ、各値は<code>=</code>で<code>key</code>とつながる様に書かれます。</p>
+
+<p>セクションが違えば同じキーの名前を使えます。</p>
+
+<p><code>IniRead</code>では指定したファイル、セクション、キーに該当する値が
+<code>Output</code>に入ります。
+ファイルがなかったり、キーがない場合には<code>Default</code>の値が
+入りますが、<code>Default</code>を指定しない場合、<code>ERROR</code>という文字列が入ります。</p>
+
+<p><code>IniWrite</code>では書き込み先のフォルダが無いとエラーを出します。
+なので上の例ではまずフォルダをチェックして作っています。
+書き出しは指定したファイル、セクション、キーに<code>Value</code>を書き出します。</p>
+
+<p>こんな感じでやってみると意外と簡単に出来ました。</p>
+]]></content>
+  </entry>
+  
+</feed>

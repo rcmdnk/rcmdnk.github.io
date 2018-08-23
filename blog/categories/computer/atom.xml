@@ -1,0 +1,940 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[shell-logger:シェルスクリプトでのログ整形、Traceback機能を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh/"/>
+    <updated>2018-08-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<p>前に作った
+<a href="https://github.com/rcmdnk/shell-logger">shell-logger</a>
+というシェルスクリプト用ロガーツールをアップデートして
+Traceback機能を付けたりしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shell-logger" id="markdown-toc-shell-logger">shell-logger</a></li>
+  <li><a href="#コマンドラインで使う" id="markdown-toc-コマンドラインで使う">コマンドラインで使う</a></li>
+  <li><a href="#シェルスクリプトの中で使う" id="markdown-toc-シェルスクリプトの中で使う">シェルスクリプトの中で使う</a></li>
+  <li><a href="#traceback" id="markdown-toc-traceback">Traceback</a></li>
+  <li><a href="#各種設定" id="markdown-toc-各種設定">各種設定</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shell-logger">shell-logger</h2>
+
+<div class="github-widget" data-repo="rcmdnk/shell-logger"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170123_shelllogger_120_90.jpg" width="120" height="90" alt="20170123_shelllogger_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/">shell-logger: シェルスクリプトで良い感じにログアウトプットを管理する</a></div></li></ul>
+
+<p><strong>etc/shell-logger.sh</strong>というファイルを読み込むと
+<code>debug</code>, <code>info</code>, <code>notice</code>, <code>warn</code>, <code>err</code>と言った関数が使える様になります。</p>
+
+<p>インストールは<code>curl</code>を使って</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/shell-logger/install/install.sh| prefix=~/usr/local/ sh
+</code></pre>
+
+<p>とすると<strong>~/usr/local/etc/shell-logger.sh</strong>がインストールされます。
+<code>prefix</code>の場所を適当に変えてインストールしてください。</p>
+
+<p>macOSならHomebrewで</p>
+
+<pre><code>$ brew tap rcmdnk/rcmdnkpac/shell-logger
+</code></pre>
+
+<p>で入れることが出来ます。</p>
+
+<p>もしくは
+<a href="https://raw.githubusercontent.com/rcmdnk/shell-logger/master/etc/shell-logger.sh">shell-logger.sh</a>
+を直接ダウンロードして適当なところに置いてください。</p>
+
+<h2 id="コマンドラインで使う">コマンドラインで使う</h2>
+
+<p>コマンドラインで使う場合には<strong>.bashrc</strong>や<strong>.zshrc</strong>に</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">source</span> /path/to/shell-logger.sh
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に<strong>shell-logger.sh</strong>を<code>source</code>する設定を入れてください。</p>
+
+<p>これで<code>info</code>や<code>err</code>と言った関数が使えるようになり、
+出力したいワードを引数として渡せば良いだけです。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/shelllogger.jpg" alt="shelllogger" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<h2 id="シェルスクリプトの中で使う">シェルスクリプトの中で使う</h2>
+
+<p>Bash/Zshの両方で使えます。</p>
+
+<figure class="code"><figcaption><span>main.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Load shell-logger</span>
+</span><span class="line"><span class="nb">source</span> /path/to/shell-logger.sh
+</span><span class="line">
+</span><span class="line"><span class="c1"># shell-logger settings</span>
+</span><span class="line"><span class="nv">LOGGER_LEVEL</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line"><span class="nv">LOGGER_STDERR_LEVEL</span><span class="o">=</span><span class="m">4</span>
+</span><span class="line"><span class="nv">LOGGER_ERROR_TRACE</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line"><span class="nv">LOGGER_COLOR</span><span class="o">=</span>always
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">debug <span class="s2">&quot;debug&quot;</span>
+</span><span class="line">information <span class="s2">&quot;information&quot;</span>
+</span><span class="line">info <span class="s2">&quot;info&quot;</span>
+</span><span class="line">notification <span class="s2">&quot;notification&quot;</span>
+</span><span class="line">notice <span class="s2">&quot;notice&quot;</span>
+</span><span class="line">warning <span class="s2">&quot;warning&quot;</span>
+</span><span class="line">warn <span class="s2">&quot;warn&quot;</span>
+</span><span class="line">error <span class="s2">&quot;error&quot;</span>
+</span><span class="line">err <span class="s2">&quot;err&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで<strong>shell-logger.sh</strong>を読み込んで
+後は好きなところで<code>info</code>や<code>err</code>を呼ぶだけです。</p>
+
+<p><strong>shell-logger</strong>には5つのレベルがあり、
+それぞれ<code>DEBUG</code>, <code>INFO</code>, <code>NOTICE</code>, <code>WARNING</code>, <code>ERROR</code>となっていて
+出力する色や出力先が違います。</p>
+
+<p>カラー出力はファイルへの出力などでは色を付けないようになっています。</p>
+
+<p>デフォルトでは各レベルの色は以下の様な感じ。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/colors.jpg" alt="colors" class="pic" /></p>
+
+<p>また、<code>INFO</code>以上しか出力しない設定になっています
+さらに、<code>ERROR</code>に関してはエラー出力に出す様になっています。(他は標準出力)</p>
+
+<p><code>debug</code>に関してはデフォルト設定では出力しませんが、</p>
+
+<figure class="code"><figcaption><span>log-test.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">source</span> /path/to/shell-logger.sh
+</span><span class="line"><span class="nv">LOGGER_LEVEL</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line">
+</span><span class="line">debug <span class="s2">&quot;debug&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、<code>LOGGER_LEVEL</code>を0にすることで表示することが出来るので
+簡単にデバッグプリントを入れることが出来ます。</p>
+
+<h2 id="traceback">Traceback</h2>
+
+<p>トレースバック機能を付けてみました。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/traceback.jpg" alt="traceback" class="pic" /></p>
+
+<p>こんな感じで<code>err</code>の時にPythonっぽい雰囲気のTraceback表示を表示してくれます。</p>
+
+<h2 id="各種設定">各種設定</h2>
+
+<p>設定に関しては以下の<strong>LOGGER_</strong>という値を設定することで変更可能です。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Variable Name</th>
+      <th style="text-align: left">Description</th>
+      <th style="text-align: left">Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">LOGGER_DATE_FORMAT</td>
+      <td style="text-align: left">Output date format.</td>
+      <td style="text-align: left">‘%Y/%m/%d %H:%M:%S’</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_LEVEL</td>
+      <td style="text-align: left">0: DEBUG, 1: INFO, 2: NOTICE, 3: WARN, 4: ERROR</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_STDERR_LEVEL</td>
+      <td style="text-align: left">For levels greater than equal this level, outputs will go stderr.</td>
+      <td style="text-align: left">4</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_DEBUG_COLOR</td>
+      <td style="text-align: left">Color for DEBUG</td>
+      <td style="text-align: left">3 (Italicized. Some terminal shows it as color inversion)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_INFO_COLOR</td>
+      <td style="text-align: left">Color for INFO</td>
+      <td style="text-align: left">”” (Use default output color)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_NOTICE_COLOR</td>
+      <td style="text-align: left">Color for NOTICE</td>
+      <td style="text-align: left">36 (Front color cyan)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_WARNING_COLOR</td>
+      <td style="text-align: left">Color for WARNING</td>
+      <td style="text-align: left">33 (Front color yellow)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_COLOR</td>
+      <td style="text-align: left">Color for ERROR</td>
+      <td style="text-align: left">31 (Front color red)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_COLOR</td>
+      <td style="text-align: left">Color mode: never-&gt;Always no color. auto-&gt;Put color only for terminal output. always-&gt;Always put color.</td>
+      <td style="text-align: left">auto</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_LEVELS</td>
+      <td style="text-align: left">Names printed for each level. Need 5 names.</td>
+      <td style="text-align: left">(“DEBUG” “INFO” “NOTICE” “WARNING” “ERROR”)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_TIME</td>
+      <td style="text-align: left">Show time information</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_FILE</td>
+      <td style="text-align: left">Show file/line information</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_LEVEL</td>
+      <td style="text-align: left">Show level</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_RETURN_CODE</td>
+      <td style="text-align: left">Error reutrn code of <code>err</code>/<code>error</code></td>
+      <td style="text-align: left">100</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_TRACE</td>
+      <td style="text-align: left">If 1, error trace back is shown by <code>err</code>/<code>error</code></td>
+      <td style="text-align: left">1</td>
+    </tr>
+  </tbody>
+</table>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[shell-subcommand: Gitライクなサブコマンドをシェルスクリプトで作る]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/22/computer-bash/"/>
+    <updated>2018-08-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/22/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0001GF1OS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0001GF1OS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/21EZ1CV537L._SS200_.jpg" alt="EA Best Selections サブコマンド" /></a>
+</div>
+
+<p>Gitは<code>git &lt;command&gt;</code>と言った形でサブコマンドを呼ぶことで様々な操作を行います。</p>
+
+<p>サブコマンドは自分で定義することも出来て、PATHの通ったディレクトリにある実行ファイルのうち
+<code>git-</code>から始まる名前のものが<code>git-</code>を外した形でサブコマンドとして追加されます。</p>
+
+<p>Homebrewの<code>brew</code>なんかでも<code>brew-</code>で同じことが出来ます。</p>
+
+<p>こんな感じのサブコマンドを持つメインコマンドをシェルスクリプトで
+簡単に作れる<a href="https://github.com/rcmdnk/shell-subcommand">shell-subcommand</a>
+というものを作ってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shell-subcommand" id="markdown-toc-shell-subcommand">shell-subcommand</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#alias関数" id="markdown-toc-alias関数">alias/関数</a></li>
+  <li><a href="#ヘルプを変更" id="markdown-toc-ヘルプを変更">ヘルプを変更</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shell-subcommand">shell-subcommand</h2>
+
+<div class="github-widget" data-repo="rcmdnk/shell-subcommand"></div>
+
+<p>必要なファイルは<strong>bin</strong>にある<code>shell-subcommand</code>というファイルです。</p>
+
+<p>これを適当なところに置いてください。</p>
+
+<pre><code>$ wget https://raw.githubusercontent.com/rcmdnk/shell-subcommand/master/bin/shell-subcommand
+</code></pre>
+
+<p>なり<a href="https://raw.githubusercontent.com/rcmdnk/shell-subcommand/master/bin/shell-subcommand">shell-subcommand</a>
+を直接ダウンロードしてどこかに置くなり。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>取ってきたらメインコマンドの名前を付けたスクリプトを作ります。</p>
+
+<p>最も単純なもので</p>
+
+<figure class="code"><figcaption><span>mycmd </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">source</span> /path/to/shell-subcommand
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、<code>shell-subcommand</code>を呼ぶだけ。</p>
+
+<p>これでPATH中にある<code>mycmd-XXX</code>という実行ファイルを</p>
+
+<pre><code>$ mycmd XXX
+</code></pre>
+
+<p>と呼び出せる様になります。もちろん<code>mycmd-XXX</code>に引数がある場合は<code>mycmd XXX</code>に同様に渡せます。</p>
+
+<h2 id="alias関数">alias/関数</h2>
+
+<p>さらにaliasや関数で定義されたももの呼ぶことが出来ます。</p>
+
+<p>ただし、シェルスクリプトを呼ぶ際には親のシェルのaliasや関数は渡されないので
+中で再定義してやる必要があります。</p>
+
+<p>従って<strong>.bashrc</strong>で定義しているのであれば</p>
+
+<figure class="code"><figcaption><span>mycmd </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">source</span> ~/.bashrc
+</span><span class="line"><span class="nb">source</span> /path/to/shell-subcommand
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、<code>shell-subcommand</code>を呼ぶ前に呼んであげればOK。</p>
+
+<p>もちろん、スクリプトの中で</p>
+
+<figure class="code"><figcaption><span>mycmd </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">alias</span> mycmd-hello<span class="o">=</span><span class="s2">&quot;echo Hello world!&quot;</span>
+</span><span class="line">mycmd-hello-func <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nb">echo</span> <span class="s2">&quot;Hello, this is function!&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="nb">source</span> /path/to/shell-subcommand
+</span><span class="line"><span class="sb">```</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じに直接定義することも出来ます。</p>
+
+<pre><code>$ mycmd
+usage: mycmd &lt;sub-commands&gt; [options]
+
+sub commands: hello hello-func help
+$ mycmd hello
+Hello world!
+</code></pre>
+
+<h2 id="ヘルプを変更">ヘルプを変更</h2>
+
+<p><code>SHORT_DESCRIPTOIN</code>, <code>MAIN_HELP</code>という2つの変数を設定することでヘルプを変更できます。</p>
+
+<p><code>SHORT_DESCRIPTOIN</code>は短い説明で</p>
+
+<pre><code>SHORT_DESCRIPTION="My command with various sub commands!"
+</code></pre>
+
+<p>とか設定すると</p>
+
+<pre><code>$ mycmd
+mycmd: My command with various sub commands!
+
+usage: mycmd &lt;sub-commands&gt; [options]
+
+sub commands: hello hello-func help
+</code></pre>
+
+<p>の様に最初に説明が加わります。</p>
+
+<p><code>MAIN_HELP</code>は<strong>usage:…</strong>の部分で、</p>
+
+<pre><code>HELP_MAIN="usage: $(basename "$0") &lt;sub-commands&gt; [options]
+
+sub-commands are made from alias, function, and executables in PATH."
+</code></pre>
+
+<p>みたいに設定すれば</p>
+
+<pre><code>$ mycmd
+mycmd: My command with various sub commands!
+
+usage: mycmd &lt;sub-commands&gt; [options]
+
+sub-commands are made from alias, function, and executables in PATH.
+
+
+sub commands: hello hello-func help
+</code></pre>
+
+<p>と言った感じで変更できます。</p>
+
+<p>さらには<code>HELP</code>という変数そのものを変更して全体を直接設定することも出来ます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>まあ使う場面がどれだけあるかわかりませんが、
+ちょっと作ってみた次第です。</p>
+
+<p>似たようなもの(というのはおこがましいですが)
+GoogleがPythonでコマンドラインインターフェースを簡単に作れる
+Python Fireというライブラリーを発表しています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/python-fire">google/python-fire: Python Fire is a library for automatically generating command line interfaces (CLIs) from absolutely any Python object.</a></p>
+</blockquote>
+
+<p>PythonだとArgparseとかを無理やり使ってサブコマンドを作ったりしていましたが、
+これを使うと簡単にきれいにサブコマンドを使うツールを書くことができそうです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[DHCPでホスト名が配られる環境にノートPCを持っていた時に起こった問題]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/21/computer-network-screen/"/>
+    <updated>2018-08-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/21/computer-network-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5510882581?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5510882581&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Ssi-E3KEL._SS200_.jpg" alt="Hostname" /></a>
+</div>
+
+<p>ノートパソコンを持ち歩いていろいろなところのWi-Fiで作業することが多いですが
+ネットワークによってはDHCPでホスト名も配っているところがあります。</p>
+
+<p>そんなところに繋いだり他で作業したりしてる間にちょっと問題が起こりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macのローカルホスト名" id="markdown-toc-macのローカルホスト名">Macのローカルホスト名</a></li>
+  <li><a href="#ホスト名が変わる" id="markdown-toc-ホスト名が変わる">ホスト名が変わる</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macのローカルホスト名">Macのローカルホスト名</h2>
+
+<p>Macでの話ですが、システム環境設定の<strong>共有</strong>から<strong>コンピューター名</strong>を決めることが出来、
+通常この値に<code>MyMac</code>とか入れておくと、</p>
+
+<pre><code>$ hostname
+MyMac.local
+</code></pre>
+
+<p>といった<code>.local</code>を付けたホスト名として認識されます。</p>
+
+<p>これ以外に、Mac特有のツールで</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ HostName
+MyMac.local
+</code></pre>
+
+<p>と、<code>scutil</code>を使っても確かめることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00LYTZROA?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00LYTZROA&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51HkL2NY6eL._SS90_CR0,0,120,90_.jpg" alt="My IP" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/12/09/computer-mac/">Mac 10.10 Yosemiteでのホスト名の設定</a></div></li></ul>
+
+<h2 id="ホスト名が変わる">ホスト名が変わる</h2>
+
+<p>これがDHCPサーバー側からホスト名が配られる様な設定になっていると、
+<code>hostname</code>の結果がその指定してきたものに変わってきます。</p>
+
+<pre><code>$ hostname
+example.host
+</code></pre>
+
+<p>一方<code>scutil</code>の結果は</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ scutil --get HostName
+HostName: not set
+</code></pre>
+
+<p>といった具合に、<code>ComputerName</code>、<code>LocalHostName</code>は相変わらず同じ名前を出す一方、
+<code>HostName</code>は<code>not set</code>になっています。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>今回起こったのはGNU screenのソケットディレクトリの設定に関してです。</p>
+
+<p>通常、<strong>/tmp/uscreens/S-user</strong>の様なところに設定してありますが、
+<code>SCREENDIR</code>という環境変数で変更することが出来、これを</p>
+
+<pre><code>SCREENDIR=$HOME/.screen_$(hostname|cut -d. -f1
+</code></pre>
+
+<p>みたいな値に設定していました。</p>
+
+<p>これは<strong>/tmp</strong>に置くのが嫌なのと、分散サーバーみたいなところでHOMEを共有している場所で、
+他の端末でscreenを立ち上げてる時にさっと<code>ls ~/.screen_*</code>みたいにすると
+どこで立ち上がってるか簡単に確認出来る様にするためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1895636426?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1895636426&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Bh8%2BDwK9L._SS90_CR0,0,120,90_.jpg" alt="Socket" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/04/computer-screen-socket/">GNU screenでのソケットディレクトリについて</a></div></li></ul>
+
+<p>Macではホスト名を付ける必要は特にないのですが、
+<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>
+で共通のものを使ってるので持ち運び端末でも同じ様にホスト名のついたソケットディレクトリを使っていました。</p>
+
+<p>ここで、ある環境で<code>hostname</code>が<code>Mymac.local</code>の所でターミナルを立ち上げ、
+その後、DHCPでホスト名(<code>example.host</code>)が配られる環境に接続後、立ち上げ済のターミナルからGNU screenを立ち上げると</p>
+
+<pre><code>$ screen -ls
+No Sockets found in /Users/user/.screen_example
+</code></pre>
+
+<p>といった感じで中からscreenの情報が取れません。</p>
+
+<p>これは、GNU screenを立ち上げるターミナルでは<code>SCREENDIR</code>がターミナル立ち上げ立ち上げ時に設定された
+<code>~/.screen_MyMac</code>であるのに対し、
+立ち上げ後にscreen内で起動するBashは<code>SCREENDIR</code>を<code>~/.screen_example</code>と設定してしまうからです。</p>
+
+<p>これに対処するためにMacにおいては<code>scutil</code>を使うように変更しました。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$OSTYPE</span><span class="s2">&quot;</span> <span class="o">=</span>~ darwin <span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>scutil --get ComputerName<span class="k">)</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>hostname<span class="p">|</span>cut -d. -f1<span class="k">)</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  mkdir -p <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">chmod <span class="m">700</span> <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>WindowsのノートPCに関してはどうするか、ちょっとまだ考え中です。
+<code>cygwin</code>ならまだ条件分岐出来ますが、
+最近使えるようになったUbuntu on Windowsとか
+そもそも区別し辛いものだと辛い。</p>
+
+<p>今のところこれ以外にホスト名に頼って直接何かするような設定はなさそうなんですが、
+結構こういうことは起こりそうなので気をつけて見ていかないと、と。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ターミナルで超高速にディレクトリを戻る/進む]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/20/computer-bash-zsh/"/>
+    <updated>2018-08-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/20/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4766786068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4766786068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Llim1ZtdL._SS200_.jpg" alt="マンガで身につく超高速勉強法" /></a>
+</div>
+
+<p>ブラウザ等だと<strong>戻る</strong>ボタンや<strong>進む</strong>ボタンがあり履歴をたどれますが、
+ターミナルのディレクトリ移動では簡単には出来ません。</p>
+
+<p>それを複数の過去の履歴を残し、さらに戻った場合にはまた進むことも出来るようなことを実現し、
+さらにそれを高速で行える様な設定を作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sd_cl" id="markdown-toc-sd_cl">sd_cl</a></li>
+  <li><a href="#bdfdup" id="markdown-toc-bdfdup">bd/fd/up</a></li>
+  <li><a href="#キーバインドして高速に移動する" id="markdown-toc-キーバインドして高速に移動する">キーバインドして高速に移動する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sd_cl">sd_cl</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sd_cl"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/08/18/computer-shell/"><img class="small-thumbnail-img" src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_selection_tool.gif" width="120" height="90" alt="sd_cl_selection_tool" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/08/18/computer-shell/">sd_cl: pecoやfzfなどにも対応したディレクトリ移動効率化ツール</a></div></li></ul>
+
+<p><code>sd_cl</code>はディレクトリ移動のためのツールです。</p>
+
+<p>ディレクトリを保存しておいてそこに移動したり、
+使ったディレクトリをランキング付しておいてよく使うディレクトリに素早く移動したり出来ます。</p>
+
+<p>この<code>sd_cl</code>をロードすることで<code>bd</code>と<code>fd</code>また<code>up</code>というコマンドも使える様になります。</p>
+
+<h2 id="bdfdup">bd/fd/up</h2>
+
+<p><code>sd_cl</code>をロードすることで<code>bd</code>と<code>fd</code>というコマンドが使える様になります。</p>
+
+<p>これは<code>sd_cl</code>の<code>cl -b</code>/<code>cl -f</code>へのラッパー関数です。</p>
+
+<p><code>cd</code>で移動する毎に履歴に保存していき、<code>bd</code>とすると一つ前に戻ります。</p>
+
+<p>戻ると今度は進む履歴の方にディレクトリを保存し、<code>fd</code>で進むことが出来るようになります。</p>
+
+<p>複数個前とかに戻ることも出来て、
+ちょっと混乱しかねますが、0から始まる数で決めます。</p>
+
+<p>つまり<code>bd 0</code>は単なる<code>bd</code>と一緒。<code>bd 1</code>で2つ前に居た時のディレクトリ、<code>bd 2</code>で3つ前…と言った感じ。
+<code>fd</code>についても同様です。</p>
+
+<p>もう一つ、<code>up</code>というコマンドも使えるようになり、これを使うと
+一つ上のディレクトリに移動できます。</p>
+
+<h2 id="キーバインドして高速に移動する">キーバインドして高速に移動する</h2>
+
+<p>コマンドとして利用しても便利は便利ですが、
+キーバーンド設定することでさらに高速に移動できる様になります。</p>
+
+<p>以下の様な設定が<code>sd_cl</code>の中に入っていて
+自動的にキーバインドが設定されます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$ZSH_VERSION</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  _zsh_bd <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    bd &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  _zsh_fd <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    fd &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  _zsh_up <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    up &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  zle -N bd _zsh_bd
+</span><span class="line">  zle -N fd _zsh_fd
+</span><span class="line">  zle -N up _zsh_up
+</span><span class="line">
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$SD_CL_ZSH_KEYBIND</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    bindkey <span class="s1">&#39;^[o&#39;</span> bd
+</span><span class="line">    bindkey <span class="s1">&#39;^[i&#39;</span> fd
+</span><span class="line">    bindkey <span class="s1">&#39;^[u&#39;</span> up
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">elif</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$BASH_VERSION</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$SD_CL_KEYBIND</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\eo&quot;: &quot;\C-ubd\C-m&quot;&#39;</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\ei&quot;: &quot;\C-ufd\C-m&quot;&#39;</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\eu&quot;: &quot;\C-uup\C-m&quot;&#39;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2018/08/21 </strong></p>
+
+  <p>Bashのキーバインドもスクリプト内に追加。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>もし自動的にやりたくなかったり別のキーに設定したい場合には
+<code>SD_CL_KEYBINDING=0</code>を設定して好きな<code>bindkey</code>を上の様な感じで
+<strong>.zshrc</strong>や<strong>.bashrc</strong>書いたりしてください。</p>
+
+<p>これで</p>
+
+<ul>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>o</code>: 一つ前に戻る</li>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>i</code>: 一つ先に進む</li>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>u</code>: 一つ上に上がる</li>
+</ul>
+
+<p>と言ったディレクトリ操作ができるようになります。</p>
+
+<p>実際にやってみたのがこちら。</p>
+
+<p>Bashバージョン</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_bdfd_bash.gif" alt="bd/fd bash" /></p>
+
+<p>Zshバージョン</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_bdfd_zsh.gif" alt="bd/fd zsh" /></p>
+
+<p>表示の中で<i class="key">⌥</i>との組み合わせの様に出てますが、
+これはiTerm上で<i class="key">⌥</i>をメタキーとして使用する設定があり、
+それを<i class="key">⌘</i>で使うためにKarabiner-Elementで送るキーを<i class="key">⌘</i>から<i class="key">⌥</i>に
+変換しているためです。</p>
+
+<p>なので実際に送ってるボタンは<i class="key">⌘</i>になっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/10/06/computer-mac-iterm/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20161006_itermprofileskeys_120_90.jpg" width="120" height="90" alt="20161006_itermprofileskeys_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/10/06/computer-mac-iterm/">MacのiTerm/ターミナルでメタキー(Alt)を使う方法</a></div></li></ul>
+
+<p>Windowsなら<i class="key">Alt</i>です。</p>
+
+<p>Bashの場合には指定コマンドを通常の実行をする様な形でコマンドが表示されますが、
+Zshでは設定次第でその場を動かず指定関数を実行することが出来ます。</p>
+
+<p>下のZshの例ではその場でプロンプトに表示されてるディレクトリが変更されてるのがわかると思います。</p>
+
+<p>キーバインドですが、これは今は亡きVimperatorでブラウザの戻る、進むを
+<code>Ctrl</code>-<code>o</code>、<code>Ctrl</code>-<code>i</code>に設定していたのでこれにしたかったのですが、
+特に<code>Ctrl</code>-<code>i</code>は<code>Tab</code>そのものなので設定してしまうとタブ操作が全ておかしくなってしまうので
+メタキーの方に設定しています。
+(<code>Ctrl</code>-<code>o</code>は<code>Enter</code>とは別物ですが<code>Enter</code>の様な動作をするものです。)</p>
+
+<p><code>Meta</code>-<code>b</code>や<code>Meta</code>-<code>f</code>は1単語戻る、進む、に割り当てられてるので避けた方が良いかと。
+<code>ctrl</code>-<code>b</code>や<code>ctrl</code>-<code>f</code>は1文字戻る、進む、です。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Bash/Zshで配列のn番目を取得する、を統一する]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/19/computer-bash-zsh/"/>
+    <updated>2018-08-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/19/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4048869604?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4048869604&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51y8mOYyjNL._SS200_.jpg" alt="すぐわかるSUPER Excel配列マジックを極める 営業、経理、総務もこれでExcelマスター! 面倒な集計や計算処理が格段に楽になる! (すぐわかるシリーズ)" /></a>
+</div>
+
+<p>BashとZshは同じ様なシェルスクリプトを書くことが出来ますが
+機能的な違いが微妙にあります。</p>
+
+<p>特に大きな違いとして配列の番号がBashでは0から始まるのに対してZshでは通常1から始まることがあります。</p>
+
+<p>これに対する対処法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#bashzshの違い" id="markdown-toc-bashzshの違い">Bash/Zshの違い</a></li>
+  <li><a href="#bashzshで共通の動作をする関数を作る" id="markdown-toc-bashzshで共通の動作をする関数を作る">Bash/Zshで共通の動作をする関数を作る</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="bashzshの違い">Bash/Zshの違い</h2>
+
+<p>BashとZsh基本的には似たような機能を持ち、
+Zshの方が機能が豊富、といった感じのものですが
+同じ様な機能で微妙に機能が違うものが結構借ります。</p>
+
+<p>その辺をまとめたのが以下の記事。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/479811815X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=479811815X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41hfmaKyVgL._SS90_CR0,0,120,90_.jpg" alt="zsh最強シェル入門" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/12/26/computer-bash-zsh/">BashとZshの違いでのハマりどころ</a></div></li></ul>
+
+<p>特に配列が0番から始まるか1番から始まるか、という違いは結構大きいと思います。</p>
+
+<p>Zshでは通常1番から始まりますが、</p>
+
+<pre><code>setopt ksharrays
+</code></pre>
+
+<p>とすると0番から始まる様になります。</p>
+
+<p>ある関数の中だけ、とかで有効にしたい場合には</p>
+
+<pre><code>setopt localoptions ksharrays
+</code></pre>
+
+<p>とすると関数を抜ければ元の状態に戻ります。</p>
+
+<h2 id="bashzshで共通の動作をする関数を作る">Bash/Zshで共通の動作をする関数を作る</h2>
+
+<p>以下の様な関数を作ると<code>ksharrays</code>などを設定しなくても
+Bash/Zshで同じ動作で同じ番号のものを取得することが出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>get_n <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nb">local</span> <span class="nv">n</span><span class="o">=</span><span class="k">$((</span><span class="nv">$1</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+</span><span class="line">  <span class="nb">shift</span>
+</span><span class="line">  <span class="nb">eval</span> <span class="nb">echo</span> <span class="se">\$</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを使って</p>
+
+<pre><code>get_n 1 "${array[@]}"
+</code></pre>
+
+<p>とすれば<code>array</code>の1番目のものを取得できます。
+ただし、これは0から始まった番号です。</p>
+
+<p>Zshでもこれで</p>
+
+<pre><code>a=(a b c)
+get_n 1
+</code></pre>
+
+<p>とすれば<code>ksharrays</code>の
+設定に関わらず<code>b</code>が取得出来ます。</p>
+
+<p>Zshの様に1からスタートしたければ</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>get_n <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nb">local</span> <span class="nv">n</span><span class="o">=</span><span class="nv">$1</span>
+</span><span class="line">  <span class="nb">shift</span>
+</span><span class="line">  <span class="nb">eval</span> <span class="nb">echo</span> <span class="se">\$</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけばOK。</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Network | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/network/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[DHCPでホスト名が配られる環境にノートPCを持っていた時に起こった問題]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/21/computer-network-screen/"/>
+    <updated>2018-08-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/21/computer-network-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5510882581?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5510882581&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Ssi-E3KEL._SS200_.jpg" alt="Hostname" /></a>
+</div>
+
+<p>ノートパソコンを持ち歩いていろいろなところのWi-Fiで作業することが多いですが
+ネットワークによってはDHCPでホスト名も配っているところがあります。</p>
+
+<p>そんなところに繋いだり他で作業したりしてる間にちょっと問題が起こりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macのローカルホスト名" id="markdown-toc-macのローカルホスト名">Macのローカルホスト名</a></li>
+  <li><a href="#ホスト名が変わる" id="markdown-toc-ホスト名が変わる">ホスト名が変わる</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macのローカルホスト名">Macのローカルホスト名</h2>
+
+<p>Macでの話ですが、システム環境設定の<strong>共有</strong>から<strong>コンピューター名</strong>を決めることが出来、
+通常この値に<code>MyMac</code>とか入れておくと、</p>
+
+<pre><code>$ hostname
+MyMac.local
+</code></pre>
+
+<p>といった<code>.local</code>を付けたホスト名として認識されます。</p>
+
+<p>これ以外に、Mac特有のツールで</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ HostName
+MyMac.local
+</code></pre>
+
+<p>と、<code>scutil</code>を使っても確かめることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00LYTZROA?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00LYTZROA&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51HkL2NY6eL._SS90_CR0,0,120,90_.jpg" alt="My IP" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/12/09/computer-mac/">Mac 10.10 Yosemiteでのホスト名の設定</a></div></li></ul>
+
+<h2 id="ホスト名が変わる">ホスト名が変わる</h2>
+
+<p>これがDHCPサーバー側からホスト名が配られる様な設定になっていると、
+<code>hostname</code>の結果がその指定してきたものに変わってきます。</p>
+
+<pre><code>$ hostname
+example.host
+</code></pre>
+
+<p>一方<code>scutil</code>の結果は</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ scutil --get HostName
+HostName: not set
+</code></pre>
+
+<p>といった具合に、<code>ComputerName</code>、<code>LocalHostName</code>は相変わらず同じ名前を出す一方、
+<code>HostName</code>は<code>not set</code>になっています。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>今回起こったのはGNU screenのソケットディレクトリの設定に関してです。</p>
+
+<p>通常、<strong>/tmp/uscreens/S-user</strong>の様なところに設定してありますが、
+<code>SCREENDIR</code>という環境変数で変更することが出来、これを</p>
+
+<pre><code>SCREENDIR=$HOME/.screen_$(hostname|cut -d. -f1
+</code></pre>
+
+<p>みたいな値に設定していました。</p>
+
+<p>これは<strong>/tmp</strong>に置くのが嫌なのと、分散サーバーみたいなところでHOMEを共有している場所で、
+他の端末でscreenを立ち上げてる時にさっと<code>ls ~/.screen_*</code>みたいにすると
+どこで立ち上がってるか簡単に確認出来る様にするためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1895636426?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1895636426&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Bh8%2BDwK9L._SS90_CR0,0,120,90_.jpg" alt="Socket" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/04/computer-screen-socket/">GNU screenでのソケットディレクトリについて</a></div></li></ul>
+
+<p>Macではホスト名を付ける必要は特にないのですが、
+<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>
+で共通のものを使ってるので持ち運び端末でも同じ様にホスト名のついたソケットディレクトリを使っていました。</p>
+
+<p>ここで、ある環境で<code>hostname</code>が<code>Mymac.local</code>の所でターミナルを立ち上げ、
+その後、DHCPでホスト名(<code>example.host</code>)が配られる環境に接続後、立ち上げ済のターミナルからGNU screenを立ち上げると</p>
+
+<pre><code>$ screen -ls
+No Sockets found in /Users/user/.screen_example
+</code></pre>
+
+<p>といった感じで中からscreenの情報が取れません。</p>
+
+<p>これは、GNU screenを立ち上げるターミナルでは<code>SCREENDIR</code>がターミナル立ち上げ立ち上げ時に設定された
+<code>~/.screen_MyMac</code>であるのに対し、
+立ち上げ後にscreen内で起動するBashは<code>SCREENDIR</code>を<code>~/.screen_example</code>と設定してしまうからです。</p>
+
+<p>これに対処するためにMacにおいては<code>scutil</code>を使うように変更しました。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$OSTYPE</span><span class="s2">&quot;</span> <span class="o">=</span>~ darwin <span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>scutil --get ComputerName<span class="k">)</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>hostname<span class="p">|</span>cut -d. -f1<span class="k">)</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  mkdir -p <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">chmod <span class="m">700</span> <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>WindowsのノートPCに関してはどうするか、ちょっとまだ考え中です。
+<code>cygwin</code>ならまだ条件分岐出来ますが、
+最近使えるようになったUbuntu on Windowsとか
+そもそも区別し辛いものだと辛い。</p>
+
+<p>今のところこれ以外にホスト名に頼って直接何かするような設定はなさそうなんですが、
+結構こういうことは起こりそうなので気をつけて見ていかないと、と。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windowsで公式ツールでSSHサーバーを立てる2つの方法]]></title>
+    <link href="https://rcmdnk.com/blog/2018/04/27/computer-windows-network/"/>
+    <updated>2018-04-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/04/27/computer-windows-network</id>
+    <content type="html"><![CDATA[<p>以前はWindowsをSSHサーバーにしようと思うとCygwinを入れたりとか
+サードパーティー的なもので無理やり構築する必要がありましたが、
+最近のアップデートでオフィシャルな感じで簡単にSSHサーバーにすることができるようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#前にやってたこととか" id="markdown-toc-前にやってたこととか">前にやってたこととか</a></li>
+  <li><a href="#openssh-server" id="markdown-toc-openssh-server">OpenSSH Server</a></li>
+  <li><a href="#windows-subsystem-for-linux-wsl" id="markdown-toc-windows-subsystem-for-linux-wsl">Windows Subsystem for Linux (WSL)</a></li>
+  <li><a href="#ポート開放" id="markdown-toc-ポート開放">ポート開放</a></li>
+  <li><a href="#使えるか" id="markdown-toc-使えるか">使えるか?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="前にやってたこととか">前にやってたこととか</h2>
+
+<p>以前、WindowsでCygwinを入れてSSHサーバーを立てたりしていました。</p>
+
+<blockquote>
+  <p><a href="http://osksn2.hep.sci.osaka-u.ac.jp/~naga/miscellaneous/winssh/winssha.html">ウィンドウズにSSHサーバーを入れよう！</a></p>
+</blockquote>
+
+<p>他にも色々とSSHサーバーを立てる</p>
+
+<p>最近だとちょっと用途は違うかもしれませんが、Virtual Machine上にLinuxを入れて、とかで
+サーバーを立ててる人もいると思います。</p>
+
+<p>また、数年前から公式なSSHツールの開発も進められていて
+自分でインストールすることで使うこともできるようになっていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/Win32-OpenSSH">PowerShell/Win32-OpenSSH: Win32 port of OpenSSH</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/openssh-portable">PowerShell/openssh-portable: Portable OpenSSH, all Win32-OpenSSH releases and wiki are managed at https://github.com/powershell/Win32-OpenSSH</a></p>
+</blockquote>
+
+<p>このツールが今はWindowsから簡単な操作で有効にできる様になっています。</p>
+
+<h2 id="openssh-server">OpenSSH Server</h2>
+
+<p>昨年のAnniversary UpdateでWindows本体に導入され、まずは開発者モードでのみ使える様になっていたOpenSSH Server(及びClient)。
+さらに昨年末から今年始めにかけて配布されていたFall Creators Updateでこれらがオプション機能として開発者モードでなくても簡単に
+追加できる様になりました。</p>
+
+<p>このAnniversary Updateが入った時に、開発者モードにしていると自動でSSHサーバーが立ち上がる様になっていたとかで
+ちょっと騒ぎになった様なこともあった気がしますが、
+現在のWindowsではSSHの機能はデフォルトではOFFになっています。</p>
+
+<p>有効にするには<strong>Windowsの設定</strong>から<strong>アプリ</strong>へ行き、<strong>アプリと機能</strong>のページにある<strong>アプリと機能</strong>の欄の<strong>オプション機能の管理</strong>を開きます。
+ここで<strong>機能追加</strong>へ行くと
+<strong>OpenSSH Server (Beta)</strong>というのがあるのでこれをインストールします。
+とりあえずのテストとかでも便利なのでついでに必要なら<strong>OpenSSH Client (Beta)</strong>も。</p>
+
+<p>ここで2つ一気にインストールしようとすると失敗することもあるので
+ちゃんと<strong>オプション機能の管理</strong>ページにインストールしたものが追加されてるか確認してください。</p>
+
+<p>出来たらPowerShellなりコマンドプロンプトを立ち上げて</p>
+
+<pre><code>&gt; ssh localhost
+</code></pre>
+
+<p>とやってssh接続できるか試してみます。</p>
+
+<p>Puttyとかで<code>localhost</code>に向けて<code>ssh</code>してもチェックできます。</p>
+
+<p>上手く行かない場合、サービスが動いているかチェックするため、
+コルタナから<strong>サービス</strong>とかで検索してサービスのウィンドウを立ち上げ、<code>sshd</code>という名前のサービスが<strong>実行中</strong>になっているかチェックします。</p>
+
+<p>もし<code>sshd</code>がなければ上のインストールの所で失敗してるのでもう一回チェック。
+<strong>実行中</strong>になってなければ開始します。
+今後も使いたいのであればスタートアップが<strong>自動</strong>になっているかなどもチェック。</p>
+
+<p>うまくssh出来た場合、
+ログインした先のデフォルトシェルはコマンドプロンプトになっていますが、
+PowerShellを使いたい場合は</p>
+
+<pre><code>&gt; powershell.exe
+</code></pre>
+
+<p>と実行するとPowerShellに切り替わります。</p>
+
+<p>レジストリを書き換えるとPowerShellやWSL-bash.exeなどに変更できる、との
+記述もありましたが下記にあるやり方だと変更が有効になりませんでした。</p>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/Win32-OpenSSH/wiki/Install-Win32-OpenSSH">Install Win32 OpenSSH · PowerShell/Win32-OpenSSH Wiki</a></p>
+</blockquote>
+
+<p>PowerShellを管理者権限で開いて</p>
+
+<pre><code>&gt; New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+</code></pre>
+
+<p>とするとレジストリを書き換えて上のページの例にあるような設定に出来たのですが、</p>
+
+<pre><code>&gt; net stop sshd
+&gt; net start sshd
+</code></pre>
+
+<p>としてSSHサーバーを再起動したりWindows自体を再起動してもSSHするとコマンドプロンプトのままでした。</p>
+
+<p>そのうちまた要チェック。</p>
+
+<p>また、次のWindows Subsytem for Linuxを使う場合には必ずこちらのsshサービスを止めてから
+行ってください。
+そうでないとこちらのサービスのほうが優先されてLinux側のSSHサーバーが見えなくなります。</p>
+
+<p>もしくはどちらかのサービスのポートを変える必要があります。</p>
+
+<h2 id="windows-subsystem-for-linux-wsl">Windows Subsystem for Linux (WSL)</h2>
+
+<p>もう一つの方法はWindows Subsystem for Linux (WSL)でLinuxを動かしてその中でsshサーバーを動かす方法。
+WLSは数年前から開発者向けに使えるようになっていましたが、
+Fall Creators Updateで正式に導入され、今は簡単に導入することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/">Windowsに採用されたBash (Ubuntu)を試してみる</a></div></li></ul>
+
+<p>導入するには<strong>Windowsの機能の有効化または無効化</strong>を開き
+<strong>Windows Subsytem for Linux</strong>にチェックを入れます。</p>
+
+<p>再起動して有効化した後、Microsoft Storeを開いて<strong>Ubuntu</strong>などを探してインストールします。</p>
+
+<p>今はUbuntu以外にもDebianやopenSUSEとかいくつかありますがとりあえず今回はUbuntuで。</p>
+
+<p>インストールするとスタートメニューに<strong>Ubuntu</strong>があるはずなのでそれを立ち上げます。
+最初に</p>
+
+<pre><code>Installing, this may take a few minutes...
+</code></pre>
+
+<p>みたいな表示がでてしばらく待ちますが、これ、上手く言ってもこのまま進まないことがあるので、
+しばらく立ったら適当にキーを押して進行状況を確認してみてください。</p>
+
+<p>また、最初にインストールするとき、</p>
+
+<pre><code>It appears this distro's installation has become corrupted.
+Please try uninstalling and reinstalling the app.
+Installation Failed!
+Error: 0x800700b7
+Press any key to continue...
+</code></pre>
+
+<p>みたいなエラーが出ることがあります。(Errorコードが0x8000000dだったりもする。)</p>
+
+<p>この場合、よくわからないのですが、とりあえず一度<strong>Ubuntu</strong>をアンインストールして
+もう一度インストールすると上手く行くことがあります。</p>
+
+<p>上手く行った場合はユーザー名やパスワードを聞かれますが、これは
+Windowsのものとは別でも好きなものに設定できます。</p>
+
+<p>Ubuntuが出来たらSSHサーバーを立ち上げますが、ストアからインストールしたUbuntuには
+最初から入っているので、</p>
+
+<pre><code>$ sudo service ssh start
+</code></pre>
+
+<p>とすればサーバーをスタートできます。</p>
+
+<p>が、最初にやったとき、</p>
+
+<pre><code>$ sudo service ssh start
+[sudo] password for user:
+* Starting OpenBSD Secure Shell server sshd
+Could not load host key: /etc/ssh/ssh_host_rsa_key
+Could not load host key: /etc/ssh/ssh_host_dsa_key
+Could not load host key: /etc/ssh/ssh_host_ecdsa_key
+Could not load host key: /etc/ssh/ssh_host_ed25519_key
+                                                                                                                 [ OK ]
+$ ssh localhost
+Connection closed by 127.0.0.1 port 22
+</code></pre>
+
+<p>みたいな感じで上手くいきませんでした。<code>OK</code>と出ていますがちゃんと起動できていませんし
+実際に上に出てるファイルもありません。
+ファイルの読み込み自体はクリティカルなところではないはずですが、色々と準備が足りない感じです。</p>
+
+<p>そこで、一旦最初に入っているものをアンインストールして再インストールすると上手くいきました。</p>
+
+<pre><code>$ sudo apt-get remove --purge openssh-server
+$ sudo apt-get update --fix-missing
+$ sudo apt-get install openssh-server
+</code></pre>
+
+<p>とします。途中、一回<code>update</code>を行っていますが、これを行わずにすぐに<code>install</code>しようとすると</p>
+
+<pre><code>$ sudo apt-get install openssh-server
+[sudo] password for user:
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following package was automatically installed and is no longer required:
+  libfreetype6
+Use 'sudo apt autoremove' to remove it.
+Suggested packages:
+  ssh-askpass rssh molly-guard monkeysphere
+The following NEW packages will be installed:
+  openssh-server
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 338 kB of archives.
+After this operation, 912 kB of additional disk space will be used.
+Err:1 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 openssh-server amd64 1:7.2p2-4ubuntu2.2
+  404  Not Found [IP: 2001:67c:1560:8001::14 80]
+E: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/o/openssh/openssh-server_7.2p2-4ubuntu2.2_amd64.deb  404  Not Found [IP: 2001:67c:1560:8001::14 80]
+</code></pre>
+
+<p>みたいなエラーが出たので<code>update</code>をしてから行ったところうまくいきました。</p>
+
+<p>このインストールでssh鍵とかも出来て</p>
+
+<pre><code>$ sudo service ssh start
+</code></pre>
+
+<p>とすると無事立ち上がりsshで入れる様になりました。</p>
+
+<p>ただし、注意として上にも書いたようにWindowsのOpenSSHサーバーが動いていると
+そちらが優先されるのでsshしたらコマンドプロンプトが立ち上がった、という場合には
+そちらを切るなどする必要があります。</p>
+
+<p>また、このサーバーはUbuntuを立ち上げてる時だけ動いているので、
+Ubuntuのターミナルを閉じると落ちてしまいます。</p>
+
+<p>Ubuntu自体はバックグラウンドでも走れる様になったみたいで、
+Windowsのスタートアップ時にsshサーバーを走らせるUbuntuを実行する
+みたいなことをするとsshサーバーを裏で動かすこともできる様ですが
+どうも上手く行かなかったのでまたそのうち試してみます。</p>
+
+<h2 id="ポート開放">ポート開放</h2>
+
+<p>これでローカルではSSHできるようになりましたが、外から入ろうとすると弾かれます。</p>
+
+<p><strong>コントロールパネル</strong><i class="fa fa-arrow-right"></i>
+<strong>システムとセキュリティ</strong><i class="fa fa-arrow-right"></i>
+<strong>Windows Defenderファイヤウォール</strong><i class="fa fa-arrow-right"></i>
+<strong>詳細設定</strong>
+に行き<strong>受信の規則</strong>を選択して<strong>新しい規則</strong>を作ります。</p>
+
+<ul>
+  <li>規則の種類: ポート</li>
+  <li>プロトコルおよびポート: TCP, 特定のローカルポート: 22</li>
+  <li>操作: 接続を許可する</li>
+  <li>プロファイル: そのまま(でファルトは全部チェック。必要があれば入られたくないところのチェックを外す。</li>
+  <li>名前: ssh (適当に)</li>
+</ul>
+
+<p>みたいな感じで新しい規則を作ります。</p>
+
+<p>これでSSHの22番ポートが開放されるので他のPCからも入れる様になるはずです。</p>
+
+<h2 id="使えるか">使えるか?</h2>
+
+<p>ということでWindowsの公式機能としてSSHサーバーを立てることができる様になりました。</p>
+
+<p>コマンドプロンプト(or PowerShell)使いたい場合hには最初の方法、
+Linuxを使いたい場合にはUbuntuなどをWLSで使う方法があります。</p>
+
+<p>これで実際にどうこうできるか、という話ですが、
+コマンドプロンプトとかを使い慣れていればその作業は十分にできると思います。</p>
+
+<p>Linuxに関してはLinuxとしてはWLS下での制限が色々ありますがとりあえず簡単にSSHできる環境としては作れます。
+ただ、サービスのように立ち上げるのがちょっと面倒。</p>
+
+<p>さらには未だにGNU screenとかがユーザー権限で立ち上がらなかったりしますが。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/09/01/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/01/computer-windows-ubuntu-bash/">Bash on Ubuntu on WindowsでGNU screenが使える様になった</a></div></li></ul>
+
+<p>また、Linux側からWindowsに対して色々自由にできるわけでもないので外からここに入って何ができるか、というのは微妙なところです。</p>
+
+<p>一方、今回は中心の話題ではなかったですが、
+<strong>OpenSSH Client (Beta)</strong>
+の方が通常使用ではインパクトが大きいかもしれません。</p>
+
+<p>これを入れればWindowsでもサードパーティーなアプリを入れなくても他のマシンに対してSSHできる様になります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screen内からsshした先にTERM=screen.xterm-256color等がない場合の対処法]]></title>
+    <link href="https://rcmdnk.com/blog/2018/02/02/computer-bash-network/"/>
+    <updated>2018-02-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/02/02/computer-bash-network</id>
+    <content type="html"><![CDATA[<p>GNU screenを立ち上げると通常<code>TERM=screen.xterm-256color</code>の様な
+<code>screen</code>の入った名前のterminfoが設定されます。</p>
+
+<p>この状態で<code>ssh</code>するとssh先のサーバーでもこのTERMの値が引き継がれますが
+このterminfoがない場合があり
+Vim等を立ち上げるとエラーが出ることがあります。</p>
+
+<p>そのようなときの対処法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#問題" id="markdown-toc-問題">問題</a></li>
+  <li><a href="#とりあえずの解決法" id="markdown-toc-とりあえずの解決法">とりあえずの解決法</a></li>
+  <li><a href="#よく使うサーバーの場合" id="markdown-toc-よく使うサーバーの場合">よく使うサーバーの場合</a></li>
+  <li><a href="#手元で解決" id="markdown-toc-手元で解決">手元で解決</a></li>
+  <li><a href="#sshrcを使ってssh時にチェックする" id="markdown-toc-sshrcを使ってssh時にチェックする">sshrcを使ってssh時にチェックする</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="問題">問題</h2>
+
+<p>GNU screenを立ち上げた後、その中から<code>ssh</code>で他のサーバーに行って
+Vimとかを立ち上げようとすると、</p>
+
+<pre><code>$ vim
+
+E558: Terminal entry not found in terminfo
+'screen.xterm-256color' not known. Available builtin terminals are:
+    builtin_ansi
+    builtin_xterm
+    builtin_iris-ansi
+    builtin_dumb
+defaulting to 'ansi'
+</code></pre>
+
+<p>みたいなエラーが出る問題。
+一応このまま続けてVimで編集が出来ますがSyntaxハイライトとかは効かなかったりします。</p>
+
+<p>問題は<code>TERM=screen.xterm-256color</code>がsshで引き継がれるものの、
+接続先サーバーにこのterminfoが無いことです。</p>
+
+<h2 id="とりあえずの解決法">とりあえずの解決法</h2>
+
+<p>とりあえずその場で</p>
+
+<pre><code>$ export TERM=xterm-256color
+</code></pre>
+
+<p>などそのサーバーにあるterminfoを指定してあげればこの様なエラーは出なくなります。</p>
+
+<p>どの様なterminfoがあるかは
+<code>/usr/share/terminfo/*/*</code>など、TERMINFOのパスに指定されてるディレクトリにあるファイルを探します。</p>
+
+<p><code>TERMINFO</code>と言う値が指定されてる場合はそのディレクトリ、そうでない場合は
+<code>man terminfo</code>すると</p>
+
+<pre><code>NAME
+       terminfo - terminal capability data base
+
+SYNOPSIS
+       /usr/share/terminfo/*/*
+</code></pre>
+
+<p>みたいに書いてあるディレクトリが使われるディレクトリです。</p>
+
+<p>もしくは</p>
+
+<pre><code>$ infocmp xterm-256color
+#       Reconstructed via infocmp from file: /usr/share/terminfo/78/xterm-256color
+xterm-256color|xterm with 256 colors,
+        am, bce, ccc, km, mc5i, mir, msgr, npc, xenl,
+        colors#256, cols#80, it#8, lines#24, pairs#32767,
+...
+$ infocmp xterm-non
+infocmp: couldn't open terminfo file (null).
+$
+</code></pre>
+
+<p>の様に<code>infocmp</code>を使えばそのterminfoがあるかどうか分かります。</p>
+
+<h2 id="よく使うサーバーの場合">よく使うサーバーの場合</h2>
+
+<p>よく使うサーバーで毎回この様なことをするのはあれなので、
+<strong>.bashrc</strong>などに</p>
+
+<pre><code>export TERM=xterm-256color
+</code></pre>
+
+<p>とか書いておけば毎回設定せずに済みます。</p>
+
+<h2 id="手元で解決">手元で解決</h2>
+
+<p>GNU screenを立ち上げた時にTERMの値を他でも通常あるような<code>xterm-256color</code>
+などにしておくことも出来ます。</p>
+
+<p><strong>.screenrc</strong>に</p>
+
+<pre><code>term "xterm-256color"
+</code></pre>
+
+<p>と書いておけば立ち上げた後に<code>TERM=xterm-256color</code>が設定されます。</p>
+
+<p>ただ、色々な設定で</p>
+
+<pre><code>if [[ "$TERM" =~ screen ]]; then
+...
+</code></pre>
+
+<p>みたいに<code>screen</code>内に居るのかどうかを判断して行う事が出来なくなって結構不便です。</p>
+
+<p>その様な設定が全くなければ殆ど弊害はないと思いますが
+あまり良くない設定。</p>
+
+<h2 id="sshrcを使ってssh時にチェックする">sshrcを使ってssh時にチェックする</h2>
+
+<p>よく使うサーバーであれば一回設定しておけば良いですが、
+ふと初めて入ったサーバーでこの様な問題が起きるとちょっと嫌な気分になります。</p>
+
+<p><code>sshrc</code>を使うとこの様な自体を上手く避けれます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/01/31/computer-bash-zsh-network/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180131_sshrc_120_90.jpg" width="120" height="90" alt="20180131_sshrc_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/01/31/computer-bash-zsh-network/">sshrc: ssh時に.bashrc設定等をssh先に持っていけるコマンド</a></div></li></ul>
+
+<p>まず、<strong>.bashrc</strong>で<code>ssh</code>を<code>sshrc</code>にaliasしてしまいます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">alias</span> <span class="nv">ssh</span><span class="o">=</span><span class="s2">&quot;sshrc&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>次に、<code>.sshrc</code>に</p>
+
+<figure class="code"><figcaption><span>.sshrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>set_term <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$TERM</span><span class="s2">&quot;</span> <span class="o">=</span>~ screen <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+</span><span class="line">    <span class="nv">_terms</span><span class="o">=(</span>screen.xterm-256color screen-256color xterm-256color screen-16color screen xterm-16color xterm<span class="o">)</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="nv">_terms</span><span class="o">=(</span>xterm-256color xterm-16color xterm<span class="o">)</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line">  <span class="k">for</span> t in <span class="s2">&quot;</span><span class="si">${</span><span class="nv">_terms</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line">    <span class="k">if</span> infocmp &gt;<span class="p">&amp;</span>/dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line">      <span class="nb">break</span>
+</span><span class="line">    <span class="k">else</span>
+</span><span class="line">      <span class="nb">export</span> <span class="nv">TERM</span><span class="o">=</span><span class="nv">$t</span>
+</span><span class="line">    <span class="k">fi</span>
+</span><span class="line">  <span class="k">done</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">set_term
+</span><span class="line"><span class="nb">alias</span> <span class="nv">ssh</span><span class="o">=</span><span class="s2">&quot;sshrc&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの設定を書きます。
+リストしてあるterminfoは必要なら変更してください。</p>
+
+<p>この設定によって<code>ssh</code>した時、Bashを立ち上げる時に
+<code>TERM</code>をチェックして存在していないterminfoなら他のterminfoに変更する様に出来ます。
+(最後は<code>xterm</code>で打ち止めですが、流石にこれは殆どの環境にあると思います。無いような環境でも使うなら適当に追加してください。)</p>
+
+<p>sshした先のサーバーでも<code>ssh</code>に<code>sshrc</code>をaliasするので、
+さらに他のサーバーに行く場合でもまた<code>TERM</code>をチェックしてくれる様になります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sshrc: ssh時に.bashrc設定等をssh先に持っていけるコマンド]]></title>
+    <link href="https://rcmdnk.com/blog/2018/01/31/computer-bash-zsh-network/"/>
+    <updated>2018-01-31T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/01/31/computer-bash-zsh-network</id>
+    <content type="html"><![CDATA[<p>sshなどで他のサーバーに行く時、
+通常それぞれの環境で<strong>.bashrc</strong>等を用意して
+環境設定を行いますが、
+余り使わない様な環境に対してちょっとした設定だけ
+持っていきたい、と思ったことがあるかもしれません。</p>
+
+<p>そんな時に使える<code>sshrc</code>というコマンドについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sshrc" id="markdown-toc-sshrc">sshrc</a></li>
+  <li><a href="#sshrcをインストール" id="markdown-toc-sshrcをインストール">sshrcをインストール</a></li>
+  <li><a href="#sshrcの使い方" id="markdown-toc-sshrcの使い方">sshrcの使い方</a></li>
+  <li><a href="#sshrcがやってること" id="markdown-toc-sshrcがやってること">sshrcがやってること</a></li>
+  <li><a href="#sshrcがやってることを単純化" id="markdown-toc-sshrcがやってることを単純化">sshrcがやってることを単純化</a></li>
+  <li><a href="#vimやtmuxといったコマンドの設定" id="markdown-toc-vimやtmuxといったコマンドの設定">vimやtmuxといったコマンドの設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sshrc">sshrc</h2>
+
+<div class="github-widget" data-repo="Russell91/sshrc"></div>
+
+<p><code>sshrc</code>は<code>ssh</code>時に接続元にある設定ファイルを接続先に持っていって
+環境設定出来る様にしてくれるコマンドです。</p>
+
+<p>コマンド自体はシェルスクリプトで作られていて100行も無いので
+見てみるとやっていることがだいたい分かると思います。</p>
+
+<p>同じレポジトリに<code>moshrc</code>という<code>mosh</code>時に設定を持っていくコマンドもあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00I1M03OC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00I1M03OC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41P2fjXWPfL._SS90_CR0,0,120,90_.jpg" alt="MOSH (MOBILE SHELL): A New Era of Remote Access" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/30/computer-linux-mac/">Moshを使ってみる</a></div></li></ul>
+
+<h2 id="sshrcをインストール">sshrcをインストール</h2>
+
+<p>インストールはMac + Homebrewなら</p>
+
+<pre><code>$ brew install sshrc
+</code></pre>
+
+<p>Ubuntuなどであればapt-getで</p>
+
+<pre><code>$ sudo add-apt-repository ppa:russell-s-stewart/ppa
+$ sudo apt-get update
+$ sudo apt-get install sshrc
+</code></pre>
+
+<p>stow-getを使ってもインストールできます。</p>
+
+<pre><code>$ stow-get install sshrc
+</code></pre>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01LYG6IA6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01LYG6IA6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51JsgVDiDsL._SS90_CR0,0,120,90_.png" alt="stow bottles" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/05/11/computer-linux-bash/">stow-get: Stowを使ったパッケージマネージャー</a></div></li></ul>
+
+<p>これらのコマンドで<code>moshrc</code>も同時にインストールされます。</p>
+
+<p>それらが使えない環境では
+レポジトリにある<code>sshrc</code>スクリプトをPATHの通ったディレクトリに入れればOK。</p>
+
+<pre><code>$ wget https://raw.githubusercontent.com/Russell91/sshrc/master/sshrc
+$ chmod +x sshrc
+$ sudo mv sshrc /usr/local/bin #or anywhere else on your PATH
+</code></pre>
+
+<p><code>moshrc</code>も使いたい場合は同様に<code>moshrc</code>についても行います。</p>
+
+<p>ちょっと注意が必要なのは
+Homebrewやapt-getなどでインストールされるのはリリースになっているもの(0.6.1)で
+レポジトリのHEADのものとはちょっと違います。
+(stow-getはHEADを持ってきます。)</p>
+
+<p>最新のものが欲しい場合には</p>
+
+<pre><code>$ brew install sshrc --HEAD
+</code></pre>
+
+<p>などとするか上にある様に直接ファイルを取ってくる必要があります。</p>
+
+<p>違いはHEADにある<code>ssh_parse</code>という関数が無いことで
+特に引数を使った通常のログイン以外のことをしようとする時に
+問題が出る可能性があります。</p>
+
+<p>まあ、そういった場合は通常の<code>ssh</code>を使えば良いのですが、
+<code>ssh</code>コマンド自体を<code>sshrc</code>にaliasしたりしたい場合にはHEADの方を使った方が良いです。</p>
+
+<p>また、<code>sshrc</code>を使うにはローカル、リモートサーバー両方に<code>openssl</code>がインストールされている必要があります。
+もしインストールされてない場合は</p>
+
+<pre><code>$ brew install openssl
+</code></pre>
+
+<p>or</p>
+
+<pre><code>$ sudo apt-get install openssl
+</code></pre>
+
+<p>or</p>
+
+<pre><code>$ stow-get install openssl
+</code></pre>
+
+<p>or 直接<code>openssl</code>をインストールする必要があります。</p>
+
+<h2 id="sshrcの使い方">sshrcの使い方</h2>
+
+<p>まず送りたい設定を書いたファイル<strong>~/.sshrc</strong>を作ります。
+(このファイルが無いとエラー終了します。)</p>
+
+<p>とりあえず、</p>
+
+<figure class="code"><figcaption><span>.sshrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">echo</span> welcome
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とただ<code>echo</code>するだけのファイルを作って<code>sshrc</code>を使ってみます。</p>
+
+<p><code>sshrc</code>は<code>ssh</code>のラッパースクリプトの様になっていて
+引数などは<code>ssh</code>と全く同じです。</p>
+
+<pre><code>[ example.orig.com ]$ sshrc example.dest.com
+welcome
+[ example.dest.com ]$
+</code></pre>
+
+<p>と言った具合に作った設定ファイルが実行される事が分かります。</p>
+
+<p>また、<strong>~/.sshrc.d</strong>というディレクトリを作り、
+ここにファイルを入れておくとそのファイルをリモートサーバーに送ることも出来ます。
+(どう読み込むかなどは<strong>~/.sshrc</strong>で設定する。)</p>
+
+<h2 id="sshrcがやってること">sshrcがやってること</h2>
+
+<p>スクリプトの中をちょっと見てみると次の様なことをやっている事が分かります。</p>
+
+<ul>
+  <li><code>ssh -t example.com command</code>の形でログインせずにコマンドを送るsshを行う。
+    <ul>
+      <li>最終的にコマンド実行の形でbashを立ち上げたいので<code>-t</code>の強制仮想端末割当オプションが必要。</li>
+    </ul>
+  </li>
+  <li>まずリモートサーバーにテンポラリーなディレクトリを作って<code>SSHHOME</code>という値にパスを入れる。</li>
+  <li>このディレクトリは<code>trap</code>を使って終了時に削除する様にする。</li>
+  <li>sshrcのスクリプト自身のコピーを<code>$SSHHOME</code>に作る。</li>
+  <li>
+    <p><code>$SSHHOME</code>に以下の様な内容の<strong>sshrc.bashrc</strong>を作成:</p>
+
+    <pre><code>  if [ -r /etc/profile ];then
+    source /etc/profile
+  fi
+  if [ -r ~/.bash_profile ];then
+    source ~/.bash_profile
+  elif [ -r ~/.bash_login ];then
+    source ~/.bash_login
+  elif [ -r ~/.profile ];then
+    source ~/.profile
+  fi
+  export PATH=$PATH:$SSHHOME
+  source $SSHHOME/.sshrc;
+</code></pre>
+  </li>
+  <li><code>$SSHHOME</code>にローカルの<strong>.sshrc</strong>や<strong>.sshrc.d</strong>の中身をコピー。</li>
+  <li><code>bash --rcfile $SSHHOME/sshrc.bashrc</code>で上記の<code>sshrc.bashrc</code>を読み込むbashを立ち上げる。</li>
+</ul>
+
+<p>コマンドを送る形の<code>ssh</code>ですが、結果的に<code>bash</code>を立ち上げるので
+通常のログインと同じ様な形になります。</p>
+
+<p>Bash立ち上げ時に最後に<strong>.sshrc</strong>を読み込んでいるので
+これによりローカルで作った<strong>.sshrc</strong>が反映される事になります。</p>
+
+<p>また、<code>$SSHHOME</code>がPATHに加えられ、ここに<code>sshrc</code>スクリプト自身がコピーされていることから、
+このリモートサーバーにおいても<code>sshrc</code>コマンドを使える様になります。
+さらに、<code>$SSHHOME</code>が予め環境変数として指定されている場合、
+<code>sshrc</code>の中でもそこをHOMEとしてみて<strong>.sshrc</strong>などを読み込むため、
+このリモートサーバーからさらに<code>sshrc</code>する際には元のサーバーにあった<strong>.sshrc</strong>
+がそのままさらなるリモートサーバーに持っていかれる事になります。</p>
+
+<p>ので、二段階に渡り<code>sshrc</code>しようとする時、中継にある<strong>~/.sshrc</strong>は反映されないので
+ちょっと注意が必要です。必要なら<code>unset SSHHOME</code>などします。</p>
+
+<p>ローカルにあるファイルの内容などを送る様になっていますが、
+この際に暗号化して送っていてここで<code>openssl</code>を使っています。
+(なのでローカル、リモート両方に必要。)</p>
+
+<h2 id="sshrcがやってることを単純化">sshrcがやってることを単純化</h2>
+
+<p>例えばある環境変数だけをリモートで設定したい、というのであれば、</p>
+
+<pre><code>$ ssh -t example.com "export VAL=xxx";bash"
+</code></pre>
+
+<p>とかすれば<code>VAL</code>という環境変数を持った状態でリモート作業が出来ます。
+ただし、この場合は<code>bash</code>では<strong>~/.bashrc</strong>を呼び<strong>~/.bash_profile</strong>は呼ばれません。</p>
+
+<p>もし、<strong>~/.bash_profile</strong>でログイン時に必ず必要な設定があり<strong>~/.bashrc</strong>だけではだめな場合には</p>
+
+<pre><code>$ ssh -t example.com "export VAL=xxx";bash --rcfile ~/.bash_profile"
+</code></pre>
+
+<p>とかすればOK。</p>
+
+<p>値とかがパスワードとかでない限り暗号化する必要もないですし、
+簡単な設定だけならこんな感じで直接行うことも可能です。</p>
+
+<h2 id="vimやtmuxといったコマンドの設定">vimやtmuxといったコマンドの設定</h2>
+
+<p><strong>~/.sshrc.d</strong>に<strong>.vimrc</strong>等を入れておくことにより
+これを<code>sshrc</code>で持っていき、</p>
+
+<pre><code>export VIMINIT="let \$MYVIMRC='$SSHHOME/.sshrc.d/.vimrc' | source \$MYVIMRC"
+</code></pre>
+
+<p>の様にVim立ち上げ時に<code>$SSHHOME</code>にある<strong>.vimrc</strong>を読むような設定を
+<strong>~/.sshrc</strong>に書いておけば
+リモートでVimを立ち上げる時に行う設定を変える事が出来ます。</p>
+
+<p>TmuxやGNU screen、その他の設定ファイルがあるようなものでも
+基本的には<strong>~/.sshrc</strong>を工夫すればなんでも設定を送る事が出来ます。</p>
+
+<p>VimやTmuxに関してはレポジトリのREADMEに詳しい例が載っています。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p><code>ssh</code>を使い複数の環境で作業する時に、それぞれの環境で設定が違うと
+使用感が下がりますが、
+<code>sshrc</code>を使えばリモート側の設定ファイルを変えなくても
+行いたい設定をローカルに書いておくだけで直接リモートで反映する事が可能です。</p>
+
+<p>ただし、実際に情報を送るわけで毎回大量の情報を送るのは逆に<code>ssh</code>の使用感を下げるので
+送るのは最小限の設定だけにするべきです。</p>
+
+<p>実際、<code>sshrc</code>では送るファイルの合計サイズが最大64kBまでとなっています。
+(必要なら数字書き換えればすぐに変更できますが。)</p>
+
+<p>ちょっと見てみたら自分の<strong>.bashrc</strong>が20kB、<strong>.vimrc</strong>が48kBでこれら合わせると64kB超えます。
+(そもそもちょっと大きすぎるか。。。)</p>
+
+<p>そのようなフルな設定に関してはdotfilesを使ったような管理を
+行うべきです。</p>
+
+<p><code>sshrc</code>はBash専用になっていますが、
+簡単なスクリプトなので必要であればZshに書き換えて使うことも出来ると思います。</p>
+
+<div class="github-widget" data-repo="rcmdnk/dotfiles"></div>
+
+<div class="postscript">
+  <p><strong>追記: 2018/02/01 </strong></p>
+
+  <p><code>moshrc</code>を使う時も同じように<code>.sshrc</code>等の設定が持っていかれるわけですが、
+この際スクリプトとしては<code>moshrc</code>だけがコピーされます。</p>
+
+  <p><code>mosh</code>であるサーバーに入った後、さらに他のサーバーに移動する時は
+<code>mosh</code>よりも<code>ssh</code>を使うことが多いです。</p>
+
+  <p>この場合に<code>sshrc</code>が無いとちょっと悲しいので
+<code>moshrc</code>をちょっといじっって<code>sshrc</code>も送れるようにしました。</p>
+
+  <div class="github-widget" data-repo="rcmdnk/sshrc"></div>
+
+  <p>Pull request出してますがとりあえずはForkした上のレポジトリから使えます。</p>
+
+  <p>Homebrewでも</p>
+
+  <pre><code>$ brew install rcmdnk/rcmdnkpac/rcmdnk-sshrc
+</code></pre>
+
+  <p>とするとインストールできます。</p>
+
+  <p>stow-getなら</p>
+
+  <pre><code>$ stow-get install sshrc
+</code></pre>
+
+  <p>で上の物が入る様になっています。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TeamViewerで二要素認証の設定]]></title>
+    <link href="https://rcmdnk.com/blog/2016/06/04/computer-teamviewer-network/"/>
+    <updated>2016-06-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/06/04/computer-teamviewer-network</id>
+    <content type="html"><![CDATA[<p>TeamViwerでパスワードが引きぬかれて被害が出たりしてるみたいなので
+セキュリティーを上げるために二要素認証の設定をしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#teamviwerで被害" id="markdown-toc-teamviwerで被害">TeamViwerで被害</a></li>
+  <li><a href="#teamviewerでの2段階認証の設定" id="markdown-toc-teamviewerでの2段階認証の設定">TeamViewerでの2段階認証の設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="teamviwerで被害">TeamViwerで被害</h2>
+
+<p>今年に入ってからかTeamViwerが乗っ取られて被害にあってる人が結構出ているようです。</p>
+
+<blockquote>
+  <p><a href="http://f36type.cocolog-nifty.com/blog/2016/01/post-3b6c.html">リモートデスクトップ系のソフトに不正ログイン？: 独房の中</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://f36type.cocolog-nifty.com/blog/2016/03/teamviewer-4b3f.html">TeamViewerに不正ログインで踏み台に悪用？: 独房の中</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://f36type.cocolog-nifty.com/blog/2016/06/teamviewer-c13f.html">TeamViewerの不正ログインでブラウザのパスワードぶっこ抜き: 独房の中</a></p>
+</blockquote>
+
+<p>TeamViwerはリモートから端末を操作できるアプリですが、
+ログインされてしまえば普通に端末の中を見れてブラウザでも何でも操作できてしまうので
+あらゆるものが抜き取られる可能性があります。</p>
+
+<p>ただ、そもそも離れたところから操作したいので、
+必要なときだけ立ち上げておく、ということはあまり実用的ではなく、
+使うのであれば立ち上げっぱなしにしておくことになると思います。</p>
+
+<p>なのでやはり特にセキュリティーには気をつけないと、ということで今更
+TeamViewerにも二要素認証(2段階認証)を設定しました。</p>
+
+<h2 id="teamviewerでの2段階認証の設定">TeamViewerでの2段階認証の設定</h2>
+
+<p>まずはGooleの2段階認証用の認証システムをスマホにインストールします。</p>
+
+<blockquote>
+  <p><a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=ja">Google 認証システム - Google Play の Android アプリ</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://itunes.apple.com/jp/app/google-authenticator/id388497605?mt=12&amp;uo=4&amp;at=10lc94">Google Authenticator - App Store</a></p>
+</blockquote>
+
+<p>AndroidなりiPhoneなり。</p>
+
+<p>次に、TeamViwerの設定は端末にインストールされているアプリのオプションではなく、
+Webの
+<a href="https://login.teamviewer.com/">TeamViewer Management Console</a>
+で行います。</p>
+
+<p>Windows/Macのアプリからは<strong>接続</strong>の項目に<strong>Management Consoleを開く</strong>
+という項目があるのでそれをクリックするとブラウザでManagement Consoleを開いてくれます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160604_teamviewerconsole.jpg" alt="20160604_teamviewerconsole.jpg" class="pic" /></p>
+
+<p>Management Consoleにログインしたら開いたら右上の自分の名前のところをクリックして
+<strong>プロファイルの編集</strong>を立ち上げます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160604_teamviewerprofile.jpg" alt="20160604_teamviewerprofile.jpg" class="pic" /></p>
+
+<p>そこに<strong>2段階認証</strong>という項目があるのでその右にある<strong>有効化</strong>を押します。
+すると、有効にするかどうか聞かれるページが出てくるので、有効にするように進めると、
+QRコードが出てきます。
+これをスマホで読み取ってWebで開く、的なことをすると
+インストールしてあるGoogleの認証アプリが立ち上がり、
+TeamViewerを追加してくれます。</p>
+
+<p>パソコンの方に戻ってブラウザで次に進めると
+認証コードを入れる様に促されるのでスマホの認証アプリにあるコードを入れます。
+正しいコードを入れると確認されて2段階認証が有効化されます。</p>
+
+<blockquote>
+  <p><a href="https://www.teamviewer.com/ja/help/402-How-do-I-activate-deactivate-two-factor-authentication-for-my-TeamViewer-account.aspx">How do I activate/deactivate two factor authentication for my TeamViewer account?</a></p>
+</blockquote>
+
+<p>ここで自分の環境だけかもしれませんが、パソコンでそのままTeamViwerを使おうとしたら
+一旦ログアウトされてる状態だったのでもう一度ログインを試しました。
+が、ここで正しいパスワードを入れても
+<strong>パスワードを変更するためにメールを送りました</strong>的なメッセージが出て
+ログイン出来ませんでした。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160604_teamviewerlogin.jpg" alt="20160604_teamviewerlogin.jpg" class="pic" /></p>
+
+<p>間違ったパスワードを入れると<strong>入力したユーザー名とパスワードが見つかりません</strong>と出るはずなので
+なんかおかしな状態に。</p>
+
+<p>そこで、一度WebのManagement Consoleに行くと、一度ログアウトされていたので
+再ログイン。
+この時にパスワードを正しく入れて認証した後、2段階認証のコードを聞かれたので入力、
+ログイン出来ました。</p>
+
+<p>その後、もしかしたらこれは意味が無いかもしれませんが、
+Management Consoleのプロファイルの中にパスワード設定をするところがあるので
+そこでパスワードを再設定
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>その状態でもう一度アプリでログインしようとしたところ、パスワードが通り
+2段階認証用のセキュリティーコードを聞かれる様に。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20160604_teamviewersecuritycode.jpg" alt="20160604_teamviewersecuritycode.jpg" class="pic" /></p>
+
+<p>コードを入力するとログインすることが出来ました。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>パソコン側ではアプリにログインする時に<strong>サインアウトしない</strong>をチェックしておくと
+再起動した時なんかでもパスワードもセキュリティーコードも聞かれずに
+ログイン出来る様です。</p>
+
+<p>これを設定すると毎回起動時に入力する必要あるかな、と思ってたのでその点は
+良かったです。
+(起動時に勝手にログイン、というのでちょっと心配な感じもしますが、
+まあ、パソコン自体を起動させて操作されてる時点でどうしようも無いのでそこを気をつけても仕方ないかと。)</p>
+
+<p>ということで設定さえしてしまえば後は今まで通り使えて、
+仮にパスワードが漏れたとしても他からはそのTeamViewerアカウントへは入れなく出来ました。</p>
+
+<p>外に開放している所なのでちょっとまじめに気をつけておきたいところです。</p>
+]]></content>
+  </entry>
+  
+</feed>

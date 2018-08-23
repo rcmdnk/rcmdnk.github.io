@@ -1,0 +1,1057 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Linux | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/linux/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[今更basenameで後ろ側も切れることを知った]]></title>
+    <link href="https://rcmdnk.com/blog/2017/09/04/computer-linux-bash/"/>
+    <updated>2017-09-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/09/04/computer-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/6136418347?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=6136418347&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41TkEWjBbyL._SS200_.jpg" alt="Basename" /></a>
+</div>
+
+<p>ちょっと人のシェルスクリプトを見てたら
+<code>basename</code>に引数を2つ渡してて
+何やら、と思ったら2つ目の引数を後ろから削れる、ということを今更知りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#usage-basename-string-suffix" id="markdown-toc-usage-basename-string-suffix">usage: basename string [suffix]</a></li>
+  <li><a href="#suffixの削除" id="markdown-toc-suffixの削除">SUFFIXの削除</a></li>
+  <li><a href="#複数の文字列を同時に操作" id="markdown-toc-複数の文字列を同時に操作">複数の文字列を同時に操作</a></li>
+  <li><a href="#ちなみにdirname" id="markdown-toc-ちなみにdirname">ちなみにdirname</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="usage-basename-string-suffix">usage: basename string [suffix]</h2>
+
+<p>言わずと知れたパスの最後の部分を切り取る
+<code>basename</code>ですが、簡単なコマンド過ぎてコマンドさえ知ったら
+ヘルプも見ることもまず無いかと。</p>
+
+<p>MacでおもむろにBSD版<code>basename</code>を引数無しで実行してみると</p>
+
+<pre><code>$ basename
+usage: basename string [suffix]
+       basename [-a] [-s suffix] string [...]
+</code></pre>
+
+<p>な感じ。
+そもそもヘルプな引数すら無い模様。</p>
+
+<p>LinuxなどでGNU版だと引数なしだと<code>missing operand</code>が出ますが、
+<code>--help</code>で見れます。</p>
+
+<pre><code>$ basename --help
+Usage: basename NAME [SUFFIX]
+  or:  basename OPTION
+Print NAME with any leading directory components removed.
+If specified, also remove a trailing SUFFIX.
+
+      --help     display this help and exit
+      --version  output version information and exit
+
+Examples:
+  basename /usr/bin/sort       Output "sort".
+  basename include/stdio.h .h  Output "stdio".
+
+Report basename bugs to bug-coreutils@gnu.org
+GNU coreutils home page: &lt;http://www.gnu.org/software/coreutils/&gt;
+General help using GNU software: &lt;http://www.gnu.org/gethelp/&gt;
+For complete documentation, run: info coreutils 'basename invocation'
+</code></pre>
+
+<p>こちらは親切にExamplesまで載せてくれてます。</p>
+
+<h2 id="suffixの削除">SUFFIXの削除</h2>
+
+<p>まあGNU版のヘルプを見ると一目瞭然なんですが、
+2つ目の引数に拡張子などを渡してあげれば
+その分を後ろ側から除いてファイルの名前だけを出力する様な事が簡単に出来るわけですね。</p>
+
+<p>ちなみに後ろから見て該当の文字列がなければエラーが出るわけではなく何もしません。</p>
+
+<pre><code>$ basename /aaa/bbb/ccc.cxx .cxx
+ccc
+$ basename /aaa/bbb/ddd.h .cxx
+ddd.h
+</code></pre>
+
+<h2 id="複数の文字列を同時に操作">複数の文字列を同時に操作</h2>
+
+<p>GNU版の方は基本的に1つの引数を取ってそれのベースネームを取るだけです。
+後はSUFFIXを削除する事が出来るだけ。</p>
+
+<p>一方BSD版の方は複数の文字列を一度に変換することが出来ます。
+この際、デフォルトでは2つの引数を与えるとGNU版同様2つ目をSUFFIXと捉えて
+1つ目の引数から消そうとしてしまいますが、
+オプション<code>-a</code>を与える事でそれぞれの引数に別途<code>basename</code>をかけることが出来ます。</p>
+
+<pre><code>$ basename /aaa/bbb/ccc /ddd/eee/fff
+ccc
+</code></pre>
+
+<p>これだと1つ目の引数の<code>basename</code>のみ返る。
+<code>/ddd/eee/fff</code>はSUFFIXとみなされ、この場合は<code>ccc</code>からは消せないので何もしない。</p>
+
+<p>一方、以下のものだと</p>
+
+<pre><code>$ basename -a /aaa/bbb/ccc /ddd/eee/fff
+ccc
+fff
+</code></pre>
+
+<p><code>/aaa/bbb/ccc</code>、<code>/ddd/eee/fff</code>の両方に<code>basename</code>をかけた結果が返る。</p>
+
+<p>3つ以上渡すと<code>-a</code>を与えても与えなくても全てを独立の文字列とみなす様です。</p>
+
+<pre><code>$ basename /aaa/bbb/ccc /ddd/eee/fff /ggg/hhh/iii
+ccc
+fff
+iii
+$ basename -a /aaa/bbb/ccc /ddd/eee/fff /ggg/hhh/iii
+ccc
+fff
+iii
+</code></pre>
+
+<p>こういった複数の文字列を一気に扱いたい時に、さらにSUFFIXを差っ引きたい場合は<code>-s</code>を使います。</p>
+
+<pre><code>$ basename -a -s .h /aaa/bbb/ccc.cxx /ddd/eee/fff.h /ggg/hhh/iii.h
+ccc.cxx
+fff
+iii
+</code></pre>
+
+<p><code>-s</code>を渡すと、<code>-s &lt;suffix&gt;</code>以外の引数が2つの場合にも
+<code>-a</code>を使わずとも両方共文字列として扱われ<code>basename</code>が2つにかけられます。</p>
+
+<p>GNUで3つ以上渡すと、</p>
+
+<pre><code>$ basename /aaa/bbb/ccc /ddd/eee/fff /ggg/hhh/iii
+basename: extra operand `/ggg/hhh/iii'
+Try `basename --help' for more information.
+</code></pre>
+
+<p>な感じでエラーになります。
+2つならエラーにはなりませんが、
+<code>-a</code>を渡せばエラーになりますし、
+2つの文字列を渡すだけだと後ろ側はSUFFIXとして評価されるだけです。</p>
+
+<p>BSD版の方が便利ですね。</p>
+
+<p><code>man</code>を見るとBSD版が<code>April 18, 1994</code>、GNU版が<code>GNU coreutils 8.4 March 2017</code>
+と書いてあったりするのですが、GNU版はBSD版の機能を追随しないのでしょうか?
+(GNUの方はcoreutilsの全体のアップデートに従って日付がアップデートされてて
+<code>basename</code>自体は手を付けられてない状態なんだとは思いますが。)</p>
+
+<p>この複数渡すものも知りませんでしたが、
+GNUとの互換性が無いのでこれは知らなくてもそれ程問題ないかな、とも。</p>
+
+<h2 id="ちなみにdirname">ちなみにdirname</h2>
+
+<p>ちなみに逆にパスの最後の部分だけ落としてディレクトリを返す
+<code>dirname</code>コマンドですが、
+これはGNU/BSDどちらの場合も1つの引数を取るだけみたいです</p>
+
+<p>2つ以上渡そうとすれば</p>
+
+<pre><code>$ dirname aaa bbb # BSD
+usage: dirname path
+
+$ dirname aaa bbb # GNU
+dirname: extra operand `bbb'
+Try `dirname --help' for more information.
+</code></pre>
+
+<p>と、共にエラーが出ます
+また<code>dirname</code>には基本的にオプション引数はありません。
+GNUの方に<code>--help</code>と<code>--version</code>があるだけです。</p>
+
+<p>また、BSD版の方は<code>basename</code>と同一パッケージになっていて
+<code>man basename</code>も<code>man dirname</code>も同じものが表示され、
+2つのコマンドについて書かれたマニュアルが表示されます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>こんな簡単で良く使うコマンドでも知らない事がまだあるとは
+自分が残念です。</p>
+
+<p>まあ簡単過ぎて調べもしないのと、
+拡張子除くのも<code>cut</code>でも<code>awk</code>でもなんでも簡単に出来るので考えもしないのと。</p>
+
+<p>でも知ってたら断然便利ですね。。。</p>
+
+<p>多分今まで作ったスクリプトの中でも
+結構な量の無駄があると思います。</p>
+
+<p>これって一体どれだけの人が知ってるんでしょうか?
+(意外と知らないんだと思いたいのですが</p>
+
+<p>ま、多分他にも色々あるんでしょう。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[suでrootになれなくなった話]]></title>
+    <link href="https://rcmdnk.com/blog/2017/08/11/computer-linux/"/>
+    <updated>2017-08-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/08/11/computer-linux</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00005JT76?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00005JT76&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51vxY1yK55L._SS200_.jpg" alt="Songs of the Who" /></a>
+</div>
+
+<p>結論的にはどうしようもない話なんですが、
+突然<code>su</code>でrootになろうとしたら
+<strong>Authentication failure</strong>と出てどうしても<code>root</code>になれなくなったという話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#状況" id="markdown-toc-状況">状況</a></li>
+  <li><a href="#原因" id="markdown-toc-原因">原因</a></li>
+  <li><a href="#その他の可能性" id="markdown-toc-その他の可能性">その他の可能性</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="状況">状況</h2>
+
+<p>まずは<code>su</code>してみると</p>
+
+<pre><code>$ su
+Password:
+su: Authentication failure
+</code></pre>
+
+<p>となってパスワードを打っても失敗してしまいます。
+この前まで大丈夫だったのに、設定何もいじってないのに、誰か勝手にパスワード変えた?(誰も変えない)、
+という状態。</p>
+
+<p><strong>/var/log/secure</strong>(もしくは<strong>/var/log/auth.log</strong>)を見ると</p>
+
+<pre><code>su: pam_unix(su:auth): authentication failure;
+</code></pre>
+
+<p>とか出てます。</p>
+
+<p>一方、</p>
+
+<pre><code>$ sudo -i
+</code></pre>
+
+<p>とかすれば<code>root</code>権限でインタラクティブに作業出来るという<code>sudo</code>は使える状態。</p>
+
+<p>加えて、<code>useradd</code>で適当に新規ユーザーを作ってみてそこから<code>su</code>してみると
+上で試した同じパスワードで<code>root</code>になれてしまうという。</p>
+
+<p>この時使っている元のユーザーはldapを使って管理しているので
+そこ関連の問題なのかな、とか色々疑ってましたが、結局全く別の問題でした。</p>
+
+<h2 id="原因">原因</h2>
+
+<p>util-linuxパッケージをローカルでインストールして
+<code>su</code>コマンドがユーザーのローカルにインストールされていてそれを使おうとしていたからでした。</p>
+
+<p>この状況でも</p>
+
+<pre><code>$ /bin/su
+</code></pre>
+
+<p>とシステムの<code>su</code>を使えば<code>root</code>になれました。</p>
+
+<p>util-linuxを入れたのは<a href="https://github.com/rcmdnk/stow-get">stow-get</a>
+のテストのためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01LYG6IA6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01LYG6IA6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51JsgVDiDsL._SS90_CR0,0,120,90_.png" alt="stow bottles" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/05/11/computer-linux-bash/">stow-get: Stowを使ったパッケージマネージャー</a></div></li></ul>
+
+<p>通常は必要ないのですがテストで入れたまま残っていたようで。</p>
+
+<p>色々可能性を探してたんですが、
+見つけたのは色々な解決策がある中で<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、</p>
+
+<pre><code>$ type -a su
+su is /home/user/usr/local/bin/su
+su is /bin/su
+</code></pre>
+
+<p>をやってみたからでした。</p>
+
+<p>で、この<code>su</code>は勿論インストールしたユーザーの所有でそれが問題。</p>
+
+<p>なのでこれを削除するか、</p>
+
+<pre><code>$ sudo chown root /home/user/usr/local/bin/su
+$ sudo chmod 4755 /home/user/usr/local/bin/su
+</code></pre>
+
+<p>の様に<code>su</code>コマンドの所有者を<code>root</code>にして、
+さらにSet User IDして上げるとユーザーがインストールした<code>su</code>でもきちんと使える様になりました。</p>
+
+<p>Set User ID (SUID)はそのファイルを実行する時、
+実行者がコマンドを打った人ではなくこのSUIDで設定された人のコマンドとして扱われる様になるというもの。</p>
+
+<p><code>su</code>はこれが<code>root</code>でなければいけません。</p>
+
+<pre><code>$ ls -l /bin/su
+-rwxr-xr-x. 1 root root 34904 Mar 22 22:40 /bin/su
+</code></pre>
+
+<p>みたいな感じの時は</p>
+
+<p>これを</p>
+
+<pre><code>$ chmod 4755 /bin/su
+</code></pre>
+
+<p>として、</p>
+
+<pre><code>$ ls -l /bin/su
+-rwsr-xr-x. 1 root root 34904 Mar 22 22:40 /bin/su
+</code></pre>
+
+<p>の様に所有者がrootでその実行権限部分<code>x</code>ではなく
+<code>s</code>になっていないといけません。
+これによって<code>su</code>は常に<code>root</code>として実行される様になります。</p>
+
+<p>ただし、この変更自体root権限が無いと出来ないので
+<code>sudo</code>で出来る権限があるかもしくは何らか他の方法で<code>root</code>としてログインする必要があります。</p>
+
+<h2 id="その他の可能性">その他の可能性</h2>
+
+<p>1つはPAMの設定で弾かれてる、というもの。</p>
+
+<p><strong>/etc/pam.d/su</strong>にデフォルトだと</p>
+
+<pre><code># Uncomment the following line to require a user to be in the "wheel" group.
+#auth           required        pam_wheel.so use_uid
+</code></pre>
+
+<p>というコメントアウトされた行があります。
+この<code>auth</code>の行のコメントを取って有効にすると
+<code>wheel</code>というグループに入ってないユーザーの<code>su</code>コマンドは許可しない状態になります。</p>
+
+<p>この<code>wheel</code>ですが、Macでシステムファイルとか<code>root</code>所有のファイルとかが<code>wheel</code>グループ所属になってたりして
+よく見る名前ですが、
+もともとUnixでシステム管理を行うユーザーが所属するグループだったようです<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>ただ、Linuxではそのシステムは基本的には採用せずに基本誰でも<code>su</code>出来る様な環境がデフォルトにしているみたいです。</p>
+
+<p><strong>/etc/pam.d/sudo</strong>に関してはデフォルトでは</p>
+
+<pre><code>auth       include      system-auth
+</code></pre>
+
+<p>の様にOS全体の設定を行う<code>system-auth</code>の設定を使う様になっています。
+これら設定はコマンド自体をどのユーザーがどの様に使えるか、という設定。</p>
+
+<p><code>sudo</code>に関しては<strong>/etc/sudoers</strong>に
+<code>sudo</code>でコマンドを実行できるユーザーや各ユーザー/groupにおける
+コマンドの制限等が設定されています。
+デフォルトの設定ファイルには</p>
+
+<pre><code>## Allows people in group wheel to run all commands
+# %wheel        ALL=(ALL)       ALL
+</code></pre>
+
+<p>みたいな感じで<code>wheel</code>所属のユーザーに<code>sudo</code>権限を渡す設定がコメントとして載っています。
+ここでもこれのコメントを外して<code>sudo</code>を許可したいユーザーを
+<code>wheel</code>グループに入れてあげれば<code>sudo</code>で全てのコマンドが打てる様になります。</p>
+
+<p>ということで<code>su</code>と<code>sudo</code>だと少し設定の方法とかが違いますが、
+そもそもこの2つのコマンドは全く別のパッケージの中にあるものみたいです<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<p>これらとはまた別に、<code>ssh</code>を使って外部からログインする時、
+<code>root</code>でログイン出来るかどうか、の設定も別にあり、それは
+<strong>/etc/ssh/sshd_config</strong>の中での<code>PermitRootLogin</code>と言う値になります。</p>
+
+<pre><code>PermitRootLogin yes
+</code></pre>
+
+<p>なら<code>root</code>でのログイン可、</p>
+
+<pre><code>PermitRootLogin no
+</code></pre>
+
+<p>またはこの項目がなければログイン不可です。
+デフォルトの<strong>sshd_config</strong>だと</p>
+
+<pre><code># PermitRootLogin yes
+</code></pre>
+
+<p>な感じで<code>yes</code>のコメントアウト行があります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[stow-getでコマンドラインパッケージのインストール方法を簡単に確認出来る様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/08/03/computer-linux/"/>
+    <updated>2017-08-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/08/03/computer-linux</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06XGK3MSP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06XGK3MSP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41QsRr6DJpL._SS200_.jpg" alt="Fisher Price Little People Wheelies Stow &amp; Towガレージ交換用パープルEddie Tow Truck w /ティールHitch Loose / Repackaged" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/stow-get">stow-get</a>
+パッケージのインストール方法を表示できる様にしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#stow-get" id="markdown-toc-stow-get">stow-get</a></li>
+  <li><a href="#パッケージインストールコマンド" id="markdown-toc-パッケージインストールコマンド">パッケージインストールコマンド</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="stow-get">stow-get</h2>
+
+<p><a href="https://github.com/rcmdnk/stow-get">stow-get</a>
+は
+<a href="https://www.gnu.org/software/stow/">Stow</a>
+を使ったパッケージマネージャーです。</p>
+
+<p>Stow自体はパッケージを適当な場所にインストール後、<strong>/usr/local/bin</strong>など
+にシンボリックリンクを貼ることで
+後々入れ替えなどを簡単に出来る様にしてくれるパッケージマネージャーです。</p>
+
+<p>stow-getではこれを使って各パッケージを</p>
+
+<pre><code>$ stow-get install vim
+</code></pre>
+
+<p>みたいな形で簡単にインストール出来る様にしたコマンドです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/stow-get"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01LYG6IA6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01LYG6IA6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51JsgVDiDsL._SS90_CR0,0,120,90_.png" alt="stow bottles" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/05/11/computer-linux-bash/">stow-get: Stowを使ったパッケージマネージャー</a></div></li></ul>
+
+<h2 id="パッケージインストールコマンド">パッケージインストールコマンド</h2>
+
+<p><code>commands</code>というサブコマンドを使うと</p>
+
+<pre><code>$ stow-get commands vim
+################################################################################
+# Prepare working space
+################################################################################
+TMP_DIR=$(mktemp -d)
+################################################################################
+# Install commands for readline
+################################################################################
+cd "$TMP_DIR"
+wget --no-check-certificate http://ftp.gnu.org/gnu/readline/readline-7.0.tar.gz
+tar zxf readline-7.0.tar.gz
+cd readline-7.0
+./configure --prefix=/home/user/usr/local/stow/readline-STOW-7.0
+make all
+make install
+# stow installation
+cd /home/user/usr/local/stow
+stow --ignore=share/info/dir --ignore=.travis.yml readline-STOW-7.0
+mkdir -p /home/user/usr/local/stow/current
+touch /home/user/usr/local/stow/current/readline-STOW-7.0
+################################################################################
+# Install commands for termcap
+################################################################################
+cd "$TMP_DIR"
+wget --no-check-certificate http://ftp.gnu.org/gnu/termcap/termcap-1.3.1.tar.gz
+tar zxf termcap-1.3.1.tar.gz
+cd termcap-1.3.1
+./configure --prefix=/home/user/usr/local/stow/termcap-STOW-1.3.1
+make all
+make install
+# stow installation
+cd /home/user/usr/local/stow
+stow --ignore=share/info/dir --ignore=.travis.yml termcap-STOW-1.3.1
+mkdir -p /home/user/usr/local/stow/current
+touch /home/user/usr/local/stow/current/termcap-STOW-1.3.1
+################################################################################
+# Install commands for lua
+################################################################################
+cd "$TMP_DIR"
+wget --no-check-certificate http://www.lua.org/ftp/lua-5.3.4.tar.gz
+tar zxf lua-5.3.4.tar.gz
+cd lua-5.3.4
+./configure --prefix=/home/user/usr/local/stow/lua-STOW-5.3.4
+make linux MYLIBS= -ltermcap MYLDFLAGS= -L/home/user/usr/local/lib MYCFLAGS= -I/home/user/usr/local/usr/local/include
+make install INSTALL_TOP=/home/user/usr/local/stow/lua-STOW-5.3.4
+# stow installation
+cd /home/user/usr/local/stow
+stow --ignore=share/info/dir --ignore=.travis.yml lua-STOW-5.3.4
+mkdir -p /home/user/usr/local/stow/current
+touch /home/user/usr/local/stow/current/lua-STOW-5.3.4
+################################################################################
+# Install commands for ncurses
+################################################################################
+cd "$TMP_DIR"
+wget --no-check-certificate http://ftp.gnu.org/gnu/ncurses/ncurses-6.0.tar.gz
+tar zxf ncurses-6.0.tar.gz
+cd ncurses-6.0
+./configure --prefix=/home/user/usr/local/stow/ncurses-STOW-6.0 --with-shared
+make all
+make install
+# stow installation
+cd /home/user/usr/local/stow
+stow --ignore=share/info/dir --ignore=.travis.yml ncurses-STOW-6.0
+mkdir -p /home/user/usr/local/stow/current
+touch /home/user/usr/local/stow/current/ncurses-STOW-6.0
+################################################################################
+# Install commands for vim
+################################################################################
+cd "$TMP_DIR"
+wget --no-check-certificate https://github.com/vim/vim/archive/v8.0.0844.tar.gz
+tar zxf v8.0.0844.tar.gz
+cd vim-8.0.0844
+./configure --prefix=/home/user/usr/local/stow/vim-STOW-8.0.0844 --enable-luainterp=yes --enable-perlinterp=yes --enable-pythoninterp=yes --enable-python3interp=yes --enable-rubyinterp=yes --enable-cscope --enable-multibyte
+make all
+make install
+# stow installation
+cd /home/user/usr/local/stow
+stow --ignore=share/info/dir --ignore=.travis.yml vim-STOW-8.0.0844
+mkdir -p /home/user/usr/local/stow/current
+touch /home/user/usr/local/stow/current/vim-STOW-8.0.0844
+################################################################################
+# Remove working space
+################################################################################
+rm -rf $TMP_DIR
+</code></pre>
+
+<p>こんな感じで、必要なパッケージと共に
+実際に行うコマンド一覧を表示してくれます。</p>
+
+<p>この出力をそのまま</p>
+
+<pre><code>$ stow-get commands vim &gt; install.sh
+</code></pre>
+
+<p>としてスクリプトに書き込んで他の所で</p>
+
+<pre><code>$ chmod 755 install.sh
+$ ./install.sh
+</code></pre>
+
+<p>としてインストールを行うことも出来ます。</p>
+
+<p>ただし、全く違う環境で行う場合には、
+この場合はライブラリーのチェックとか行わないので
+必要なパッケージの過不足が起こる可能性があります。
+また<code>prefix</code>も元の環境と同じになります。</p>
+
+<p>なのでドライランの出力はあくまで目安な感じですが
+実際にどうやってインストールしてくれるのかぱっと出してくれるので便利だと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU/BSDでのxargsの振る舞いの違い]]></title>
+    <link href="https://rcmdnk.com/blog/2017/06/01/computer-linux-gnu-bsd/"/>
+    <updated>2017-06-01T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/06/01/computer-linux-gnu-bsd</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/6131493480?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=6131493480&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41iyzcjjHgL._SS200_.jpg" alt="Xargs" /></a>
+</div>
+
+<p><code>find</code>コマンドなどと組み合わせてパイプから受け取る入力を
+引数としてコマンドを実行する<code>xargs</code>ですが、
+GNU版とBSD版の間で違いが結構大きい様です。</p>
+
+<p>ちょっと調べたら色々あるみたいなんですが、
+今回ひっかかった特にはまりやすいかな、と思う点についてメモしておきます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#出力が空の場合に一回実行するかどうか" id="markdown-toc-出力が空の場合に一回実行するかどうか">出力が空の場合に一回実行するかどうか</a></li>
+  <li><a href="#no-run-if-empty--r-オプション" id="markdown-toc-no-run-if-empty--r-オプション">–no-run-if-empty (-r) オプション</a></li>
+  <li><a href="#オプションを扱うラッパー関数" id="markdown-toc-オプションを扱うラッパー関数">オプションを扱うラッパー関数</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="出力が空の場合に一回実行するかどうか">出力が空の場合に一回実行するかどうか</h2>
+
+<p>簡単な例として、<code>echo</code>で出力を作ってそれをそのまま<code>echo</code>で受け流す様な<code>xargs</code>の使い方を考えます。</p>
+
+<pre><code>$ echo aaa| xargs echo "bbb"
+bbb aaa
+</code></pre>
+
+<p>こんな感じ。パイプの後ろは</p>
+
+<pre><code>$ echo bbb aaa
+</code></pre>
+
+<p>に置き換わって実行されています。
+これはGNUでもBSDでも同じように実行されます。</p>
+
+<p>次に最初の出力を空にしてみます。</p>
+
+<p>MacなどのBSD系では</p>
+
+<pre><code>$ echo | xargs echo "bbb"
+$
+</code></pre>
+
+<p>と何も表示されません。</p>
+
+<p>一方GNU版だと</p>
+
+<pre><code>$ echo | xargs echo "aaa"
+aaa
+$
+</code></pre>
+
+<p>と、<code>echo</code>が実行されます。</p>
+
+<p>これは例えばある特定のディレクトリにある特定の名前のファイルを表示したい時、</p>
+
+<pre><code>$ find /path/to/dir/ -maxdepth 1 -mindepth 1 -type f -name "*wanted*" -print0 2&gt;/dev/null|xargs -0 -n1 basename
+</code></pre>
+
+<p>こんなコマンドをやるとします。</p>
+
+<p>もし何も見つからない場合、BSD版では何も表示されない状態で正常終了します。</p>
+
+<pre><code>$ find /path/to/dir/ -maxdepth 1 -mindepth 1 -type f -name "*wanted*" -print0 2&gt;/dev/null|xargs -0 -n1 basename
+$ echo $?
+0
+$
+</code></pre>
+
+<p>一方GNU版だと</p>
+
+<pre><code>$ find /path/to/dir/ -maxdepth 1 -mindepth 1 -type f -name "*wanted*" -print0 2&gt;/dev/null|xargs -0 -n1 basename
+basename: missing operand
+Try `basename --help' for more information.
+$ echo $?
+123
+$
+</code></pre>
+
+<p>な感じで<code>basename</code>が引数なしで一回実行されてしまうのでエラー終了になります。</p>
+
+<h2 id="no-run-if-empty--r-オプション">–no-run-if-empty (-r) オプション</h2>
+
+<p>スクリプトを使いまわしたい場合にこれだとちょっと面倒ですが、
+GNU版には<code>--no-run-if-empty</code>というオプションがあり
+これを与えるとBSDの様に何もパイプから受け取らない場合にはコマンドを実行しない様になります。
+<code>-r</code>というオプションも同様の動作をします。</p>
+
+<p>一方、BSD版の一部のものだと、この<code>-r</code>を擬似オプション(何も変更しないオプション)として導入し、
+BSDでもGNUでも<code>xargs -r</code>とすれば同様の動作をする様に出来る事ができます。</p>
+
+<p>ただ、Macに入ってる<code>xargs</code>などは<code>-r</code>オプションが無いので使うとエラーが出ます。</p>
+
+<p>なのでちゃんと調べて上げる必要があって、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> ! -v xargs_opt <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="k">if</span> echo<span class="p">|</span>xargs -r &gt;/dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;-r&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">find /path/to/dir/ -maxdepth <span class="m">1</span> -mindepth <span class="m">1</span> -type f -name <span class="s2">&quot;*wanted*&quot;</span> -print0 <span class="m">2</span>&gt;/dev/null<span class="p">|</span>xargs <span class="nv">$xargs_opt</span> -0 -n1 basename
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに<code>-r</code>が使えるかどうかチェックしたりしてオプションをセットします。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2017/06/13 </strong></p>
+
+  <p><code>-v</code>(変数が定義済みチェック)はBash 4.1などちょっと前のBashだと使えない事があるので</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> -z <span class="s2">&quot;</span><span class="nv">$xargs_opt</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">xargs_opt</span><span class="p">-A</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="k">if</span> echo<span class="p">|</span>xargs -r &gt;/dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;-r&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">find /path/to/dir/ -maxdepth <span class="m">1</span> -mindepth <span class="m">1</span> -type f -name <span class="s2">&quot;*wanted*&quot;</span> -print0 <span class="m">2</span>&gt;/dev/null<span class="p">|</span>xargs <span class="nv">$xargs_opt</span> -0 -n1 basename
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいな感じで<code>-v</code>を使わずに未定義化どうかチェックした方が良いです。</p>
+
+  <p>上でやっているのは</p>
+
+  <ul>
+    <li>まず<code>-z</code>で未定義か空であることをチェック。</li>
+    <li>そうであった場合、<code>xargs</code>が未定義かどうかをチェック。</li>
+  </ul>
+
+  <p><code>${var-X}</code>は<code>var</code>が未定義である場合に限り<code>X</code>を返します。
+上の場合では<code>xargs_opt</code>が未定義であると<code>A</code>を返すので結果が正になります。</p>
+
+  <p>後者だけのチェックだと、もし<code>xargs_opt</code>がもともと<code>A</code>という値だった場合にも
+間違えて正になってしまうので
+最初に未定義か空のチェックで<code>A</code>で無いことを確認し
+その後で未定義かどうかのチェックをしています。</p>
+
+  <p><code>${var:-X}</code>の様に<code>:</code>が入ると未定義もしくは空文字の場合に<code>X</code>が返る様になります。
+(通常のシェルスクリプトではこちらの方がよく使います。)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="オプションを扱うラッパー関数">オプションを扱うラッパー関数</h2>
+
+<p><code>xargs</code>を沢山使うような場合は</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">function</span> xargs_wrapper <span class="o">{</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> -z <span class="s2">&quot;</span><span class="nv">$xargs_opt</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">xargs_opt</span><span class="p">-A</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="k">if</span> echo<span class="p">|</span>xargs -r &gt;/dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">      <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;-r&quot;</span>
+</span><span class="line">    <span class="k">else</span>
+</span><span class="line">      <span class="nv">xargs_opt</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+</span><span class="line">    <span class="k">fi</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line">  xargs <span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">find /path/to/dir/ -maxdepth <span class="m">1</span> -mindepth <span class="m">1</span> -type f -name <span class="s2">&quot;*wanted*&quot;</span> -print0 <span class="m">2</span>&gt;/dev/null<span class="p">|</span>xargs_wrapper -0 -n1 basename
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2017/06/13 </strong></p>
+
+  <p>上に書いたように最初の分岐を<code>-z...</code>を使った方法に変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>みたいなラッパー関数を作ってしまって回すと便利です。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[lsコマンドのcolumnな表示について]]></title>
+    <link href="https://rcmdnk.com/blog/2017/05/26/computer-linux-bash-zsh/"/>
+    <updated>2017-05-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/05/26/computer-linux-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798039438?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798039438&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41XOsTwe1UL._SS200_.jpg" alt="lsを読まずにプログラマを名乗るな!" /></a>
+</div>
+
+<p><code>ls</code>コマンドはコマンドライン操作を覚える時に真っ先に覚えるコマンドだと思います。</p>
+
+<p>簡単なコマンドなので改めてマニュアルを読むことはあまりないかと思いますが
+ちょっと気になって読んでみてコラム表示などについてあまり良く知らなかったので
+メモしておこうと思います。</p>
+
+<p><code>ls</code>にはGNU版、BSD版がありますが、確認した限りでは以下のことは共通です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#lsのターミナルへの通常表示" id="markdown-toc-lsのターミナルへの通常表示">lsのターミナルへの通常表示</a></li>
+  <li><a href="#ls--x" id="markdown-toc-ls--x">ls -x</a></li>
+  <li><a href="#ファイルやパイプに繋いだ時の表示" id="markdown-toc-ファイルやパイプに繋いだ時の表示">ファイルやパイプに繋いだ時の表示</a></li>
+  <li><a href="#ファイルやパイプに繋いだ時も複数列表示にしたい時" id="markdown-toc-ファイルやパイプに繋いだ時も複数列表示にしたい時">ファイルやパイプに繋いだ時も複数列表示にしたい時</a></li>
+  <li><a href="#ターミナル表示で各行1ファイルディレクトリ表示したい時" id="markdown-toc-ターミナル表示で各行1ファイルディレクトリ表示したい時">ターミナル表示で各行1ファイル/ディレクトリ表示したい時</a></li>
+  <li><a href="#column" id="markdown-toc-column">column</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="lsのターミナルへの通常表示">lsのターミナルへの通常表示</h2>
+
+<p>ターミナル上で<code>ls</code>コマンドを打つと、</p>
+
+<pre><code>$ ls
+Applications Documents    Dropbox      Movies       Pictures     tmp
+Desktop      Downloads    Library      Music        Public       usr
+</code></pre>
+
+<p>こんな感じで横にいくつか列(column)を作って最小行で表示できる様(multi-column表示)に
+表示してくれます。</p>
+
+<p>この時、ディレクトリやファイルはソートされた状態で表示されますが
+表示順は左の列から始まり下に行き、次の列に移り…という順序になっています。</p>
+
+<p>ソートの方法はシステム設定(<code>$LANG</code>等の値)によります。
+もしくは<code>-t</code>(時間ソート)、<code>-r</code>(逆反転)などの<code>ls</code>のオプションでソートの方法を指定することも出来ます。</p>
+
+<h2 id="ls--x">ls -x</h2>
+
+<p><code>-x</code>を使うと表示順がまず最初の行を埋め(右に行く方向で進む)、次の行へ、という順番になります。</p>
+
+<pre><code>$ ls -x
+Applications Desktop      Documents    Downloads    Dropbox      Library      Movies       Music        Pictures     Public
+tmp          usr
+</code></pre>
+
+<p>こんな感じに。この時、<code>-x</code>無しのときとは違い
+最初の行から埋めていく形になるためか、最初の行で表示できるだけ表示します。</p>
+
+<h2 id="ファイルやパイプに繋いだ時の表示">ファイルやパイプに繋いだ時の表示</h2>
+
+<p>ターミナルに表示する際には複数列の表示でコンパクトに表示してくれますが、
+ファイルに書き出すときやパイプなどに繋いだ時は
+各ファイル、ディレクトリ間がスペースではなく全て改行コードで埋められます。</p>
+
+<pre><code>$ ls | less
+Applications
+Desktop
+Documents
+Downloads
+Dropbox
+Library
+Movies
+Music
+Pictures
+Public
+tmp
+usr
+lines 1-12/12 (END)
+</code></pre>
+
+<p>これによってスペース名が入っているファイル名などがある場合でも、
+<code>for</code>文とかに渡す際に<code>IFS</code>を<code>$'\n'</code>(改行)を指定することでちゃんと回す事ができます。</p>
+
+<p>この様にターミナル表示(標準出力時)とファイル等への書き込み時に違う表示にする様なプログラムは結構あります。
+<code>ls</code>の場合もこれ以外にもファイルなどへの書き込み時にはカラー表示等も省かれます。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798039438?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798039438&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41XOsTwe1UL._SS200_.jpg" alt="lsを読まずにプログラマを名乗るな!" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/4798039438?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798039438&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">lsを読まずにプログラマを名乗るな!</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/4798039438?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798039438&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//af.moshimo.com/af/c/click?a_id=513970&amp;p_id=54&amp;pc_id=54&amp;pl_id=616&amp;url=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2Fls%2525E3%252582%252592%2525E8%2525AA%2525AD%2525E3%252581%2525BE%2525E3%252581%25259A%2525E3%252581%2525AB%2525E3%252583%252597%2525E3%252583%2525AD%2525E3%252582%2525B0%2525E3%252583%2525A9%2525E3%252583%25259E%2525E3%252582%252592%2525E5%252590%25258D%2525E4%2525B9%252597%2525E3%252582%25258B%2525E3%252581%2525AA%2521%2F" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p><code>ls</code>のソースコード(C言語)を読んでないので実際の実装は知りませんが
+シェルスクリプトでも同じ様な事が出来て、
+簡単な例は下にあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170123_shelllogger_120_90.jpg" width="120" height="90" alt="20170123_shelllogger_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/">shell-logger: シェルスクリプトで良い感じにログアウトプットを管理する</a></div></li></ul>
+
+<h2 id="ファイルやパイプに繋いだ時も複数列表示にしたい時">ファイルやパイプに繋いだ時も複数列表示にしたい時</h2>
+
+<p><code>-C</code>オプションを使います。</p>
+
+<pre><code>$ ls -C | less
+Applications  Downloads Movies    Public
+Desktop   Dropbox   Music   tmp
+Documents Library   Pictures  usr
+lines 1-3/3 (END)
+</code></pre>
+
+<p>この時、ファイルに書き出してみると分かりますが
+各ファイルやディレクトリ間はタブで埋められています。</p>
+
+<p>なので直接<code>less</code>で見ると崩れてしまいますが、</p>
+
+<pre><code>$ ls -C | cat
+Applications    Downloads       Movies          Public
+Desktop         Dropbox         Music           tmp
+Documents       Library         Pictures        usr
+</code></pre>
+
+<p>みたいな感じで<code>cat</code>で見ると(もしくは一度ファイルに吐き出してそれを<code>cat</code>すると)
+きれいに揃って見えます。</p>
+
+<p>ただし最初の<code>ls</code>と比べて列の数が少ない(行が多い)ことに気付くと思います。</p>
+
+<p>これは、表示する際に<code>ls</code>は<code>$COLUMNS</code>というターミナルの横幅の文字数を見ていて、
+ターミナル表示だと実際に表示しているターミナルのもの(この時は134)、
+ファイルやパイプに流す際にはデフォルト80を使って表示を調整しているためです。</p>
+
+<p><code>$COLUMNS</code>はターミナルの大きさによって自動的に設定される環境変数ですが
+これを変更してあげれば<code>ls</code>の表示を替えられます。
+ただ直接変更すると色々不具合があるので</p>
+
+<pre><code>$ COLUMNS=100 ls
+</code></pre>
+
+<p>みたいに実行時だけ変更する様にするべきです。</p>
+
+<p>また、この様に設定するとファイルやパイプに繋いだときでもその<code>$COLUMNS</code>の値を使ってくれます。
+なのでターミナル表示と同じにしたければ</p>
+
+<pre><code>$ COLUMNS=$COLUMNS ls -C | cat
+Applications    Documents       Dropbox         Movies          Pictures        tmp
+Desktop         Downloads       Library         Music           Public          usr
+</code></pre>
+
+<p>みたいにすればターミナルのコラム数を使って同じ表示を出せます。</p>
+
+<h2 id="ターミナル表示で各行1ファイルディレクトリ表示したい時">ターミナル表示で各行1ファイル/ディレクトリ表示したい時</h2>
+
+<p>逆に通常のターミナル表示で各行一つずつ表示したい時は</p>
+
+<pre><code>$ COLUMNS=1 ls
+Applications
+Desktop
+Documents
+Downloads
+Dropbox
+Library
+Movies
+Music
+Pictures
+Public
+tmp
+usr
+</code></pre>
+
+<p>みたいな感じに<code>COLUMNS</code>を1にしてあげれば一つの名前で一杯になるので全て違う行に表示する事が出来ます。</p>
+
+<h2 id="column">column</h2>
+
+<p>ちなみにこの様な<code>ls</code>のmulti-columnな表示ですが、
+<code>column</code>というコマンドを使うと同じ様に整形された表示に出来ます。</p>
+
+<figure class="code"><figcaption><span>test.txt </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Applications
+</span><span class="line">Desktop
+</span><span class="line">Documents
+</span><span class="line">Downloads
+</span><span class="line">Dropbox
+</span><span class="line">Library
+</span><span class="line">Movies
+</span><span class="line">Music
+</span><span class="line">Pictures
+</span><span class="line">Public
+</span><span class="line">tmp
+</span><span class="line">usr
+</span></code></pre></td></tr></table></div></figure>
+
+<p>なファイルを用意して、</p>
+
+<pre><code>$ column test.txt
+Applications    Documents       Dropbox         Movies          Pictures        tmp
+Desktop         Downloads       Library         Music           Public          usr
+</code></pre>
+
+<p>とすれば<code>ls</code>と同じ結果に。</p>
+
+<pre><code>$ cat test.txt  | column
+Applications    Documents       Dropbox         Movies          Pictures        tmp
+Desktop         Downloads       Library         Music           Public          usr
+</code></pre>
+
+<p>みたいな感じでパイプで受けてとる事もできます。</p>
+
+<p><code>column</code>には<code>ls</code>と同様、行を埋めていく<code>-x</code>オプションがあります。</p>
+
+<p>また、横幅は<code>ls</code>同様<code>$COLUMNS</code>の値で決まり、ファイルへの出力等の場合にはデフォルト80になりますが、
+これを変更するには<code>-c 50</code>の様に<code>-c</code>を使う事が出来ます。
+<code>ls</code>の時の様にその場だけで<code>COLUMNS</code>の値を変更することでも出来ますがより簡単に書けます。</p>
+
+<p>当然ですが<code>column</code>の場合は<code>ls</code>と違い特別なオプションをつけなくてもファイルへの出力でもmulti-columnな表示になります。</p>
+]]></content>
+  </entry>
+  
+</feed>

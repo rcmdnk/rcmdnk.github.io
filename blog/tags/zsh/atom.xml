@@ -1,0 +1,1230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Zsh | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/zsh/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[shell-logger:シェルスクリプトでのログ整形、Traceback機能を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh/"/>
+    <updated>2018-08-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<p>前に作った
+<a href="https://github.com/rcmdnk/shell-logger">shell-logger</a>
+というシェルスクリプト用ロガーツールをアップデートして
+Traceback機能を付けたりしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shell-logger" id="markdown-toc-shell-logger">shell-logger</a></li>
+  <li><a href="#コマンドラインで使う" id="markdown-toc-コマンドラインで使う">コマンドラインで使う</a></li>
+  <li><a href="#シェルスクリプトの中で使う" id="markdown-toc-シェルスクリプトの中で使う">シェルスクリプトの中で使う</a></li>
+  <li><a href="#traceback" id="markdown-toc-traceback">Traceback</a></li>
+  <li><a href="#各種設定" id="markdown-toc-各種設定">各種設定</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shell-logger">shell-logger</h2>
+
+<div class="github-widget" data-repo="rcmdnk/shell-logger"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170123_shelllogger_120_90.jpg" width="120" height="90" alt="20170123_shelllogger_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/">shell-logger: シェルスクリプトで良い感じにログアウトプットを管理する</a></div></li></ul>
+
+<p><strong>etc/shell-logger.sh</strong>というファイルを読み込むと
+<code>debug</code>, <code>info</code>, <code>notice</code>, <code>warn</code>, <code>err</code>と言った関数が使える様になります。</p>
+
+<p>インストールは<code>curl</code>を使って</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/shell-logger/install/install.sh| prefix=~/usr/local/ sh
+</code></pre>
+
+<p>とすると<strong>~/usr/local/etc/shell-logger.sh</strong>がインストールされます。
+<code>prefix</code>の場所を適当に変えてインストールしてください。</p>
+
+<p>macOSならHomebrewで</p>
+
+<pre><code>$ brew tap rcmdnk/rcmdnkpac/shell-logger
+</code></pre>
+
+<p>で入れることが出来ます。</p>
+
+<p>もしくは
+<a href="https://raw.githubusercontent.com/rcmdnk/shell-logger/master/etc/shell-logger.sh">shell-logger.sh</a>
+を直接ダウンロードして適当なところに置いてください。</p>
+
+<h2 id="コマンドラインで使う">コマンドラインで使う</h2>
+
+<p>コマンドラインで使う場合には<strong>.bashrc</strong>や<strong>.zshrc</strong>に</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">source</span> /path/to/shell-logger.sh
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に<strong>shell-logger.sh</strong>を<code>source</code>する設定を入れてください。</p>
+
+<p>これで<code>info</code>や<code>err</code>と言った関数が使えるようになり、
+出力したいワードを引数として渡せば良いだけです。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/shelllogger.jpg" alt="shelllogger" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<h2 id="シェルスクリプトの中で使う">シェルスクリプトの中で使う</h2>
+
+<p>Bash/Zshの両方で使えます。</p>
+
+<figure class="code"><figcaption><span>main.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Load shell-logger</span>
+</span><span class="line"><span class="nb">source</span> /path/to/shell-logger.sh
+</span><span class="line">
+</span><span class="line"><span class="c1"># shell-logger settings</span>
+</span><span class="line"><span class="nv">LOGGER_LEVEL</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line"><span class="nv">LOGGER_STDERR_LEVEL</span><span class="o">=</span><span class="m">4</span>
+</span><span class="line"><span class="nv">LOGGER_ERROR_TRACE</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line"><span class="nv">LOGGER_COLOR</span><span class="o">=</span>always
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">debug <span class="s2">&quot;debug&quot;</span>
+</span><span class="line">information <span class="s2">&quot;information&quot;</span>
+</span><span class="line">info <span class="s2">&quot;info&quot;</span>
+</span><span class="line">notification <span class="s2">&quot;notification&quot;</span>
+</span><span class="line">notice <span class="s2">&quot;notice&quot;</span>
+</span><span class="line">warning <span class="s2">&quot;warning&quot;</span>
+</span><span class="line">warn <span class="s2">&quot;warn&quot;</span>
+</span><span class="line">error <span class="s2">&quot;error&quot;</span>
+</span><span class="line">err <span class="s2">&quot;err&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで<strong>shell-logger.sh</strong>を読み込んで
+後は好きなところで<code>info</code>や<code>err</code>を呼ぶだけです。</p>
+
+<p><strong>shell-logger</strong>には5つのレベルがあり、
+それぞれ<code>DEBUG</code>, <code>INFO</code>, <code>NOTICE</code>, <code>WARNING</code>, <code>ERROR</code>となっていて
+出力する色や出力先が違います。</p>
+
+<p>カラー出力はファイルへの出力などでは色を付けないようになっています。</p>
+
+<p>デフォルトでは各レベルの色は以下の様な感じ。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/colors.jpg" alt="colors" class="pic" /></p>
+
+<p>また、<code>INFO</code>以上しか出力しない設定になっています
+さらに、<code>ERROR</code>に関してはエラー出力に出す様になっています。(他は標準出力)</p>
+
+<p><code>debug</code>に関してはデフォルト設定では出力しませんが、</p>
+
+<figure class="code"><figcaption><span>log-test.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">source</span> /path/to/shell-logger.sh
+</span><span class="line"><span class="nv">LOGGER_LEVEL</span><span class="o">=</span><span class="m">0</span>
+</span><span class="line">
+</span><span class="line">debug <span class="s2">&quot;debug&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、<code>LOGGER_LEVEL</code>を0にすることで表示することが出来るので
+簡単にデバッグプリントを入れることが出来ます。</p>
+
+<h2 id="traceback">Traceback</h2>
+
+<p>トレースバック機能を付けてみました。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/shell-logger/images/traceback.jpg" alt="traceback" class="pic" /></p>
+
+<p>こんな感じで<code>err</code>の時にPythonっぽい雰囲気のTraceback表示を表示してくれます。</p>
+
+<h2 id="各種設定">各種設定</h2>
+
+<p>設定に関しては以下の<strong>LOGGER_</strong>という値を設定することで変更可能です。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Variable Name</th>
+      <th style="text-align: left">Description</th>
+      <th style="text-align: left">Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">LOGGER_DATE_FORMAT</td>
+      <td style="text-align: left">Output date format.</td>
+      <td style="text-align: left">‘%Y/%m/%d %H:%M:%S’</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_LEVEL</td>
+      <td style="text-align: left">0: DEBUG, 1: INFO, 2: NOTICE, 3: WARN, 4: ERROR</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_STDERR_LEVEL</td>
+      <td style="text-align: left">For levels greater than equal this level, outputs will go stderr.</td>
+      <td style="text-align: left">4</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_DEBUG_COLOR</td>
+      <td style="text-align: left">Color for DEBUG</td>
+      <td style="text-align: left">3 (Italicized. Some terminal shows it as color inversion)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_INFO_COLOR</td>
+      <td style="text-align: left">Color for INFO</td>
+      <td style="text-align: left">”” (Use default output color)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_NOTICE_COLOR</td>
+      <td style="text-align: left">Color for NOTICE</td>
+      <td style="text-align: left">36 (Front color cyan)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_WARNING_COLOR</td>
+      <td style="text-align: left">Color for WARNING</td>
+      <td style="text-align: left">33 (Front color yellow)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_COLOR</td>
+      <td style="text-align: left">Color for ERROR</td>
+      <td style="text-align: left">31 (Front color red)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_COLOR</td>
+      <td style="text-align: left">Color mode: never-&gt;Always no color. auto-&gt;Put color only for terminal output. always-&gt;Always put color.</td>
+      <td style="text-align: left">auto</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_LEVELS</td>
+      <td style="text-align: left">Names printed for each level. Need 5 names.</td>
+      <td style="text-align: left">(“DEBUG” “INFO” “NOTICE” “WARNING” “ERROR”)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_TIME</td>
+      <td style="text-align: left">Show time information</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_FILE</td>
+      <td style="text-align: left">Show file/line information</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_SHOW_LEVEL</td>
+      <td style="text-align: left">Show level</td>
+      <td style="text-align: left">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_RETURN_CODE</td>
+      <td style="text-align: left">Error reutrn code of <code>err</code>/<code>error</code></td>
+      <td style="text-align: left">100</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_ERROR_TRACE</td>
+      <td style="text-align: left">If 1, error trace back is shown by <code>err</code>/<code>error</code></td>
+      <td style="text-align: left">1</td>
+    </tr>
+  </tbody>
+</table>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ターミナルで超高速にディレクトリを戻る/進む]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/20/computer-bash-zsh/"/>
+    <updated>2018-08-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/20/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4766786068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4766786068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Llim1ZtdL._SS200_.jpg" alt="マンガで身につく超高速勉強法" /></a>
+</div>
+
+<p>ブラウザ等だと<strong>戻る</strong>ボタンや<strong>進む</strong>ボタンがあり履歴をたどれますが、
+ターミナルのディレクトリ移動では簡単には出来ません。</p>
+
+<p>それを複数の過去の履歴を残し、さらに戻った場合にはまた進むことも出来るようなことを実現し、
+さらにそれを高速で行える様な設定を作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sd_cl" id="markdown-toc-sd_cl">sd_cl</a></li>
+  <li><a href="#bdfdup" id="markdown-toc-bdfdup">bd/fd/up</a></li>
+  <li><a href="#キーバインドして高速に移動する" id="markdown-toc-キーバインドして高速に移動する">キーバインドして高速に移動する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sd_cl">sd_cl</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sd_cl"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/08/18/computer-shell/"><img class="small-thumbnail-img" src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_selection_tool.gif" width="120" height="90" alt="sd_cl_selection_tool" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/08/18/computer-shell/">sd_cl: pecoやfzfなどにも対応したディレクトリ移動効率化ツール</a></div></li></ul>
+
+<p><code>sd_cl</code>はディレクトリ移動のためのツールです。</p>
+
+<p>ディレクトリを保存しておいてそこに移動したり、
+使ったディレクトリをランキング付しておいてよく使うディレクトリに素早く移動したり出来ます。</p>
+
+<p>この<code>sd_cl</code>をロードすることで<code>bd</code>と<code>fd</code>また<code>up</code>というコマンドも使える様になります。</p>
+
+<h2 id="bdfdup">bd/fd/up</h2>
+
+<p><code>sd_cl</code>をロードすることで<code>bd</code>と<code>fd</code>というコマンドが使える様になります。</p>
+
+<p>これは<code>sd_cl</code>の<code>cl -b</code>/<code>cl -f</code>へのラッパー関数です。</p>
+
+<p><code>cd</code>で移動する毎に履歴に保存していき、<code>bd</code>とすると一つ前に戻ります。</p>
+
+<p>戻ると今度は進む履歴の方にディレクトリを保存し、<code>fd</code>で進むことが出来るようになります。</p>
+
+<p>複数個前とかに戻ることも出来て、
+ちょっと混乱しかねますが、0から始まる数で決めます。</p>
+
+<p>つまり<code>bd 0</code>は単なる<code>bd</code>と一緒。<code>bd 1</code>で2つ前に居た時のディレクトリ、<code>bd 2</code>で3つ前…と言った感じ。
+<code>fd</code>についても同様です。</p>
+
+<p>もう一つ、<code>up</code>というコマンドも使えるようになり、これを使うと
+一つ上のディレクトリに移動できます。</p>
+
+<h2 id="キーバインドして高速に移動する">キーバインドして高速に移動する</h2>
+
+<p>コマンドとして利用しても便利は便利ですが、
+キーバーンド設定することでさらに高速に移動できる様になります。</p>
+
+<p>以下の様な設定が<code>sd_cl</code>の中に入っていて
+自動的にキーバインドが設定されます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$ZSH_VERSION</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  _zsh_bd <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    bd &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  _zsh_fd <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    fd &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  _zsh_up <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">    up &gt;/dev/null
+</span><span class="line">    zle reset-prompt
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">  zle -N bd _zsh_bd
+</span><span class="line">  zle -N fd _zsh_fd
+</span><span class="line">  zle -N up _zsh_up
+</span><span class="line">
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$SD_CL_ZSH_KEYBIND</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    bindkey <span class="s1">&#39;^[o&#39;</span> bd
+</span><span class="line">    bindkey <span class="s1">&#39;^[i&#39;</span> fd
+</span><span class="line">    bindkey <span class="s1">&#39;^[u&#39;</span> up
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">elif</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$BASH_VERSION</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$SD_CL_KEYBIND</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\eo&quot;: &quot;\C-ubd\C-m&quot;&#39;</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\ei&quot;: &quot;\C-ufd\C-m&quot;&#39;</span>
+</span><span class="line">    <span class="nb">bind</span> <span class="s1">&#39;&quot;\eu&quot;: &quot;\C-uup\C-m&quot;&#39;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2018/08/21 </strong></p>
+
+  <p>Bashのキーバインドもスクリプト内に追加。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>もし自動的にやりたくなかったり別のキーに設定したい場合には
+<code>SD_CL_KEYBINDING=0</code>を設定して好きな<code>bindkey</code>を上の様な感じで
+<strong>.zshrc</strong>や<strong>.bashrc</strong>書いたりしてください。</p>
+
+<p>これで</p>
+
+<ul>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>o</code>: 一つ前に戻る</li>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>i</code>: 一つ先に進む</li>
+  <li><code>Meta</code>(<code>Alt</code> or <code>Cmd</code>)-<code>u</code>: 一つ上に上がる</li>
+</ul>
+
+<p>と言ったディレクトリ操作ができるようになります。</p>
+
+<p>実際にやってみたのがこちら。</p>
+
+<p>Bashバージョン</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_bdfd_bash.gif" alt="bd/fd bash" /></p>
+
+<p>Zshバージョン</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_bdfd_zsh.gif" alt="bd/fd zsh" /></p>
+
+<p>表示の中で<i class="key">⌥</i>との組み合わせの様に出てますが、
+これはiTerm上で<i class="key">⌥</i>をメタキーとして使用する設定があり、
+それを<i class="key">⌘</i>で使うためにKarabiner-Elementで送るキーを<i class="key">⌘</i>から<i class="key">⌥</i>に
+変換しているためです。</p>
+
+<p>なので実際に送ってるボタンは<i class="key">⌘</i>になっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/10/06/computer-mac-iterm/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20161006_itermprofileskeys_120_90.jpg" width="120" height="90" alt="20161006_itermprofileskeys_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/10/06/computer-mac-iterm/">MacのiTerm/ターミナルでメタキー(Alt)を使う方法</a></div></li></ul>
+
+<p>Windowsなら<i class="key">Alt</i>です。</p>
+
+<p>Bashの場合には指定コマンドを通常の実行をする様な形でコマンドが表示されますが、
+Zshでは設定次第でその場を動かず指定関数を実行することが出来ます。</p>
+
+<p>下のZshの例ではその場でプロンプトに表示されてるディレクトリが変更されてるのがわかると思います。</p>
+
+<p>キーバインドですが、これは今は亡きVimperatorでブラウザの戻る、進むを
+<code>Ctrl</code>-<code>o</code>、<code>Ctrl</code>-<code>i</code>に設定していたのでこれにしたかったのですが、
+特に<code>Ctrl</code>-<code>i</code>は<code>Tab</code>そのものなので設定してしまうとタブ操作が全ておかしくなってしまうので
+メタキーの方に設定しています。
+(<code>Ctrl</code>-<code>o</code>は<code>Enter</code>とは別物ですが<code>Enter</code>の様な動作をするものです。)</p>
+
+<p><code>Meta</code>-<code>b</code>や<code>Meta</code>-<code>f</code>は1単語戻る、進む、に割り当てられてるので避けた方が良いかと。
+<code>ctrl</code>-<code>b</code>や<code>ctrl</code>-<code>f</code>は1文字戻る、進む、です。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Bash/Zshで配列のn番目を取得する、を統一する]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/19/computer-bash-zsh/"/>
+    <updated>2018-08-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/19/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4048869604?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4048869604&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51y8mOYyjNL._SS200_.jpg" alt="すぐわかるSUPER Excel配列マジックを極める 営業、経理、総務もこれでExcelマスター! 面倒な集計や計算処理が格段に楽になる! (すぐわかるシリーズ)" /></a>
+</div>
+
+<p>BashとZshは同じ様なシェルスクリプトを書くことが出来ますが
+機能的な違いが微妙にあります。</p>
+
+<p>特に大きな違いとして配列の番号がBashでは0から始まるのに対してZshでは通常1から始まることがあります。</p>
+
+<p>これに対する対処法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#bashzshの違い" id="markdown-toc-bashzshの違い">Bash/Zshの違い</a></li>
+  <li><a href="#bashzshで共通の動作をする関数を作る" id="markdown-toc-bashzshで共通の動作をする関数を作る">Bash/Zshで共通の動作をする関数を作る</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="bashzshの違い">Bash/Zshの違い</h2>
+
+<p>BashとZsh基本的には似たような機能を持ち、
+Zshの方が機能が豊富、といった感じのものですが
+同じ様な機能で微妙に機能が違うものが結構借ります。</p>
+
+<p>その辺をまとめたのが以下の記事。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/479811815X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=479811815X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41hfmaKyVgL._SS90_CR0,0,120,90_.jpg" alt="zsh最強シェル入門" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/12/26/computer-bash-zsh/">BashとZshの違いでのハマりどころ</a></div></li></ul>
+
+<p>特に配列が0番から始まるか1番から始まるか、という違いは結構大きいと思います。</p>
+
+<p>Zshでは通常1番から始まりますが、</p>
+
+<pre><code>setopt ksharrays
+</code></pre>
+
+<p>とすると0番から始まる様になります。</p>
+
+<p>ある関数の中だけ、とかで有効にしたい場合には</p>
+
+<pre><code>setopt localoptions ksharrays
+</code></pre>
+
+<p>とすると関数を抜ければ元の状態に戻ります。</p>
+
+<h2 id="bashzshで共通の動作をする関数を作る">Bash/Zshで共通の動作をする関数を作る</h2>
+
+<p>以下の様な関数を作ると<code>ksharrays</code>などを設定しなくても
+Bash/Zshで同じ動作で同じ番号のものを取得することが出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>get_n <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nb">local</span> <span class="nv">n</span><span class="o">=</span><span class="k">$((</span><span class="nv">$1</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+</span><span class="line">  <span class="nb">shift</span>
+</span><span class="line">  <span class="nb">eval</span> <span class="nb">echo</span> <span class="se">\$</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを使って</p>
+
+<pre><code>get_n 1 "${array[@]}"
+</code></pre>
+
+<p>とすれば<code>array</code>の1番目のものを取得できます。
+ただし、これは0から始まった番号です。</p>
+
+<p>Zshでもこれで</p>
+
+<pre><code>a=(a b c)
+get_n 1
+</code></pre>
+
+<p>とすれば<code>ksharrays</code>の
+設定に関わらず<code>b</code>が取得出来ます。</p>
+
+<p>Zshの様に1からスタートしたければ</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>get_n <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nb">local</span> <span class="nv">n</span><span class="o">=</span><span class="nv">$1</span>
+</span><span class="line">  <span class="nb">shift</span>
+</span><span class="line">  <span class="nb">eval</span> <span class="nb">echo</span> <span class="se">\$</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけばOK。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sd_cl: pecoやfzfなどにも対応したディレクトリ移動効率化ツール]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/18/computer-shell/"/>
+    <updated>2018-08-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/18/computer-shell</id>
+    <content type="html"><![CDATA[<p>ターミナルで作業する上でディレクトリを移動する<code>cd</code>コマンドは最も多く使われるコマンドだと思います。</p>
+
+<p>ただディレクトリを深く掘ったり多くの作業場があるとすんなり移動出来ずに時間がかかってしまいます。</p>
+
+<p>なのでディレクトリ移動を効率化できればターミナル作業を格段と効率の良いものに出来るはず。</p>
+
+<p>ということで
+<a href="https://github.com/rcmdnk/sd_cl">sd_cl</a>という移動ツールを作りました。</p>
+
+<p>だいぶ前に作ったものですが、今回のアップデートでディレクトリ選択に
+<code>peco</code>や<code>fzf</code>と言った好きな選択ツールを選べる様になりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sd_cl" id="markdown-toc-sd_cl">sd_cl</a></li>
+  <li><a href="#基本的な使い方" id="markdown-toc-基本的な使い方">基本的な使い方</a></li>
+  <li><a href="#保存したディレクトリ一覧から選ぶ" id="markdown-toc-保存したディレクトリ一覧から選ぶ">保存したディレクトリ一覧から選ぶ</a></li>
+  <li><a href="#絞り込み" id="markdown-toc-絞り込み">絞り込み</a></li>
+  <li><a href="#タブ補完" id="markdown-toc-タブ補完">タブ補完</a></li>
+  <li><a href="#番号指定" id="markdown-toc-番号指定">番号指定</a></li>
+  <li><a href="#保存ディレクトリ以外のリスト" id="markdown-toc-保存ディレクトリ以外のリスト">保存ディレクトリ以外のリスト</a>    <ul>
+      <li><a href="#pre-defined-directory-list" id="markdown-toc-pre-defined-directory-list">Pre-defined directory list</a></li>
+      <li><a href="#window-directory-list" id="markdown-toc-window-directory-list">Window directory list</a></li>
+      <li><a href="#ranking-directory-list" id="markdown-toc-ranking-directory-list">Ranking directory list</a></li>
+      <li><a href="#back-to-the-history" id="markdown-toc-back-to-the-history">Back to the history</a></li>
+      <li><a href="#vim-like-file-explorer" id="markdown-toc-vim-like-file-explorer">Vim like file explorer</a></li>
+    </ul>
+  </li>
+  <li><a href="#sdcl以外の関数エイリアス" id="markdown-toc-sdcl以外の関数エイリアス">sd/cl以外の関数、エイリアス</a></li>
+  <li><a href="#sd_cl以外の似たようなツール" id="markdown-toc-sd_cl以外の似たようなツール">sd_cl以外の似たようなツール</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sd_cl">sd_cl</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sd_cl"></div>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/04/10/computer-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/04/10/computer-bash/">ターミナルでのディレクトリ移動</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B008UR8TS0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B008UR8TS0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51HpBFT3IrL._SS90_CR0,0,120,90_.jpg" alt="【Amazon.co.jp限定】Transcend microSDHCカード 32GB Class10 (無期限保証) TS32GUSDHC10E (FFP)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/12/27/computer-bash-zsh-sd-cl/">ターミナルでのディレクトリ移動を保存、取り出しする #screen</a></div></li></ul>
+
+<p>シェルスクリプトで作られたディレクトリ移動支援ツールです。</p>
+
+<p><code>sd_cl</code>という一つのスクリプトからなっていて、これを適当なところに置いて</p>
+
+<pre><code>$ source /path/to/sd_cl
+</code></pre>
+
+<p>とすると<code>sd</code>と<code>cl</code>というコマンドが使える様になります。</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/sd_cl/install/install.sh|  prefix=~/usr/local/ sh
+</code></pre>
+
+<p>とすれば自動で<strong>~/usr/local/etc/sd_cl</strong>にインストールされます。</p>
+
+<p>MacならHomebrewで</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/sd_cl
+</code></pre>
+
+<p>としてインストールすることも出来ます。</p>
+
+<p>Bash/Zshの両方で使える様になっているので、使ってるシェルの<strong>.bashrc</strong>/<strong>.zshrc</strong>に</p>
+
+<pre><code>source /path/to/sd_cl
+</code></pre>
+
+<p>を加えてやれば<code>sd</code>/<code>cl</code>が常に使える様になります。</p>
+
+<h2 id="基本的な使い方">基本的な使い方</h2>
+
+<p>元々GNU screenを使っていて、あるウィンドウのカレントディレクトリに
+他のウィンドウで簡単に移動したい、というのがきっかけで作ったものです。</p>
+
+<p>それを実現するためにはWindow 1で<code>sd</code>(Save directory)として
+Window 2で<code>cl</code>(Change to the Last directory)とするだけ。
+(ただし今は<code>-w</code>オプションでもっと簡単に移動できます。)</p>
+
+<p><code>sd</code>したらそのディレクトリは残るので、Window 1でも他のディレクトリに行ったあとに
+<code>cl</code>とすれば元のディレクトリに戻れます。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_main.gif" alt="main functions" /></p>
+
+<h2 id="保存したディレクトリ一覧から選ぶ">保存したディレクトリ一覧から選ぶ</h2>
+
+<p><code>sd</code>で保存したディレクトリはデフォルトで最大20個まで保存されます。</p>
+
+<p>この保存されたディレクトリ一覧から行きたいディレクトリを選ぶ事もできます。</p>
+
+<pre><code>$ cl -l
+</code></pre>
+
+<p>とすると保存されたディレクトリ一覧が表示され、</p>
+
+<pre><code>$ cl -c
+</code></pre>
+
+<p>とすれば一覧から選ぶモードに入ります。</p>
+
+<p>この際、もともと
+<a href="https://github.com/rcmdnk/sentaku">sentaku</a>
+というシェルスクリプトベースの選択ツールが必要でしたが、
+今回のアップデートで他の同様のツールも使える様になりました。</p>
+
+<p>また、いずれのツールが入ってない場合でもシンプルなシェルスクリプトベースの選択モードに入ります。</p>
+
+<p>デフォルトでは以下のツールを順に探して見つかったものを使います。</p>
+
+<ul>
+  <li><a href="https://github.com/rcmdnk/sentaku">rcmdnk/sentaku: Utility to make sentaku (selection, 選択(sentaku)) window with shell command.</a> (use <code>sentaku -s line</code> option)</li>
+  <li><a href="https://github.com/peco/peco">peco/peco: Simplistic interactive filtering tool</a></li>
+  <li><a href="https://github.com/mooz/percol">mooz/percol: adds flavor of interactive filtering to the traditional pipe concept of UNIX shell</a></li>
+  <li><a href="https://github.com/junegunn/fzf">junegunn/fzf: A command-line fuzzy finder</a></li>
+  <li><a href="https://github.com/jhawthorn/fzy">jhawthorn/fzy: A better fuzzy finder</a></li>
+  <li><a href="https://github.com/garybernhardt/selecta">garybernhardt/selecta: A fuzzy text selector for files and anything else you need to select. Use it from vim, from the command line, or anywhere you can run a shell command.</a></li>
+  <li><a href="https://github.com/mattn/gof">mattn/gof</a></li>
+  <li><a href="https://github.com/mptre/pick">mptre/pick: A fuzzy search tool for the command-line</a></li>
+</ul>
+
+<p>使いたいツールを指定したい場合には</p>
+
+<pre><code>SD_CL_TOOL=peco
+</code></pre>
+
+<p>と、<code>SD_CL_TOOL</code>を<strong>.bashrc</strong>などで設定してください。
+<code>SD_CL_TOOL=NONE</code>または<code>SD_CL_TOOL=shell</code>とすると組み込まれたシンプルな選択モードに入ります。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_main.gif" alt="main functions" /></p>
+
+<h2 id="絞り込み">絞り込み</h2>
+
+<pre><code>$ cl hoge
+</code></pre>
+
+<p>とすると<code>hoge</code>という文字列の入ったディレクトリのみを抜き出して
+選択モードに入ります。</p>
+
+<p>もし該当するディレクトリが一つしか無ければ直接そのディレクトリに移動します。</p>
+
+<p>この絞り込みや次のタブ補完は後で出てくる他のリストにも有効です。
+(ランキングリストからの絞り込みなら<code>cl -r hoge</code>。)</p>
+
+<h2 id="タブ補完">タブ補完</h2>
+
+<pre><code>$ cl [Tab]
+</code></pre>
+
+<p>とタブを押すとリストにあるディレクトリをタブ補完します。</p>
+
+<pre><code>$ cl hoge [[Tab]
+</code></pre>
+
+<p>とすれば<code>hoge</code>という文字列の入ったディレクトリのみを抜き出してタブ補完を開始します。</p>
+
+<p>補完後、一つだけに絞られればそのディレクトリに移動し、
+いくつか候補が残っていれば選択モードに入ります。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_completion.gif" alt="completion" /></p>
+
+<h2 id="番号指定">番号指定</h2>
+
+<pre><code>$ cl 3
+</code></pre>
+
+<p>の様に数字を与えるとリストのなかのその順番にあるディレクトリに移動できます。</p>
+
+<h2 id="保存ディレクトリ以外のリスト">保存ディレクトリ以外のリスト</h2>
+
+<p><code>sd_cl</code>では<code>sd</code>で保存するディレクトリ以外にもディレクトリリストを使うことが出来ます。</p>
+
+<h3 id="pre-defined-directory-list">Pre-defined directory list</h3>
+
+<p>このリストに関しては</p>
+
+<pre><code>$ sd -p
+</code></pre>
+
+<p>でリストに現在のディレクトリを追加し、</p>
+
+<pre><code>$ cl -p
+</code></pre>
+
+<p>でリストから選択出来るモードに入ります。</p>
+
+<p>基本的に通常のリストと同じですが、
+通常のリストは<code>sd</code>を使うことでどんどん上書きされてくものだとして、
+一方、こちらのリストは良く使うリストを選んで入れておく、という使い方を想定しています。</p>
+
+<p>ディレクトリ数の制限はつけていません。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_completion.gif" alt="completion" /></p>
+
+<p>いちいちディレクトリに行って<code>sd -p</code>をするのは面倒、という場合には</p>
+
+<pre><code>$ sd -e -p
+</code></pre>
+
+<p>とするとエディタ(<code>vi</code>もしくは<code>EDITOR</code>で指定されたもの)でリストが開かれるので
+それを編集すればOK。</p>
+
+<p>このリストファイルは一行に一つのディレクトリが書いてあるだけのリストなので
+必要なディレクトリを一行ごとに書いてあげればOKです。</p>
+
+<h3 id="window-directory-list">Window directory list</h3>
+
+<p>GNU screenやtmuxを使っている際に各WindowやPaneの今いるディレクトリ一覧を出してくれるリスト。</p>
+
+<pre><code>$ cl -w
+</code></pre>
+
+<p>で選択モードに入ります。</p>
+
+<pre><code>$ cl -w -l
+</code></pre>
+
+<p>でリスト表示する際にはディレクトリ名の前にWindow番号とPane番号も表示されます。
+(GNU screenの場合はPaneはないのでPane番号は常に0。)</p>
+
+<p>選択モードでもこれらの情報を表示させたい場合には
+<code>SD_CL_SHOW_MORE_INFO=1</code>を設定しておきます。</p>
+
+<h3 id="ranking-directory-list">Ranking directory list</h3>
+
+<p>よく使うディレクトリをランキングして表示してくれるリスト。</p>
+
+<pre><code>$ cl -r
+</code></pre>
+
+<p>で選択モードに入ります。</p>
+
+<pre><code>$ cl -r -l
+</code></pre>
+
+<p>でリスト表示する際にはランキングスコアも表示されます。</p>
+
+<p>これも
+<code>SD_CL_SHOW_MORE_INFO=1</code>を設定することで
+選択モードでも表示するようにできます。</p>
+
+<p>ランキングの仕組みや設定については長くなるのでまた別に書こうと思います。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_ranking.gif" alt="ranking list" /></p>
+
+<h3 id="back-to-the-history">Back to the history</h3>
+
+<p><code>cd</code>で移動してきた履歴を使うリスト。</p>
+
+<pre><code>$ cl -b
+</code></pre>
+
+<p>で選択モードに入ります。</p>
+
+<p>これは<code>pushd</code>をラップして使っています。
+実は<code>sd_cl</code>を読み込むと<code>cd</code>コマンドをラップして実際には<code>pushd</code>を使って移動する様になります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2018/08/19 </strong></p>
+
+  <p>アップデートして<code>pushd</code>などへの依存をなくしました。</p>
+
+  <p>代わりに</p>
+
+  <pre><code>$ cl -f
+</code></pre>
+
+  <p>で戻ったディレクトリを逆に進むことも出来る様になりました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_back.gif" alt="back to the history" /></p>
+
+<p>一応通常の<code>cd</code>の使用感と変わらないようにラップしてありますが、
+もし<code>cd</code>をラップするのが嫌な場合には
+<code>SD_CL_ISCDWRAP=0</code>とすると<code>cd</code>のラップをしないようになります。
+この設定は<code>sd_cl</code>を読み込む前にしてください。</p>
+
+<h3 id="vim-like-file-explorer">Vim like file explorer</h3>
+
+<p>お遊びみたいなものですが、
+Vimのファイルエクスプローラー的なものを選択モードを連続して使うことで実現した機能です。</p>
+
+<pre><code>$ cl -v
+</code></pre>
+
+<p>とするとVimエクスプローラーモードに入ります。</p>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/sd_cl/fig/fig/sd_cl_vim.gif" alt="vim mode" /></p>
+
+<p><code>..</code> (一つ上のディレクトリ)を含めたディレクトリ一覧が
+出るので、そのなかから選ぶとそのディレクトリに移動し
+再びそのディレクトリでディレクトリ一覧を取得し選択モードに入ります。</p>
+
+<p>何も選択しないで終了すれば今いるディレクトリにいる状態で終了、というもの。</p>
+
+<h2 id="sdcl以外の関数エイリアス">sd/cl以外の関数、エイリアス</h2>
+
+<p><code>sd_cl</code>を読み込むと<code>sd</code>/<code>cl</code>以外の関数などもロードされます。</p>
+
+<ul>
+  <li>bd (Back Directory): 一つ前のディレクトリに戻る。<code>cl -b 1</code>と同様。</li>
+  <li>fd (Forward Directory): 一つ先のディレクトリに進む。<code>cl -f 1</code>と同様。</li>
+  <li>up : 一つ上のディレクトリに移動。</li>
+  <li>cdpwd: <code>cd "$(pwd -P)"</code>をします。つまりシンボリックリンクを解決して物理パスへ移動します。</li>
+  <li>cd: cdのラップ関数。ファイルへのパスを指定するとそのファイルのあるディレクトリへ移動。</li>
+</ul>
+
+<p><code>cd</code>へのラップは上にも書いたように
+<code>SD_CL_ISCDWRAP=0</code>とすると<code>cd</code>のラップをしないようになります。
+この設定は<code>sd_cl</code>を読み込む前にしてください。</p>
+
+<h2 id="sd_cl以外の似たようなツール">sd_cl以外の似たようなツール</h2>
+
+<p>他にもディレクトリ移動を効率化しようというツールとして以下のものが有名です。</p>
+
+<ul>
+  <li><code>pushd</code>/<code>popd</code>/<code>dirs</code></li>
+</ul>
+
+<p>シェルの組み込みコマンド。<code>pushd</code>で履歴を保持しながら移動でき、<code>popd</code>で前に戻ったり<code>dirs</code>で履歴を表示したり出来ます。</p>
+
+<p>内容だけ見れば<code>cd</code>なんて使わずにこちらを使ったほうが断然便利だと思うわけですが、
+やはり頻繁に使うコマンドということで<code>p</code> <code>u</code> <code>s</code> <code>h</code> <code>d</code>なんて押すより<code>c</code> <code>d</code>のが短い上に
+配置も左手で一瞬で押せる位置にあって圧倒的に便利なので<code>pushd</code>なんて使ってられない、というのが現実です。</p>
+
+<ul>
+  <li><a href="http://www.unixuser.org/~euske/doc/bashtips/index.html">cdhist.sh: Bash の小枝集</a></li>
+</ul>
+
+<p>cdをラップして<code>pushd</code>みたいに履歴を保存し</p>
+
+<pre><code>$ - # 一つ前に戻る
+$ + # 一つ先に進む
+$ = # リスト表示
+</code></pre>
+
+<p>を出来るようにしてくれるシェルスクリプト。</p>
+
+<ul>
+  <li><a href="https://github.com/wting/autojump">wting/autojump: A cd command that learns - easily navigate directories from the command line</a></li>
+</ul>
+
+<p>Python製の<code>autojump</code>というコマンドでディレクトリ選択を行うツール。</p>
+
+<p>実際に使う際には
+<strong>/usr/local/etc/autojump.sh</strong>を読み込み
+この中(で呼ばれてるファイルの中)で定義されている<code>j</code>
+という関数で<code>autojump</code>を使ってディレクトリを選択し移動します。</p>
+
+<p>ディレクトリリストは<code>PROMPT_COMMAND</code>の中に<code>autojump_add_to_database</code>という関数が加えられ
+この関数でコマンド終了後にアップデートされます。</p>
+
+<p>使い方は</p>
+
+<pre><code>$ j foo
+</code></pre>
+
+<p>とすると<code>foo</code>を含むディレクトリに移動できます。</p>
+
+<p>このリストにはkey weightが付けられていて
+該当するディレクトリが複数ある場合にはweightの最も高いディレクトリに移動します。
+key weightはそのディレクトリでどれだけ作業を行ったか、の度合いです。</p>
+
+<pre><code>$ jc foo
+</code></pre>
+
+<p>とすると現在のディレクトリより下のディレクトリのみを検索します。</p>
+
+<p>また<code>jo</code>コマンドでファイルエクスプローラーを開いたりも出来ます。</p>
+
+<ul>
+  <li><a href="https://github.com/rupa/z">rupa/z: z - jump around</a></li>
+</ul>
+
+<p>シェルスクリプトで作られた<code>autojump</code>に似たツール。</p>
+
+<p><code>z.sh</code>というファイルを読み込むことで<code>z</code>というコマンドが使えるようになり、
+<code>j</code>の様に</p>
+
+<pre><code>$ z foo
+</code></pre>
+
+<p>と言った感じで保存されてるディレクトリの中から<code>foo</code>を含むディレクトリを検索して移動します。</p>
+
+<p><code>z</code>も<code>PROMPT_COMMAND</code>に<code>_z --add</code>というコマンドを追加し毎回ディレクトリリストをアップデートします。
+この際に<code>frecency</code>(おそらくfrequency+recencyからの造語)という値が各ディレクトリに付けられます。
+複数の該当ディレクトリがある場合はこの<code>frecency</code>が高いものが選ばれます。</p>
+
+<p>これ以外にも<code>z -t foo</code>とすれば最も最近使われたもの、
+<code>z -r foo</code>とすれば使用頻度が最も高いものから選ぶことも出来ます。</p>
+
+<ul>
+  <li><a href="https://github.com/b4b4r07/enhancd">b4b4r07/enhancd: A next-generation cd command with an interactive filter</a></li>
+</ul>
+
+<p>シェルスクリプトで作られた<code>cd</code>コマンドのラップツール。</p>
+
+<p>レポジトリにあるファイルをsourceするとcdがラップされます。</p>
+
+<pre><code>$ source ./init.sh
+</code></pre>
+
+<p>これで</p>
+
+<pre><code>$ cd foo
+</code></pre>
+
+<p>とすると<code>j</code>や<code>z</code>の様にディレクトリリストから検索が行われます。</p>
+
+<p>違うのは複数の候補がある場合は<code>fzy</code>などの選択ツールを起動し選択モードに入るところです。</p>
+
+<p>enhancdではラップしている<code>cd</code>の中でリストを更新する用になっています。
+weightとかランキングとかはなく、
+複数あれば選択ツールで選択する、という方針がautojumpやzと違うところです。</p>
+
+<p>また、<code>cd ..</code>とすると今いるディレクトリの上の階層のディレクトリからの選択、
+<code>cd -</code>とすると過去の履歴からの選択、といった変化が起こります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Bash/Zshで二重括弧インクリメントを使う時の注意]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/16/computer-bash-zsh/"/>
+    <updated>2018-08-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/16/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/475714265X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=475714265X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/315aKiz95ML._SS200_.jpg" alt="括弧の意味論" /></a>
+</div>
+
+<p>Bash/Zshではシェルの拡張を使って<code>((i++))</code>の様な
+二重括弧を使って変数をインクリメント出来たりします。</p>
+
+<p>ただこの実行結果の終了ステータスをきちんと考えないと面倒になる、という話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#二重括弧拡張" id="markdown-toc-二重括弧拡張">二重括弧拡張</a>    <ul>
+      <li><a href="#の終了ステータス" id="markdown-toc-の終了ステータス">(())の終了ステータス</a></li>
+      <li><a href="#iの終了ステータス" id="markdown-toc-iの終了ステータス">((i++))の終了ステータス</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h1 id="二重括弧拡張">二重括弧拡張</h1>
+
+<p>随分前に書いたのでちょっと適当な部分もありますが(言い訳)、
+以下参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001HQYWJG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001HQYWJG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/413pSmPfuXL._SS90_CR0,0,120,90_.jpg" alt="カフェコロン　特価！（Ｃａｆｅ　ＣＯＬＯＮ）３０缶" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/11/13/computer-bash-colon/">Bashでのコロンコマンドや二重括弧について</a></div></li></ul>
+
+<p>簡単に言うと、シェルスクリプトの中で<code>i</code>という変数に数字が入っていて
+それをインクリメントしたい場合</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">((</span>i++<span class="o">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とするだけで良いよ、という話。</p>
+
+<p><code>expr</code>を使って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nv">i</span><span class="o">=</span><span class="k">$(</span>expr <span class="nv">$i</span> + <span class="m">1</span><span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とする方法もありますが、
+<code>expr</code>は遅い
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+ので、拡張機能を使えるなら<code>expr</code>は使わないほうが良いです。</p>
+
+<h2 id="の終了ステータス">(())の終了ステータス</h2>
+
+<p>この二重括弧ですが、bashのマニュアルによると</p>
+
+<pre><code>((expression))
+       The  expression  is  evaluated  according to the rules described
+       below under ARITHMETIC EVALUATION.  If the value of the  expres-
+       sion  is  non-zero, the return status is 0; otherwise the return
+       status is 1.  This is exactly equivalent to let "expression".
+</code></pre>
+
+<p>となっていて、中身の評価値が0でない場合はstatusとして0を返し、
+逆に0の場合は1を返す、という特徴を持つCompound Commands(複合コマンド)の一種です。</p>
+
+<p>0がFalseで0以外がTrueというのは他の言語でよくある仕様だと思いますが、
+その結果をシェル的に(0が正常終了、それ以外がエラー終了)返している感じです。</p>
+
+<p>従って</p>
+
+<pre><code>$ ((0)); echo $?
+1
+$ ((1)); echo $?
+0
+$ ((-1)); echo $?
+0
+</code></pre>
+
+<p>みたいな感じで中身が0の場合だけシェル的にエラー終了な状態になります。</p>
+
+<h2 id="iの終了ステータス">((i++))の終了ステータス</h2>
+
+<p>ここで、次の様なシェルスクリプトを考えます。</p>
+
+<figure class="code"><figcaption><span>ipp.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">i</span><span class="o">=</span>-2
+</span><span class="line"><span class="k">while</span> <span class="o">[</span> <span class="nv">$i</span> -lt <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line">  <span class="nb">echo</span> <span class="nv">$i</span>
+</span><span class="line">  <span class="o">((</span>i++<span class="o">))</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>単に<code>-2</code>から<code>0</code>までを順に出力するだけのスクリプト。実行すると</p>
+
+<pre><code>$ ./ipp.sh
+-2
+-1
+0
+$
+</code></pre>
+
+<p>と、何事もなかったかの様に終了しますが、ここで終了ステータスを調べると</p>
+
+<pre><code>$ echo $?
+1
+</code></pre>
+
+<p>とエラー終了になっています。</p>
+
+<p>これは、最後に評価されるのが<code>((i++))</code>で、一番最後にはこの<code>i</code>が<code>0</code>だからです。</p>
+
+<p><code>i++</code>によって<code>i</code>は<code>1</code>に変わりますが、
+後ろ<code>++</code>がある場合には評価されるときには変化する前のものが評価されます。
+つまりこの場合は最後は<code>((0))</code>になるわけです。</p>
+
+<p>これを</p>
+
+<figure class="code"><figcaption><span>ipp.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">i</span><span class="o">=</span>-2
+</span><span class="line"><span class="k">while</span> <span class="o">[</span> <span class="nv">$i</span> -lt <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line">  <span class="nb">echo</span> <span class="nv">$i</span>
+</span><span class="line">  <span class="o">((</span>++i<span class="o">))</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に<code>++i</code>と置き換えてやれば最後の<code>((++i))</code>の評価は<code>i</code>変化後の<code>((1))</code>
+となってスクリプトの終了ステータスは0になります。</p>
+
+<p>どちらの場合もスクリプト自体は問題なく動きますが、
+このあとに終了ステータスをチェックして何か行うようなことがあると
+思わない状態になってしまいます。</p>
+
+<p><code>((++i))</code>の場合でも条件によっては同じことが起こります。</p>
+
+<p>これを避けるためには</p>
+
+<pre><code>i=$((i+1))
+</code></pre>
+
+<p>の様に代入する様な形にするか、もしくは</p>
+
+<figure class="code"><figcaption><span>ipp.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">i</span><span class="o">=</span>-2
+</span><span class="line"><span class="k">while</span> <span class="o">[</span> <span class="nv">$i</span> -lt <span class="m">1</span> <span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line">  <span class="nb">echo</span> <span class="nv">$i</span>
+</span><span class="line">  <span class="o">((</span>i++<span class="o">))</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line"><span class="nb">exit</span> <span class="m">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に必ず最後に<code>exit 0</code>や関数であれば<code>return 0</code>といった様に
+ステータスを含めて終了する様にすれば良いかと。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

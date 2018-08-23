@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: sentaku | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/sentaku/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2018-08-23T00:51:36+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトで文字列のハイライトをsedで削除する]]></title>
+    <link href="https://rcmdnk.com/blog/2016/05/29/computer-bash-zsh-sentaku/"/>
+    <updated>2016-05-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/05/29/computer-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4767814200?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4767814200&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/512NEeUQRdL._SS200_.jpg" alt="図解ですべてわかる 世界の装飾デザイン見本帳" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/sentaku">sentaku</a>
+というシェルスクリプトのツールをアップデートしている時に、
+文字列のハイライト部分を変換したいことがあったのでそのメモ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シェルスクリプトでの文字列の装飾" id="markdown-toc-シェルスクリプトでの文字列の装飾">シェルスクリプトでの文字列の装飾</a></li>
+  <li><a href="#sedで削除する" id="markdown-toc-sedで削除する">sedで削除する</a></li>
+  <li><a href="#sentaku" id="markdown-toc-sentaku">sentaku</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シェルスクリプトでの文字列の装飾">シェルスクリプトでの文字列の装飾</h2>
+
+<p><code>printf</code>のコマンドで文字列を出力する際、</p>
+
+<pre><code>printf "\e[7maaa\e[m"
+</code></pre>
+
+<p>とすると、<code>aaa</code>をバックグランドと文字色を反転させて表示させる事が出来ます。
+(文字列はクォートで囲う必要あり。)</p>
+
+<p>ここで最初の<code>\e</code>はエスケープで<code>[</code>と<code>m</code>で挟まれた<code>7</code>の数字がこの反転を指定しています。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right">N</th>
+      <th style="text-align: left">表示</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">デフォルト</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1</td>
+      <td style="text-align: left">太字(Bold)、または強調表示</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">2</td>
+      <td style="text-align: left">薄く表示、もしくはsecond colorの指定があればそれ</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">3</td>
+      <td style="text-align: left">イタリック</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">4</td>
+      <td style="text-align: left">アンダーライン</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">5</td>
+      <td style="text-align: left">ゆっくり点滅 (&lt;150/分)</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">6</td>
+      <td style="text-align: left">素早く点滅 (%gt;150/分)</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">7</td>
+      <td style="text-align: left">反転表示(negative image)</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">8</td>
+      <td style="text-align: left">非表示(パスワードなどを隠すのに使える)</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">9</td>
+      <td style="text-align: left">取り消し線</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>などがあります。また、
+30-37を使うとそれぞれ、黒、赤、緑、黄色、青、赤紫、青緑、白の文字色にでき、
+40-47を使うと背景色をそれらの色に出来ます。</p>
+
+<p>複数使うときは<code>;</code>でつなげて</p>
+
+<pre><code>printf "\e[1;31;42maaa\e[m"
+</code></pre>
+
+<p>とすれば太字で、背景緑、文字色赤に出来ます。</p>
+
+<p>また、</p>
+
+<pre><code>printf "\e[38;05;121maaa\e[m"
+</code></pre>
+
+<p>の様に、<code>38;05;</code>を指定すると、その後に256色に割り当てられた番号を指定できます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/09/05/computer-cygwin-putty-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130905_cygwin_120_90.png" width="120" height="90" alt="20130905_cygwin_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/09/05/computer-cygwin-putty-vim/">Cygwin+screenで256 colorを有効にする</a></div></li></ul>
+
+<div class="github-widget" data-repo="rcmdnk/escape_sequence"></div>
+
+<p>最後にリセットするために<code>\e[m</code>(番号指定なし)を入れてあります。</p>
+
+<p>また、<code>\e</code>の部分はエスケープを表していますが、これは
+<code>\033</code>(8進法)または<code>\x1B</code>(16進法)でもOK。</p>
+
+<p>また<i class="key">Ctrl</i>-<i class="key">V</i> <i class="key">Esc</i>を押すことでエスケープキーを挿入して
+代わりに使うことも出来ます。(表示上は<code>^[</code>となります。これを直接打ってもダメ。)</p>
+
+<h2 id="sedで削除する">sedで削除する</h2>
+
+<p>削除するには以下の様な感じ:</p>
+
+<pre><code>printf "\e[31maaa\e[m"|sed "s/^[\[[0-9;]*m//g"
+</code></pre>
+
+<p>後ろの<code>^[</code>で始まって<code>m</code>で終わる文字列で中に数字か<code>;</code>が入っている部分を削除しています。</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">V</i> <i class="key">Esc</i>で入力しています。
+(上のを直接コピペしても上手くいきません。)</p>
+
+<p>出力の際に<code>\e</code>とかでも<code>printf</code>で出力した時点でエスケープ文字となるので
+エスケープ文字で直接。</p>
+
+<p><code>[</code>は返還前の所ではエスケープする必要があります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2016/05/29 </strong></p>
+
+  <p>通常、ハイライトを付けるときは、<code>\e[7m</code>みたいな最後が<code>m</code>で終わる形になっていますが、
+<code>grep</code>で色を付けて</p>
+
+  <pre><code>printf "a" | grep --color=always -i "a" &gt; log
+</code></pre>
+
+  <p>これで<code>log</code>のなかを見ると</p>
+
+  <pre><code>^[[01;31m^[[Ka^[[m^[[K
+</code></pre>
+
+  <p>こんな感じで<code>\e[K</code>が各ハイライトの文字列に追加されて付いています。</p>
+
+  <p>ちょっと調べてみてもパッとこの<code>K</code>のオプションが良くわからなかったのですが、
+取り敢えずあってもなくてもちょっとやってみた感じでは同じでした。</p>
+
+  <p>これがちょっと問題になるのが、</p>
+
+  <pre><code>$ x=$(printf "a" | grep --color=always -i "a")
+$ echo ${#x}
+18
+$ y=$(printf "$x"|sed "s/^[\[[0-9;]*m//g")
+$ echo ${#y}
+4
+</code></pre>
+
+  <p>みたいにしてハイライト部分を覗いた実際の文字列の数を数えたい時、
+このままだと<code>K</code>の部分が邪魔して間違った答えが出ます。
+(<code>a</code>だけなので1になってほしい。)</p>
+
+  <p>なのでそれも除いて</p>
+
+  <pre><code>$ z=$(printf "$x"|sed "s/^[\[[0-9;]*m//g"|sed "s/^[\[K//g")
+$ echo ${#z}
+1
+</code></pre>
+
+  <p>とすればOK。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="sentaku">sentaku</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<p>上の変換はsentakuの中で色付きの文字列を扱う時に必要になったものです。</p>
+
+<p>sentakuは複数の文字列を入力に渡して、
+対話的に選択して選択したものを出力させるものです。</p>
+
+<p>所謂<a href="https://github.com/mooz/percol">percol</a>
+や
+<a href="https://github.com/peco/peco">peco</a>
+と同じ様なものです。</p>
+
+<p>シェルスクリプトでできているので大概のところで動くと思います。
+(BashでもZshでも。)</p>
+
+<p>もともと別のスクリプトを作っている時に
+対話的に出力を選択したい時があってその時に作ったものを取り出したもので
+関数などを使うことで拡張できる様にしてあります。</p>
+
+<div class="github-widget" data-repo="rcmdnk/trash"></div>
+
+<div class="github-widget" data-repo="rcmdnk/multi_clipboard"></div>
+
+<div class="github-widget" data-repo="rcmdnk/sd_cl"></div>
+
+<div class="github-widget" data-repo="rcmdnk/kk"></div>
+
+<p>また、
+<a href="https://github.com/rcmdnk/sentaku">sentaku</a>のレポジトリにある
+<a href="https://github.com/rcmdnk/sentaku/blob/master/bin/ddv">ddv</a>
+は2つのディレクトリのdiffをとって違いのあるファイルを一つ一つ<code>vim -d</code>していくスクリプトで
+自分では結構使っています。</p>
+
+<p><a href="https://rcmdnk.com/blog/tags/sentaku/">/blog/tags/sentaku/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sentakuで選択項目数が多い時にページ表示の様に一気に表示変更する様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2015/03/16/computer-bash-zsh-sentaku/"/>
+    <updated>2015-03-16T13:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/03/16/computer-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/sentaku">sentaku</a>の高速化のため
+再表示を抑えるために数が多くて次を表示する際、
+ページごとに切り替えられる様にしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#ページ表示" id="markdown-toc-ページ表示">ページ表示</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="ページ表示">ページ表示</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<p>ちょっと言葉だと分かりづらいですが、
+選択項目が多い時、全て表示できないので表示できない分は隠しておいて、
+カーソルが下まで行ったら順次表示する、みたいなのが今までの表示方法でした。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150316_nochangepage.gif" alt="nochangepage" class="pic" /></p>
+
+<p>こんな感じ。
+ただ、これだと、下へ下へ、や、上へ上へ、とする時、毎回全て再表示するので
+結構遅くなります。</p>
+
+<p>これを改善するために、一番下まで行って次へ行こうとするとき、
+<strong>次のページ</strong>的な感覚で次の物を先頭にした新しい表示にするように
+変更しました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150316_changepage.gif" alt="changepage" class="pic" /></p>
+
+<p>こんな感じ。これだと全体表示は表示できる最大数毎になるので
+かなり負担が減ります。</p>
+
+<p>もし以前の表示が良ければ</p>
+
+<pre><code>export _SENTAKU_PAGE_CHANGE=0
+</code></pre>
+
+<p>としておけば上の元の表示に戻ります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sentakuで飛び飛びの複数選択を出来るようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2014/09/26/computer-bash-zsh-sentaku/"/>
+    <updated>2014-09-26T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2014/09/26/computer-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00MELIJJM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00MELIJJM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41aZCPR9I7L._SS200_.jpg" alt="Sentaku Bun" /></a>
+</div>
+
+<p>この前<a href="https://github.com/rcmdnk/sentaku">sentaku</a>で
+<a href="https://rcmdnk.com/blog/2014/08/05/computer-bash-zsh-sentaku/">複数の項目を選択出来る様</a>
+にしましたが、
+その時は繋がった一連の複数項目だけしか選択できなかったのを、
+飛び飛びでも自由に選べる様に改良してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#複数選択" id="markdown-toc-複数選択">複数選択</a></li>
+  <li><a href="#環境変数の設定について" id="markdown-toc-環境変数の設定について">環境変数の設定について</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="複数選択">複数選択</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<p>今回のアップデートでは</p>
+
+<ul>
+  <li><i class="key">ctrl</i>-<i class="key">s</i>, <i class="key">v</i>(vim mode時のみ): 複数選択(Visual Mode)開始/終了</li>
+  <li><i class="key">Space</i>: カーソル下の行の選択のトグル</li>
+</ul>
+
+<p>を入れました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20140926_sentaku_multi.gif" alt="sentaku_multi" class="pic" /></p>
+
+<p>こんな感じで<i class="key">ctrl</i>-<i class="key">s</i>, <i class="key">v</i>で選択を開始すると
+移動した分だけ青色に選択されます。</p>
+
+<p>また、スペースを押すと、その下の項目を選択したり選択から外したりします。</p>
+
+<p>1つでも青色の項目で選択されているものがある場合、カーソル行(白色反転)関係なしに
+選択されたものだけを<code>execute</code>に渡します。
+カーソル行も選択されているときは青色反転になるので、その場合にはそれも使われます。</p>
+
+<p>1つも選択されたものがない場合には通常通り白色反転のカーソル行の物が使われます。</p>
+
+<h2 id="環境変数の設定について">環境変数の設定について</h2>
+
+<p>あと、地味に<code>_SENTAKU_NOHEADER</code>等の環境変数設定がきちんと反映されない
+ところも直しました。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sentakuに複数選択機能、検索ハイライトを付けた]]></title>
+    <link href="https://rcmdnk.com/blog/2014/08/05/computer-bash-zsh-sentaku/"/>
+    <updated>2014-08-05T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2014/08/05/computer-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<p><a href="https://rcmdnk.com/blog/tags/sentaku">sentaku</a>
+に複数選択機能と検索時に検索文字列をハイライトする機能を追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sentaku" id="markdown-toc-sentaku">sentaku</a></li>
+  <li><a href="#複数選択" id="markdown-toc-複数選択">複数選択</a></li>
+  <li><a href="#検索ハイライト" id="markdown-toc-検索ハイライト">検索ハイライト</a></li>
+  <li><a href="#その他" id="markdown-toc-その他">その他</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sentaku">sentaku</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<p>インプットを絞り込んで出力する機能を持つシェルスクリプトです。</p>
+
+<p><a href="https://github.com/zsh-users/zaw">zaw</a>
+とか
+<a href="https://github.com/mooz/percol">percol</a>、
+もしくは最近話題の
+<a href="https://github.com/peco/peco">peco</a>
+なんかと同じ様なもの。</p>
+
+<p>シェルスクリプトで書かれてそのままシェルスクリプトで拡張出来るのが特徴で利点
+(のつもり)。</p>
+
+<p>Bash 3またはZsh 4以上なら使えます。</p>
+
+<h2 id="複数選択">複数選択</h2>
+
+<p>通常のvimモードでは<i class="key">v</i>か<i class="key">Space</i>
+を押すと複数選択モード(Visual Mode)に入ってカーソルを上下させると範囲選択になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20140805_vim_multi.gif" alt="vim_multi" class="pic" /></p>
+
+<p>こんな。
+複数選択した状態で<i class="key">Enter</i>を押せば選択したもの全てを出力します。</p>
+
+<p>Emacsモードの場合は<i class="key">Space</i>で。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20140805_emacs_multi.gif" alt="emacs_multi" class="pic" /></p>
+
+<p>両者とも、検索モードの時には一回目の<i class="key">Space</i>は普通に入力されますが、
+<i class="key">Space</i>を二回押すと選択モードに入ります。</p>
+
+<p>デフォルトは検索モードは<strong>0 (AND search (ignore case))</strong>
+なのでスペースは区切りでしか無いので問題無いと思いますが、
+<strong>2: Starts with (ignore case)</strong>/
+<strong>3: Starts with(case sensitive)</strong>
+だとスペースが2個続く様な事ができなくなります。
+が、それ程そんな事は必要ないかな、ということでとりあえず
+処置せずスペース2個の検索はできない状態になっています。</p>
+
+<h2 id="検索ハイライト">検索ハイライト</h2>
+
+<p><a href="https://rcmdnk.com/blog/2014/01/27/computer-bash-zsh/">検索</a>時に
+検索文字列を赤くハイライトします。</p>
+
+<p>こんな感じ。</p>
+
+<ul>
+  <li>vim mode</li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20140805_vim_search.gif" alt="vim_search" class="pic" /></p>
+
+<ul>
+  <li>emacs mode</li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20140805_emacs_search.gif" alt="emacs_search" class="pic" /></p>
+
+<h2 id="その他">その他</h2>
+
+<p>これらのGif作るときに
+キーボード入力を表示させたくて(そうでないと上のモードの違いが全くわからないので)
+<a href="https://rcmdnk.com/blog/2014/08/01/computer-mac-windows/">キー入力を表示しながらスクリーンショットGifを撮る</a>
+で色々調べました。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sentakuでitemを上下に移動出来る様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2014/06/21/computer-bash-zsh/"/>
+    <updated>2014-06-21T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2014/06/21/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00JO9X5Y6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00JO9X5Y6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41wDUXXwnEL._SS200_.jpg" alt="" /></a>
+</div>
+
+<p><a href="https://rcmdnk.com/blog/2014/01/24/computer-bash-zsh/">シェルスクリプトで対話的な選択を出来るようにするスクリプトを作った</a>
+で紹介した<a href="https://github.com/rcmdnk/sentaku">sentaku</a>
+というスクリプトに対してリスト中のアイテムを上下出来る機能を実装しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#アイテム移動" id="markdown-toc-アイテム移動">アイテム移動</a></li>
+  <li><a href="#同じような機能を持つもの" id="markdown-toc-同じような機能を持つもの">同じような機能を持つもの</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect" style="display:inline-block" data-ad-client="ca-pub-3802317723662375" data-ad-slot="7116417646"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p><a href="https://github.com/rcmdnk/sentaku">sentaku</a>では、インプットファイルを決めて</p>
+
+<pre><code>$ sentaku -F input.txt
+</code></pre>
+
+<p>などとすれば、その中のにあるものをリストし、リストから欲しい値を取る事ができたりします。</p>
+
+<p>また、</p>
+
+<pre><code>$ sentaku -F input.txt -p new_word
+</code></pre>
+
+<p>とすれば、<strong>input.txt</strong>内のリストの先頭に<code>new_word</code>を加えられます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>ここで、このスクリプトから追加することは出来るのですが、
+保存したリストを変更したりすることがスクリプトから出来ないので、
+どうしてもしたいときは直接ファイルを開いて手で変更してたりしました。</p>
+
+<p>特に、<a href="https://github.com/rcmdnk/sd_cl">rcmdnk/sd_cl</a>
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+で<code>-p</code>オプションを使って予め作っておいたディレクトリリストへ移動する、
+ということをしたい場合、
+<code>sd_cl</code>の中だと通常の履歴ディレクトリリストから<code>p</code>を押すと
+保存リストに移せるのですが、よく使う物を上に置きたいので
+気が向いたらリストを直接開いて編集、みたいなことをする必要があって面倒でした。</p>
+
+<p>大体、変更したいな、と思うのはスクリプトを立ち上げた時なので、
+やはり気づいたときに変更したいな、ということをするための機能追加です。</p>
+
+<h2 id="アイテム移動">アイテム移動</h2>
+
+<p>アイテム移動は<i class="key">Ctrl</i>-<i class="key">i</i>と<i class="key">Ctrl</i>-<i class="key">o</i>に
+それぞれ<strong>上に移動</strong>、<strong>下に移動</strong>を割り当てました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20140621_sentaku_item_updown.gif" alt="sentakuitemupdown" /></p>
+
+<p>こんな感じで<i class="key">Ctrl</i>-<i class="key">i</i>/<i class="key">Ctrl</i>-<i class="key">o</i>で
+選択行のアイテムを上下に移動出来ます。
+これらのキーの前に数字を押せば数字の分だけ移動することも出来ます。</p>
+
+<p>これらのキーはVimモードでもEmacsモード
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>
+でも有効です。</p>
+
+<p>ファイルから読み込んでリスト表示してる場合、移動するたびに保存し直されるので、
+途中で<code>q</code>等で止めても移動した物が保存されて次からもその順番になっています。</p>
+
+<h2 id="同じような機能を持つもの">同じような機能を持つもの</h2>
+
+<p>この前<a href="https://rcmdnk.com/blog/2014/06/12/computer-bash-zsh/">sentakuのアップデートを</a>
+を紹介した時に同じような機能を持つものとして
+<a href="https://github.com/zsh-users/zaw">zaw</a>と
+<a href="https://github.com/mooz/percol">percol</a>
+というものがあた、との話をしましたが、
+ここ最近<a href="https://github.com/peco/peco">peco</a>と言うものが作られて
+話題になっています。
+これはpercolのアイデアをgoで作った、と言うもの。</p>
+
+<p>こちらは<a href="https://github.com/peco/">peco</a>というユーザー名も取得して
+<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>
+今後も積極的にいろんな人が貢献しながらアップデートしていきそうです。</p>
+
+<p>sentakuの方も何か気づいたことがあったら是非教えて下さい。
+とは言っても、何故か外国の人が主にスターを付けてくれてたりして
+(どうもどこかのブログで紹介してくれたらしい)
+主に使ってる人はこれを見てない人のが多いのかもしれませんが。。。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
