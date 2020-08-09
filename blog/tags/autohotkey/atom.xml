@@ -1,0 +1,1442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: AutoHotkey | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/autohotkey/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T10:06:03+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでクラスを使うようにしたり色々アップデートしてみた]]></title>
+    <link href="https://rcmdnk.com/blog/2020/02/03/computer-windows-autohotkey/"/>
+    <updated>2020-02-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/02/03/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>Windowsでエディタ以外の場所でも<code>h</code>/<code>j</code>/<code>k</code>/<code>l</code>で左下上右に移動したり
+するようにする
+AutoHotkey製<a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>
+ですが、
+Issueなどももらったりして手をかけてみようと思ってたまま結構放置してしまてましたが、
+ちょっと見直しをしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#クラスの導入" id="markdown-toc-クラスの導入">クラスの導入</a></li>
+  <li><a href="#v060での新しい点" id="markdown-toc-v060での新しい点">v0.6.0での新しい点</a></li>
+  <li><a href="#autohotkeyの色々" id="markdown-toc-autohotkeyの色々">AutoHotkeyの色々</a>    <ul>
+      <li><a href="#関数" id="markdown-toc-関数">関数</a></li>
+      <li><a href="#ラベルと関数" id="markdown-toc-ラベルと関数">ラベルと関数</a></li>
+      <li><a href="#と" id="markdown-toc-と"><code>=</code>と<code>==</code></a></li>
+      <li><a href="#文字列連結" id="markdown-toc-文字列連結">文字列連結</a></li>
+      <li><a href="#const的なものを作るのはちょっと面倒" id="markdown-toc-const的なものを作るのはちょっと面倒">const的なものを作るのはちょっと面倒</a></li>
+      <li><a href="#クラス" id="markdown-toc-クラス">クラス</a></li>
+      <li><a href="#静的クラス変数が作られるタイミング" id="markdown-toc-静的クラス変数が作られるタイミング">静的(クラス)変数が作られるタイミング</a></li>
+      <li><a href="#参照カウント" id="markdown-toc-参照カウント">参照カウント</a></li>
+      <li><a href="#guiのv-variable" id="markdown-toc-guiのv-variable">Guiのv Variable</a></li>
+      <li><a href="#g-label" id="markdown-toc-g-label">g-label</a></li>
+      <li><a href="#a_guicontrolを持つためにはg-labelが必要" id="markdown-toc-a_guicontrolを持つためにはg-labelが必要">A_GuiControlを持つためにはg-labelが必要</a></li>
+      <li><a href="#guiclose-guiescapeにクラスメソッドを" id="markdown-toc-guiclose-guiescapeにクラスメソッドを">GuiClose, GuiEscapeにクラスメソッドを</a></li>
+      <li><a href="#settimerにマイナスの値" id="markdown-toc-settimerにマイナスの値">SetTimerにマイナスの値</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<p>出来ることなどは上記などを参照。</p>
+
+<p>起動すると、メモ帳などで<i class="key">Esc</i>を押すと<strong>ノーマルモード</strong>になって
+<code>h</code>/<code>j</code>/<code>k</code>/<code>l</code>で左下上右に移動したり、<code>yy</code>でラインコピー、<code>p</code>でペースト、とか出来ます。</p>
+
+<p>擬似的なコマンドモードとか検索とかもなんとなしに出来る様にしてますが、
+もしノーマルモードでの動きとか、Vimにあってvim_ahkにないものであったらうれしいもの、
+とかあったらIssueとか出してもらうと嬉しいです。</p>
+
+<h2 id="クラスの導入">クラスの導入</h2>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/34">Split script into logically seperated multiple files · Issue #34 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>元々はファイルを小分けにしたい、というIssueが来ていてどうしたものかと思ってたところからです。</p>
+
+<p>最初は小さなスクリプトだったこともあり、また、AutoHotkeyのスクリプトとしてそれだけ
+あると走る、という方が嬉しいかな、と思って一つのファイルで管理していたんですが、
+結構大きくなってきたので分けたほうが色々見やすいかな、と言う状態に。</p>
+
+<p>加えて、関数とかラベルとか結構ごちゃごちゃになっていたので整理したい、というところも。</p>
+
+<p>それでどういうふうに分けたら良い中、と思ってたんですが、
+そのまま分割していくだけとかだと余り嬉しくもないので、
+いっそ色々書き直そうと思ってクラスとかを使って作り直すことにしました。</p>
+
+<p>そうすればクラスごとにファイル分けたりすれば良いので。</p>
+
+<p>というわけで一番上のスクリプトは</p>
+
+<figure class="code"><figcaption><span>vim.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="c1">; Auto-execute section</span>
+</span><span class="line"><span class="n">Vim</span> <span class="o">:=</span> <span class="n">new</span> <span class="n">VimAhk</span><span class="p">()</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">#Include</span> <span class="nv">%A_LineFile%</span>\<span class="o">..</span>\<span class="n">lib</span>\<span class="n">vim_ahk</span><span class="o">.</span><span class="n">ahk</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じの簡単な形にして、
+<strong>lib\vim_ahk.ahk</strong>にある
+<code>VimAhk</code>クラスを中心に動くようにしました。</p>
+
+<p>色々変更する中で気になったこととか知ったこととかがあったので、
+ちょっとまとまってないかもしれませんがメモしておきたいと思います。</p>
+
+<h2 id="v060での新しい点">v0.6.0での新しい点</h2>
+
+<p>コード構成は結構変わりましたが、ユーザー側としてすぐわかる機能としては、
+vim_ahkを有効にするかどうかを決めるアプリケーションリストに関して、
+ウィンドウのタイトルでの指定がこれまでは完全に一致するものだけでしたが、
+その文字列を含む、だったり正規表現も使える様にしました。</p>
+
+<p>vim_ahkのトレイアイコンの右クリックから<code>VimMenu</code><i class="fa fa-arrow-right"></i><code>Settings</code>に行って、
+<code>SetTitleMatchMode</code>という項目があるので、これの最初の項を
+<code>2</code>にすると、ウィンドウタイトルに関してそれを含むもの全てをマッチする様になります。</p>
+
+<p>これまでと同じ動作は<code>3</code>にしたときで、ウィンドウタイトルが完全一致したものだけを取っていました。</p>
+
+<p><code>ahk_exe notepad.exe</code>みたいにClassやProcessを指定する場合は関係ありません。</p>
+
+<p>これは、Windows 10でのOneNoteとかが、Process名は<code>ApplicationFrameHost.exe</code>というもので
+他のウィンドウズアプリと同じなため、まとめてこれを指定するのは嫌だな、という点があり
+ウィンドウタイトルを指定していたのですが、
+これが今は<code>rcmdnk - OneNote</code>みたいにユーザー名を含むようなタイトルになっていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/37">doesn’t seem to work on onenote on windows 10 · Issue #37 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>これによってOneNote上ではデフォルトでは有効にならないような状態でした。</p>
+
+<p>勿論、自分でタイトルを調べて<code>Settings</code>でそのタイトルを入れれば有効になるのですが、
+上のような<code>SetTitleMatchMode</code>の設定があったので導入してみました。</p>
+
+<p>これで、例えばブラウザとかで特定のページに関して、とかもやりやすくなるかもしれません。</p>
+
+<h2 id="autohotkeyの色々">AutoHotkeyの色々</h2>
+
+<p>今まで書いたものとかについては以下から。</p>
+
+<p><a href="https://rcmdnk.com/blog/tags/autohotkey/">/blog/tags/autohotkey/</a></p>
+
+<p>ちなみに今使っているのはAutoHotkey_Lのバージョン1の方です。</p>
+
+<p>使っている今のバージョンはVersion 1.1.31.00。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/">AutoHotkey</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/Lexikos/AutoHotkey_L">Lexikos/AutoHotkey_L: AutoHotkey - macro-creation and automation-oriented scripting utility for Windows.</a></p>
+</blockquote>
+
+<p>ドキュメントを見るとV2の方もかなりできてる様ですが、根本的な言語体制が変わってる感じになってるので
+移行するとしたら結構1から書き直さないといけない部分も出てくるかもしれません。</p>
+
+<p>今回変更した中で色々調べたりもしたので気になった点とかをまとめておきます。</p>
+
+<h3 id="関数">関数</h3>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/Functions.htm">Functions - Definition &amp; Usage  AutoHotkey</a></p>
+</blockquote>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">MyFunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&quot;abc&quot;</span><span class="p">){</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="nv">%x%</span> <span class="nv">%y%</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>な感じで定義します。
+引数にはデフォルトの値を与えることも出来ます。</p>
+
+<p>関数を作るときには<code>()</code>を関数名と離して<code>MyFunc ()</code>みたいにするとエラーになってしまうので
+必ずくっつける必要があります。</p>
+
+<p>関数は引数による違う関数などは作れず、そのようなものを作った場合はDuplicationエラーになります。</p>
+
+<p>引数に<code>func(x="abc", y="efg")</code>の様に引数名を指定した利用は出来ません。
+ただ、このようなことをしてもエラーにならないのですが、
+それは<code>x="abc"</code>というのが<code>x</code>と<code>"abc"</code>が等しいかどうか、という式として認識されるので、
+この場合はFalseで<code>0</code>が入力されるだけです。</p>
+
+<h3 id="ラベルと関数">ラベルと関数</h3>
+
+<p>AutoHotkeyではラベルという形で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">MyLabel:</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="s">&quot;This is MyLabel&quot;</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というものが作れ、これを</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>  <span class="nb">Goto</span><span class="p">,</span> <span class="n">MyLabel</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで呼ぶことが出来ます。
+AutoHotkeyではキーバインドを</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="s">&quot;a&quot;</span>
+</span><span class="line">  <span class="nb">Goto</span><span class="p">,</span> <span class="n">MyLabel</span>
+</span><span class="line">  <span class="n">MyFunc</span><span class="p">(</span><span class="s">&quot;myfunc&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに設定していきますが、同じような雰囲気でラベルというものを作って
+作業をまとめたりしていました。</p>
+
+<p>関数やらオブジェクトやらが後から追加されて、より近代的な雰囲気の書き方ができる様になった感じで、
+基本的にラベルでやっていたことは関数で置き換えが可能です。</p>
+
+<p>その際に注意することとしては、ラベルの中では変数がグローバルで扱われるのに対して、
+関数の中では変数がローカライズされる点。
+必要な場合は<code>globl</code>を使って呼び込む必要があります。</p>
+
+<h3 id="と"><code>=</code>と<code>==</code></h3>
+
+<p><code>if</code>とかで比較する際、AutoHotkeyだと同じかどうか判断するのに<code>=</code>と<code>==</code>の両方を使えます。</p>
+
+<blockquote><p>The == operator behaves identically to = except when either of the inputs is not numeric, in which case == is always case sensitive and = is always case insensitive (the method of insensitivity depends on StringCaseSense).</p><footer><strong>Variables and Expressions - Definition &amp; Usage | AutoHotkey</strong> <cite><a href="https://www.autohotkey.com/docs/Variables.htm">www.autohotkey.com/docs/&hellip;</a></cite></footer></blockquote>
+
+<p>ということで、ほとんど同じですが、文字列比較の場合に<code>==</code>だと大文字小文字を区別し、<code>=</code>だと区別しない、ということです(ただし、<a href="https://www.autohotkey.com/docs/commands/StringCaseSense.htm">StringCaseSense</a>の設定による)。</p>
+
+<p>敢えて大文字小文字を区別しないで比較したい、ということもあるかもしれませんが、
+<a href="https://www.autohotkey.com/docs/commands/StringLower.htm">StringLower / StringUpper</a>
+という変換関数もあるので、それで変換して<code>==</code>で比較するようにした方が見やすくはなると思います。</p>
+
+<h3 id="文字列連結">文字列連結</h3>
+
+<p>文字列を連結するときは<code>.</code>でつなげるかそのまま繋げるかで出来ます。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/Variables.htm#concat">Variables and Expressions - Definition &amp; Usage  AutoHotkey</a></p>
+</blockquote>
+
+<blockquote>
+  <p>When the dot is omitted, there should be at least one space between the items to be merged.</p>
+</blockquote>
+
+<p>とあるんですが、実際には</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">x</span> <span class="o">:=</span> <span class="s">&quot;abc&quot;</span>
+</span><span class="line"><span class="n">y</span> <span class="o">:=</span> <span class="s">&quot;xxx&quot;</span><span class="n">x</span>
+</span><span class="line"><span class="nb">MsgBox</span> <span class="o">%</span> <span class="n">y</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としてもちゃんと<code>y</code>は<code>xxxabc</code>となります。(バグ?か記述の間違え?)</p>
+
+<p><code>.</code>を使う場合には両側にスペースが無いとうまくいきません。</p>
+
+<p>通常どちらでも構わないんですが、後ろの文字列が<code>++</code>か<code>--</code>で始まる場合には
+それ自体が特別な意味を持ってしまうので<code>.</code>を使って連結する必要があります。</p>
+
+<h3 id="const的なものを作るのはちょっと面倒">const的なものを作るのはちょっと面倒</h3>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/90774-is-it-possible-to-create-constant/">Is it possible to create constant? - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<h3 id="クラス">クラス</h3>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">x</span> <span class="o">:=</span> <span class="n">new</span> <span class="n">MyClass</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">x</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="n">class</span> <span class="n">MyClass</span><span class="p">{</span>
+</span><span class="line">  <span class="nb">static</span> <span class="n">ClassVar</span> <span class="o">:=</span> <span class="s">&quot;class variable&quot;</span>
+</span><span class="line">  <span class="n">InstanceVar</span> <span class="o">:=</span> <span class="s">&quot;instance variable&quot;</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">__New</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">){</span>
+</span><span class="line">    <span class="n">this</span><span class="o">.</span><span class="n">Name</span> <span class="o">:=</span> <span class="n">name</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="s">&quot;New MyClass: &quot;</span> <span class="n">this</span><span class="o">.</span><span class="n">Name</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">__Delete</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="s">&quot;Deleting &quot;</span> <span class="n">this</span><span class="o">.</span><span class="n">Name</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">Show</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="s">&quot;name: &quot;</span> <span class="n">this</span><span class="o">.</span><span class="n">name</span> <span class="s">&quot;, ClassVar: &quot;</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">ClassVar</span> <span class="s">&quot;, InstanceVar: &quot;</span> <span class="n">this</span><span class="o">.</span><span class="n">InstanceVar</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで<code>class &lt;Class Name&gt;{...}</code>と定義します。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/Objects.htm">Objects - Definition &amp; Usage  AutoHotkey</a></p>
+</blockquote>
+
+<h3 id="静的クラス変数が作られるタイミング">静的(クラス)変数が作られるタイミング</h3>
+
+<p>クラス内で<code>static</code>を使ってクラス変数を作る際、これらは
+auto-execute section(最初のReturnがある部分までのところ)
+が実行されるより前に定義されます。</p>
+
+<p>そこでは<code>static x := A_AppData . "\foo"</code>とか表現やAutoHotkeyの内部変数は使うことは出来ますが、
+直前に定義したものに対して<code>static y: = x . "\bar</code>とかは出来ません。(これは<code>x</code>が定義されてないので<code>\bar</code>となる)。</p>
+
+<blockquote><p>Static declarations are evaluated only once, before the auto-execute section, in the order they appear in the script. Each declaration stores a value in the class object. Any variable references in Expression are assumed to be global.</p><footer><strong>Objects - Definition &amp; Usage AutoHotkey</strong> <cite><a href="https://www.autohotkey.com/docs/Objects.htm#Reference_Counting">www.autohotkey.com/docs/&hellip;</a></cite></footer></blockquote>
+
+<h3 id="参照カウント">参照カウント</h3>
+
+<p>AutoHotkeyでデストラクタ(<code>__Delete</code>)を使うようなことは余りないかもしれませんが、
+これがいつ呼ばれるか、というと
+AutoHotkeyでは<code>delete</code>みたいなものはなく、消すためには
+全ての参照しているものがなくなったときに消されるような参照カウントという方法を用いています。</p>
+
+<figure class="code"><figcaption><span>vim.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">x</span> <span class="o">:=</span> <span class="n">new</span> <span class="n">MyClass</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">y</span> <span class="o">:=</span> <span class="n">x</span>
+</span><span class="line"><span class="n">x</span> <span class="o">:=</span>
+</span><span class="line"><span class="n">y</span> <span class="o">:=</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかすると、<code>x:=</code>とした時点では<code>y</code>が最初に作ったMyClassのインスタンスを見ているので消えませんが、
+<code>y :=</code>としてしまうと最初に作ったものを見ているものが居なくなるのでこの時点で<code>__Delete()</code>が走ります。</p>
+
+<p>ただし、<code>SetTimer</code>とかでクラス内の変数とかを使ってるとちょっと振る舞いが予期せぬことがあるのでちょっと注意。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/boards/viewtopic.php?style=1&amp;f=86&amp;t=1434&amp;start=200">Suggestions on documentation improvements - Page 11 - AutoHotkey Community</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/boards/viewtopic.php?f=5&amp;t=24478">Question about __Delete() behavior in class with timer - AutoHotkey Community</a></p>
+</blockquote>
+
+<h3 id="guiのv-variable">Guiのv Variable</h3>
+
+<p>Guiのテキストボックスとかいろいろな要素にはv variableという値を設定して、
+<a href="https://www.autohotkey.com/docs/commands/Gui.htm#Submit">Gui Submit</a>
+した時にその値を設定したv variableに代入するようにしたり、
+また、v variableを使ってGuiControlでその要素を指定したりすることもできます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p><a href="https://www.autohotkey.com/docs/commands/Gui.htm#Events">Gui - Syntax &amp; Usage  AutoHotkey</a></p>
+
+<p>この値は</p>
+
+<pre><code>Gui, Add, Checkbox, xm vMyCheckBox, My CheckBox
+</code></pre>
+
+<p>の様に<code>v</code> + <code>&lt;name&gt;</code>で定義します。(<code>v</code>は大文字でもOK)</p>
+
+<p>このv variableはグローバル変数か静的変数である必要があるので、
+関数内とかで使う際には<code>global</code>とかで呼び込む必要があります。</p>
+
+<p>そうでないと</p>
+
+<pre><code>a control's variable must be global or static the following variabl name contains an iliegal character
+</code></pre>
+
+<p>と怒れれます。</p>
+
+<p>関数内で<code>static</code>を使って変数を定義しても使えますが、
+<code>Gui Submit</code>を使って変数を取得したい場合には別の場所で行なう事になるので
+<code>static</code>をうまく使うことは出来ないかと思ってます。</p>
+
+<p><code>global</code>を使いたくないな、と思って、クラスの静的変数を使えないものかと、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">class</span> <span class="n">MyClass</span><span class="p">{</span>
+</span><span class="line">  <span class="nb">static</span> <span class="n">var</span>
+</span><span class="line">  <span class="n">MyFunc</span><span class="p">(){</span>
+</span><span class="line">    <span class="o">...</span>
+</span><span class="line">    <span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="o">%</span> <span class="s">&quot;xm v&quot;</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">__Class</span> <span class="s">&quot;.var&quot;</span><span class="p">,</span> <span class="n">My</span> <span class="n">CheckBox</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいにすると</p>
+
+<pre><code>The following variable name contains an illegal character
+</code></pre>
+
+<p>と怒られます。<code>MyClass.__Class</code>で<code>MyClass</code>という名前を呼んでるだけなので、この部分は
+<code>vMyClass.var</code>で、<code>MyClass.var</code>というのはクラス変数である意味グローバルに見えるものなので
+使えるかな、と思ったのですが、
+v variableに<code>.</code>を含む文字列を使えないためエラーになってしまうようです。</p>
+
+<p>ということで、色々調べてみたんですが、今の所、v variableにglobalでない値を入れて操作するのは
+難しいかな、という感じでした。</p>
+
+<h3 id="g-label">g-label</h3>
+
+<p>v variableと似たようなもので、Guiの要素に対してつける<a href="https://www.autohotkey.com/docs/commands/Gui.htm#label">g-label</a>
+というものがあります。</p>
+
+<p>v variable同様<code>g</code> + <code>&lt;name&gt;</code>で定義します。(<code>g</code>は大文字でもOK)</p>
+
+<p>g-labelはその要素をクリックしたときや、要素の値が変化したときなどに
+実行する動作を定義します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">gOpenURL</span> <span class="n">cBlue</span><span class="p">,</span> <span class="n">Link</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">OpenURL:</span>
+</span><span class="line">  <span class="nb">Run</span> <span class="n">https</span><span class="o">://</span><span class="n">example</span><span class="o">.</span><span class="n">com</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいにすれば、<code>Link</code>というテキストをクリックするとWebページが開かれます。</p>
+
+<p>関数ももし引数なしの関数であれば同じ様に
+あてられます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">gOpenURL</span> <span class="n">cBlue</span><span class="p">,</span> <span class="n">Link</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line"><span class="n">OpenURL</span><span class="p">(){</span>
+</span><span class="line">  <span class="nb">Run</span> <span class="n">https</span><span class="o">://</span><span class="n">example</span><span class="o">.</span><span class="n">com</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>引数ありの関数を使いたい場合、
+<a href="https://www.autohotkey.com/docs/objects/Functor.htm#BoundFunc">BoundFunc Object</a>
+を使って<code>GuiControl</code>で後から加える形にします。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">cBlue</span> <span class="n">vLink</span><span class="p">,</span> <span class="n">Link</span>
+</span><span class="line"><span class="n">func</span> <span class="o">:=</span> <span class="n">Func</span><span class="p">(</span><span class="s">&quot;OpenURL&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="nb">GuiControl</span><span class="p">,</span> <span class="o">+</span><span class="n">G</span><span class="p">,</span> <span class="n">Link</span><span class="p">,</span> <span class="o">%</span> <span class="n">func</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line"><span class="n">OpenURL</span><span class="p">(</span><span class="n">url</span><span class="p">){</span>
+</span><span class="line">  <span class="nb">Run</span> <span class="nv">%url%</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>引数がある関数の場合には<code>bind(x, y, z...)</code>の様に
+<code>bind</code>の中に引数を入れて作ります。</p>
+
+<p>GuiControlではv variableを使って要素を指定していますが、
+v labelを付けない場合、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="o">+</span><span class="n">HwndLinkHwnd</span> <span class="n">cBlue</span><span class="p">,</span> <span class="n">Link</span>
+</span><span class="line"><span class="n">func</span> <span class="o">:=</span> <span class="n">Func</span><span class="p">(</span><span class="s">&quot;OpenURL&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="nb">GuiControl</span><span class="p">,</span> <span class="o">+</span><span class="n">G</span><span class="p">,</span> <span class="o">%</span> <span class="n">Wwnd</span><span class="p">,</span> <span class="o">%</span> <span class="n">func</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line"><span class="n">OpenURL</span><span class="p">(</span><span class="n">url</span><span class="p">){</span>
+</span><span class="line">  <span class="nb">Run</span> <span class="nv">%url%</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に<strong>ウィンドウハンドル</strong>を使った指定も出来ます。</p>
+
+<p><code>+Hwnd&lt;name&gt;</code>とすると、その要素の<strong>ウィンドウハンドル</strong>を
+<code>&lt;name&gt;</code>に入れることができ(値はウィンドウハンドルにあたる数字)、
+この数字をGuiControlにv variableの代わりに渡ことで要素を指定できます。</p>
+
+<p>もしくはクラス内でクラスメソッドを使いたい場合、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">class</span> <span class="n">MyClass</span><span class="p">{</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">SetGui</span><span class="p">(){</span>
+</span><span class="line">    <span class="o">...</span>
+</span><span class="line">    <span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">cBlue</span> <span class="n">vLink</span><span class="p">,</span> <span class="n">Link</span>
+</span><span class="line">    <span class="n">func</span> <span class="o">:=</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OpenURL&quot;</span><span class="p">,</span> <span class="s">&quot;https://example.com&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">GuiControl</span><span class="p">,</span> <span class="o">+</span><span class="n">G</span><span class="p">,</span> <span class="n">Link</span><span class="p">,</span> <span class="o">%</span> <span class="n">func</span>
+</span><span class="line">    <span class="o">...</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">OpenURL</span><span class="p">(</span><span class="n">url</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">Run</span> <span class="nv">%url%</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にObjBindMethodを使った方法もあります。
+使う関数の引数は<code>ObjBindMethod</code>の第3引数以降に指定します。</p>
+
+<p>もし、クラスメソッドでも引数がなく、かつ中でインスタンス変数などを使っていないのであれば、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">Gui</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="o">%</span> <span class="s">&quot;g&quot;</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">__Class</span>  <span class="s">&quot;.OpenURL cBlue&quot;</span><span class="p">,</span> <span class="n">Link</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすることも可能です。<code>MyClass.OpenURL</code>をg-labelとして指定する、ということ。</p>
+
+<p>v variableの場合と違ってこちらは中に<code>.</code>とかが入っていても構わないのでクラスメソッドを直接指定できます。</p>
+
+<h3 id="a_guicontrolを持つためにはg-labelが必要">A_GuiControlを持つためにはg-labelが必要</h3>
+
+<p><code>A_GuiControl</code>という値は現在フォーカスがあたっている値が入っています。</p>
+
+<p>これとToolTipを使って、Guiで表示しているボタンやテキストなどの説明をポップアップ表示する設定を作れます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/blob/master/lib/vim_tooltip.ahk">vim_ahk/vim_tooltip.ahk at master · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p><code>OnMessage(0x200, &lt;func&gt;)</code>で、<code>0x200</code>がマウスが動いたとき、を捉えられ、
+そのときの動作を<code>func</code>で指定できます。
+したがって、この時に<code>A_GuiControl</code>を調べて、ToolTipを出したいものならセットする、
+というのが上の<strong>vim_tooltip.ahk</strong>の中でやっていること。</p>
+
+<p>g-label、v variableを共に付けていると、<code>A_GuiControl</code>はv variableの名前になります。</p>
+
+<p>g-labelはv variableとは関係ない名前でも良いわけですが、
+g-labelがついてない場合、<code>A_GuiControl</code>は空になります。</p>
+
+<p>この辺は今の環境でやってみてなのでもしかしたら何か勘違いしているかもしれませんが、
+手元の環境ではそうなっています。</p>
+
+<p>したがって、例えばただのテキストとかで特に動作が必要なく、g-labelをつける必要がない場合でも、
+ToolTipを出したい場合、何もしないDummyのラベルか関数を作ってg-labelをつける必要があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/blob/master/lib/vim_setting.ahk">vim_ahk/vim_setting.ahk at master · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>この中では、<code>DisableUnusedText</code>とか、ただのテキストなんですが、この上にマウスオーバーしたときでも
+ツールチップを出したかったのでダミー関数を作ってg-labelにあてています。</p>
+
+<h3 id="guiclose-guiescapeにクラスメソッドを">GuiClose, GuiEscapeにクラスメソッドを</h3>
+
+<p>Guiを作ると、自動的に<code>GuiClose</code>(ウィンドウをばつ印を押すなどして閉じるときの操作)、<code>GuiEscape</code>(<i class="key">Esc</i>を押した時の操作)という
+g-labelが自動的に加わります。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/commands/Gui.htm#GuiClose">Gui - Syntax &amp; Usage AutoHotkey</a></p>
+</blockquote>
+
+<p>グローバルな<code>GuiClose</code>や<code>GuiEscape</code>といったラベルや関数があるとそれがウィンドウのばつ印を押したときとかに実行されます。</p>
+
+<p>これは全てのGuiで共通ですが、各Guiのものに関しては<code>&lt;Guiのラベル&gt;</code> + <code>Close</code>
+という名前でラベルや関数を定義することでその動作を指定できます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">gui</span> <span class="n">new</span><span class="p">,</span> <span class="o">+</span><span class="n">LabelMyGui</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyGuiClose</span><span class="p">(){</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="s">&quot;Close MyGui&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>クラス内でGuiを作って、クラス内の関数を使いたい場合、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">class</span> <span class="n">MyClass</span><span class="p">{</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">SetGui</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">gui</span> <span class="n">new</span><span class="p">,</span> <span class="o">%</span> <span class="s">&quot;+Label&quot;</span> <span class="o">.</span> <span class="n">this</span><span class="o">.</span><span class="n">__Class</span> <span class="s">&quot;.&quot;</span>
+</span><span class="line">    <span class="o">...</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="nf">Close</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="s">&quot;Close MyGui&quot;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすれば、<code>MyClass.Close()</code>を指定することになりクラス内の関数を使えます。
+ですが、この場合はクラスメソッドとして呼ぶので、インスタンス変数などは参照できません。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/boards/viewtopic.php?t=64337">Event(guiescape) call function problem in class - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>インスタンスの操作をきちんとしたい場合、上のようなラベルを使った指定ではうまくいきません。</p>
+
+<p>これをなんとかするには、<code>OnMessage</code>を使った方法があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/blob/master/lib/vim_gui.ahk">vim_ahk/vim_gui.ahk at master · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x112</span><span class="p">,</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OnClose&quot;</span><span class="p">))</span>
+</span><span class="line"><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x100</span><span class="p">,</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OnEscape&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>0x112</code>はGuiのウィンドウに何らかの操作が行われた時、
+<code>0x100</code>は何らかのキーが押されたときを捉えます。</p>
+
+<p><code>OnClose</code>の方ではその後、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">OnClose</span><span class="p">(</span><span class="n">wp</span><span class="p">,</span> <span class="n">lp</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">hwnd</span><span class="p">){</span>
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="n">wp</span> <span class="o">==</span> <span class="mh">0xF060</span> <span class="o">&amp;&amp;</span> <span class="n">hwnd</span> <span class="o">==</span> <span class="n">this</span><span class="o">.</span><span class="n">Hwnd</span><span class="p">){</span>
+</span><span class="line">    <span class="n">this</span><span class="o">.</span><span class="n">Hide</span><span class="p">()</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としてますが、第一引数に何の操作が行われたか、という情報が入り、
+<code>0xF060</code>はウィンドウを閉じる操作が行われた際の番号です。</p>
+
+<p>第4引数にその操作が行われたウィンドウハンドルが入っていて、
+これをあらかじめ取得しておいたGuiのウィンドウハンドルと比べて同じならウィンドウを隠す、ということをしています。</p>
+
+<p>この<code>OnMessage</code>は呼ぶたびに新しくそのトリガーに関する動作を加えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x112</span><span class="p">,</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OnClose&quot;</span><span class="p">))</span>
+</span><span class="line"><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x112</span><span class="p">,</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OnClose&quot;</span><span class="p">))</span>
+</span><span class="line"><span class="nf">OnMessage</span><span class="p">(</span><span class="mh">0x112</span><span class="p">,</span> <span class="n">ObjBindMethod</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&quot;OnClose&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかすると、<code>OnClose</code>が3回呼ばれる事に。
+上の例のVimGuiというクラスは、それを継承したGuiを作るクラスをいくつか作るんですが、
+それらが作られるたびに<code>OnMessage</code>が追加され、
+どのウィンドウが閉じられるときにも全ての<code>OnClose</code>が走る、ということになります。</p>
+
+<p>なので、例えばGuiをNewしてDestroyして、みたいなことを頻繁にやるのであれば
+このやり方はちょっと良くないです(その分無駄に<code>OnMessge</code>の動作が加わっていくので。</p>
+
+<p>vim_ahkでは、設定ウィンドウで以前は初期値を設定し直すのが面倒だったので、
+毎回Gui NewしてDestroyして、みたいなことをしていましたが、
+上記の理由で<code>Hide</code>に置き換えました。表示する設定値は毎回別途アップデートするように。
+(そうでなくてもHideにしたほうが多分良かったとは思います。)</p>
+
+<p>もう一つ、Escapeに関しては</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">OnEscape</span><span class="p">(</span><span class="n">wp</span><span class="p">,</span> <span class="n">lp</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">hwnd</span><span class="p">){</span>
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="n">wp</span> <span class="o">==</span> <span class="mi">27</span><span class="p">){</span>
+</span><span class="line">    <span class="n">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">this</span><span class="o">.</span><span class="n">HwndAll</span> <span class="p">{</span>
+</span><span class="line">      <span class="n">if</span><span class="p">(</span><span class="n">hwnd</span> <span class="o">==</span> <span class="n">h</span><span class="p">){</span>
+</span><span class="line">        <span class="n">this</span><span class="o">.</span><span class="n">Hide</span><span class="p">()</span>
+</span><span class="line">        <span class="nb">Return</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>な感じ。</p>
+
+<p>今度は<code>wp</code>に押したキーの10進法でのASCIIコードが入っていて、27がESCです。</p>
+
+<p>その後、Closeの場合には必ずウィンドウ自体のウィンドウハンドルが入りますが、
+Escapeを押したタイミングではその時にフォーカスが当たっている要素のウィンドウハンドルが入ります。</p>
+
+<p>ボタンとか何も無ければ全体のウィンドウのウィンドウハンドルがありますが、
+ボタンやDropdownなどの要素がある場合にはそれらのうちフォーカスが当たったものになります。</p>
+
+<p>なので、Guiを作る際に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">Gui</span><span class="p">,</span> <span class="o">%</span> <span class="n">this</span><span class="o">.</span><span class="n">Hwnd</span> <span class="s">&quot;:Add&quot;</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="o">+</span><span class="n">HwndOK</span> <span class="n">X200</span> <span class="n">W100</span> <span class="n">Default</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">OK</span>
+</span><span class="line"><span class="n">this</span><span class="o">.</span><span class="n">HwndAll</span><span class="o">.</span><span class="n">Push</span><span class="p">(</span><span class="n">OK</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいにフォーカスが当たる可能性のある要素の全てについてウィンドウハンドルを取って
+リストに詰めておいて上のように全てと比較するようなことをしています。</p>
+
+<h3 id="settimerにマイナスの値">SetTimerにマイナスの値</h3>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">SetTimer</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">period</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>で、<code>period</code>の間隔で<code>Label</code>を実行するように出来ますが、<code>period</code>を<code>Off</code>にすればこのタイマーが止まります。</p>
+
+<p>正の整数だとその間隔(ミリ秒)で実行します。</p>
+
+<p>もしマイナスの値を与えると一回だけ、指定ミリ秒後に実行してタイマーを止めます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AutoHotkeyでファイルをincludeする場合の注意]]></title>
+    <link href="https://rcmdnk.com/blog/2018/11/20/computer-windows-autohotkey/"/>
+    <updated>2018-11-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/11/20/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>WindowsでキーカスタマイズができるAutoHotkeyですが、
+設定ファイルの中から他の設定ファイルをIncludeするようなことが出来ます。</p>
+
+<p>その際、ちょっと問題が発生したのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#if文の条件は続く" id="markdown-toc-if文の条件は続く">If文の条件は続く</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="if文の条件は続く">If文の条件は続く</h2>
+
+<figure class="code"><figcaption><span>myscript.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="nb">#Include</span>  <span class="nv">%A_LineFile%</span>\<span class="o">..</span>\<span class="n">outer_script</span><span class="o">.</span><span class="n">ahk</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; My settings</span>
+</span><span class="line"><span class="nl">a::</span><span class="n">b</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで外部ファイルを
+Includeするとき
+Includeしたファイルの中で、</p>
+
+<figure class="code"><figcaption><span>outer_script.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="n">#If</span> <span class="n">Condition</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じでIf文を使っている場合、このIf文はIncludeを行ったファイルのその後の部分にまでかかってきてしまいます。</p>
+
+<p>つまり、上の場合、<code>a::b</code>は<code>Condition==1</code>の場合のみに動作することになります。</p>
+
+<p>なのでIncludeする際にはちょっと注意が必要です。</p>
+
+<p>回避するためには、Includeされる可能性のあるファイルでは常に一番最後にIf文のリセットを入れること。</p>
+
+<figure class="code"><figcaption><span>outer_script.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="n">#If</span> <span class="n">Condition</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#If</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>他に影響は与えないのでAutoHotkeyを書くときには常に最後に
+<code>#If</code>を入れておいた方が良いと思います。</p>
+
+<p>一方、Includeする側でも基本的に常にどの様な条件で使うべきか一番最初の設定から考え、
+無条件にしたい場合でも</p>
+
+<figure class="code"><figcaption><span>myscript.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span>
+</span><span class="line"><span class="o">..</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に<code>#If</code>でリセットしてから始める様にするのが良いと思います。</p>
+
+<p>もしかしたら条件を入れるためにIncludeを使う様な特殊な使い方をすることもあるかもしれませんが、
+そうでない場合は<code>#If</code>のリセットの習慣をつけよう、と。</p>
+
+<p>ちなみにこれはvim_ahkで最近気づいたことです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>自分の設定ファイルではこれをIncludeした後最初からIf文を使って条件付でいろいろ書いてるので
+問題なかったのですが、
+If文を使ってないファイルの中へIncludeした場合には問題が起きていたと思います。</p>
+
+<p>というわけで先週くらいに治しましたので
+もしvim_ahkを入れると動作がおかしくなったな、と感じてた人が居たら
+新しいのを使ってみてください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkにjk/sdでNormalモードに入るキーを追加]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/27/computer-windows-autohotkey-vim/"/>
+    <updated>2018-08-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/27/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>Windows上でAutoHotkeyを使ってどこでもVimを実現する<a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>に
+<code>jk</code>/<code>sd</code>の同時押しでNormalモードに入るキーを追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#jksdの同時押し" id="markdown-toc-jksdの同時押し">jk/sdの同時押し</a></li>
+  <li><a href="#実装の話" id="markdown-toc-実装の話">実装の話</a></li>
+  <li><a href="#mac版" id="markdown-toc-mac版">Mac版</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<p>EvernoteとかWindows上のエディタ上でものを書く時にVimの様な動作を実現するための
+AutoHotkeyのスクリプトです。</p>
+
+<p>上のレポジトリに<strong>vim_ahk.exe</strong>という実行ファイルもあるので
+AutoHotkeyがなくても動きます。</p>
+
+<p>メモ帳などを開いて、<i class="key">ESC</i>を押すとNormalに入って<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>で移動できたり
+<i class="key">D</i><i class="key">D</i>でライン削除出来たり<i class="key">P</i>でペーストできたり基本的な
+Vim動作が出来る様になります。</p>
+
+<h2 id="jksdの同時押し">jk/sdの同時押し</h2>
+
+<p>これまで<i class="key">J</i><i class="key">J</i>と連続で押すとNormalモードに入る設定はありましたが、
+これに加え<i class="key">J</i><i class="key">K</i>、<i class="key">S</i><i class="key">D</i>の同時押しでもNormalモードに入れる様にしました。</p>
+
+<p>デフォルトではオフになっているので、
+設定画面から</p>
+
+<ul>
+  <li>JK to enter Normal mode</li>
+  <li>SD to enter Normal mode</li>
+</ul>
+
+<p>にチェックを入れるとそれぞれ有効になります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B077924TQN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077924TQN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ZcipM0HFL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp: Beginning Tips for Writing AutoHotkey Scripts: Understanding How AutoHotkey Works and Designing Robust Applications (AutoHotkey Tips and Tricks Book 9) (English Edition) 電子書籍: Jack Dunning: Kindleストア" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/">vim_ahkでメニューから設定変更出来る様にした</a></div></li></ul>
+
+<h2 id="実装の話">実装の話</h2>
+
+<p>実際のところ<i class="key">J</i><i class="key">J</i>よりも
+<i class="key">J</i><i class="key">K</i>とかの方が実装は簡単です。</p>
+
+<p>こんな感じになっています。</p>
+
+<figure class="code"><figcaption><span>vim.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_group &quot;</span> <span class="o">.</span> <span class="n">VimGroupName</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nf">InStr</span><span class="p">(</span><span class="n">VimMode</span><span class="p">,</span> <span class="s">&quot;Insert&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VimJJ</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="o">~</span><span class="n">j</span> <span class="n">up</span><span class="o">::</span><span class="c1"> ; jj: go to Normal mode.</span>
+</span><span class="line">  <span class="nb">Input</span><span class="p">,</span> <span class="n">jout</span><span class="p">,</span> <span class="n">I</span> <span class="n">T0</span><span class="o">.</span><span class="mi">1</span> <span class="n">V</span> <span class="n">L1</span><span class="p">,</span> <span class="n">j</span>
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="nv">ErrorLevel</span> <span class="o">==</span> <span class="s">&quot;EndKey:J&quot;</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">SendInput</span><span class="p">,</span> <span class="p">{</span><span class="n">BackSpace</span> <span class="mi">2</span><span class="p">}</span>
+</span><span class="line">    <span class="n">VimSetNormal</span><span class="p">()</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line"><span class="c1">; }}}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#If</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_group &quot;</span> <span class="o">.</span> <span class="n">VimGroupName</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nf">InStr</span><span class="p">(</span><span class="n">VimMode</span><span class="p">,</span> <span class="s">&quot;Insert&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VimJK</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="n">j</span> <span class="o">&amp;</span> <span class="n">k</span><span class="o">::</span>
+</span><span class="line"><span class="n">k</span> <span class="o">&amp;</span> <span class="n">j</span><span class="o">::</span>
+</span><span class="line">  <span class="nb">SendInput</span><span class="p">,</span> <span class="p">{</span><span class="n">BackSpace</span> <span class="mi">1</span><span class="p">}</span>
+</span><span class="line">  <span class="n">VimSetNormal</span><span class="p">()</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line"><span class="c1">; }}}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#If</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_group &quot;</span> <span class="o">.</span> <span class="n">VimGroupName</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nf">InStr</span><span class="p">(</span><span class="n">VimMode</span><span class="p">,</span> <span class="s">&quot;Insert&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VimSD</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="n">s</span> <span class="o">&amp;</span> <span class="n">d</span><span class="o">::</span>
+</span><span class="line"><span class="n">d</span> <span class="o">&amp;</span> <span class="n">s</span><span class="o">::</span>
+</span><span class="line">  <span class="nb">SendInput</span><span class="p">,</span> <span class="p">{</span><span class="n">BackSpace</span> <span class="mi">1</span><span class="p">}</span>
+</span><span class="line">  <span class="n">VimSetNormal</span><span class="p">()</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"></span>
+</span><span class="line"><span class="c1">; }}}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>If</code>文のところは有効にするアプリと<code>Insert</code>モードであるという状態(つまりは通常のOSの入力状態)、加えて
+それぞれのオプションが有効化どうかをチェックしています。</p>
+
+<p><i class="key">J</i><i class="key">J</i>については
+<code>~j up</code>という、<i class="key">J</i>を離したとき、に関する設定です。
+<code>T0.1</code>という部分で0.1秒以内に次の入力があったら、という設定になっています。</p>
+
+<p><i class="key">J</i>以外が来るか0.1秒以上たったら通常の振る舞いになります。</p>
+
+<p>ただ、いずれにしろ押した瞬間に<i class="key">J</i>は送られるので一瞬表示され、
+さらに<i class="key">J</i>がすぐに押されても入力は行われてしまいます。</p>
+
+<p>そこで<code>{BackSpace 2}</code>で二文字消してるわけです。</p>
+
+<p>詳しくは以下参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0765KTMFT?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0765KTMFT&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511pHA-FwVL._SS90_CR0,0,120,90_.jpg" alt="JJ(ジェイジェイ) 2017年 12 月号 [雑誌]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/05/computer-windows-autohotkey/">AutoHotkeyで短い連続入力を認識させる方法</a></div></li></ul>
+
+<p><i class="key">J</i><i class="key">K</i>、<i class="key">S</i><i class="key">D</i>の方は簡単で
+2つ同時押しに対しては<code>&amp;</code>を使って2つ繋げてあげれば良いだけ。</p>
+
+<p>ただ、この場合は最初に押された方のキーが送られてしまうのでその一文字を消しています。
+また、どちらが先に押されても良いように両方の順でそれぞれ書いています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/">AutoHotkeyの使い方1</a></div></li></ul>
+
+<h2 id="mac版">Mac版</h2>
+
+<p>Macでも<a href="https://pqrs.org/osx/karabiner/">Karabiner-Elements</a>を使って同じ様なことが出来ます。</p>
+
+<p><a href="https://rcmdnk.com/KE-complex_modifications/">Karabiner-Elements complex_modifications rules by rcmdnk</a>
+からVim emulationをImportしてください。</p>
+
+<p>もともとこっちに<i class="key">J</i><i class="key">K</i>、<i class="key">S</i><i class="key">D</i>
+でのNormalとInsertのトグルセットがあったので
+AutoHotkey版にも入れようと思ってたんですが
+今回Issueが来たので入れてみました。</p>
+
+<p>ちょっと注意が必要なのはMac版はNormalモードからもInsertモードに戻るトグル形式ですが、
+Windows版だとInsertモードからNormalモードになるだけです。</p>
+
+<p>もしトグル形式がほしいという人が居たらIssueとかに入れてくれればそのうちやります。(これはちょっと面倒、かも。)</p>
+
+<p>逆にWindows版の方にしかない<i class="key">J</i><i class="key">J</i>のMac版への移植は
+多分最近また進化しているKarabiner-Elementsなら簡単に出来るんじゃないかと思うので
+そのうちやりたいと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでウィンドウを定期的にチェックしてトレイアイコンを変えられる様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/22/computer-autohotkey-vim/"/>
+    <updated>2017-11-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/22/computer-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>
+の設定でアクティブウィンドウを定期的にチェックして、
+もしvim_ahk対応でないウィンドウの場合には
+アイコンをDisabledアイコンにアップデート出来る様にしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#autohotkeyで定期的なチェックを行う" id="markdown-toc-autohotkeyで定期的なチェックを行う">AutoHotkeyで定期的なチェックを行う</a></li>
+  <li><a href="#ahk_vimでウィンドウチェック" id="markdown-toc-ahk_vimでウィンドウチェック">ahk_vimでウィンドウチェック</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="autohotkeyで定期的なチェックを行う">AutoHotkeyで定期的なチェックを行う</h2>
+
+<p>ToolTipを出す時に使った
+<a href="https://autohotkey.com/docs/commands/SetTimer.htm">SetTimer</a>
+を使います。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171110_ahktooltip_120_90.jpg" width="120" height="90" alt="20171110_ahktooltip_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/10/computer-windows-autohotkey/">AutoHotkeyでToolTipを出す</a></div></li></ul>
+
+<p>ToolTipのときにはどちらかと言うと無理やりSetTimerを使って時間差で消す、という作業を
+行ってましたが、
+本来SetTimerで時間をセットするとその時間毎にコマンドを実行する様になります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#Persistent</span><span class="c1"> ; Keep script running</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">SetTimer</span><span class="p">,</span> <span class="n">CheckWindow</span><span class="p">,</span> <span class="mi">10000</span><span class="c1"> ; Set timer (ms)</span>
+</span><span class="line"><span class="nb">Return</span><span class="c1"> ; End of Auto-execute section</span>
+</span><span class="line">
+</span><span class="line"><span class="nl">CheckWindow:</span>
+</span><span class="line">  <span class="nb">WinGet</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">PID</span><span class="p">,</span> <span class="n">A</span>
+</span><span class="line">  <span class="nb">WinGet</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ProcessName</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">WinGetClass</span><span class="p">,</span> <span class="n">class</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">WinGetTitle</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ahk_pid</span> <span class="nv">%process%</span>
+</span><span class="line">  <span class="nb">Msgbox</span><span class="p">,</span>
+</span><span class="line">  <span class="g">(</span>
+</span><span class="line"><span class="g">    Process name: %name%</span>
+</span><span class="line"><span class="g">    Class       : %class%</span>
+</span><span class="line"><span class="g">    Title       : %title%</span>
+</span><span class="line"><span class="g">  )</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのスクリプトを実行すれば
+10秒ごとにその時のアクティブウィンドウのタイトルとかをポップアップメッセージとして出します。</p>
+
+<p>止めたくなったら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">SetTimer</span><span class="p">,</span> <span class="n">CheckWindow</span><span class="p">,</span> <span class="n">OFF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を実行します。</p>
+
+<h2 id="ahk_vimでウィンドウチェック">ahk_vimでウィンドウチェック</h2>
+
+<p>こんな感じです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171122_ahkvimiconcheck.gif" alt="ahkvimiconcheck" class="pic" /></p>
+
+<p>ターミナル(putty、vim_ahk無効)とメモ帳(vim_ahk有効)の2つの
+ウィンドウを行ったり来たりして、ターミナル上に行くと灰色のDisabledアイコンになってるのがわかると思います。</p>
+
+<p>デフォルトでは1秒毎にチェックします。</p>
+
+<p>この設定はメニューから開ける設定画面から
+チェックのオンオフやチェック間隔を変更することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B077924TQN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077924TQN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ZcipM0HFL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp: Beginning Tips for Writing AutoHotkey Scripts: Understanding How AutoHotkey Works and Designing Robust Applications (AutoHotkey Tips and Tricks Book 9) (English Edition) 電子書籍: Jack Dunning: Kindleストア" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/">vim_ahkでメニューから設定変更出来る様にした</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkで有効にするアプリの変更もメニューから出来る様にした]]></title>
+    <link href="https://rcmdnk.com/blog/2017/11/14/computer-windows-autohotkey/"/>
+    <updated>2017-11-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/11/14/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>
+の設定にアプリの変更も出来る様にしました。</p>
+
+<p>これでスクリプトをいじらずに有効にしたいアプリを変更できますし、
+<code>exe</code>ファイルとして実行したときも変更が可能になりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahkの設定" id="markdown-toc-vim_ahkの設定">vim_ahkの設定</a></li>
+  <li><a href="#window-groupを実行中に変更する" id="markdown-toc-window-groupを実行中に変更する">Window Groupを実行中に変更する</a></li>
+  <li><a href="#設定ファイルに改行のある文字列を書き出すと上手くいかない" id="markdown-toc-設定ファイルに改行のある文字列を書き出すと上手くいかない">設定ファイルに改行のある文字列を書き出すと上手くいかない</a></li>
+  <li><a href="#edit枠を最初に持ってくるとフォーカス状態になる" id="markdown-toc-edit枠を最初に持ってくるとフォーカス状態になる">Edit枠を最初に持ってくるとフォーカス状態になる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahkの設定">vim_ahkの設定</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B077924TQN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077924TQN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ZcipM0HFL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp: Beginning Tips for Writing AutoHotkey Scripts: Understanding How AutoHotkey Works and Designing Robust Applications (AutoHotkey Tips and Tricks Book 9) (English Edition) 電子書籍: Jack Dunning: Kindleストア" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/11/computer-windows-autohotkey/">vim_ahkでメニューから設定変更出来る様にした</a></div></li></ul>
+
+<p>この前チェックボックスなどを使ってメッセージのverbose levelなどを変更したり
+出来る様にしましたが設定を有効に出来る
+アプリの選択も出来る様にしました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171114_vimahksettings.jpg" alt="vimahksettings" class="pic" /></p>
+
+<p>こんな感じのEdit枠を作って、各行に一つアプリのタイトルとかクラスとかを書きます。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/docs/misc/WinTitle.htm">WinTitle &amp; Last Found Window</a></p>
+</blockquote>
+
+<p>クラス名とかはトレイアイコンの右クリックから開ける<strong>Window Spy</strong>で調べられます。</p>
+
+<h2 id="window-groupを実行中に変更する">Window Groupを実行中に変更する</h2>
+
+<p>AutoHotkeyでは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">GroupAdd</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">notepad</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="nb">GroupAdd</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">wordpad</span><span class="o">.</span><span class="n">exe</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にグループを設定して、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span> <span class="nf">WInActive</span><span class="p">(</span><span class="s">&quot;ahk_group VimGroup&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>または</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#IfWInActive</span><span class="p">,</span> <span class="n">ahk_group</span> <span class="n">VimGroup</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にしてグループでまとめてそれがアクティブかどうかのチェックをしたり出来ます。</p>
+
+<p>ただAutoHotkeyには<code>GroupAdd</code>はありますが、<code>GroupDelete</code>の様な
+グループから除く様なコマンドはありません。
+なのでグループを一度実行してから変更することは、加えることは簡単ですが
+削除することは簡単にはできません。</p>
+
+<p>そこで、名前に番号を付けてグループを変更するたびに番号を変更して
+新しいグループとして作成し、
+<code>IfWinActive</code>でもその名前でチェックする様にするとグループ変更が可能になります。</p>
+
+<blockquote>
+  <p><a href="https://autohotkey.com/board/topic/71695-is-there-any-way-to-destroy-delete-a-window-group/#entry455084">Is there any way to destroy (delete) a window group - Ask for Help - AutoHotkey Community</a></p>
+</blockquote>
+
+<p>vim_ahkの中では下記の様な感じでやっています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="n">VimGroupDel</span> <span class="o">:=</span> <span class="s">&quot;,&quot;</span>
+</span><span class="line"><span class="n">VimGroupN</span> <span class="o">:=</span> <span class="mi">0</span>
+</span><span class="line">
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="s">&quot;ahk_exe notepad.exe&quot;</span><span class="c1">   ; NotePad</span>
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="n">VimGroupIni</span> <span class="o">.</span> <span class="n">VimGroupDel</span> <span class="o">.</span> <span class="s">&quot;ahk_exe wordpad.exe&quot;</span><span class="c1">   ; WordPad</span>
+</span><span class="line"><span class="n">VimGroupIni</span> <span class="o">:=</span> <span class="n">VimGroupIni</span> <span class="o">.</span> <span class="n">VimGroupDel</span> <span class="o">.</span> <span class="s">&quot;ahk_exe TeraPad.exe&quot;</span><span class="c1">   ; TeraPad</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimGroup</span> <span class="o">:=</span> <span class="n">VimGroupIni</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimReadIni</span><span class="p">()</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimSetGroup</span><span class="p">()</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">VimSetGroup</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="nb">global</span>
+</span><span class="line">  <span class="n">VimGroupN</span><span class="o">++</span>
+</span><span class="line">  <span class="n">VimGroupName</span> <span class="o">:=</span> <span class="s">&quot;VimGroup&quot;</span> <span class="o">.</span> <span class="n">VimGroupN</span>
+</span><span class="line">  <span class="nb">Loop</span><span class="p">,</span> <span class="n">Parse</span><span class="p">,</span> <span class="n">VimGroup</span><span class="p">,</span> <span class="o">%</span> <span class="n">VimGroupDel</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="n">if</span><span class="p">(</span><span class="nv">A_LoopField</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span><span class="p">){</span>
+</span><span class="line">      <span class="nb">GroupAdd</span><span class="p">,</span> <span class="nv">%VimGroupName%</span><span class="p">,</span> <span class="nv">%A_LoopField%</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">#If</span> <span class="nf">WInActive</span><span class="p">(</span><span class="s">&quot;ahk_group &quot;</span> <span class="o">.</span> <span class="n">VimGroupName</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>VimGroupN</code>という番号を新しくグループを作るたびに更新して
+<code>VimGroupName</code>を新しくしています。
+<code>#If WInActive</code>の中でも<code>VimGroupName</code>という変数を使っているので
+<code>VimSetGroup</code>の中で変更されるとそこも反映されます。</p>
+
+<h2 id="設定ファイルに改行のある文字列を書き出すと上手くいかない">設定ファイルに改行のある文字列を書き出すと上手くいかない</h2>
+
+<p>上の例で<code>VimGroupDel</code>という変数でアプリの区切りを指定してますが、
+Guiでは全て改行で区切る様に表示しています。</p>
+
+<p>実際、Settingsに表示する時に<code>StringReplace</code>を使って
+書き換えを行っていますが、
+最初は改行の入った文字列のまま書き出してました。</p>
+
+<p>が、どうも上手く動かないと思って書き出されたファイルを見てみると
+改行(<code>`n</code>)が空白になって、さらに次に書き込まれるものを
+挟むような感じになってしまっていました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ini"><span class="line"><span></span><span class="na">VimGroup</span><span class="o">=</span><span class="s">ahk_exe notepad.exe`nahk_exe wordpad.exe`n,ahk_exe TeraPad.exe...</span>
+</span><span class="line"><span class="na">VimRestoreIME</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimJJ</span><span class="o">=</span><span class="s">0</span>
+</span><span class="line"><span class="na">VimIcon</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimVerbose</span><span class="o">=</span><span class="s">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいになって欲しいのですが、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ini"><span class="line"><span></span><span class="na">VimGroup</span><span class="o">=</span><span class="s">ahk_exe notepad.exeVimRestoreIME=1</span>
+</span><span class="line"><span class="na">VimJJ</span><span class="o">=</span><span class="s">0</span>
+</span><span class="line"><span class="na">VimIcon</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">VimVerbose</span><span class="o">=</span><span class="s">1</span>
+</span><span class="line"><span class="na">ahk_exe wordpad.exe ahk_exe TeraPad.exe...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じになってました。</p>
+
+<p>書き出すタイミングをSleepで間を開けてみたりしても上手く生きませんでした。</p>
+
+<p>加えて読み込むときも既に改行ではないので駄目です。</p>
+
+<p>ということで改行区切りをそのまま出力するのは辞めてコンマ区切りに変更して出すようにしました。</p>
+
+<h2 id="edit枠を最初に持ってくるとフォーカス状態になる">Edit枠を最初に持ってくるとフォーカス状態になる</h2>
+
+<p>今の設定では一番上にチェックボックスがありますが、
+最初はアプリの設定を一番上に持ってきてました。</p>
+
+<p>アプリの設定は<code>Edit</code>を使ってますがこれが一番上にあると
+こんな感じで選択された状態になってしまいました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171114_vimahksettings0.png" alt="vimahksettings0" class="pic" /></p>
+
+<p>この状態でも実際にフォーカスがあたってるのは下のボタンで
+すぐに<i class="key">Return</i>を押すと<strong>OK</strong>を押します。</p>
+
+<p>なので実質的には問題は無いのですが、
+見た目的にあれなので順序を変えました。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

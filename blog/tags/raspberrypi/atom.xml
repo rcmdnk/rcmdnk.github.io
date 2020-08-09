@@ -1,0 +1,2479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: RaspberryPi | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/raspberrypi/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T10:06:03+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry PiのSDカードからのサルベージ&復旧]]></title>
+    <link href="https://rcmdnk.com/blog/2020/01/10/computer-iot-raspberrypi/"/>
+    <updated>2020-01-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/01/10/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>使っていたRaspberry Piにsshで接続できなくなってしまって、
+何度再起動しても駄目だったのでSDカードの中身だけ抜き出して
+再度インストールし直す作業を行いました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-pi" id="markdown-toc-raspberry-pi">Raspberry Pi</a></li>
+  <li><a href="#陥った状態" id="markdown-toc-陥った状態">陥った状態</a></li>
+  <li><a href="#raspberry-piの生存確認" id="markdown-toc-raspberry-piの生存確認">Raspberry Piの生存確認</a></li>
+  <li><a href="#micro-sdの中身を見る" id="markdown-toc-micro-sdの中身を見る">micro SDの中身を見る</a></li>
+  <li><a href="#micro-sdの中身を治す" id="markdown-toc-micro-sdの中身を治す">micro SDの中身を治す</a></li>
+  <li><a href="#再インストール" id="markdown-toc-再インストール">再インストール</a></li>
+  <li><a href="#usbで直接pcとつなぐ" id="markdown-toc-usbで直接pcとつなぐ">USBで直接PCとつなぐ</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-pi">Raspberry Pi</h2>
+
+<p>今使っているのはRaspberry Pi Zero WHで
+ディスクとしてはmicro SDカードを使います。</p>
+
+<p>以下過去の設定など。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B4D9KVX?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B4D9KVX&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31pXS40xBZL._SS90_CR0,0,120,90_.jpg" alt="SwitchBot スイッチボット スイッチ ボタンに適用 指ロボット スマートホーム ワイヤレス タイマー スマホで遠隔操作 Alexa, Google Home, Siri, IFTTTなどに対応（ハブ必要）" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/17/computer-iot-raspberrypi/">Raspberry PiからSwitch Botを操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<h2 id="陥った状態">陥った状態</h2>
+
+<p>Raspberry Piには電源ボタンなどなく、基本的に電源ケーブルを差した段階で
+勝手にOSが起動する様な設定になっています。</p>
+
+<p>何度か電源を入れ直してみた所、電源のLEDは通常っぽく光るのですが
+sshでつながらないし、ルーター側にも接続している様子はなし。</p>
+
+<p>ここでmini HDMIのアダプターがあってモニタに出力できればまた何か分かったと思いますが、
+そういったものがないので直接様子を見る手段がありません。</p>
+
+<p>なので結構どうしようもない状態。</p>
+
+<p>おそらく電源を直接抜くような落とし方を何度もしていたため、最後のところで運悪く中身が(ソフトウェア的に)壊れてしまったようです。</p>
+
+<h2 id="raspberry-piの生存確認">Raspberry Piの生存確認</h2>
+
+<p>とりあえずRaspberry Pi自体は動いている様に見えるのですが、
+それを調べるため、
+<strong>micro SDを抜いて、電源も抜いた状態</strong>で、
+接続用のmicro USBポート(Raspberry Pi Zeroだと電源用のmicro USBポートが端にあってその横にあるもの)とPCのUSB Aとをつないでみます。</p>
+
+<p>これでWindowsとかにつなげると新しいデバイスとして認識され、<strong>BCM2708 Boot</strong>
+といった表示が見れるはず、ということです。</p>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.org/forums/viewtopic.php?p=437084#p437084">STICKY: Is your Pi not booting? (The Boot Problems Sticky) - Raspberry Pi Forums</a></p>
+</blockquote>
+
+<p>実際やってみた所言われている通りになり、やはりRaspberry Pi自体は問題なさそうだな、と。</p>
+
+<h2 id="micro-sdの中身を見る">micro SDの中身を見る</h2>
+
+<p>Raspberry Pi用に作ったmicro SDですが、
+そのままだとWindowsとかからは簡単に見れません。</p>
+
+<p>Linux端末があってmicro SDを読めるなら直ぐにできますが。</p>
+
+<p>Windowsとかしかない場合、色々方法はありますが、
+今回はWindowsにVMwareを入れてそこからSDカードを見ました。</p>
+
+<blockquote>
+  <p><a href="https://www.vmware.com/jp/products/workstation-player/workstation-player-evaluation.html">VMware Workstation Player のダウンロード  VMware  JP</a></p>
+</blockquote>
+
+<p>個人利用なら無料です。</p>
+
+<p>使うOSはubuntu。
+<a href="https://www.ubuntulinux.jp/download/ja-remix">Ubuntu Desktop 日本語 Remixのダウンロード  Ubuntu Japanese Team</a>
+から19.04のISOイメージを取ってきました<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>これで、バーチャルマシンを作って立ち上げます。</p>
+
+<p>その状態でmicro USBを接続すると、VMware上に</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200110_microsd.jpg" alt="20200110_microsd.jpg" class="pic" /></p>
+
+<p>こんな感じで接続場所を確かめるポップアップが出るので、
+<strong>仮想マシンに接続</strong>を選んでOKします。</p>
+
+<p>そうするとWindows側ではなくてUbuntu側に接続されます。</p>
+
+<p>通常は
+<strong>/dev/sdb1</strong>, <strong>/dev/sdb2</strong>として2つの領域が認識されるはずです。</p>
+
+<p>この状態で、ターミナルを立ち上げて、</p>
+
+<pre><code>$ sudo mkdir -p /mnt/sdb1 &amp;&amp; sudo mount /dev/sdb1 /mnt/sdb1
+</code></pre>
+
+<p>とかすれば<strong>/mnt/sdb1</strong>で中身が見れるようになります。</p>
+
+<p>これまた通常は<strong>sdb1</strong>の方はWindowsでも見れる起動用ファイル、
+<strong>sdb2</strong>の方がLinux領域でWindowsからは見れない領域ですが、
+この方法であれば<strong>/mnt/sdb2/</strong>に<strong>/mnt/sdb/home</strong>とかが見れるはずです。</p>
+
+<p>あとは適当にファイルを救出して適当なところに送ったりすればファイルを救出できます。</p>
+
+<p>このようにLinuxを使わなくても
+<a href="https://www.z-a-recovery.com/download.aspx">ZAR</a>
+というWindows用のソフトウェアを使うとWindowsに対応してないフォーマットの中身も見れる、
+というのを見ましたが、このソフトウェアを使ってみた所上手く見れなかったので辞めました。
+(多分、自分がなにかおかしかっただけで、ファイルを取得するだけなら
+バーチャルマシンを作るよりこっちのが簡単にできるかもしれません。)</p>
+
+<h2 id="micro-sdの中身を治す">micro SDの中身を治す</h2>
+
+<p>中身を見てみると特に問題はなさそうに見えることもあったので、ちょっと修復を試みました。
+<code>fsck</code>コマンドを使います。</p>
+
+<pre><code>$ sudo fsck /dev/sdb1
+fsck from util-linux 2.31.1
+fsck.fat 4.1 (2017-01-24)
+0x41: Dirty bit is set. Fs was not properly unmounted and some data may be corrupt.
+1) Remove dirty bit
+2) No action
+? 1
+Perform changes ? (y/n) y
+/dev/sdb1: 227 files, 79974/516191 clusters
+</code></pre>
+
+<p>何やらDirty bitがあった、ということでこれを取り除きました。
+<code>sdb2</code>の方は何も出ませんでした。</p>
+
+<p>これを実行後、Raspberry Piに戻して起動してみましたが、やはり駄目でした。</p>
+
+<p>Wi-Fiにつながってないだけ、という可能性はありましたが、
+<strong>/var/log/message</strong>などをUbuntuに接続して見てみると
+起動に関するログも出てないのでOST自体が起動してない感じでした。</p>
+
+<h2 id="再インストール">再インストール</h2>
+
+<p>仕方ないのでmicro SDを再フォーマットして1から再インストールし直します。</p>
+
+<p>上の方法で<strong>/home/raspberrypi</strong>のファイルは全て救出して後で必要なものを追加したり参照したりします。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>から始まって上のリンクにあるものを再度実行して再構築。</p>
+
+<p>きちんと管理してませんでしたが、必要なディレクトリに分けて
+GitHubのプライベートレポジトリに上げてしまっても良いかな。。。
+多分また壊れることはあるだろうし。</p>
+
+<h2 id="usbで直接pcとつなぐ">USBで直接PCとつなぐ</h2>
+
+<p>Raspberry Pi ZeroはUSBで直接PCとつないで操作することができるそうです。</p>
+
+<blockquote>
+  <p><a href="https://www.raspi.jp/2016/07/pizero-usb-otg/">Raspberry Pi ZeroをUSBケーブル1本で遊ぶ  Japanese Raspberry Pi Users Group</a></p>
+</blockquote>
+
+<p>ちょっと試してみた所、私の環境では素直には上手く行きませんでした。
+何かしら手違いがあったんだと思うんですが、
+VMwareで処理してしまってそれで良いか、と思ってそれ以上見てません。</p>
+
+<p>一応メモとして。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>見た目がおもちゃみたいなものだし、電源のOn/Offボタンもないので、
+普通のPCよりもさらに気軽に電源を引っこ抜く、みたいな事をしてましたが、
+流石に何度もやるとファイルが壊れてしまうことがあるようです。</p>
+
+<p>なるべくちゃんとshutdownして電源を落とさないと。。。</p>
+
+<p>一方で、起動できなくなってもSDカードごと壊れる、ということはめったに無いと思うので、
+その場合には結構簡単にファイルを救出できるので諦めないことです。</p>
+
+<p>ただ、必要なファイルは別に管理して、ぱっとインストールできる環境を作っておいた方が
+良いですね。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Piで温度湿度気圧を測ってスマホで見る]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"/>
+    <updated>2019-08-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>Raspberry PiでBME280というセンサーを使って
+温度、湿度、気圧を測ってスマホで見れる様にしてみます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#用意するもの" id="markdown-toc-用意するもの">用意するもの</a></li>
+  <li><a href="#bme280" id="markdown-toc-bme280">BME280</a></li>
+  <li><a href="#bme280のハンダ付け" id="markdown-toc-bme280のハンダ付け">BME280のハンダ付け</a></li>
+  <li><a href="#raspberry-piの準備" id="markdown-toc-raspberry-piの準備">Raspberry Piの準備</a></li>
+  <li><a href="#セットアップ" id="markdown-toc-セットアップ">セットアップ</a></li>
+  <li><a href="#raspberry-piのi2cを有効にする" id="markdown-toc-raspberry-piのi2cを有効にする">Raspberry PiのI2Cを有効にする</a></li>
+  <li><a href="#bme280の接続確認" id="markdown-toc-bme280の接続確認">BME280の接続確認</a></li>
+  <li><a href="#測定" id="markdown-toc-測定">測定</a>    <ul>
+      <li><a href="#pythonスクリプト例" id="markdown-toc-pythonスクリプト例">Pythonスクリプト例</a></li>
+      <li><a href="#c言語例" id="markdown-toc-c言語例">C言語例</a></li>
+    </ul>
+  </li>
+  <li><a href="#blynkを使ってスマホモニターを作る" id="markdown-toc-blynkを使ってスマホモニターを作る">Blynkを使ってスマホモニターを作る</a></li>
+  <li><a href="#参考文献" id="markdown-toc-参考文献">参考文献</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="用意するもの">用意するもの</h2>
+
+<p>適当なRaspberry Piを用意して初期設定します。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS200_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>今回必要なものは秋月電子で買うなら以下のもの:</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gM-12961/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　Ｚｅｒｏ　ＷＨ</a>: 2160円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gP-05156/">ミニブレッドボード　ＢＢ－６０１（スケルトン）: パーツ一般 秋月電子通商-電子部品・ネット通販</a>: 170円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gC-08932/">ブレッドボード・ジャンパーワイヤ（オス－メス）　１５ｃｍ（黒）　（１０本入）: パーツ一般 秋月電子通商-電子部品・ネット通販</a>: 220円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gK-09421/">ＢＭＥ２８０使用　温湿度・気圧センサモジュールキット: センサ一般 秋月電子通商-電子部品・ネット通販</a>: 1080円</li>
+</ul>
+
+<p>これ以外にRaspberry Pi用のmicroSDがなければ必要。</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gS-13002/">ＴＯＳＨＩＢＡ　マイクロＳＤカード（ｍｉｃｒｏＳＤＨＣ）ＥＸＣＥＲＩＡ　１６ＧＢ　１００ＭＢ／ｓ: 雑貨 秋月電子通商-電子部品・ネット通販</a>: 780円</li>
+</ul>
+
+<p>Raspberry Pi Zeroはスマホに使うようなmicro USB用の充電器でも使えますが、
+ACアダプターも買っておくと安心です。</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gM-12001/">スイッチングＡＣアダプター（ＵＳＢ　ＡＣアダプター）　ＭｉｃｒｏＢオス　５Ｖ３Ａ: 電源一般 秋月電子通商-電子部品・ネット通販</a>: 700円</li>
+</ul>
+
+<h2 id="bme280">BME280</h2>
+
+<p>BME280は温度、湿度、気圧センサーで、
+これを使ってRaspberry Piでそれらを測ってみます。</p>
+
+<blockquote>
+  <p><a href="http://akizukidenshi.com/catalog/g/gK-09421/">ＢＭＥ２８０使用　温湿度・気圧センサモジュールキット: センサ一般 秋月電子通商-電子部品・ネット通販</a></p>
+</blockquote>
+
+<p>ピンヘッダ付きのモジュールキットが秋月電子で1080円。</p>
+
+<p>これはAmazonとかでも売ってます。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS200_.jpg" alt="HiLetgo® BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">HiLetgo® BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>湿度センサのないBM<strong>P</strong>280というのもあるのでちょっと注意</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B074KBWYX8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B074KBWYX8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61r12yKOhBL._SS200_.jpg" alt="GAOHOU GY-BMP280-3.3高精度大気圧センサーモジュールArduino用" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B074KBWYX8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B074KBWYX8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">GAOHOU GY-BMP280-3.3高精度大気圧センサーモジュールArduino用</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B074KBWYX8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B074KBWYX8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBMP280%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBMP280%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>これ以外だとDHT11という温度、湿度センサーが付いたものがよく使われてる感じでした。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B017152HD4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B017152HD4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41MreOiov6L._SS200_.jpg" alt="KKHMF DHT11 温度と湿度センサー デジタル出力" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B017152HD4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B017152HD4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">KKHMF DHT11 温度と湿度センサー デジタル出力</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B017152HD4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B017152HD4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FDHT11%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FDHT11%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>以下のページの比較が参考になります。</p>
+
+<blockquote>
+  <p><a href="http://hello.world.coocan.jp/ARDUINO/arduino_5.html">第５回　温度と湿度を測定するセンサ Electronic DIY with Arduino</a></p>
+</blockquote>
+
+<p>今回はせっかくなので気圧も測ろうということと読み込みのコードの例などが豊富にありそうだったので、
+BME280を使いました。</p>
+
+<h2 id="bme280のハンダ付け">BME280のハンダ付け</h2>
+
+<p>BME280のモジュールセットにはセンサが載ってる基盤とピンヘッダがセットで入ってますが、
+これははんだ付けしないといけません。</p>
+
+<p>ハンダ付け道具を持ってなかったので、ダイソーで500円のハンダごてと
+100円のハンダを買ってきました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_handa.jpg" alt="20190826_handa.jpg" class="pic" /></p>
+
+<p>まあ、今後色々やるならちゃんとしたの買った方が良さそうですが、とりあえずのハンダ付けは出来ます。
+(スポンジと入れておけるカップみたいのを準備しておく。)</p>
+
+<p>ただ、はんだ取り線か吸引器は買っておきたいところでした。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001PR1KPQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001PR1KPQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71dYa6Bl7nL._SS200_.jpg" alt="goot はんだ吸取り線 CP-3015" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B001PR1KPQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001PR1KPQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">goot はんだ吸取り線 CP-3015</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B001PR1KPQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001PR1KPQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%81%AF%E3%82%93%E3%81%A0%E5%90%B8%E5%8F%96%E3%82%8A%E7%B7%9A%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%81%AF%E3%82%93%E3%81%A0%E5%90%B8%E5%8F%96%E3%82%8A%E7%B7%9A%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>ともかく、
+ピンヘッダは8ピンあるので8ピン分をニッパーとかで切り取ります。</p>
+
+<p>で、短い方を穴に入れてピンが外側に出るようにして裏側でハンダ付け。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_bme280.jpg" alt="20190826_bme280.jpg" class="pic" /></p>
+
+<p>ひどい。。。ちゃんと使うときはやり直します。</p>
+
+<h2 id="raspberry-piの準備">Raspberry Piの準備</h2>
+
+<p>適当なRaspberry Piを用意して初期設定します。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS200_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>Raspberry Pi Zero WHを使っています。</p>
+
+<h2 id="セットアップ">セットアップ</h2>
+
+<p>Raspberry PiとBME280を接続します。</p>
+
+<p>今回も全開のLチカに引き続きブレッドボードを用いてとりあえずの接続で試します。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/25/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190825_raspberrypi_120_90.jpg" width="120" height="90" alt="20190825_raspberrypi_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/25/computer-iot-raspberrypi/">Raspberry PiでLチカする</a></div></li></ul>
+
+<p>BME280はI2CとSPIの２つの通信方法を選ぶことが出来ますが、
+今回はI2C通信を選びます。
+I2C通信にする場合、説明書では基板上のJ3の部分をハンダでつなぐ、
+とありますが、下にもあるようにBME280の左から3番目のピンをVDD (3.3V)につなぐと
+同じ状態に出来るので今回はそれを利用します。</p>
+
+<p>BME280のモジュールからは6本のピンが出ています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_bme280front.jpg" alt="20190826_bme280front.jpg" class="pic" /></p>
+
+<p>これをそれぞれ</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">BME280</th>
+      <th style="text-align: center">Raspberry Pi GPIO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">VDD</td>
+      <td style="text-align: center">PIN  1 (3.3V)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">GND</td>
+      <td style="text-align: center">PIN  6 (GND)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">CSB</td>
+      <td style="text-align: center">PIN 17 (3.3V)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SDI</td>
+      <td style="text-align: center">PIN  3 (SDA.1)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SDO</td>
+      <td style="text-align: center">PIN 14 (GND)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SCK</td>
+      <td style="text-align: center">PIN  5 (SCL.1)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>という感じでつなぎます。
+5番目のピンをグラウンドにすることでI2Cのアドレスが0x76になります。
+これをVDD(3.3V)にすると0x77になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_setting.jpg" alt="20190826_setting.jpg" class="pic" /></p>
+
+<p>以下のサイトを参照しました。</p>
+
+<blockquote>
+  <p><a href="https://karaage.hatenadiary.jp/entry/2016/05/11/073000">Raspberry PiとBME280モジュールで自動で温度・湿度・気圧を測定してグラフ化する - karaage. [からあげ]</a></p>
+</blockquote>
+
+<p>モジュールをブレッドボードに挿して
+あとはジャンパでつなぐだけです。</p>
+
+<h2 id="raspberry-piのi2cを有効にする">Raspberry PiのI2Cを有効にする</h2>
+
+<p>Raspberry PiではデフォルトでI2C通信が有効になっていないため
+これを有効にします。</p>
+
+<p>これには<code>raspi-config</code>というコマンドを使います。</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo raspi-config
+</code></pre>
+
+<p>これで色々と変更するための<strong>Raspberry Pi Software Configuration Tool</strong>が立ち上がるので、そこから</p>
+
+<pre><code>5 Interfacin Options
+</code></pre>
+
+<p>に進み、さらに</p>
+
+<pre><code>P5 I2C
+</code></pre>
+
+<p>を選択し、<strong>Would you like the APM I2C interface to be enabled?</strong>と聞かれた<strong>Yes</strong>の方を選択します。</p>
+
+<p>出来たら一度再起動</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo reboot
+</code></pre>
+
+<h2 id="bme280の接続確認">BME280の接続確認</h2>
+
+<p><code>lsmod</code>コマンドで認識されてるかどうかチェック:</p>
+
+<pre><code>pi@raspberrypi:~ $ lsmod
+...
+i2c_bcm2835             7818  185
+...
+</code></pre>
+
+<p>こんな感じで<code>i2c_bcm2835</code>が見えてることを確認。</p>
+
+<p>アドレスを確認するためにi2c-toolsをインストールしてみます。</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo apt install i2c-tools
+</code></pre>
+
+<p>コレを使って</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- 76 --
+</code></pre>
+
+<p>こんな感じで0x76にi2c接続されてることがわかります。</p>
+
+<h2 id="測定">測定</h2>
+
+<h3 id="pythonスクリプト例">Pythonスクリプト例</h3>
+
+<p>Raspberry Piなども含めいろいろな電子機器を販売している
+スイッチサイエンスがサンプルプログラムを提供してくれているのでそれを使ってみます。</p>
+
+<div class="github-widget" data-repo="SWITCHSCIENCE/samplecodes"></div>
+
+<p>Python2.7用のサンプルコードが入っているので使ってみます。</p>
+
+<pre><code>pi@raspberrypi:~ $  git clone https://github.com/SWITCHSCIENCE/samplecodes.git
+pi@raspberrypi:~ $  cd ~/samplecodes/BME280/Python27
+pi@raspberrypi:~/samplecodes/BME280/Python27 $ ls
+bme280_sample.py  requirements.txt
+pi@raspberrypi:~/samplecodes/BME280/Python27 $ sudo pip install -r requirements.txt
+...
+pi@raspberrypi:~/samplecodes/BME280/Python27 $ python bme280_sample.py
+temp : 24.74  ℃
+pressure : 1009.65 hPa
+hum :  59.04 ％
+</code></pre>
+
+<p>こんな感じで温度と気圧、湿度を取得することが出来ました。</p>
+
+<h3 id="c言語例">C言語例</h3>
+
+<p>C言語の例としては以下のものがシンプルでわかりやすかったので使ってみました。</p>
+
+<div class="github-widget" data-repo="andreiva/raspberry-pi-bme280"></div>
+
+<p>必要なライブラリをインストール:</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo apt install libi2c-dev i2c-tools wiringpi
+</code></pre>
+
+<p>そして</p>
+
+<pre><code>pi@raspberrypi:~ $ git clone https://github.com/andreiva/raspberry-pi-bme280.git
+pi@raspberrypi:~ $ cd ~/raspberry-pi-bme280
+pi@raspberrypi:~/raspberry-pi-bme280 $ make
+gcc -g -Wall -Wextra -pedantic -std=c11 -D_DEFAULT_SOURCE -D_BSD_SOURCE -o bme280 bme280.c -lwiringPi -lm
+pi@raspberrypi:~/raspberry-pi-bme280 $ ./bme280
+{"sensor":"bme280", "humidity":70.19, "pressure":1010.35, "temperature":26.69, "altitude":22.06, "timestamp":15XXXXXXXX}
+</code></pre>
+
+<p>という感じでJSON形式での出力を出してくれます。</p>
+
+<p>こちらでは<strong>altitude</strong>ということで標高が表示されていますが、
+コードを見てみると</p>
+
+<figure class="code"><figcaption><span>bme280.h </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#define MEAN_SEA_LEVEL_PRESSURE       1013</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>bme280.c </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="c"><span class="line"><span></span><span class="kt">float</span> <span class="nf">getAltitude</span><span class="p">(</span><span class="kt">float</span> <span class="n">pressure</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">  <span class="c1">// Equation taken from BMP180 datasheet (page 16):</span>
+</span><span class="line">  <span class="c1">//  http://www.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf</span>
+</span><span class="line">
+</span><span class="line">  <span class="c1">// Note that using the equation from wikipedia can give bad results</span>
+</span><span class="line">  <span class="c1">// at high altitude.  See this thread for more information:</span>
+</span><span class="line">  <span class="c1">//  http://forums.adafruit.com/viewtopic.php?f=22&amp;t=58064</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">return</span> <span class="mf">44330.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">MEAN_SEA_LEVEL_PRESSURE</span><span class="p">,</span> <span class="mf">0.190294957</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、気圧から計算するようになってるので平均的な気圧のときに
+正しい標高が出るようになっています。</p>
+
+<h2 id="blynkを使ってスマホモニターを作る">Blynkを使ってスマホモニターを作る</h2>
+
+<p>Raspberry Pi上で測定できるようになったのでそれをスマホから見える様に
+してみます。</p>
+
+<p>使うのはBlynkというサービス/アプリです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<p>今回はSuper Chartというリッチなチャートを使います。
+ENERGY BALANCEを900使うので無料分全体2000の半分くらい使ってしまいますが、
+複数の値を同時に載せられるのでこれを使って温度、湿度、気圧のチャートを表示してみます。</p>
+
+<p>まずは上の記事に従ってスマホでBlynkアプリをインストールし、
+適当なプロジェクトを作成します。</p>
+
+<p>次にRaspberry Pi側で
+<a href="https://github.com/blynkkk/blynk-library">blynkkk/blynk-library</a>
+を取ってきてきます。</p>
+
+<pre><code>pi@raspberrypi:~ $  git clone https://github.com/blynkkk/blynk-library.git
+</code></pre>
+
+<p>これとは別に上で使った
+raspberry-pi-bme280のファイルを使います。</p>
+
+<pre><code>pi@raspberrypi:~ $  git clone https://github.com/andreiva/raspberry-pi-bme280.git
+</code></pre>
+
+<p>取ってきたら
+<strong>blynk-library</strong>の<strong>linux</strong>というディレクトリで作業します。</p>
+
+<pre><code>pi@raspberrypi:~ $  cd blynk-library/linux
+pi@raspberrypi:~/blynk-library/linux $ cp ~/raspberry-pi-bme280/bme280/bme280.c ./bme280.cpp
+pi@raspberrypi:~/blynk-library/linux $ cp ~/raspberry-pi-bme280/bme280/bme280.h ./bme280.h
+</code></pre>
+
+<p>Blynk側はC++なので<strong>cpp</strong>に変更してしまいます。</p>
+
+<p>関数だけ使いたいので<strong>bme280.cpp</strong>の中のmain関数を全てコメントアウトしておきます。</p>
+
+<p>次に、Blynkの<strong>main.cpp</strong>への変更。</p>
+
+<p>includeファイルとして</p>
+
+<figure class="code"><figcaption><span>main.cpp </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&quot;stdio.h&quot;</span><span class="cp"></span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を追加。</p>
+
+<p><strong>bme280.cpp</strong>のmain関数をベースに情報を抜き出す関数を<strong>main.cpp</strong>の中に追加します。</p>
+
+<figure class="code"><figcaption><span>main.cpp </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="kt">void</span> <span class="nf">bme280chart</span><span class="p">(){</span>
+</span><span class="line">  <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">wiringPiI2CSetup</span><span class="p">(</span><span class="n">BME280_ADDRESS</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;BME280 Device not found&quot;</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">bme280_calib_data</span> <span class="n">cal</span><span class="p">;</span>
+</span><span class="line">  <span class="n">readCalibrationData</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cal</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">wiringPiI2CWriteReg8</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mh">0xf2</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">);</span>
+</span><span class="line">  <span class="n">wiringPiI2CWriteReg8</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mh">0xf4</span><span class="p">,</span> <span class="mh">0x25</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">bme280_raw_data</span> <span class="n">raw</span><span class="p">;</span>
+</span><span class="line">  <span class="n">getRawData</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">raw</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="kt">int32_t</span> <span class="n">t_fine</span> <span class="o">=</span> <span class="n">getTemperatureCalibration</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cal</span><span class="p">,</span> <span class="n">raw</span><span class="p">.</span><span class="n">temperature</span><span class="p">);</span>
+</span><span class="line">  <span class="kt">float</span> <span class="n">t</span> <span class="o">=</span> <span class="n">compensateTemperature</span><span class="p">(</span><span class="n">t_fine</span><span class="p">);</span>
+</span><span class="line">  <span class="kt">float</span> <span class="n">p</span> <span class="o">=</span> <span class="n">compensatePressure</span><span class="p">(</span><span class="n">raw</span><span class="p">.</span><span class="n">pressure</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cal</span><span class="p">,</span> <span class="n">t_fine</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">;</span>
+</span><span class="line">  <span class="kt">float</span> <span class="n">h</span> <span class="o">=</span> <span class="n">compensateHumidity</span><span class="p">(</span><span class="n">raw</span><span class="p">.</span><span class="n">humidity</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cal</span><span class="p">,</span> <span class="n">t_fine</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">Blynk</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V20</span><span class="p">,</span>  <span class="n">t</span><span class="p">);</span>
+</span><span class="line">  <span class="n">Blynk</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V21</span><span class="p">,</span>  <span class="n">h</span><span class="p">);</span>
+</span><span class="line">  <span class="n">Blynk</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V22</span><span class="p">,</span>  <span class="n">p</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">void</span> <span class="nf">myTimerEvent</span><span class="p">(){</span>
+</span><span class="line">  <span class="n">bme280chart</span><span class="p">();</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最後の<strong>Blynk.virtualWrite</strong>というところで
+バーチャルPINの20~22番に書き出すようにしています。</p>
+
+<p>最後の<code>myTimerEvent</code>は後で他のイベントも追加できるようにするための
+ラッパー関数です。</p>
+
+<p>Super Chartではこの様に書き出す作業を定期的にRaspberry Pi側で行い、
+これを受け取る、という受動的な形式になります。</p>
+
+<p>これを定期的にRaspberry Pi側で行うために、
+<strong>main.cpp</strong>内の<code>setup</code>[関数を以下の様に変更します。</p>
+
+<figure class="code"><figcaption><span>main.cpp  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span> <span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span>
+</span><span class="line"> <span class="p">{</span>
+</span><span class="line">     <span class="n">Blynk</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">serv</span><span class="p">,</span> <span class="n">port</span><span class="p">);</span>
+</span><span class="line"><span class="o">-</span>    <span class="n">tmr</span><span class="p">.</span><span class="n">setInterval</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="p">[](){</span>
+</span><span class="line"><span class="o">-</span>      <span class="n">Blynk</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V0</span><span class="p">,</span> <span class="n">BlynkMillis</span><span class="p">()</span><span class="o">/</span><span class="mi">1000</span><span class="p">);</span>
+</span><span class="line"><span class="o">-</span>    <span class="p">});</span>
+</span><span class="line"><span class="o">+</span>    <span class="n">tmr</span><span class="p">.</span><span class="n">setInterval</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">myTimerEvent</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>もともと1000ms毎に、V0に対して定期的に<code>BlynkMillis</code>という現在時刻のミリ秒(を1000で割って秒)を
+渡す関数が<code>tmr.setInterval</code>に渡される例が入っていますが、
+それと入れ替えで、<code>myTimerEvent</code>を登録します。</p>
+
+<p>これで毎秒、温度、湿度、気圧を測定して20~22のバーチャルPINへ登録が行われます。
+これらの記録はBlynkサーバーに送られてアカウントの元管理されます。</p>
+
+<p>ちなみに<code>Blynk.virtualWrite</code>に関しては1秒に10個より多くの値は送らないでください、との
+注意書きがBlynkのサイトにありました
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>最後にMakefileに<strong>bme280</strong>を含めるようにします。</p>
+
+<figure class="code"><figcaption><span>Makefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gh">diff --git a/linux/Makefile b/linux/Makefile</span>
+</span><span class="line"><span class="gh">index d014e98..f4a46e9 100644</span>
+</span><span class="line"><span class="gd">--- a/linux/Makefile</span>
+</span><span class="line"><span class="gi">+++ b/linux/Makefile</span>
+</span><span class="line"><span class="gu">@@ -51,6 +51,7 @@ ifeq ($(target),raspberry)</span>
+</span><span class="line"> endif
+</span><span class="line">
+</span><span class="line"> SOURCES=main.cpp \
+</span><span class="line"><span class="gi">+ bme280.cpp \</span>
+</span><span class="line">  ../src/utility/BlynkDebug.cpp \
+</span><span class="line">  ../src/utility/BlynkHandlers.cpp \
+</span><span class="line">  ../src/utility/BlynkTimer.cpp
+</span></code></pre></td></tr></table></div></figure>
+
+<p>準備ができたら</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ make
+</code></pre>
+
+<p>して</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ sudo ./blynk --token=&lt;YourToken&gt;
+</code></pre>
+
+<p>とかして実行します。</p>
+
+<p>これでサーバー側に毎秒情報が送られます。</p>
+
+<p>これでRaspberry Pi側の準備ができたので
+アプリでチャートを準備します。</p>
+
+<p>まずはWidget BoxからSuper Chartを選択して設置します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_widgetbox.jpg" alt="20190826_widgetbox.jpg" class="pic" /></p>
+
+<p>Super Chartの設定では<strong>DATASTREAMS</strong>の項目に
+温度、湿度、気圧、を追加。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_superchartsetting1.jpg" alt="20190826_superchartsetting1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20190826_superchartsetting2.jpg" alt="20190826_superchartsetting2.jpg" class="pic" /></p>
+
+<p>X軸の値の表示などの設定もしておきます。</p>
+
+<p>次に、温度などの各項目の右側のボタンを押して設定に入り、
+<strong>INPUT</strong>としてVirtual PINの20から22をそれぞれ選びます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_supercharttemperature1.jpg" alt="20190826_supercharttemperature1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20190826_supercharttemperature2.jpg" alt="20190826_supercharttemperature2.jpg" class="pic" /></p>
+
+<p>MIN/MAXを適当に選び、<strong>SUFFIX</strong>もわかりやすく記入。</p>
+
+<p>下の方にある<strong>Y-AXIS VALUES</strong>も<strong>SHOW</strong>にしておきます。</p>
+
+<p>各値については</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">測定値</th>
+      <th style="text-align: right">温度</th>
+      <th style="text-align: right">湿度</th>
+      <th style="text-align: right">気圧</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">PIN</td>
+      <td style="text-align: right">V20</td>
+      <td style="text-align: right">V21</td>
+      <td style="text-align: right">V22</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">MIN</td>
+      <td style="text-align: right">20</td>
+      <td style="text-align: right">40</td>
+      <td style="text-align: right">990</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">MAX</td>
+      <td style="text-align: right">30</td>
+      <td style="text-align: right">80</td>
+      <td style="text-align: right">1010</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SUFFIX</td>
+      <td style="text-align: right">℃</td>
+      <td style="text-align: right">%</td>
+      <td style="text-align: right">hPa</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>となってます。</p>
+
+<p>これでRaspberry Piに接続すれば値が見れるはずです。
+最初は値が過去分十分ないのでLiveで、しばらくすると長期間分見ることができます。
+アプリを立ち上げていなくてもサーバー側に情報が保存されるのでRaspberry Pi側でblynkが動いていた分だけの情報を見ることができます。
+(実際どれだけの情報が保存できるのかはちょっと調べられてません。)</p>
+
+<p>半日分くらいのチャートがこちら。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_superchart.jpg" alt="20190826_superchart.jpg" class="pic" /></p>
+
+<p>帰宅後にエアコンを付けて温度が下がって、外出中はエアコンを切ってるのでちゃんと上がってる様子がわかります。</p>
+
+<h2 id="参考文献">参考文献</h2>
+
+<p>上にも書いた今回参考にしたセットアップ:</p>
+
+<blockquote>
+  <p><a href="http://hello.world.coocan.jp/ARDUINO/arduino_5.html">第５回　温度と湿度を測定するセンサ Electronic DIY with Arduino</a></p>
+</blockquote>
+
+<p>SPI通信を使った例(各データの説明などが細かくてわかりやすい):</p>
+
+<blockquote>
+  <p><a href="https://tool-lab.com/make/pic-practice-35/">ツール・ラボ » 第35回 温湿度・気圧センサ(BME280) 〜データ取得プログラム〜</a></p>
+</blockquote>
+
+<p>I2CでLuaを用いたコード例:</p>
+
+<blockquote>
+  <p><a href="https://tomosoft.jp/design/?p=6924">BME280を用いた NodeMCUの温湿度・気圧測定 プログラム  TomoSoft</a></p>
+</blockquote>
+
+<p>スイッチサイエンスによる説明ページ:</p>
+
+<blockquote>
+  <p><a href="http://trac.switch-science.com/wiki/BME280">BME280 – スイッチサイエンス</a></p>
+</blockquote>
+
+<p>スイッチサイエンスによるPythonコード例(Arduino用になってますがC++の例もあります):</p>
+
+<div class="github-widget" data-repo="SWITCHSCIENCE/samplecodes"></div>
+
+<p>BME280ディレクトリの中にPython2.7用(I2C用)の例とArduino用のC++の例があります。</p>
+
+<p>C言語によるシンプルなI2C用ドライバ実装:</p>
+
+<div class="github-widget" data-repo="andreiva/raspberry-pi-bme280"></div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>BME280のモジュールはハンダ付けしないといけないのでちょっと敷居が高いですが、
+それさえできればあとは他に抵抗とか何もなしで簡単にRaspberry Piに取り付ける事ができます。</p>
+
+<p>読み出しに付いても十分なサンプル例があるのでそれを使って簡単に読み出すことが出来ます。</p>
+
+<p>また、Blynkを使えばこれも簡単にスマホでモニタリングすることも出来るようになります。</p>
+
+<p>これを使えば、何度以上になったらエアコンを付ける、などと言ったことも
+可能になってきます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry PiでLチカする]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/25/computer-iot-raspberrypi/"/>
+    <updated>2019-08-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/25/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>Raspberry Piで遊び始めましたが、これまでのところはBluetoothやWi-Fiを使っただけで
+普通のPCでも出来ることだけでした。</p>
+
+<p>ということで、とりあえず基本のLチカ(LEDチカチカ)をやってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#用意するもの" id="markdown-toc-用意するもの">用意するもの</a></li>
+  <li><a href="#led用抵抗" id="markdown-toc-led用抵抗">LED用抵抗</a></li>
+  <li><a href="#回路" id="markdown-toc-回路">回路</a></li>
+  <li><a href="#lチカ" id="markdown-toc-lチカ">Lチカ</a>    <ul>
+      <li><a href="#コマンドで光らせる" id="markdown-toc-コマンドで光らせる">コマンドで光らせる</a></li>
+      <li><a href="#pythonで光らせる" id="markdown-toc-pythonで光らせる">Pythonで光らせる</a></li>
+      <li><a href="#blynkを使ってスマホからlチカ" id="markdown-toc-blynkを使ってスマホからlチカ">Blynkを使ってスマホからLチカ</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="用意するもの">用意するもの</h2>
+
+<p>適当なRaspberry Piを用意して初期設定します。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS200_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FRaspberry+Pi+Zero+WH+%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>今回必要なものは秋月電子で買うなら以下のもの:</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gM-12961/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　Ｚｅｒｏ　ＷＨ</a>: 2160円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gP-05156/">ミニブレッドボード　ＢＢ－６０１（スケルトン）: パーツ一般 秋月電子通商-電子部品・ネット通販</a>: 170円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gC-08932/">ブレッドボード・ジャンパーワイヤ（オス－メス）　１５ｃｍ（黒）　（１０本入）: パーツ一般 秋月電子通商-電子部品・ネット通販</a>: 220円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gI-01318/">高輝度５ｍｍ赤色ＬＥＤ　７ｃｄ６０度　（１０個入）: LED(発光ダイオード) 秋月電子通商-電子部品・ネット通販</a>: 150円</li>
+  <li><a href="http://akizukidenshi.com/catalog/g/gR-07820/">カーボン抵抗（炭素皮膜抵抗）　１／２Ｗ　１ｋΩ　（１００本入）: パーツ一般 秋月電子通商-電子部品・ネット通販</a>: 100円</li>
+</ul>
+
+<p>抵抗は実際には別の用途に買った<a href="http://akizukidenshi.com/catalog/g/gR-07831/">4.7kΩのもの</a>を使ってますが、下に書くように1kΩ位の方がちょうどよいです。</p>
+
+<p>これ以外にRaspberry Pi用のmicroSDがなければ必要。</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gS-13002/">ＴＯＳＨＩＢＡ　マイクロＳＤカード（ｍｉｃｒｏＳＤＨＣ）ＥＸＣＥＲＩＡ　１６ＧＢ　１００ＭＢ／ｓ: 雑貨 秋月電子通商-電子部品・ネット通販</a>: 780円</li>
+</ul>
+
+<p>Raspberry Pi Zeroはスマホに使うようなmicro USB用の充電器でも使えますが、
+ACアダプターも買っておくと安心です。</p>
+
+<ul>
+  <li><a href="http://akizukidenshi.com/catalog/g/gM-12001/">スイッチングＡＣアダプター（ＵＳＢ　ＡＣアダプター）　ＭｉｃｒｏＢオス　５Ｖ３Ａ: 電源一般 秋月電子通商-電子部品・ネット通販</a>: 700円</li>
+</ul>
+
+<h2 id="led用抵抗">LED用抵抗</h2>
+
+<p>今回のLEDはIF 20mA、VF 2.1Vとなっています。これと適当な抵抗を合わせて
+ちょうどよい電流を流すようにします。</p>
+
+<p>Raspberry PiのGPIOピンは3.3Vの電圧になるので3.3V-2.1V=1.2V位が抵抗にかかるとして1.2V/20mA=60Ω、となります。</p>
+
+<p>ということで60Ω以上の抵抗であれば流れる電流が20mA以下となってLEDは安全に使えるはずです。</p>
+
+<p>ただ、Raspberry PiのGPIOピンの出力電流は16mAまで、ということなのですが
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、
+Raspberry Pi Cookbook
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+によると、3mA以上の電流を流すとRaspberry Piの寿命を縮めてしまう可能性があるということなので、
+1.2V/3mA=400Ωは必要。</p>
+
+<p>ということで適当に500~1kΩとかの抵抗にしておけば大丈夫です。</p>
+
+<p>今回は別の用途で買ったものがあったので4.7kΩとなってますが、あまり大きくすると
+暗くなってしまうのでLEDをメインに使う場合には適当に抵抗を変えてください。</p>
+
+<h2 id="回路">回路</h2>
+
+<p>簡単にブレッドボードとGPIOピンをジャンパーワイヤでつないではんだ付けとかなしで作っています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190825_raspberrypi.jpg" alt="20190825_raspberrypi.jpg" class="pic" /></p>
+
+<p>Raspberry Piの40本出ているGPIピンは写真の左下から1番から40番までの物理番号が付いていますが、
+これとは別に電圧を制御できるピンにはBCM番号(GPIO番号)というものがついています。</p>
+
+<p>以下のページなどを参照。</p>
+
+<p><a href="https://pinout.xyz/">Raspberry Pi GPIO Pinout</a></p>
+
+<p>1番は3.3V, 2番が5Vの定電圧、6番がグラウンドで8番目がBCM(GPIO)14番になっています。</p>
+
+<p>ターミナルからコマンドで</p>
+
+<pre><code>$ gpio readall
+ +-----+-----+---------+------+---+-Pi ZeroW-+---+------+---------+-----+-----+
+ | BCM | wPi |   Name  | Mode | V | Physical | V | Mode | Name    | wPi | BCM |
+ +-----+-----+---------+------+---+----++----+---+------+---------+-----+-----+
+ |     |     |    3.3v |      |   |  1 || 2  |   |      | 5v      |     |     |
+ |   2 |   8 |   SDA.1 | ALT0 | 1 |  3 || 4  |   |      | 5v      |     |     |
+ |   3 |   9 |   SCL.1 | ALT0 | 1 |  5 || 6  |   |      | 0v      |     |     |
+ |   4 |   7 | GPIO. 7 |   IN | 1 |  7 || 8  | 0 | IN   | TxD     | 15  | 14  |
+ |     |     |      0v |      |   |  9 || 10 | 1 | IN   | RxD     | 16  | 15  |
+ |  17 |   0 | GPIO. 0 |   IN | 0 | 11 || 12 | 0 | IN   | GPIO. 1 | 1   | 18  |
+ |  27 |   2 | GPIO. 2 |   IN | 0 | 13 || 14 |   |      | 0v      |     |     |
+ |  22 |   3 | GPIO. 3 |   IN | 0 | 15 || 16 | 0 | IN   | GPIO. 4 | 4   | 23  |
+ |     |     |    3.3v |      |   | 17 || 18 | 0 | IN   | GPIO. 5 | 5   | 24  |
+ |  10 |  12 |    MOSI |   IN | 0 | 19 || 20 |   |      | 0v      |     |     |
+ |   9 |  13 |    MISO |   IN | 0 | 21 || 22 | 0 | IN   | GPIO. 6 | 6   | 25  |
+ |  11 |  14 |    SCLK |   IN | 0 | 23 || 24 | 1 | IN   | CE0     | 10  | 8   |
+ |     |     |      0v |      |   | 25 || 26 | 1 | IN   | CE1     | 11  | 7   |
+ |   0 |  30 |   SDA.0 |   IN | 1 | 27 || 28 | 1 | IN   | SCL.0   | 31  | 1   |
+ |   5 |  21 | GPIO.21 |   IN | 1 | 29 || 30 |   |      | 0v      |     |     |
+ |   6 |  22 | GPIO.22 |   IN | 1 | 31 || 32 | 0 | IN   | GPIO.26 | 26  | 12  |
+ |  13 |  23 | GPIO.23 |   IN | 0 | 33 || 34 |   |      | 0v      |     |     |
+ |  19 |  24 | GPIO.24 |   IN | 0 | 35 || 36 | 0 | IN   | GPIO.27 | 27  | 16  |
+ |  26 |  25 | GPIO.25 |   IN | 0 | 37 || 38 | 0 | IN   | GPIO.28 | 28  | 20  |
+ |     |     |      0v |      |   | 39 || 40 | 0 | IN   | GPIO.29 | 29  | 21  |
+ +-----+-----+---------+------+---+----++----+---+------+---------+-----+-----+
+ | BCM | wPi |   Name  | Mode | V | Physical | V | Mode | Name    | wPi | BCM |
+ +-----+-----+---------+------+---+-Pi ZeroW-+---+------+---------+-----+-----+
+</code></pre>
+
+<p>と言った感じで確認することも出来ます。</p>
+
+<p>ブレッドボードでは写真で赤く囲ったところのように半分の一列が全部つながった状態です。
+ここの列の別の箇所に挿せば回路的につながることになります。</p>
+
+<p>LEDは見ると足が長い方(アノード)と短い方(カソード)があるので長い方を電圧の高い方にします。</p>
+
+<p>上の写真では6番からまず抵抗に入り、抵抗とLEDのアノードをつなげ、
+カソード側はRaspberry Piのグラウンドにつながっています。</p>
+
+<p>このテストを行う前に、6番に挿さっているジャンパーを
+1番の3.3Vの定電圧につけておいてちゃんと光るかテストすると良いと思います。</p>
+
+<p>6番ピンは最初は電圧が0なのでこの回路を作っただけでは光りません。</p>
+
+<h2 id="lチカ">Lチカ</h2>
+
+<p>上の写真の様にGPIO番号14を使ってます。</p>
+
+<h3 id="コマンドで光らせる">コマンドで光らせる</h3>
+
+<p><code>gpio</code>コマンドで簡単に光らせることができます。</p>
+
+<p>最初にモードを”OUT”にする必要があります。</p>
+
+<pre><code>pi@raspberrypi:~ $ gpio -g mode 14 out
+</code></pre>
+
+<p><code>-g</code>はピン番号の代わりにBCM(GPIO)番号を使うためのオプションです。</p>
+
+<p>あとは<code>write</code>サブコマンドを使って状態をOn/Off (1/0)するだけ</p>
+
+<pre><code>pi@raspberrypi:~ $ gpio -g write 14 1
+</code></pre>
+
+<p>これでLEDが光ります。</p>
+
+<pre><code>pi@raspberrypi:~ $ gpio -g write 14 0
+</code></pre>
+
+<p>これで消えます。</p>
+
+<p>以下の場合も同様ですが、コマンドを送ってみて光らない場合、
+上記<code>gpio readall</code>を使ってピン番号8(BCM(GPIO)番号14)が
+<code>Mode</code>が<code>OUT</code>で<code>V</code>が1になっているかどうか確認してみてください。</p>
+
+<p>ここが正しく変更されているのであれば回路に問題があります。</p>
+
+<h3 id="pythonで光らせる">Pythonで光らせる</h3>
+
+<p>GPIOのライブラリをインストール。</p>
+
+<pre><code>pi@raspberrypi:~ sudo pip3 install rpi.gpio
+</code></pre>
+
+<p>光らせるスクリプト:</p>
+
+<figure class="code"><figcaption><span>led.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">time</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">RPi.GPIO</span> <span class="kn">as</span> <span class="nn">GPIO</span>
+</span><span class="line">
+</span><span class="line"><span class="n">GPIO</span><span class="o">.</span><span class="n">setmode</span><span class="p">(</span><span class="n">GPIO</span><span class="o">.</span><span class="n">BCM</span><span class="p">)</span>
+</span><span class="line"><span class="n">GPIO</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="k">try</span><span class="p">:</span>
+</span><span class="line">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+</span><span class="line">        <span class="n">GPIO</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">HIGH</span><span class="p">)</span>
+</span><span class="line">        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line">        <span class="n">GPIO</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">LOW</span><span class="p">)</span>
+</span><span class="line">        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="k">except</span> <span class="ne">KeyboardInterrupt</span> <span class="k">as</span> <span class="n">k</span><span class="p">:</span>
+</span><span class="line">    <span class="k">pass</span>
+</span><span class="line"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span class="line">    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">GPIO</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>10回光らせて消すだけのスクリプトです。</p>
+
+<p>最後の<code>cleanup</code>がないと2回目以降に</p>
+
+<pre><code>pi@raspberrypi:~ $ python3 ./led.py
+./led.py:6: RuntimeWarning: This channel is already in use, continuing anyway.  Use GPIO.setwarnigs(False) to disable warnings.
+  GPIO.setup(14, GPIO.OUT)
+</code></pre>
+
+<p>といったwarningが出てしまうので忘れずに例外時にもしっかり実行される様に。
+(これが出ても動作はします。)</p>
+
+<h3 id="blynkを使ってスマホからlチカ">Blynkを使ってスマホからLチカ</h3>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<p>Blynkを使うと簡単にスマホからRaspberry Piを操作することが出来ます。</p>
+
+<p>詳細は上を参照ということにして、Raspberry Pi側としては<strong>main.cpp</strong>に何も変更が必要ないので<code>blynk</code>サーバーを走らせておけば良いだけです。</p>
+
+<p>スマホのアプリ側で以下の様なボタンを作ります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190825_blynk.jpg" alt="20190825_blynk.jpg" class="pic" /></p>
+
+<p>OUTPUをGPIOの14番、MODEは<strong>SWITCH</strong>。</p>
+
+<p>これでRaspberry PiについたLEDのスイッチをON/OFF出来る様になります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Blynkを使ってRaspberryi Piをスマホから操作する]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/"/>
+    <updated>2019-08-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="app-img">
+  <a href="//itunes.apple.com/jp/app//Blynk?at=10lc94" rel="nofollow" target="_blank"><img src="http://is3.mzstatic.com/image/thumb/Purple123/v4/87/a9/97/87a997f8-cefc-9978-ee04-11b756c0e20b/AppIcon-0-1x_U007emarketing-0-0-85-220-0-5.png/200x200bb.jpg" alt="Blynk - IoT for Arduino, ESP32" /></a>
+</div>
+
+<p><a href="http://octopress.test/blog/2019/08/17/computer-iot-raspberrypi/">この前</a>
+Raspberry PiからSwitch Botを動かせるようになりましたが、
+今度はネットワーク経由で動かせるようにします。</p>
+
+<p>これで外出先からでも動かせるようになるはずです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-piの設定" id="markdown-toc-raspberry-piの設定">Raspberry Piの設定</a></li>
+  <li><a href="#blynk" id="markdown-toc-blynk">Blynk</a></li>
+  <li><a href="#初期セットアップ" id="markdown-toc-初期セットアップ">初期セットアップ</a></li>
+  <li><a href="#新しいプロジェクトを作る" id="markdown-toc-新しいプロジェクトを作る">新しいプロジェクトを作る</a></li>
+  <li><a href="#raspberry-pi側でblynkサーバーを立ち上げる" id="markdown-toc-raspberry-pi側でblynkサーバーを立ち上げる">Raspberry Pi側でBlynkサーバーを立ち上げる</a></li>
+  <li><a href="#スマホから接続チェック" id="markdown-toc-スマホから接続チェック">スマホから接続チェック</a></li>
+  <li><a href="#アプリでボタンの設置" id="markdown-toc-アプリでボタンの設置">アプリでボタンの設置</a></li>
+  <li><a href="#ボタンの削除" id="markdown-toc-ボタンの削除">ボタンの削除</a></li>
+  <li><a href="#課金について" id="markdown-toc-課金について">課金について</a></li>
+  <li><a href="#ボタンの動作を設定する" id="markdown-toc-ボタンの動作を設定する">ボタンの動作を設定する</a></li>
+  <li><a href="#デーモンプログラムにする" id="markdown-toc-デーモンプログラムにする">デーモンプログラムにする</a></li>
+  <li><a href="#スマホ以外からblynkを操作する" id="markdown-toc-スマホ以外からblynkを操作する">スマホ以外からBlynkを操作する</a></li>
+  <li><a href="#ifttt経由でgoogle-homeから操作する" id="markdown-toc-ifttt経由でgoogle-homeから操作する">IFTTT経由でGoogle Homeから操作する</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-piの設定">Raspberry Piの設定</h2>
+
+<p>今使ってるのはRaspberry Pi Zero WHです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B4D9KVX?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B4D9KVX&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31pXS40xBZL._SS90_CR0,0,120,90_.jpg" alt="SwitchBot スイッチボット スイッチ ボタンに適用 指ロボット スマートホーム ワイヤレス タイマー スマホで遠隔操作 Alexa, Google Home, Siri, IFTTTなどに対応（ハブ必要）" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/17/computer-iot-raspberrypi/">Raspberry PiからSwitch Botを操作する</a></div></li></ul>
+
+<p>この前のところまででSwitch BotをRaspberry Piから動かせるようにはなりました。</p>
+
+<p>今回はネットワーク経由でRaspberry Piに信号を送って、ネットワーク経由で
+Switch Botを動かせるようにしてみます。</p>
+
+<h2 id="blynk">Blynk</h2>
+
+<div class="app-box">
+  <div class="app-img">
+  <a href="//itunes.apple.com/jp/app/id808760481?at=10lc94" rel="nofollow" target="_blank"><img src="http://is3.mzstatic.com/image/thumb/Purple123/v4/87/a9/97/87a997f8-cefc-9978-ee04-11b756c0e20b/AppIcon-0-1x_U007emarketing-0-0-85-220-0-5.png/200x200bb.jpg" alt="Blynk - IoT for Arduino, ESP32" /></a>
+</div>
+
+  <div class="app-title">
+    <a href="//itunes.apple.com/jp/app/id808760481?at=10lc94" rel="nofollow" target="_blank">Blynk - IoT for Arduino, ESP32</a>
+  </div>
+  <div class="app-developer">
+    デベロッパ: <a href="https://apps.apple.com/jp/developer/blynk-inc/id808760484" target="_blank" rel="nofollow">Blynk Inc</a>
+  </div>
+  <div class="app-price">無料</div>
+  <div class="app-links">
+    <span class="itunes-link"><a href="//itunes.apple.com/jp/app/id808760481?at=10lc94" target="_blank" rel="nofollow"><img src="https://rcmdnk.com/images/appstore-lrg-ja.svg" alt="App Store" /></a></span>
+    <span class="android-link"><a href="//play.google.com/store/apps/details?id=cc.blynk" target="_blank" rel="nofollow"><img src="https://rcmdnk.com/images/google-play-badge-ja.png" alt="Google Play" /></a></span>
+  </div>
+</div>
+
+<p>BlynkはRaspberry Piなどのmicrocomputerを簡単にスマホから操作出来る様にしてくれるアプリ/サービスです。
+iPHone、Androidともにアプリがあります。</p>
+
+<p>Raspberry PiなどでBlynkサービスを実行しておき、
+スマホからBlynkサーバー経由でそこへアクセスして操作したり情報を取ってきたり出来ます。</p>
+
+<p>基本的に無料で、より多くのボタンなどを使いたい場合などには課金する様な料金体制になっています。</p>
+
+<p>非常に多機能でまだ使いこなせてませんが、とりあえず簡単な使い方だけ。</p>
+
+<h2 id="初期セットアップ">初期セットアップ</h2>
+
+<p>まずはメールアドレスなどを登録する必要があります。
+インストールしたアプリに従って。</p>
+
+<h2 id="新しいプロジェクトを作る">新しいプロジェクトを作る</h2>
+
+<p>設定が済むと<strong>Project</strong>を作れるようになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkcreateproject.png" alt="20190818_blynkcreateproject.png" class="pic" /></p>
+
+<p>こんな画面から<strong>New Project</strong>を選ぶと、名前(Project Name)とデバイスの種類(CHOSE DEVICE)、
+接続の方法(CONNECTION TYPE)を選ぶ様になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynknewprojectinit.png" alt="20190818_blynknewprojectinit.png" class="pic" /></p>
+
+<p>名前は適当に<strong>リモコン</strong>とか入れて、デバイスの種類を選びますが、ここにRaspberry Pi Zeroはありません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkdevice.png" alt="20190818_blynkdevice.png" class="pic" /></p>
+
+<p>ただ、ピン配列などは2014年発売のRaspberry Pi 1 Model B+以前のものと、それ以降で違うだけなので、
+現行モデルの他のものを選んでおけばとりあえずは大丈夫です。</p>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.org/documentation/usage/gpio/README.md">GPIO - Raspberry Pi Documentation</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://ja.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi - Wikipedia</a></p>
+</blockquote>
+
+<p>機能によってはZeroだと使えないものもあるかもしれませんが、
+簡単なコマンドを送ったり、GPIOピンの電圧レベルを変えたりすることは出来ます。</p>
+
+<p>ということで、<strong>Raspberry Pi 3 B</strong>を選びます。</p>
+
+<p>CONNECTION TYPEはWiFiを選べばBlynkサーバー経由でネットワークから操作できますし、
+その他BluetoothやUSB/Ethernetなど物理的につなげることも可能です。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkconnection.png" alt="20190818_blynkconnection.png" class="pic" /></p>
+
+<p>今回はネットワークでやりたいのでWiFiを選択。</p>
+
+<p>プロジェクトを作るとAuth Tokenが作られ、登録したメールで送られてきます。</p>
+
+<p>プロジェクトの初期画面はこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkprojectinit.png" alt="20190818_blynkprojectinit.png" class="pic" /></p>
+
+<p>また、このTokenはプロジェクトの設定画面からも確認できます。
+右上の三角の左側のナットみたいな設定ボタンを押して、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkprojectsettings.png" alt="20190818_blynkprojectsettings.png" class="pic" /></p>
+
+<p>このProject Seeingsのところの<strong>AUTH TOKEN</strong>という項目にあります。</p>
+
+<h2 id="raspberry-pi側でblynkサーバーを立ち上げる">Raspberry Pi側でBlynkサーバーを立ち上げる</h2>
+
+<p>BlynkがBlynk用のライブラリを公開しています。</p>
+
+<div class="github-widget" data-repo="blynkkk/blynk-library"></div>
+
+<p>どうやら<strong>blynk</strong>というユーザー名はすでに居て取れなかったために<strong>blinkkk</strong>にした模様。(<strong>blynkk</strong>は居ないけどわかりやすく区別するために3つのk?)</p>
+
+<p><a href="https://github.com/blynkkk/blynk-library/blob/master/linux/README.md">Linux用のREADMEy</a>
+を参考に、Raspberry Piで、</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo apt install wiringpi
+pi@raspberrypi:~ $ git clone https://github.com/blynkkk/blynk-library.git
+pi@raspberrypi:~ $ cd blynk-library/linux
+pi@raspberrypi:~/blynk-library/linux $ make clean all target=raspberry
+</code></pre>
+
+<p>これで<strong>~/blink-libary/linux</strong>に<code>blink</code>という実行ファイルが出来ているはずです。</p>
+
+<p>ここで先程作ったプロジェクトのTokenが必要になります。
+Tokenを確認して、</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ sudo ./blynk --token=&lt;YourToken&gt;
+
+[0]
+    ___  __          __
+   / _ )/ /_ _____  / /__
+  / _  / / // / _ \/  '_/
+/____/_/\_, /_//_/_/\_\
+        /___/ v0.6.1 on Linux
+
+
+[5] Connecting to blynk-cloud.com:80
+[187] Ready (ping: 81ms).
+</code></pre>
+
+<p><strong>&lt;YourToken&gt;</strong>のところは作ったプロジェクトのTokenにしてください。
+正しいTokenであれば上の様にBlynkのロゴが出てきて<strong>blynk-cloud.com</strong>に接続し、
+<strong>Ready</strong>な状態になります。</p>
+
+<p>これでRaspberry Pi側の初期設定はOK。</p>
+
+<p>とりあえずターミナルはそのまま<code>blynk</code>を実行したままにしておきます。</p>
+
+<h2 id="スマホから接続チェック">スマホから接続チェック</h2>
+
+<p>さて、ここで一回スマホに戻って先程作ったプロジェクトのページに行きます。</p>
+
+<p>Raspberry PiでBlynkサーバーが立ち上がっていれば接続出来るはずです。</p>
+
+<p>プロジェクトの右上の
+▷マークを押せば接続できるはずです。</p>
+
+<p>▷マークが□になったら実行モードで、
+この状態でその隣のマークを押すと接続情報が確認出来ます。
+(ちょっとすでにボタンを設置したあとの画像になってしまっていますが。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkconnected.png" alt="20190818_blynkconnected.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkcheck.png" alt="20190818_blynkcheck.png" class="pic" /></p>
+
+<h2 id="アプリでボタンの設置">アプリでボタンの設置</h2>
+
+<p>□を押して最初の編集モードに入ります。
+そうするとなにもないページになってると思います。
+右上のマークが□でなく▷になってることを確認してください。</p>
+
+<p>▷状態だと編集モード、
+□状態だと実行モードになります。</p>
+
+<p>それぞれボタンを押すとそっち(▷:実行、□:停止)になるよ、という意味かと。</p>
+
+<p>編集モードだと画面がが基盤の様な点々になってるかと思いますが、
+この適当なところをタップします。</p>
+
+<p>そうすると<strong>Widget Box</strong>が出てくるので、その中から<strong>Button</strong>をタップして設置します。</p>
+
+<p>設置したボタンをタップすると、<strong>Button Settings</strong>画面になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkv1setting.png" alt="20190818_blynkv1setting.png" class="pic" /></p>
+
+<p>ここで</p>
+
+<ul>
+  <li>一番上の<strong>Button</strong>を適当な名前に</li>
+  <li><strong>PIN</strong>を<strong>Virtual</strong>の<strong>V1</strong></li>
+  <li>その横の数字は<strong>0</strong>と<strong>1</strong>のまま</li>
+  <li><strong>MODE</strong>は<strong>PUSH</strong>のまま</li>
+  <li>ON/OFF LABELSはそのままでも良いですがここでの例では解錠ボタンに使ってるので<strong>解錠</strong>にしてあります。
+    <ul>
+      <li>1の状態だと<strong>ON</strong>のものが表示されますが、今回は<strong>PUSH</strong>ですぐに戻るので表示をごちゃごちゃしないために同じ文字列にしています。それでも押すと1になってる間はボタンの色が変わります。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>とします。</p>
+
+<p><strong>PIN</strong>は<strong>DIGITAL</strong>となっている方の<strong>GP2</strong>、<strong>GP3</strong>…などはRaspberry PiのGPIOのピン番号になり、
+出力電圧の盛業が出来るようになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkbuttonpin.png" alt="20190818_blynkbuttonpin.png" class="pic" /></p>
+
+<p><strong>Virtual</strong>の<strong>V0</strong>、<strong>V1</strong>…は仮想的なボタンで物理的には何もしませんが、
+状態を受け取ってRaspberry Pi側でプログラムを動かしたりするのに使えます。</p>
+
+<p><strong>MODE</strong>では<strong>PUSH</strong>であれば一度1にあげて0に落とす、信号がそれぞれ送られます。
+(数字は上の<strong>PIN</strong>の横で設定したもの。)</p>
+
+<p><strong>SWITCH</strong>にすれば片方ずつ信号が送られる様になるわけです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkv1.png" alt="20190818_blynkv1.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkconnected.png" alt="20190818_blynkconnected.png" class="pic" /></p>
+
+<p>準備ができたらプロジェクトページに戻り右上の▷ボタンを押して実行モードにします。</p>
+
+<p>そして作ったボタンをタップしてみます。</p>
+
+<p>タップする時に先程<code>blynk</code>を走らせていたターミナルを確認します。</p>
+
+<p>上手く行けば下の様に<strong>Got a value: 1</strong>、<strong>Got a value: 0</strong>
+という2つの行がスマホ上のボタンをタップするたびに出てきます。</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ sudo ./blynk --token=&lt;YourToken&gt;
+[0]
+    ___  __          __
+   / _ )/ /_ _____  / /__
+  / _  / / // / _ \/  '_/
+/____/_/\_, /_//_/_/\_\
+        /___/ v0.6.1 on Linux
+
+
+[5] Connecting to blynk-cloud.com:80
+[187] Ready (ping: 81ms).
+Got a value: 1
+Got a value: 0
+Got a value: 1
+Got a value: 0
+Got a value: 1
+Got a value: 0
+Got a value: 1
+Got a value: 0
+Got a value: 1
+Got a value: 0
+</code></pre>
+
+<p>スマホからRaspberry Piに信号を送ることが出来ました。</p>
+
+<h2 id="ボタンの削除">ボタンの削除</h2>
+
+<p>作ったボタンの削除は編集モードでボタンを長押しするとドラッグできるようになり上に
+２つのマークが出てくるので右側のリサイクルぽいマークの方に持っていくと削除できます。</p>
+
+<p>左の方は複製を作る機能になっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_blynkdelete.png" alt="20190818_blynkdelete.png" class="pic" /></p>
+
+<h2 id="課金について">課金について</h2>
+
+<p>ここで<strong>Button</strong>を一つ設置しましたが、
+<strong>Widget Box</strong>の上のところの<strong>YOUR ENERGY BALANCE</strong>の数字が2000から1800になってるかと思います。</p>
+
+<p><strong>Button</strong>の下に200とあるので1つボタンを設置するのに200のENERGY BALANCEが必要、ということで、
+つまり1つのアプリで使えるボタンは10個まで、ということになります。</p>
+
+<p>他のWidgetも色々違うENERGYで900の<strong>SuperChart</strong>とかもあります。</p>
+
+<p>この<strong>YOUR ENERGY BARANCE</strong>は全てのプロジェクトで共有されています。</p>
+
+<p>増やしたい場合は<strong>YOUR ENERGY BARANCE</strong>の右にある<strong>Add</strong>ボタンから課金して増やすことになります。</p>
+
+<p>1000ENERGYで240円、5000で600円、など。</p>
+
+<h2 id="ボタンの動作を設定する">ボタンの動作を設定する</h2>
+
+<p>今の所ただ来た信号を表示しているだけですが、
+実際に何かやりたいときは
+<strong>blynk-library/linux</strong>ディレクトリにある<strong>main.cpp</strong>の中身を編集して再コンパイルします。</p>
+
+<p>一度<code>blynk</code>を<i class="key">Ctrl</i>-<i class="key">C</i>などで止めます。</p>
+
+<p><strong>main.cpp</strong>を<code>vi</code>とかで開いてみると</p>
+
+<figure class="code"><figcaption><span>main.cpp </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなコードがあると思います。</p>
+
+<p><strong>BLYNK_WRITE(PIN)</strong>という関数が引数の番号のバーチャルピンへの信号が来た時に実行される関数になります。
+(関数名やPIN番号はマクロで実際のものに定義されているのでこんな感じの型名のない形になってます。)</p>
+
+<p>同様に<strong>BLYNK_READ(PIN)</strong>という関数もあって、こちらはスマホからこの番号への要求が来ると
+なんらかの返り値を返しスマホに返すようになります。
+ボタンの設定では使いませんが、<strong>Virtual Display</strong>など返って来た値を表示するWidgetもあるのでそういった所でつかいます。</p>
+
+<p>とりあえず今は
+<strong>BLYNK_WRITE(V1)</strong>
+というV1ピンに信号が送られてきた時に実行される関数について。</p>
+
+<p>デフォルトで<strong>Got a value: ….</strong>という<code>printf</code>するだけの関数になっているのがわかります。</p>
+
+<p>また、これ以外に<strong>BLYNK_WRITE</strong>などの関数が無いのもわかると思います。</p>
+
+<p>なので<strong>V1</strong>以外のVirtualピンを指定してボタンをタップしても今の時点では何も起こりませんし出力もされません。
+<strong>BLYNK_WRITE(V2)</strong>
+とかを作ればV2に送られてきた信号に対してなにか出来るようになります。</p>
+
+<p>V1への信号に対してSwitch Botを操作する様なコマンドを実行する様にしてみます。</p>
+
+<figure class="code"><figcaption><span>main.cpp  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value for V%d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">      <span class="n">system</span><span class="p">(</span><span class="s">&quot;sudo python3 /home/pi/python-host/switchbot_py3.py --device &lt;BLE MAC ADDRESS&gt;&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>確認のため<code>printf</code>は残したまま、
+変更を確認するためちょっと余計にピン番号を書くように足しています。
+(V1, V2はInt型の1, 2, …にマクロで定義されています<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。)</p>
+
+<p><a href="https://rcmdnk.com/blog/2019/08/17/computer-iot-raspberrypi/">Raspberry PiからSwitch Botを操作する</a>
+で出来るようになったコマンドを<code>system</code>関数で実行するようにしています。</p>
+
+<p><strong>PUSH</strong>だとボタンをタップするたびに1と0がそれぞれ送られてくるので
+1のときだけ実行するようにもしています。</p>
+
+<p><code>param</code>という変数は
+<a href="https://github.com/blynkkk/blynk-library/blob/master/src/Blynk/BlynkParam.h">BlynkParam</a>
+というクラスのオブジェクトの配列で
+このオブジェクトはスマホから送られてきた信号が入っていますが、
+<code>toStr()</code>とか<code>toInt()</code>など適当な型に変更して返してくれるメンバ関数を持っています。</p>
+
+<p>今回のボタンからは0か1が送られてくるので比較のときはInt型で比較。</p>
+
+<p>ここまで出来たら再コンパイルします。</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ make clean all target=raspberry
+</code></pre>
+
+<p>うまくいったらまた<code>blynk</code>を実行します。</p>
+
+<pre><code>pi@raspberrypi:~/blynk-library/linux $ sudo ./blynk --token=&lt;YourToken&gt;
+[0]
+    ___  __          __
+   / _ )/ /_ _____  / /__
+  / _  / / // / _ \/  '_/
+/____/_/\_, /_//_/_/\_\
+        /___/ v0.6.1 on Linux
+
+
+[6] Connecting to blynk-cloud.com:80
+[241] Ready (ping: 81ms).
+Got a value for V1: 1
+Got a value for V1: 0
+Got a value for V1: 1
+Got a value for V1: 0
+</code></pre>
+
+<p>と、ターミナル上では変更が有効になっていることが確認出来るかと思います。</p>
+
+<p>同時にSwitch Botも動くのが確認できればOKです。</p>
+
+<p>上手く行かない場合は直接<code>system</code>に渡したコマンドを実行してみたりして確かめてみてください。</p>
+
+<p>Ref:</p>
+
+<blockquote>
+  <p><a href="http://docs.blynk.cc/">Blynk docs</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://blog.livedoor.jp/victory7com/archives/48432885.html">Raspberry Piブログ : 第3回 CPUの温度/周波数/負荷状態を見よう - 連載 IoTサービス「Blynk」を使ってRaspberry Piをスマホからコントロールしよう</a></p>
+</blockquote>
+
+<h2 id="デーモンプログラムにする">デーモンプログラムにする</h2>
+
+<p>これでスマホからネットワーク経由でSwitch Botが操作できるようになりました。
+Switch Bot Hub Plusは必要ありません。</p>
+
+<p>ただ、今のままだと毎回Raspberry Piを立ち上げて、接続して<code>blynk</code>コマンドを実行しておかないといけません。
+これを回避するためにデーモンとして自動で立ち上がるようにします。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798044911?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798044911&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41cVV6Rkp2L._SS90_CR0,0,120,90_.jpg" alt="CentOS7システム管理ガイドsystemd/NetworkManager/Firewalld徹底攻略" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/09/10/computer-linux/">CentOS 7などのSystemdに対応したデーモンプログラムを作る</a></div></li></ul>
+
+<p>これを参考に
+<code>/etc/systemd/system/blynk.service</code>というファイルを以下の様な内容で作ります<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/blynk.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> Blynk service
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Service<span class="o">]</span>
+</span><span class="line"><span class="nv">ExecStart</span> <span class="o">=</span> /home/pi/blynk-library/linux/blynk --token<span class="o">=</span>&lt;YourToken&gt;
+</span><span class="line"><span class="nv">ExecStop</span> <span class="o">=</span> /bin/kill <span class="nv">$MAINPID</span>
+</span><span class="line"><span class="nv">Restart</span> <span class="o">=</span> always
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここでも<strong>&lt;YourToken&gt;</strong>は自分のBlynkプロジェクトのものに変更してください。</p>
+
+<p>もっとちゃんとやりたければ、
+<strong>/etc/blynk.conf</strong>とかを読み込んでTokenを取得してそれを使って<code>blynk</code>を実行する様な
+ラッパースクリプトを作っても良いかもしれません。</p>
+
+<p>とりあえず今回はそのまま(<code>blynk</code>もpiユーザーのHomeに置いたままであれですが。。。)。</p>
+
+<p>ファイルを書けたらデーモンとして実行してみます。</p>
+
+<pre><code>pi@raspberrypi:/etc/systemd/system $ sudo systemctl start blynk
+pi@raspberrypi:/etc/systemd/system $ journalctl -f -u blynk
+-- Logs begin at Sat 2019-08-17 06:17:02 JST, end at Sat 2019-08-17 10:58:50 JST
+Aug 17 10:58:50 raspberrypi systemd[1]: Started Blynk service.
+Aug 17 10:58:50 raspberrypi blynk[1389]: [0]
+Aug 17 10:58:50 raspberrypi blynk[1389]:     ___  __          __
+Aug 17 10:58:50 raspberrypi blynk[1389]:    / _ )/ /_ _____  / /__
+Aug 17 10:58:50 raspberrypi blynk[1389]:   / _  / / // / _ \/  '_/
+Aug 17 10:58:50 raspberrypi blynk[1389]:  /____/_/\_, /_//_/_/\_\
+Aug 17 10:58:50 raspberrypi blynk[1389]:         /___/ v0.6.1 on Linux
+Aug 17 10:58:50 raspberrypi blynk[1389]: [8] Connecting to blynk-cloud.com:80
+Aug 17 10:58:50 raspberrypi blynk[1389]: [355] Ready (ping: 81ms).
+</code></pre>
+
+<p>どうやら動いているようです。</p>
+
+<p>この状態でスマホのボタンを押して<strong>Got a value…</strong>という表示が<code>journalctl</code>で確認でき
+Switch Botが動くのを確認してください。</p>
+
+<p>次に起動時に実行される様に設定します。</p>
+
+<pre><code>pi@raspberrypi:~ $ systemctl is-enabled blynk
+disabled
+pi@raspberrypi:~ $ sudo systemctl enable blynk
+Created symlink /etc/systemd/system/multi-user.target.wants/blynk.service → /etc/systemd/system/blynk.service.
+pi@raspberrypi:~ $ systemctl is-enabled blynk
+enabled
+</code></pre>
+
+<p><code>enabled</code>になっていれば今後Raspberry Piが起動した時に<code>blynk</code>がデーモンとして実行されるようになります。</p>
+
+<p>ここで一度試しに再起動してみます。</p>
+
+<pre><code>pi@raspberrypi:~ $ sudo reboot
+</code></pre>
+
+<p>しばらく待って再起動したくらいでスマホのボタンをタップしてちゃんとSwitch Botが動くことを確認します。</p>
+
+<p>上手く行かない場合はRaspberry Piに接続して、</p>
+
+<pre><code>pi@raspberrypi:/etc/systemd/system $ journalctl -u blynk
+</code></pre>
+
+<p>で<code>blynk</code>の出力を確認してちゃんと起動しているか、変なエラーが起こってないか確認してください。</p>
+
+<p><code>/etc/systemd/system/blynk.service</code>を再度編集する場合には、編集後必ず</p>
+
+<pre><code>pi@raspberrypi:~ $ systemctl daemon-reload
+</code></pre>
+
+<p>をして反映させるのを忘れないように。</p>
+
+<p>以上でスマホからの操作に関しては終了です。</p>
+
+<h2 id="スマホ以外からblynkを操作する">スマホ以外からBlynkを操作する</h2>
+
+<p>BlynkではWebAPIが公開されていて、これを使うとスマホのアプリがなくても
+Raspberry piを操作できるようになります。</p>
+
+<blockquote>
+  <p><a href="https://blynkapi.docs.apiary.io/#reference/0/write-pin-value-via-get/write-pin-value-via-get">Blynk HTTP RESTful API · Apiary</a></p>
+</blockquote>
+
+<p>これを参考に、適当なターミナルを使える(Raspberry Piではない)PCから
+<code>curl</code>を使って試してみます。</p>
+
+<pre><code>$ curl http://blynk-cloud.com/&lt;YourToken&gt;/isHardwareConnected
+true
+$ curl http://blynk-cloud.com/&lt;YourToken&gt;/get/V1
+["0"]
+$ curl http://blynk-cloud.com/&lt;YourToken&gt;/update/V1?value=1
+$ curl http://blynk-cloud.com/&lt;YourToken&gt;/update/V1?value=0
+</code></pre>
+
+<p>こんな感じ。<strong>&lt;YourToken&gt;</strong>は自分のプロジェクトのものに。
+(実施には<code>true</code>とかの表示のあとに改行がはいらないのですが見やすく変えてます。)</p>
+
+<p>この最後から2番目のvalue 1を送った時にSwitch Botが動いたはずです。</p>
+
+<p>単にブラウザでこれらのURLを開いても信号が送られて値も表示されるはずです。</p>
+
+<pre><code>$ curl http://blynk-cloud.com/&lt;YourToken&gt;/update/V1?value=1
+</code></pre>
+
+<p>だけすると、Raspberry Piの中で<strong>V1</strong>が1の状態のままになってしまいますが、
+今回の設定では1が送られてくるかどうかだけで良いのでこれだけ送れば良いことにします。
+(スマホ上のボタンの表記がちょっと変わりますが)</p>
+
+<h2 id="ifttt経由でgoogle-homeから操作する">IFTTT経由でGoogle Homeから操作する</h2>
+
+<p>WebAPIが使えればそれをIFTTT経由で叩けるので
+Google Homeからも操作できるようになります。</p>
+
+<p>IFTTTで新しいAppletの作成画面を開き、
+<strong>If This</strong>には<strong>Google Assistant</strong>を指定して
+<strong>マンションの入り口開けて</strong>とかの言葉を入れます。
+(ドアフォンの解錠のところのSwitch Botを操作したかったため)</p>
+
+<p>ちなみに<strong>解錠</strong>という言葉を入れてみましたが、近くの<strong>会場</strong>を調べることがデフォルトで入っていて
+上手くIFTTTにつながってくれませんでした。(何度もやってれば出来ることもたまにありますが。)</p>
+
+<p>あと、<strong>開けゴマ</strong>というのを入れてみましたが、こちらももともと入っているようで、
+アラビアンな音楽が流れてきました。</p>
+
+<p>さておき、Thisの設定が出来たら<strong>Then That</strong>のところで、
+<strong>Webhooks</strong>を選びます。</p>
+
+<p><strong>Webhooks</strong>では</p>
+
+<ul>
+  <li>URL: 先程使ったURL</li>
+  <li>Method: <strong>GET</strong></li>
+  <li>Content Type: text/plain</li>
+  <li>Body: 空白のママ</li>
+</ul>
+
+<p>で設定します。</p>
+
+<p>ただし、ここでURLは先程の<strong>http://blynk-cloud.com/…</strong>だと上手く動きません。
+リダイレクトがかかっているからか、IFTTTからドメイン名で指定すると上手くいかないので
+IPアドレスを直接書く必要があります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_iftttfail.png" alt="20190818_iftttfail.png" class="pic" /></p>
+
+<p>適当なターミナルで<code>blynk-cloud.com</code>のIPアドレスをチェックします。</p>
+
+<pre><code>$ host blynk-cloud.com
+blynk-cloud.com has address 188.166.206.43
+</code></pre>
+
+<p>と出たのでURLには</p>
+
+<pre><code>http://188.166.206.43/&lt;YourToken&gt;/update/V1?value=1
+</code></pre>
+
+<p>と入れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190818_iftttwebhook.png" alt="20190818_iftttwebhook.png" class="pic" /></p>
+
+<p>これでIFTTTのAppletを保存してGoogle Homeに<strong>マンションの入り口開けて</strong>と呼びかけて
+Switch Botが動けばOK。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Blynkというサービスを使ってネットワーク経由でRaspberry Piに命令を出し、
+Switch Botを動かせるようにしてみました。</p>
+
+<p>Blynkを使うことで、Raspberry Pi側の設定も簡単に出来、
+スマホのアプリからも簡単に操作できる様になります。</p>
+
+<p>また、WebAPI+IFTTTを使うことでGoogle Homeなどスマートスピーカーからも簡単に操作できる様にできます。</p>
+
+<p>Raspberry Piをネットワーク経由で操作すると言うと、
+Node.jsとかのライブラリを使ってTwitterやSlackの特定のメッセージに反応するようにしたり
+Webサーバーを建ててしまって直接WebAPIを受け取るようにしたり、
+というのがよくありましたが、
+特定のサービスに何か送らないといけなかったり、
+直接Webサーバーだと固定IPとか付けないと外からアクセスできなくなります。</p>
+
+<p>BlynkであればRaspberry Pi側での設定も簡単で、
+スマホも使いやすいボタンを設置できるアプリがあるので
+とても良かったです。
+IFTTT+Webhooksを使えばTwitterなどから操作する設定も簡単に出来ます。
+スマートスピーカーからも。</p>
+
+<p>ということでBlynkを使ってネットワーク経由でRaspberry Piに信号を送ってSwitch Botを操作する、
+ということが出来るようになりました。</p>
+
+<p>Blynkが思った以上に使いやすくて何でもできそうなので、今後Raspberry Piで
+なにかしたい時に簡単に実装できそうです。</p>
+
+<p>今回はButtonで信号を送るだけでしたが、
+Raspberry PiのCPUとかを監視したり、
+湿温度計センサーを付けて湿温度計とする、みたいなこともすぐにできそうです。</p>
+
+<p>…</p>
+
+<p>ただし、ここでマンションの入り口を開けてみようと
+外へ行って
+自分の部屋番号を呼び出して
+スマホのボタンを押してみましたが、
+Switch Botは動いているようなのに開かない。
+どうやら、ドアフォンの<strong>解錠</strong>ボタンを押す前に呼び出しに出てからでないと駄目らしい。。。
+もう一つ設置するか、Switch Botをネットワーク経由で操作できるようになった、ということに満足して辞めるか。。。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2019/08/18 </strong></p>
+
+  <p>ドアフォンの通話の方にもつけて外からスマホだけで家に入れる様にしました。
+半分意地な感じ。。。</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20190818_doorphone.jpg" alt="20190818_doorphone.jpg" class="pic" /></p>
+
+  <p>こんな感じで下の通話ボタンのところにも別のSwitch Botを付けています。
+ただ、このボタンは大きなボタンで、下側の方が押される様になっているのでちょっと設置が難しかったです。</p>
+
+  <p>単に上や横に付けると十分に押せませんでした。
+もちろん、ボタン上に貼り付けてしまうと押せません。
+下側になにか土台を設置して、というのが一番きれいですが流石にちょっと邪魔くさいので。</p>
+
+  <p>ということで、上の写真の様に斜めにしてなるべく真ん中下の方を押せるように設置しています。</p>
+
+  <p>このとき、Switch Botのもともとの貼り付け用のシールはバーの方側にあって、
+それだとボタン部分に大きく張り付いてしまい上手く押せません。</p>
+
+  <p>なのでもとから付いている両面テープを一度剥がしてこんな感じで後ろの方に付け直しました。</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20190818_switchbot.jpg" alt="20190818_switchbot.jpg" class="pic" /></p>
+
+  <p>もとのを取り忘れましたが、シールの形を見て分かる通りバーがある側に付いていたものです。</p>
+
+  <p>後ろ側につけてしまうと、多少先が動くので通常はちゃんと先側で貼り付けた方が良いわけですが、
+今回はこれでなんとか上手く動く様になってくれました。</p>
+
+  <p>これで、Blynkに通話ボタンを押すものも登録してあげればOKです。
+実際に外から試してみましたが開けることが出来ました。</p>
+
+  <p>この状態であれば2つに分ける必要もないので、</p>
+
+  <figure class="code"><figcaption><span>main.cpp  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="n">import</span> <span class="n">time</span>
+</span><span class="line">
+</span><span class="line"><span class="nf">BLYNK_WRITE</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value for V%d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">      <span class="n">system</span><span class="p">(</span><span class="s">&quot;sudo python3 /home/pi/python-host/switchbot_py3.py --device &lt;BLE MAC ADDRESS Answer&gt;&quot;</span><span class="p">);</span>
+</span><span class="line">      <span class="n">time</span><span class="p">.</span><span class="n">slee</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class="line">      <span class="n">system</span><span class="p">(</span><span class="s">&quot;sudo python3 /home/pi/python-host/switchbot_py3.py --device &lt;BLE MAC ADDRESS Unlock&gt;&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいな感じで1つのボタンで両方やってしまっても良いかもしれません。
+<code>sleep</code>の時間は適当に調整が必要です。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry PiからSwitch Botを操作する]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/17/computer-iot-raspberrypi/"/>
+    <updated>2019-08-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/17/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B4D9KVX?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B4D9KVX&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31pXS40xBZL._SS200_.jpg" alt="SwitchBot スイッチボット スイッチ ボタンに適用 指ロボット スマートホーム ワイヤレス タイマー スマホで遠隔操作 Alexa, Google Home, Siri, IFTTTなどに対応（ハブ必要）" /></a>
+</div>
+
+<p>住まいのIoT化に向けて導入したSwitch BotですがBluetoothでの通信なので
+そのままだと外出先とかから操作できません。
+SwitchBot Hub Plusを買えばできるようになりますが、これはスマートリモコンの機能もあり
+すでに別なもの(Nature Remo mini)で出来ているのでできれば買いたくありません。</p>
+
+<p>ということで自作を楽しむという意味でもRaspberry Piを使って
+ネットワーク経由で操作できるようにしてみたいな、と。</p>
+
+<p>とりあえずRaspberry PiからSwitch Botを操作するところまで。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-piの準備" id="markdown-toc-raspberry-piの準備">Raspberry Piの準備</a></li>
+  <li><a href="#python-host" id="markdown-toc-python-host">python-host</a></li>
+  <li><a href="#python2用の準備" id="markdown-toc-python2用の準備">Python2用の準備</a></li>
+  <li><a href="#python3用の準備" id="markdown-toc-python3用の準備">Python3用の準備</a></li>
+  <li><a href="#実際に使ってみる" id="markdown-toc-実際に使ってみる">実際に使ってみる</a></li>
+  <li><a href="#raspberry-piである意味" id="markdown-toc-raspberry-piである意味">Raspberry Piである意味</a></li>
+  <li><a href="#ネットワークからの操作" id="markdown-toc-ネットワークからの操作">ネットワークからの操作</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-piの準備">Raspberry Piの準備</h2>
+
+<p>この前セットアップしたRaspberry Pi Zero WHを使います。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>WHにはWi-FiやBluetooth機能はもともと付いているので特に用意するものはありません。</p>
+
+<p>ディスクとしてmicroSDとmicroUSBによる充電で動く状態であれば出来ます。</p>
+
+<p>ということでOSをインストールして準備が出来たらやってみます。</p>
+
+<h2 id="python-host">python-host</h2>
+
+<p>Switch Botを作っているWonderLabsが公式にAPIを公開しています。</p>
+
+<div class="github-widget" data-repo="OpenWonderLabs/python-host"></div>
+
+<h2 id="python2用の準備">Python2用の準備</h2>
+
+<p>Gitをインストール:</p>
+
+<pre><code>$ sudo apt install -y git
+</code></pre>
+
+<p>pipをインストール:</p>
+
+<pre><code>$ sudo apt install -y python-pip
+</code></pre>
+
+<p>python-hostのREADMEに従い、必要なライブラリーなどをインストール:</p>
+
+<pre><code>$ sudo apt install -y python-pexpect
+$ sudo apt install -y libusb-dev libdbus-1-dev libglib2.0-dev
+$ sudo apt install -y libudev-dev libical-dev libreadline-dev
+$ sudo pip install bluepy
+</code></pre>
+
+<p>レポジトリをとってくる:</p>
+
+<pre><code>$ git clone https://github.com/OpenWonderLabs/python-host.git
+
+
+$ cd python-host
+$ sudo python switchbot.py
+</code></pre>
+
+<p>root権限を使うらしくこの実行にもsudoが必要です。</p>
+
+<h2 id="python3用の準備">Python3用の準備</h2>
+
+<p>Python2で使っているBluez utilsの中で使っているものがすでにBluez utilsの中でdeprecatedな状態
+なものになっていてあまりよろしくない。</p>
+
+<p>もうすぐPython2のサポートも来れることだし
+用意されてるPython3用のスクリプトを使ったほうが良い。</p>
+
+<p>pipをインストール:</p>
+
+<pre><code>$ sudo apt install -y python3-pip
+</code></pre>
+
+<p>このまま公式通りに<code>pybluez</code>をpipでインストールしようとすると、</p>
+
+<pre><code>bluez/btmodule.h:5:10: fatal error: bluetooth/bluetooth.h: No such file or directory
+</code></pre>
+
+<p>というエラーが出てしまうので<code>libbluetooth-dev</code>をインストール。</p>
+
+<pre><code>$ sudo apt install -y libbluetooth-dev
+</code></pre>
+
+<p>あとは公式通り:</p>
+
+<pre><code>$ sudo pip3 install pybluez
+$ sudo apt install -y libboost-python-dev
+$ sudo apt install -y libboost-thread-dev
+$ sudo pip3 install gattlib
+</code></pre>
+
+<p>と、最後の<code>gattlib</code>のインストール時に、</p>
+
+<pre><code>$ sudo pip3 install gattlib
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Collecting gattlib
+  Using cached https://files.pythonhosted.org/packages/be/2f/5b1aecec551b42b59d8b399ad444b5672972efb590ca83d784dbe616a3e1/gattlib-0.20150805.tar.gz
+  Building wheels for collected packages: gattlib
+    Running setup.py bdist_wheel for gattlib ... |
+</code></pre>
+
+<p>の状態で固まって数十分後?にRaspberry Piが落ちてしまう、という状態に。</p>
+
+<p>再度アクセスしようとしても駄目で、電源口横の緑色のボタンも素早く点滅している状態でどうやら何か駄目っぽい。
+一度電源ケーブルを抜き差しして再起動。</p>
+
+<p>その後で、公式にもある通り、pipで失敗した場合の別のインストール方法があるのでそれを試してみる。</p>
+
+<pre><code>$ sudo pip3 download gattlib
+$ tar xvzf ./gattlib-0.20150805.tar.gz
+$ cd gattlib-0.20150805/
+</code></pre>
+
+<p>ここでsetup.pyの書き換えをsedで行っていますが、python34の設定をpython35にしています。
+これを行う前に実際にインストールされているバージョンを確認。</p>
+
+<pre><code>$ python3 --version
+Python 3.7.3
+</code></pre>
+
+<p>とうことで3.7なのでpy34ではなく、py37。さらにpy37の場合は
+<code>boost_python-py37</code>ではなく<code>boost_python3-py37</code>という名前になっています。</p>
+
+<pre><code>$ ls /usr/lib/arm-linux-gnueabihf/libboost_python*
+/usr/lib/arm-linux-gnueabihf/libboost_python27.a
+/usr/lib/arm-linux-gnueabihf/libboost_python27.so
+/usr/lib/arm-linux-gnueabihf/libboost_python27.so.1.67.0
+/usr/lib/arm-linux-gnueabihf/libboost_python37.a
+/usr/lib/arm-linux-gnueabihf/libboost_python37.so
+/usr/lib/arm-linux-gnueabihf/libboost_python37.so.1.67.0
+/usr/lib/arm-linux-gnueabihf/libboost_python3.a
+/usr/lib/arm-linux-gnueabihf/libboost_python3-py37.a
+/usr/lib/arm-linux-gnueabihf/libboost_python3-py37.so
+/usr/lib/arm-linux-gnueabihf/libboost_python3.so
+/usr/lib/arm-linux-gnueabihf/libboost_python.a
+/usr/lib/arm-linux-gnueabihf/libboost_python.so
+</code></pre>
+
+<p><code>python.a</code>などは<code>python2</code>系のもの、<code>python3</code>系のものはすべて
+<code>libboost_python37.so</code>を経由して
+<code>libboost_python37.so.1.67.0</code>へのシンボリックリンクになっています。</p>
+
+<p><code>libboost_python3.so</code>もそうなのでこれにしておけばPythonのバージョンが変わっても動く。
+(中身が互換性がないとだめですが。)</p>
+
+<p>ので</p>
+
+<pre><code>$ sed -ie "s/boost_python-py34/boost_python3/" setup.py
+</code></pre>
+
+<p>とします。(単に開いて<code>boost_python-py34</code>の部分を書き換えても良いです。)</p>
+
+<p>準備ができたらインストール:</p>
+
+<pre><code>$ sudo pip3 install .
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Processing /home/pi/gattlib-0.20150805
+Building wheels for collected packages: gattlib
+  Running setup.py bdist_wheel for gattlib ... \
+</code></pre>
+
+<p>これまた同じ様なところで進みません。</p>
+
+<p>途中で他の接続をして見てみると</p>
+
+<pre><code>$ top -n1
+top - 02:35:54 up 6 min,  2 users,  load average: 1.16, 0.68, 0.30
+Tasks:  81 total,   2 running,  79 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 82.8 us, 17.2 sy,  0.0 ni,  0.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :    432.7 total,     30.0 free,    350.0 used,     52.8 buff/cache
+MiB Swap:    100.0 total,     92.2 free,      7.8 used.     32.6 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  506 pi        20   0  343212 314036  14240 R  73.9  70.9   0:50.90 cc1plus
+  508 pi        20   0   10172   2828   2412 R  17.4   0.6   0:00.10 top
+    1 root      20   0   32584   7424   6308 S   0.0   1.7   0:06.10 systemd
+    2 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kthreadd
+    5 root      20   0       0      0      0 I   0.0   0.0   0:00.02 kworker/u2:0-events_unbound
+    6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 mm_percpu_wq
+    7 root      20   0       0      0      0 S   0.0   0.0   0:00.39 ksoftirqd/0
+    8 root      20   0       0      0      0 S   0.0   0.0   0:00.01 kdevtmpfs
+    9 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 netns
+   10 root      20   0       0      0      0 I   0.0   0.0   0:00.39 kworker/0:1-events
+$ free
+              total        used        free      shared  buff/cache   available
+Mem:         443100      364068       28456        2604       50576       27868
+Swap:        102396        8192       94204
+$
+</code></pre>
+
+<p>といった感じでどんどんメモリ使用量が増えていってメモリが足りないようです。</p>
+
+<p>メモリは~400MB、Swapも100MBしか用意されてないようなので、ここで一度思い切ってSwapを増やしてみます。</p>
+
+<pre><code>$ cat /etc/dphys-swapfile
+# /etc/dphys-swapfile - user settings for dphys-swapfile package
+# author Neil Franklin, last modification 2010.05.05
+# copyright ETH Zuerich Physics Departement
+#   use under either modified/non-advertising BSD or GPL license
+
+# this file is sourced with . so full normal sh syntax applies
+
+# the default settings are added as commented out CONF_*=* lines
+
+
+# where we want the swapfile to be, this is the default
+#CONF_SWAPFILE=/var/swap
+
+# set size to absolute value, leaving empty (default) then uses computed value
+#   you most likely don't want this, unless you have an special disk situation
+CONF_SWAPSIZE=100
+
+# set size to computed value, this times RAM size, dynamically adapts,
+#   guarantees that there is enough swap without wasting disk space on excess
+#CONF_SWAPFACTOR=2
+
+# restrict size (computed and absolute!) to maximally this limit
+#   can be set to empty for no limit, but beware of filled partitions!
+#   this is/was a (outdated?) 32bit kernel limit (in MBytes), do not overrun it
+#   but is also sensible on 64bit to prevent filling /var or even / partition
+#CONF_MAXSWAP=2048
+$ sudo sed -i -e "s/^CONF_SWAPSIZE=.*/CONF_SWAPSIZE=2048/g" /etc/dphys-swapfile
+$ sudo reboot
+</code></pre>
+
+<p>再起動後もう一度<code>sudo pip3 install .</code>に挑戦。</p>
+
+<pre><code>$ sudo pip3 install .
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Processing /home/pi/gattlib-0.20150805
+Building wheels for collected packages: gattlib
+  Running setup.py bdist_wheel for gattlib ... done
+  Stored in directory: /root/.cache/pip/wheels/2b/2d/d2/d62bdc868bb470d7b7e2fa672805652c9e57ff271d2ba6a8ea
+Successfully built gattlib
+Installing collected packages: gattlib
+Successfully installed gattlib-0.20150805
+</code></pre>
+
+<p>うまくいきました。結構(10分~20分くらい?)かかりましたがなんとか終わりました。
+別のモニタで見てたところ、実メモリを使い切ってswapも200MBくらいは使ってたので
+2GBまでは必要なかったですがやはり100MBではたりなかった模様。</p>
+
+<p>これで<strong>switchbot_py3.py</strong>スクリプトが呼べるようになりました。</p>
+
+<pre><code>$ cd ~/python-host
+$ python3 switchbot_py3.py --help
+usage: switchbot_py3.py [-h] [--scan] [--scan-timeout SCAN_TIMEOUT]
+                        [--connect-timeout CONNECT_TIMEOUT] [--device DEVICE]
+                        [--interface INTERFACE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --scan, -s            Run Switchbot in scan mode - scan devices to control
+  --scan-timeout SCAN_TIMEOUT
+                        Device scan timeout (default: 2 seconds)
+  --connect-timeout CONNECT_TIMEOUT
+                        Device connection timeout (default: 5 seconds)
+  --device DEVICE, -d DEVICE
+                        Specify the address of a device to control
+  --interface INTERFACE, -i INTERFACE
+                        Name of the bluetooth adapter (default: hci0 or
+                        whichever is the default)
+</code></pre>
+
+<h2 id="実際に使ってみる">実際に使ってみる</h2>
+
+<p>この前設置したSwitch Botを動かしてみます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B7NXV4R?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B7NXV4R&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31trb%2BGo8ML._SS90_CR0,0,120,90_.jpg" alt="SwitchBot スイッチボット スイッチ ボタンに適用 指ロボット スマートホーム ワイヤレス タイマー スマホで遠隔操作 Alexa, Google Home, Siri, IFTTTなどに対応（ハブ必要）" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/15/life-iot/">Switch Botでボタンを何でもIoT化</a></div></li></ul>
+
+<p>とりあえずスクリプトにはSwitch Botを探せる機能もあるみたいなのでそれを試します。</p>
+
+<p>Python2:</p>
+
+<pre><code>pi@raspberrypi:~/python-host $ sudo python switchbot.py
+Usage: "sudo python switchbot.py [mac_addr  cmd]" or "sudo python switchbot.py"
+Start scanning...
+scan timeout
+No SwitchBot nearby, exit
+</code></pre>
+
+<p>Python3:</p>
+
+<pre><code>pi@raspberrypi:~/python-host $ sudo python3 switchbot_py3.py --scan
+No Switchbots found
+</code></pre>
+
+<p>Python2/3バージョン共に見つからない。</p>
+
+<p>パスワードがかかっているのが駄目なのか?と思いパスワードを外してみたもののやはり見つからない。</p>
+
+<p>試しに<code>hcitool</code>を使ってBluetoothが見えているかどうか確かめてみると。</p>
+
+<pre><code>$ sudo hcitool lescan
+LE Scan ...
+XX:XX:XX:XX:XX:XX (unknown)
+XX:XX:XX:XX:XX:XX (unknown)
+...
+</code></pre>
+
+<p>みたいな感じでBluetoothは使えている様に見える。</p>
+
+<blockquote>
+  <p><a href="http://xx-prime.hatenablog.com/entry/2017/07/01/211509">Switch Bot が届いたのでSingle Board Computerから操作してみた - ブログ</a></p>
+</blockquote>
+
+<p>だいぶ前の(2年前)だが、この時点ですでにSwitch Botの仕様が変更され、
+<code>hcitool lescan</code>でなんのデバイスか分からないようになったため
+スクリプトのScanは使えなくなっているらしい。</p>
+
+<blockquote><p>中の人によると、以下のコードも見てみてね、とのことである。</p><p>http://codegist.net/snippet/python/switchbot_bluepypy_aerialist_python</p><p>gatoolもpexpectも使わずに、より簡潔に制御できるのでこっちのほうがいいね。</p><footer><strong>Switch Bot が届いたのでSingle Board Computerから操作してみた - ブログ</strong> <cite><a href="http://xx-prime.hatenablog.com/entry/2017/07/01/211509">xx-prime.hatenablog.com/entry/&hellip;</a></cite></footer></blockquote>
+
+<p>とありますが、これはリンク切れでした。</p>
+
+<p>上のレポジトリのPython2バージョンは2年前、
+Python3の方でも1年前のコミットでこの辺分かった後の話だとは思いますが、
+現状BluetoothからSwitchBotかどうか分かる手段はないのでScanでは無理(手当り次第やる、というてはありますが)。</p>
+
+<p>ので直接BLE Macアドレスを調べます。</p>
+
+<p>BLE Macアドレスの確認はアプリの中の
+各SwitchBotの設定画面に行き、右上の3ボタンを押すと出てきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190817_switchbot.png" alt="20190817_switchbot.png" class="pic" /></p>
+
+<p>こんな感じで表示されてるSwitchBot一覧で各Botの右上にある歯車をタップし</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190817_switchbotbotset.png" alt="20190817_switchbotbotset.png" class="pic" /></p>
+
+<p>SwitchBotの設定画面で右上の3点ボタンを押します。
+(昔は下の設定一覧の所にBLE MACアドレスがあったみたいですが、妙にこれだけわかりにくくなってます。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190817_switchbotblemac.png" alt="20190817_switchbotblemac.png" class="pic" /></p>
+
+<p>そうするとこんな感じでBLE MACアドレスを見ることが出来ます。</p>
+
+<p>このアドレスを使って試してみます。</p>
+
+<p>Python2:</p>
+
+<pre><code>$ sudo python switchbot.py "XX:XX:XX:XX:XX:XX" Press
+Usage: "sudo python switchbot.py [mac_addr  cmd]" or "sudo python switchbot.py"
+Preparing to connect.
+Trigger complete
+</code></pre>
+
+<p>Python3:</p>
+
+<pre><code>$ sudo python3 switchbot_py3.py -d "XX:XX:XX:XX:XX:XX"
+Connected!
+Command execution successful
+
+(process:1599): GLib-CRITICAL **: xx:xx:xx.xxx: Source ID 4 was not found when attempting to remove it
+</code></pre>
+
+<p>の様にどうやら成功したようです。</p>
+
+<p>Python3版の方でCRITICALなメッセージが出ていますがとりえず無視して大丈夫そうです。
+バグ?<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>Python2の場合には<code>Press</code>、<code>Turn On</code>、<code>Turn Off</code>のサブコマンドが使えます。</p>
+
+<p>Python3のswitchbot_py3.pyの場合には<code>press</code>がハードコードされてるので、
+<code>press</code>しか送れませんが、ちょっと改造して<code>--command on</code> (or <code>off</code>)で
+<code>on</code>や<code>off</code>も送れるように改造したものを作ってみました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/python-host/blob/command/switchbot_py3.py">python-host/switchbot_py3.py at command · rcmdnk/python-host</a></p>
+</blockquote>
+
+<p>とりあえずこれで成功している用に見えますが、
+両方ともパスワードを設定していないときは上手くいきました。</p>
+
+<p>パスワードを設定すると上と同じメッセージが出ますが、Switch Botは動きません。</p>
+
+<p>そもそもパスワードを送るような
+部分がスクリプトの中にないのでどうしたもんかと調べてみると、</p>
+
+<blockquote>
+  <p><a href="https://www.switch-bot.com/forum/general-discussion/trigger-switchbot-via-api-bluetooth-directly">Trigger SwitchBot via API/Bluetooth directly?  SwitchBot Community  SwitchBot</a></p>
+</blockquote>
+
+<p>どうやら今の所パスワード認証に関するAPIは公開してないようです。
+ので、現状ではパスワードなしの状態でやらないとアプリ以外からは操作できません。</p>
+
+<p>多分公式の記述は間違いで10mくらいまでしかBluetooth通信は届かないので、隣近所の人が
+もしSwitch Botを使っていたら使われてしまうかも、という危険性はあります。
+が、その場合にはこちら側のアプリにも相手側のSwitch Botがあらわれるはずです。
+(たまたま他の家でSwitchBotを使っていてアプリを入れていて、隣のウチに遊びに来た、とかだとその人のアプリに出てしまうことはありますが、
+そこでアプリをチェックすることは少ないはず。。。)</p>
+
+<p>ということで、今の所周りに他のSwitch Botは見当たりませんし、パスワード無しでも大丈夫かな。。。</p>
+
+<p>換気扇の方は別にいじられても何も問題ないわけですが、
+マンションの解錠の方はどうかな、と思ったりもします。</p>
+
+<p>ですが、実際入り口からはBluetoothで繋がりませんでしたし
+届くとしたらすでにマンションの中からかな、という感じなのでそこまで心配する必要はないかな、とも。</p>
+
+<h2 id="raspberry-piである意味">Raspberry Piである意味</h2>
+
+<p>ここまでの操作であれば単にLinuxの動くPCでBluetoothデバイスが載っていれば出来ます。</p>
+
+<p>WindowsだとWindows Subsystem for Linuxから使えるかな、と思いましたがBluetoothデバイスを扱えませんでした。</p>
+
+<p>とりあえず現在は無理そう。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Microsoft/WSL/issues/242">Bluetooth not supported (Built-in and USB-BT Adapter) · Issue #242 · microsoft/WSL</a></p>
+</blockquote>
+
+<p>WSL2がすでに公開されているようですが、Linuxカーネルが動くようになり大分様相が変わるので
+もしかしたらいろいろなデバイスへのアクセスなども出来るようになるのかもしれません。</p>
+
+<blockquote>
+  <p><a href="https://www.atmarkit.co.jp/ait/articles/1906/14/news019.html">完全なLinuxがWindows 10上で稼働する？　「WSL 2」とは：Windows 10 The Latest - ＠IT</a></p>
+</blockquote>
+
+<p>また、Macではスクリプトはそのまま動きません。</p>
+
+<p>スクリプトの中にService UUID(とManufacture ID)とコマンド(press/turn on/turn off)用の
+信号キーがあるので、
+これらを使ってWindowsでもMacでもBluetoothを操作するスクリプトを作れば同じ様なことは出来るはずです。(やってない)</p>
+
+<p>自宅とかで常に起動しているマシンがあるならそれを使ってももちろん良いと思います。</p>
+
+<h2 id="ネットワークからの操作">ネットワークからの操作</h2>
+
+<p>とりあえずここまででRaspberry PiからSwitch Botを操作できるようになりました。</p>
+
+<p>あとはネットワークから操作できるようにして、Google Homeとかからも使えるようにしたいと思います。</p>
+]]></content>
+  </entry>
+  
+</feed>

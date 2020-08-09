@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Liquid | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/liquid/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T10:06:03+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Liquid 4.0.0のリリースに伴うプラグインのアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2017/06/22/blog-liquid-jekyll-octopress/"/>
+    <updated>2017-06-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/06/22/blog-liquid-jekyll-octopress</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0745624103?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0745624103&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41%2Bh4fODaQL._SS200_.jpg" alt="Liquid Modernity" /></a>
+</div>
+
+<p>このブログはOctopressで運用していますが、
+OctopressはJekyllという静的サイトジェネレーターを使っていて、
+JekyllではLiquidと呼ばれるテンプレートエンジンを使っています。</p>
+
+<p>そのLiquidの4.0.0がリリースされ、今まで使っていた自作プラグインで問題が起きたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tagクラスの変更" id="markdown-toc-tagクラスの変更">Tagクラスの変更</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tagクラスの変更">Tagクラスの変更</h2>
+
+<p>問題が起きたのは以下のプラグイン。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octopress-post-card"></div>
+
+<p>下みたいな感じに自分のブログ内へのリンクを画像つきでいい感じに表示してくれるプラグインです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<p>この中で他のプラグインを</p>
+
+<pre><code>thum = Jekyll::Thumbnail.parse('thumbnail', "small-thumbnail #{img}", '', '')
+</code></pre>
+
+<p>みたいな感じで呼んでいました。
+この<code>Thumbnail</code>も自作クラスですが、LiquidのTagクラスを引き継いだものになります。</p>
+
+<p>ここで<code>parse(tag_name, markup, tokenizer, options)</code>という関数を使ってますが、第1, 2, 4番目の引数がそのまま
+<code>new</code>(つまりは<code>initialize</code>の1, 2, 3番目の引数として渡されて新しいオブジェクトが出来る様な形になっています。
+(<code>parse</code>の第3引数はデフォルトでは何もしない、引き継ぎ先でその値を引数に持った<code>parse(tokenizer)</code>を作って色々出来る様にしている。)</p>
+
+<p>Liquid 3.X.XまではTagの<code>initialize</code>では</p>
+
+<pre><code>def initialize(tag_name, markup, options)
+  @tag_name   = tag_name
+  @markup     = markup
+  @options    = options
+end
+</code></pre>
+
+<p>みたいな形で引数をそのまま保存する様な形になっていました。</p>
+
+<p>Tagは記事の中でLiquidのタグを使った時に呼ばれますが、
+その際に3番目の引数には以前まではただのオプション情報を持ったハッシュが渡されていました。</p>
+
+<p>ただ、元々のTagクラスでは渡された後、他では使われませんし
+通常引き継いだ先のクラスでもこれを使うことはめったにありません。</p>
+
+<p>なので
+<code>options</code>に何のクラスのオブジェクトを渡しても問題は起こりませんし
+上の<code>Thumbnail</code>を作る際にも最後の引数に<code>''</code>と、Stringクラスの空文字を適当に入れてあります。(デフォルト引数が無いので。)</p>
+
+<p>これがLiquid 4.0.0になるにあたって<code>initialize</code>の中で
+第3引数のメソッドを使う様な形に変更されています。</p>
+
+<pre><code>def initialize(tag_name, markup, parse_context)
+  @tag_name   = tag_name
+  @markup     = markup
+  @parse_context = parse_context
+  @line_number = parse_context.line_number
+end
+</code></pre>
+
+<blockquote>
+  <p><a href="https://github.com/Shopify/liquid/commit/cebf75b8d700593af2d40021c825e1176b51ab33#diff-3970e340d3f16350fe5da9ba67649f05">Implement line numbers without the Liquid::Token class. · Shopify/liquid@cebf75b</a></p>
+</blockquote>
+
+<p>引数の名前も<code>options</code>から<code>parse_context</code>になっていますが
+実際に記事の中で使われるタグを処理する際には
+<code>ParseContext</code>と呼ばれるオプション情報を持ったクラスが渡される様に変更されています。</p>
+
+<p>これが<code>line_number</code>と呼ばれるメソッドを持っているわけですが、
+これがあるので適当なクラスを渡すとエラーが起きてしまいます。</p>
+
+<p>ただ、結局Tagの中では使わないので</p>
+
+<pre><code>begin
+  parse_context = Liquid::ParseContext.new({})
+rescue
+  parse_context = {}
+end
+thum = Jekyll::Thumbnail.parse('thumbnail', "small-thumbnail #{img}", '', parse_context)
+</code></pre>
+
+<p>という感じに空のParseContextを作って渡す様にしました。</p>
+
+<p>Liquid 4.0.0より前には<code>ParseContext</code>が無いのでない場合は空のハッシュを渡す様に(Stringな空文字でも問題ないですが一応元の形に合わせて)。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Liquidで変数をTagに渡す方法]]></title>
+    <link href="https://rcmdnk.com/blog/2013/11/30/computer-octopress-liquid/"/>
+    <updated>2013-11-30T13:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/11/30/computer-octopress-liquid</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B004QM9VHG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B004QM9VHG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510CGF7JuaL._SS200_.jpg" alt="Persons in Context: The Challenge of Individuality in Theory and Practice: 32 (Psychoanalytic Inquiry Book Series)" /></a>
+</div>
+
+<p>Octopressで画像を設置する<code>{% img</code>~<code>%}</code>等には、
+通常第二引数以降は単に文字列として渡すので
+yamlブロックで指定した値やLiquid文法で<code>assign</code>した変数をそのまま渡すことが出来ません。
+(単なる文字列として処理される)</p>
+
+<p>ただ、変数を渡すためには一旦文字列で変数名を与えて
+何らかの形でタグクラスの中で文字列を変換してあげれば
+出来たのでその方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#contextから取れる" id="markdown-toc-contextから取れる">contextから取れる</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>サイトのロゴを<code>_config.yml</code>で指定していたりする場合
+その画像を</p>
+
+<pre><code>sitelogo: /images/MacApp/MacLogoMiddle.png
+</code></pre>
+
+<p>と指定しておいて</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;{{site.sitelogo}}&quot;</span><span class="p">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としてやれば<code>{{site.sitelogo}}</code>部分は変換されて正しく表示できますが、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span>{%img {{site.sitelogo}}%}
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにimgタグを使うことは出来ません。
+この場合、<code>{{site.sitelogo}}</code>部分は
+そのまま<code>{{site.sitelogo}}</code>という文字列として渡されます。
+両側の<code>{{</code>~<code>}}</code>を外してもそのまま渡されるだけです。</p>
+
+<p>1つの決まった画像ならhtmlでも良いのですが、
+他のタグ等でも直接変数が渡せたら便利だと思ったので
+そのやり方について調べてみました。</p>
+
+<h2 id="contextから取れる">contextから取れる</h2>
+
+<p><code>Liquid::Tag</code>を継承して新しいタグを作っているプラグインを見ると、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">module</span> <span class="nn">Jekyll</span>
+</span><span class="line">  <span class="k">class</span> <span class="nc">NewTag</span> <span class="o">&lt;</span> <span class="no">Liquid</span><span class="o">::</span><span class="no">Tag</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">tag_name</span><span class="p">,</span> <span class="n">markup</span><span class="p">,</span> <span class="n">tokens</span><span class="p">)</span>
+</span><span class="line">      <span class="vi">@markup</span> <span class="o">=</span> <span class="n">markup</span>
+</span><span class="line">      <span class="c1"># または&quot;markup&quot;から適当な変数を摘出</span>
+</span><span class="line">      <span class="k">super</span>
+</span><span class="line">    <span class="k">end</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+</span><span class="line">      <span class="c1"># 処理</span>
+</span><span class="line">    <span class="k">end</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="no">Liquid</span><span class="o">::</span><span class="no">Template</span><span class="o">.</span><span class="n">register_tag</span><span class="p">(</span><span class="s1">&#39;newtag&#39;</span><span class="p">,</span> <span class="no">Jekyll</span><span class="o">::</span><span class="no">Newtag</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>大体こんな感じです。
+<code>initialize</code>の方の<code>tag_name</code>はタグの名前(つまりこの場合は必ず<code>newtag</code>)、
+<code>markup</code>にはタグに書いた第二引数以降が入ります(imgタグならクラスや画像位置等)。
+<code>tokens</code>は</p>
+
+<blockquote><p>Finally, the tokens are all of the other tags that appear within this block tag, including the closing endnavigation tag.</p><footer><strong>GIANT ROBOTS SMASHING INTO OTHER GIANT ROBOTS</strong> <cite><a href="http://robots.thoughtbot.com/custom-tags-in-liquid">Custom Tags in Liquid</a></cite></footer></blockquote>
+
+<p>なんだそうで、特にBlockタグの場合に中で処理するのに必要なんだと思います。
+通常、継承したクラスで自分で扱うことはあまり無いです
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>imgタグを定義してる<code>plugins/image_tag.rb</code>では</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">if</span> <span class="n">markup</span> <span class="o">=~</span> <span class="sr">/(?&lt;class&gt;\S.*\s+)?(?&lt;src&gt;(?:https?:\/\/|\/|\S+\/)\S+)(?:\s+(?&lt;width&gt;\d+))?(?:\s+(?&lt;height&gt;\d+))?(?&lt;title&gt;\s+.+)?/i</span>
+</span><span class="line">  <span class="vi">@img</span> <span class="o">=</span> <span class="n">attributes</span><span class="o">.</span><span class="n">reduce</span><span class="p">({})</span> <span class="p">{</span> <span class="o">|</span><span class="n">img</span><span class="p">,</span> <span class="kp">attr</span><span class="o">|</span> <span class="n">img</span><span class="o">[</span><span class="kp">attr</span><span class="o">]</span> <span class="o">=</span> <span class="vg">$~</span><span class="o">[</span><span class="kp">attr</span><span class="o">].</span><span class="n">strip</span> <span class="k">if</span> <span class="vg">$~</span><span class="o">[</span><span class="kp">attr</span><span class="o">]</span><span class="p">;</span> <span class="n">img</span> <span class="p">}</span>
+</span><span class="line">  <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなかんじでmarkupを<code>@img</code>に入れていって<code>render</code>で使います。
+(<code>http(s)://</code>で始まったり<code>/</code>を含むような文字列の場合それを<code>src</code>とする)</p>
+
+<p>一方、<code>render</code>関数では<code>context</code>という引数を持っていて
+ページの情報等を持っています。
+従って、上の<code>site.sitelogo</code>の情報も持っていて、
+<code>context['site.sitelogo']</code>としてやれば<code>_config.yml</code>で指定した<code>sitelogo</code>の値を
+取ってこれます<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>同じようにページの途中で</p>
+
+<pre><code>{% assign img=/image/a.jpg %}
+</code></pre>
+
+<p>と<code>assign</code>したものや<code>capture</code>ブロックで設定した値もそのまま使えます。</p>
+
+<p>これを適用してあげればいいんですが、普段は直接URLを書いて
+必要なときだけ変換して欲しいので、画像パスに<code>val:</code>と言う
+値をつけた時だけ変換するようにしました。</p>
+
+<div><script src="https://gist.github.com/7715477.js"></script>
+<noscript><pre><code>diff --git a/plugins/image_tag.rb b/plugins/image_tag.rb
+index 4567000..55e8ea3 100644
+--- a/plugins/image_tag.rb
++++ b/plugins/image_tag.rb
+@@ -24,7 +24,7 @@ module Jekyll
+     def initialize(tag_name, markup, tokens)
+       attributes = [&#39;class&#39;, &#39;src&#39;, &#39;width&#39;, &#39;height&#39;, &#39;title&#39;]
+ 
+-      if markup =~ /(?&lt;class&gt;\S.*\s+)?(?&lt;src&gt;(?:https?:\/\/|\/|\S+\/)\S+)(?:\s+(?&lt;width&gt;\d+))?(?:\s+(?&lt;height&gt;\d+))?(?&lt;title&gt;\s+.+)?/i
++      if markup =~ /(?&lt;class&gt;\S.*\s+)?(?&lt;src&gt;(?:https?:\/\/|\S*\/|val:)\S+)(?:\s+(?&lt;width&gt;\d+))?(?:\s+(?&lt;height&gt;\d+))?(?&lt;title&gt;\s+.+)?/i
+         @img = attributes.reduce({}) { |img, attr| img[attr] = $~[attr].strip if $~[attr]; img }
+         if /(?:&quot;|&#39;)(?&lt;title&gt;[^&quot;&#39;]+)?(?:&quot;|&#39;)\s+(?:&quot;|&#39;)(?&lt;alt&gt;[^&quot;&#39;]+)?(?:&quot;|&#39;)/ =~ @img[&#39;title&#39;]
+           @img[&#39;title&#39;]  = title
+@@ -39,6 +39,12 @@ module Jekyll
+ 
+     def render(context)
+       if @img
++        @img[&#39;src&#39;] = context[@img[&#39;src&#39;].split(&#39;:&#39;)[1]] if @img[&#39;src&#39;] =~ /^val:/
++        if @img[&#39;class&#39;] and ! @img[&#39;class&#39;].include?(&#39;noimgpath&#39;)
++          if context[&#39;site.imgpath&#39;] and @img[&#39;src&#39;] !~ /^(http|#{context[&#39;site.imgpath&#39;]})/
++            @img[&#39;src&#39;] = context[&#39;site.imgpath&#39;]+@img[&#39;src&#39;]
++          end
++        end
+         &quot;&lt;img #{@img.collect {|k,v| &quot;#{k}=\&quot;#{v}\&quot;&quot; if v}.join(&quot; &quot;)}&gt;&quot;
+       else
+         &quot;Error processing input, expected syntax: {% img [class name(s)] [http[s]:/]/path/to/image [width [height]] [title text | \&quot;title text\&quot; [\&quot;alt text\&quot;]] %}&quot;
+</code></pre></noscript></div>
+
+<p><code>initialize</code>の方で<code>val:</code>という値の時にも<code>src</code>に入れて、
+<code>render</code>の中で<code>val:</code>だった場合には変換しています。</p>
+
+<p>加えて、画像置き場を変えたい時もあるので、その値を<code>imgpath</code>として
+<code>_config.yml</code>で設定して、<code>http</code>から始まるものでない場合には
+そのパスを最初に与えるようにもしました。
+自己サイト内の別の場所も指定できるように、
+パスを追加したくない場合は<code>noimgpath</code>をクラスに(つまりは画像URLより先に書く)
+与えます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>yamlブロックで指定した値やLiquid文法で作った値は
+<code>render</code>関数の中で<code>context</code>から直接値を引き出せる、と言うことが分かってれば
+後はやり方しだいで、と言った感じです。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
