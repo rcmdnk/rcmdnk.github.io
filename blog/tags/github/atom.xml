@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Github | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/github/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T11:57:48+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actions用のアクションを自作する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/23/computer-git-github/"/>
+    <updated>2020-04-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/23/computer-git-github</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsで自作アクションを作る際に気づいた点など。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-actions" id="markdown-toc-github-actions">GitHub Actions</a></li>
+  <li><a href="#アクションの使い方" id="markdown-toc-アクションの使い方">アクションの使い方</a></li>
+  <li><a href="#アクションの作り方" id="markdown-toc-アクションの作り方">アクションの作り方</a></li>
+  <li><a href="#dockerファイルを使った方法" id="markdown-toc-dockerファイルを使った方法">Dockerファイルを使った方法</a></li>
+  <li><a href="#javascriptを使った方法" id="markdown-toc-javascriptを使った方法">JavaScriptを使った方法</a></li>
+  <li><a href="#inputsパラメーター" id="markdown-toc-inputsパラメーター">Inputsパラメーター</a></li>
+  <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a></li>
+  <li><a href="#アクションを公開する方法" id="markdown-toc-アクションを公開する方法">アクションを公開する方法</a></li>
+  <li><a href="#アクションのバージョンの付け方" id="markdown-toc-アクションのバージョンの付け方">アクションのバージョンの付け方</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-actions">GitHub Actions</h2>
+
+<p>GitHub ActionsはGitHubで使えるCI/CDツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190819_githubactions1_120_90.jpg" width="120" height="90" alt="20190819_githubactions1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200416_githubactions_120_90.png" width="120" height="90" alt="20200416_githubactions_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/">ブログのビルド環境をGitHub Actionsに変更</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/20/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200420_githubactionsbadge_120_90.jpg" width="120" height="90" alt="20200420_githubactionsbadge_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/20/computer-git-github/">GitHub Actionsに関する追記</a></div></li></ul>
+
+<h2 id="アクションの使い方">アクションの使い方</h2>
+
+<p>自分のWorkflowの中で人が作ったものや自分が作ったアクションを使いたい場合には
+<code>jobs.&lt;jobid&gt;.steps</code>の中で</p>
+
+<pre><code>jobs:
+  myjob:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    ...
+</code></pre>
+
+<p>の様に<code>uses</code>に該当のレポジトリ名を記入することで使えます。
+また、最後に<code>@</code>の後ろにリリース番号やコミット番号を指定することで
+バージョン指定することが可能です。</p>
+
+<p>また、<code>with</code>は、そのアクションが用意しているパラメーターを設定する項目で、
+ここでは<code>submodules</code>というパラメーターに<code>recursive</code>という値を設定しています。</p>
+
+<h2 id="アクションの作り方">アクションの作り方</h2>
+
+<p>アクションを作る際にはDockerilsを使ったものかJavaScriptを使ったものを作ることになります。</p>
+
+<p>DockerはLinuxのみ、JavaScriptはLinux、macOS、Windowsでも使えます。</p>
+
+<p>このどちらかを選んで作ることになります。</p>
+
+<h2 id="dockerファイルを使った方法">Dockerファイルを使った方法</h2>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/creating-a-docker-container-action">Docker コンテナのアクションを作成する - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>基本的にはDockerファイルを用意して、その中で実行するべきスクリプトを用意する、と言った感じ。</p>
+
+<p>GitHubのレポジトリに</p>
+
+<ul>
+  <li>action.yml</li>
+  <li>Dockerfile</li>
+  <li>entrypoint.sh (Dockerfileの中で呼ぶもの)</li>
+</ul>
+
+<p>を用意します。</p>
+
+<p>action.ymlには最小限以下の様な物を書きます。</p>
+
+<figure class="code"><figcaption><span>action.yml  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="s">&#39;my</span><span class="nv"> </span><span class="s">action&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">description</span><span class="p p-Indicator">:</span> <span class="s">&#39;my</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">unit&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">author</span><span class="p p-Indicator">:</span> <span class="s">&#39;rcmdnk&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">branding</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">icon</span><span class="p p-Indicator">:</span> <span class="s">&#39;meh&#39;</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">color</span><span class="p p-Indicator">:</span> <span class="s">&#39;gray-dark&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">runs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">using</span><span class="p p-Indicator">:</span> <span class="s">&#39;docker&#39;</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">image</span><span class="p p-Indicator">:</span> <span class="s">&#39;Dockerfile&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>name</code>、<code>description</code>は適当に好きなものを。</p>
+
+<p><code>author</code>には自分の名前を。</p>
+
+<p><code>branding</code>ですが、これはアクアションを公開する時に表示されるアイコンを指定します。</p>
+
+<blockquote>
+  <p><a href="https://feathericons.com/">Feather – Simply beautiful open source icons</a></p>
+</blockquote>
+
+<p>にあるIconマークと、背景カラーをバッジの背景カラー。 カラーはwhite、yellow、blue、green、orange、red、purple、gray-darkのいずれか。</p>
+
+<p>Dockerに関しては一番簡単には<code>runs</code>でDockerfileを指定するだけ。</p>
+
+<p>簡単なコマンドを実行するだけならDockerfileの中で実行ファイルを呼ぶ様に</p>
+
+<figure class="code"><figcaption><span>entrypoint.sh  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>FROM ubuntu:latest
+</span><span class="line">
+</span><span class="line">COPY entrypoint.sh /entrypoint.sh
+</span><span class="line">
+</span><span class="line">ENTRYPOINT <span class="o">[</span><span class="s2">&quot;/entrypoint.sh&quot;</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として<strong>entrypoint.sh</strong>を呼ぶようにします。</p>
+
+<h2 id="javascriptを使った方法">JavaScriptを使った方法</h2>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/creating-a-javascript-action">JavaScript アクションを作成する - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>こちらで用意する必要があるのは</p>
+
+<ul>
+  <li>action.yml</li>
+  <li>index.js (action.ymlで呼ぶもの)</li>
+</ul>
+
+<p>を用意します。</p>
+
+<figure class="code"><figcaption><span>action.yml  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="s">&#39;my</span><span class="nv"> </span><span class="s">action&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">description</span><span class="p p-Indicator">:</span> <span class="s">&#39;my</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">unit&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">author</span><span class="p p-Indicator">:</span> <span class="s">&#39;rcmdnk&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">branding</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">icon</span><span class="p p-Indicator">:</span> <span class="s">&#39;meh&#39;</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">color</span><span class="p p-Indicator">:</span> <span class="s">&#39;gray-dark&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">runs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">using</span><span class="p p-Indicator">:</span> <span class="s">&#39;node12&#39;</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">main</span><span class="p p-Indicator">:</span> <span class="s">&#39;index.js&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>runs</code>の所で<code>using</code>に<code>node12</code>を指定し使うJavaScriptファイルを<code>main</code>で指定します。</p>
+
+<p>あとはJavaScriptでの処理を<code>index.js</code>に書いておけばOK。</p>
+
+<h2 id="inputsパラメーター">Inputsパラメーター</h2>
+
+<p><code>inputs</code>は最初の例であった<code>with</code>でユーザーが設定できる様にするための<strong>action.yml</strong>内の設定です。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/metadata-syntax-for-github-actions#">GitHub Actionsのメタデータ構文 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<pre><code>inputs:
+  numOctocats:
+    description: 'Number of Octocats'
+    required: false
+    default: '1'
+  octocatEyeColor:
+    description: 'Eye color of the Octocats'
+    required: true
+</code></pre>
+
+<p>のような感じで指定すると、<code>numOctocats</code>と<code>octocatEyeColor</code>という値を
+<code>with</code>で設定できる様になります。</p>
+
+<p>これらの値は環境変数として使える様になり、
+先頭に<code>INPUT_</code>を付けてすべて大文字、空白は<code>_</code>に変換した状態になります。
+<code>numOctocats</code>ならシェルスクリプトとかで<code>$INPUT_NUMOCTOCATS</code>と呼べば値が読めます。</p>
+
+<p>ここで<code>required</code>と<code>default</code>という設定があるのですが、
+これら設定がいまいちちゃんと動いてないように見えます。</p>
+
+<p>Documentの記述と、自分的な感覚では</p>
+
+<ul>
+  <li><code>required</code>が<code>true</code>: ユーザーが必ず指定しなくてはいけない</li>
+  <li><code>default</code>が設定されている: <code>required</code>は<code>false</code>でユーザーが指定しないときにはその値が使われる</li>
+</ul>
+
+<p>と言ったものだと思ってました。</p>
+
+<p>ただ、実際動かしてみると、</p>
+
+<ul>
+  <li><code>required</code>が<code>true</code>で<code>default</code>の値が設定してあるとユーザーが指定しない場合に<code>default</code>の値が使われる
+    <ul>
+      <li><code>default</code>が無くてもから変数として生成される(エラーにはならない)</li>
+    </ul>
+  </li>
+  <li><code>required</code>が<code>false</code>の場合、ユーザーが指定しないと<code>default</code>の値があってもそれは無視される
+    <ul>
+      <li>厳密にはそのinputパラメーターが環境変数として生成されない</li>
+    </ul>
+  </li>
+</ul>
+
+<p>という感じでした。なので<code>default</code>を指定したい場合には必ず<code>required: true</code>にする必要があります。</p>
+
+<p>もしかしたら何か勘違いしてるかもしれないのですが、結構色々確かめた上で今の所こんな感じでした。</p>
+
+<p>なので今の所READMEとかに書く際には<code>required</code>の値は関係なしに、必ずユーザー側で指定してもらいたいものかどうか
+を書く必要があります。</p>
+
+<p>逆にREADMEがちゃんと無いと、<code>action.yml</code>を見ただけだとその変数を自分で設定する必要があるかどうかがちょっと分からない状態です。</p>
+
+<h2 id="secrets">Secrets</h2>
+
+<p>各レポジトリで<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Secrets</strong>というセクションに行くと
+秘密のワードを暗号化して保存しておくことが出来る様になっています。</p>
+
+<p>これを</p>
+
+<pre><code>- name: ssh test
+  env:
+    MY_SSH_KEY: ${{secrets.SSH_KEY}}
+  run: ssh -i $MY_SSH_KEY example.sh echo test
+</code></pre>
+
+<p>のような形で<strong>action.yml</strong>の中で使うことが出来ます。</p>
+
+<p><strong>action.yml</strong>の中では<code>${{ }}</code>で囲った形で<code>secrets.</code>というprefixを使って参照することが出来ます。</p>
+
+<p>上の例ではそれをbashのコマンドで呼びたいので一度環境変数に入れて、環境変数の形で
+<code>run</code>の中で使うようにしています。</p>
+
+<p>アクションの<code>with</code>に直接渡す事もできます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets">暗号化されたシークレットの作成と保存 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<h2 id="アクションを公開する方法">アクションを公開する方法</h2>
+
+<p>パブリックレポジトリで<strong>action.yml</strong>(もしくは<strong>action.yaml</strong>)がルートディレクトリにある場合、
+そのレポジトリでリリースを作ろうとすると自動的に
+<a href="https://github.com/marketplace?type=actions">GitHub Marketplace</a>
+に登録するかどうかの項目が出る様になっています。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/publishing-actions-in-github-marketplace">GitHub Marketplaceでのアクションの公開 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p><strong>action.yml</strong>の中で指定する<code>name</code>に関して、他のアクションとかぶってはいけなかったり
+ユーザー名やOrganization名、またはGitHubの機能名など予約されているものと一致してしまうと
+公開できないので、あまり簡単なユニークでなさそうな名前だと出来ないのでちょっと注意が必要です。</p>
+
+<p>あと2要素認証を使っていないと出来ないようになっているので、
+してない人はしましょう。</p>
+
+<p>リリースを作るだけでMarketplaceに公開されるので
+公開する敷居はかなり低い感じがしました。</p>
+
+<p>一つ公開してみた際、上にあるようなMarketplaceへの公開の機能が
+リリースを作ろうとしても出てこなくて困ったことがありました。</p>
+
+<p>これは<strong>action.yml</strong>ではなく、<strong>actions.yml</strong>という名前でアクションファイルを置いていたからでした。</p>
+
+<p>ただ、これでも他のレポジトリから</p>
+
+<pre><code>- uses: rcmdnk/octopress-action
+</code></pre>
+
+<p>みたいな感じでレポジトリを指定すると使えてました。
+Marketplaceに公開するのでなければアクションを定義するYAMLファイルの名前は何でも良い?様です。</p>
+
+<h2 id="アクションのバージョンの付け方">アクションのバージョンの付け方</h2>
+
+<p>バージョンの付け方は
+<a href="https://semver.org/">Semantic Versioning</a>
+が推奨されています。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/about-actions#versioning-your-action">アクションについて - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>vX.Y.Zで</p>
+
+<ul>
+  <li>X: メジャーバージョン。後方互換性が無いアップデートを含む場合に上げる。上げた際はY、Zは0に戻す。Xが0の時は開発段階。1以降で正式リリース。</li>
+  <li>Y: マイナーバージョン。後方互換性のある機能追加等を行った場合に上げる。上げた場合はZは0に戻す。</li>
+  <li>Z: パッチバージョン。後方互換製のあるバグフィックスを行った場合に上げる。</li>
+</ul>
+
+<p>といった定義。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0198700032?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0198700032&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xTs%2BTZNXL._SS90_CR0,0,120,90_.jpg" alt="Semantics: Primes and Universals (St. in Classification Data Analysis)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/07/computer-git-github/">Gitとかでタグを付けるときのバージョニングについて(Semantic Versioning)</a></div></li></ul>
+
+<p>さらに、破壊的変更がない場合(メジャーバージョンが変わらない場合)メジャーバージョンを指定するだけで自動で追いかけられるよう、<code>v1</code>などのタグを作り、
+マイナー/パッチバージョンを上げた際に<code>v1</code>などのタグをそのGit refに移動させることが推奨されています。</p>
+
+<p>ただ、アクション側でその様に用意してなければ使えないわけなので、
+各アクションのREADMEなどを読んで使えるものを使う必要があります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
