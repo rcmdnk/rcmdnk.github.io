@@ -1,0 +1,1176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Network | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/network/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T19:48:47+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[FreeBSDでのmosh-serverの問題が解決した模様]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/05/computer-network/"/>
+    <updated>2019-09-05T13:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/05/computer-network</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01BTW121I?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01BTW121I&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/616uf2JciHL._SS200_.jpg" alt="フードコンテナ 真空断熱 フードポット 0.3L ターコイズ mosh! (モッシュ!) DMFP300TU" /></a>
+</div>
+
+<p>7月末位からFreeBSDで起こっていたmosh-serverが使えないという問題ですが、
+アップデートがあったようで今は使える様になっています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mosh" id="markdown-toc-mosh">Mosh</a></li>
+  <li><a href="#今回起こった問題" id="markdown-toc-今回起こった問題">今回起こった問題</a></li>
+  <li><a href="#現状" id="markdown-toc-現状">現状</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mosh">Mosh</h2>
+
+<p>Mosh(the mobile shell)は
+sshの様にサーバーに接続し作業が出来、
+さらにネットワークが切れた状態になってもネットワークが復旧し次第
+再接続して同じ状態から作業が開始できる様になるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00I1M03OC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00I1M03OC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41P2fjXWPfL._SS90_CR0,0,120,90_.jpg" alt="MOSH (MOBILE SHELL): A New Era of Remote Access" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/30/computer-linux-mac/">Moshを使ってみる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01DC5TV22?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01DC5TV22&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61hpjIqMqbL._SS90_CR0,0,120,90_.jpg" alt="mosh!×STAR WARS (モッシュ×スターウォーズ) デザイン ボトル 0.35L パターン SWMB350PT" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/04/05/computer-network/">Moshでのアクセスの格闘(ルーター設定+Firewall(iptable)設定)</a></div></li></ul>
+
+<p>実際には、まずsshでサーバーに接続し、そこで<code>mosh-server</code>を立ち上げ、UDP経由で
+クライアント側から接続します。
+なのでsshの代わりになる、というわけではなく、sshによるアクセスが出来ることが前提になります。</p>
+
+<p>また、UDPポートをいくつか開放しておかないといけません。
+(デフォルトでは60000-61000を使います。)</p>
+
+<p>なので外部からのアクセスの制限が強い場合にはこの辺の準備をする必要がある場合があります。</p>
+
+<p>サーバー側では当然sshdのサービスは走っている必要はありますが、
+moshに関しては何も走らせておく必要はありません。
+<code>mosh-server</code>コマンドがインストールされてればOKです。
+ユーザーローカルのディレクトリにインストールしても使えるので
+サーバーの管理者権限がなくてもサーバーにインストールして使うことが出来ます。
+(ポート開放とかファイアウォールはやってもらわないと駄目ですが。)</p>
+
+<p>使い勝手としては</p>
+
+<pre><code>$ ssh user@example.com
+</code></pre>
+
+<p>とする代わりに</p>
+
+<pre><code>$ mosh user@example.com
+</code></pre>
+
+<p>とするだけなので完全にssh間隔で使えます。</p>
+
+<h2 id="今回起こった問題">今回起こった問題</h2>
+
+<p>問題については以下に書いてあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06W5HC2G3?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06W5HC2G3&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41ZG-A2RFoL._SS90_CR0,0,120,90_.jpg" alt="【セット買い】 mosh! (モッシュ! ) 水筒 真空断熱 スクリュー式 マグ ボトル 0.35L ブラウン + フードポット 0.3L ブラウン" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/24/compouter-network/">FreeBSDでmosh-serverが立ち上がらなくなった件</a></div></li></ul>
+
+<p>簡単に言うと<code>mosh-server</code>コマンドが立ち上がらなくなりmoshによる接続ができなくなった、という話。</p>
+
+<h2 id="現状">現状</h2>
+
+<p>自分でコンパイルとかしてなんとかしようと思って上手くいきませんでしたが、
+現在はアップデートによって最新版にすれば問題はおこならないようになっているみたいです。</p>
+
+<pre><code>$ uname -a
+FreeBSD xxx.xxx.xxx 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M: Fri Sep 28 14:10:47 JST 2018     root@xxx.xxx.xxx:/usr/obj/usr/src/sys/GENERIC  amd64
+$ pkg version -v|grep -e mosh -e protobuf
+mosh-1.3.2_11                      =   up-to-date with remote
+protobuf-3.9.1,1                   =   up-to-date with remote
+$ pkg info mosh
+mosh-1.3.2_11
+Name           : mosh
+Version        : 1.3.2_11
+Installed on   : Wed Aug 28 17:44:17 2019 JST
+Origin         : net/mosh
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : net
+Licenses       : GPLv3
+Maintainer     : zi@FreeBSD.org
+WWW            : https://mosh.org/
+Comment        : Mobile terminal that supports intermittent connectivity
+Shared Libs required:
+        libprotobuf.so.20
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 688KiB
+Description    :
+Remote terminal application that allows roaming, supports intermittent
+connectivity, and provides intelligent local echo and line editing of
+user keystrokes.
+
+
+Mosh is a replacement for SSH. It's more robust and responsive,
+especially over Wi-Fi, cellular, and long-distance links.
+
+
+WWW: https://mosh.org/
+$ pkg info protobuf
+protobuf-3.9.1,1
+Name           : protobuf
+Version        : 3.9.1,1
+Installed on   : Wed Aug 28 17:44:01 2019 JST
+Origin         : devel/protobuf
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : devel
+Licenses       : BSD3CLAUSE
+Maintainer     : sunpoet@FreeBSD.org
+WWW            : https://github.com/protocolbuffers/protobuf
+Comment        : Data interchange format library
+Shared Libs provided:
+        libprotobuf-lite.so.20
+        libprotoc.so.20
+        libprotobuf.so.20
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 22.4MiB
+Description    :
+Protocol Buffers are a way of encoding structured data in an efficient yet
+extensible format. Google uses Protocol Buffers for almost all of its internal
+RPC protocols and file formats.
+
+
+WWW: https://github.com/protocolbuffers/protobuf
+</code></pre>
+
+<p>見てみるとOS自体のアップデートはなくて、moshとprotobufの両方がアップデートされています。</p>
+
+<ul>
+  <li>OS: 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M</li>
+  <li>mosh: 1.3.2_9 <i class="fa fa-arrow-right"></i> 1.3.2_11</li>
+  <li>protobuf: 3.8.0.1 <i class="fa fa-arrow-right"></i> 3.9.1.1</li>
+</ul>
+
+<p>protobufのアップデートのおかげ?</p>
+
+<p>とりあえずこの環境では直ったみたいなので、もし同じようにFreeBSD環境でmosh-serverが上手く使えない場合は
+もし管理権限があれば
+<code>pkg upgrade</code>とかでパッケージを最新にすれば解決されるかと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[FreeBSDでmosh-serverが立ち上がらなくなった件]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/24/compouter-network/"/>
+    <updated>2019-08-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/24/compouter-network</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06W5HC2G3?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06W5HC2G3&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41ZG-A2RFoL._SS200_.jpg" alt="【セット買い】 mosh! (モッシュ! ) 水筒 真空断熱 スクリュー式 マグ ボトル 0.35L ブラウン + フードポット 0.3L ブラウン" /></a>
+</div>
+
+<p>普段、sshを使って作業する際、ノートPCだと切れてからいちいち再度つなぐのが面倒なので
+moshを使っています。</p>
+
+<p>あるサーバーに関してはFreeBSDのサーバーを踏み台としてmoshで接続して作業しているのですが、
+FreeBSD上でmoshが上手く動かなくなっている件について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mosh" id="markdown-toc-mosh">Mosh</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#なんとかしてみようとtry" id="markdown-toc-なんとかしてみようとtry">なんとかしてみようとtry</a></li>
+  <li><a href="#公式のアップデートコミット" id="markdown-toc-公式のアップデートコミット">公式のアップデートコミット</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mosh">Mosh</h2>
+
+<p>Mosh(the mobile shell)は
+sshの様にサーバーに接続し作業が出来、
+さらにネットワークが切れた状態になってもネットワークが復旧し次第
+再接続して同じ状態から作業が開始できる様になるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00I1M03OC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00I1M03OC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41P2fjXWPfL._SS90_CR0,0,120,90_.jpg" alt="MOSH (MOBILE SHELL): A New Era of Remote Access" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/30/computer-linux-mac/">Moshを使ってみる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01DC5TV22?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01DC5TV22&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61hpjIqMqbL._SS90_CR0,0,120,90_.jpg" alt="mosh!×STAR WARS (モッシュ×スターウォーズ) デザイン ボトル 0.35L パターン SWMB350PT" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/04/05/computer-network/">Moshでのアクセスの格闘(ルーター設定+Firewall(iptable)設定)</a></div></li></ul>
+
+<p>実際には、まずsshでサーバーに接続し、そこで<code>mosh-server</code>を立ち上げ、UDP経由で
+クライアント側から接続します。
+なのでsshの代わりになる、というわけではなく、sshによるアクセスが出来ることが前提になります。</p>
+
+<p>また、UDPポートをいくつか開放しておかないといけません。
+(デフォルトでは60000-61000を使います。)</p>
+
+<p>なので外部からのアクセスの制限が強い場合にはこの辺の準備をする必要がある場合があります。</p>
+
+<p>サーバー側では当然sshdのサービスは走っている必要はありますが、
+moshに関しては何も走らせておく必要はありません。
+<code>mosh-server</code>コマンドがインストールされてればOKです。
+ユーザーローカルのディレクトリにインストールしても使えるので
+サーバーの管理者権限がなくてもサーバーにインストールして使うことが出来ます。
+(ポート開放とかファイアウォールはやってもらわないと駄目ですが。)</p>
+
+<p>使い勝手としては</p>
+
+<pre><code>$ ssh user@example.com
+</code></pre>
+
+<p>とする代わりに</p>
+
+<pre><code>$ mosh user@example.com
+</code></pre>
+
+<p>とするだけなので完全にssh間隔で使えます。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>ある時、いつもどおりmoshで接続しようとしたら</p>
+
+<pre><code>[libprotobuf FATAL google/protobuf/generated_message_util.cc:809] CHECK failed: (scc-&gt;visit_status.load(std::memory_order_relaxed)) == (SCCInfoBase::kRunning):
+Abort trap (core dumped)
+</code></pre>
+
+<p>というエラーを出して接続できなくなっていました。</p>
+
+<p>普段、数日単位でつなげっぱなしにしてあるのでどのタイミングか分からなかったですが、7月中旬頃です。</p>
+
+<p>どうも<code>protobuf</code>関連でエラーが起こってる模様。</p>
+
+<p>このサーバーに普通にアクセスしてバージョンなどをチェックしてみると</p>
+
+<pre><code>$ uname -a
+FreeBSD xxx.xxx.xxx 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M: Fri Sep 28 14:10:47 JST 2018     root@xxx.xxx.xxx:/usr/obj/usr/src/sys/GENERIC  amd64
+$ pkg info mosh
+mosh-1.3.2_9
+Name           : mosh
+Version        : 1.3.2_9
+Installed on   : Fri Jul 12 12:25:34 2019 JST
+Origin         : net/mosh
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : net
+Licenses       : GPLv3
+Maintainer     : zi@FreeBSD.org
+WWW            : https://mosh.org/
+Comment        : Mobile terminal that supports intermittent connectivity
+Shared Libs required:
+        libprotobuf.so.19
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 688KiB
+Description    :
+Remote terminal application that allows roaming, supports intermittent
+connectivity, and provides intelligent local echo and line editing of
+user keystrokes.
+
+Mosh is a replacement for SSH. It's more robust and responsive,
+especially over Wi-Fi, cellular, and long-distance links.
+
+WWW: https://mosh.org/
+]$ pkg info protobuf
+protobuf-3.8.0,1
+Name           : protobuf
+Version        : 3.8.0,1
+Installed on   : Fri Jul 12 12:25:27 2019 JST
+Origin         : devel/protobuf
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : devel
+Licenses       : BSD3CLAUSE
+Maintainer     : sunpoet@FreeBSD.org
+WWW            : https://github.com/protocolbuffers/protobuf
+Comment        : Data interchange format library
+Shared Libs provided:
+        libprotoc.so.19
+        libprotobuf.so.19
+        libprotobuf-lite.so.19
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 22.4MiB
+Description    :
+Protocol Buffers are a way of encoding structured data in an efficient yet
+extensible format. Google uses Protocol Buffers for almost all of its internal
+RPC protocols and file formats.
+
+WWW: https://github.com/protocolbuffers/protobuf
+</code></pre>
+
+<p>と言った感じで、両方とも7月12日に新しいバージョンがインストールされたようです。</p>
+
+<p>ちなみにこのサーバーは管理者じゃないので自分で勝手にどうこうはできません。</p>
+
+<p>ちょっと探してみるとFreeBSDのフォーラムにこれに関することがありました。</p>
+
+<blockquote>
+  <p><a href="https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=239038">239038 – net/mosh: Refuses connections due to protobuf error</a></p>
+</blockquote>
+
+<p>ちょうどconfirm this bugと言っているバージョンがこれと全く一緒でした。
+なので環境の問題というよりはmosh/protobufとFreeBSDの問題のようです。</p>
+
+<h2 id="なんとかしてみようとtry">なんとかしてみようとtry</h2>
+
+<p>moshが使えないと非常に面倒なのでなんとかしようとソースからコンパイルとかしてみました。
+(ユーザーディレクトリに入れてmoshで接続する時にそれを指定)</p>
+
+<p>まずはmosh 1.3.2の同じバージョンをコンパイルして実行してみましたが当然?同じエラーが出ました。
+1.3.0を入れてみても同じエラーでした。</p>
+
+<p>次にprotobufの方を入れてみよう、と。
+まず、より新しい3.9.0があったのでそれを試すと、</p>
+
+<pre><code>[user@server ~/tmp/protobuf-3.9.0]$ make
+make  all-recursive
+Making all in .
+Making all in src
+  CXX      google/protobuf/stubs/common.lo
+  google/protobuf/stubs/common.cc:48:2: error: #error "No suitable threading library available."
+   #error "No suitable threading library available."
+     ^~~~~
+     *** Error code 1
+
+
+Stop.
+make[2]: stopped in /home/user/tmp/protobuf-3.9.0/src
+*** Error code 1
+
+
+Stop.
+make[1]: stopped in /home/user/tmp/protobuf-3.9.0
+*** Error code 1
+
+
+Stop.
+make: stopped in /home/user/tmp/protobuf-3.9.0
+</code></pre>
+
+<p>なんかエラーが出る。3.8.0とかでも同じエラーが出ます。</p>
+
+<p><code>threading library</code>がない、と言っていますが、
+具体的には<code>pthread</code>が見つからないみたいです。</p>
+
+<p>ただ、サーバーに
+<strong>/usr/include/pthread.h</strong>や<strong>/usr/lib/libpthread.so</strong>などはあります。</p>
+
+<p>そもそもこんな状態なら<code>configure</code>した時点でエラーを吐いてほしいのですが、
+<code>configure</code>は成功し(ただし<code>checking whether pthreads work with -pthread... no</code>というログは確かに出ている)
+<code>make</code>で失敗します。</p>
+
+<p>configureファイルの中を見ていくとどうもライブラリを見つける部分に問題があるだけな感じがするので(ちゃんとは見てない)
+適当なところでチェックを通してしまうようにしてみます。
+(configure内の<code>ax_pthread_ok=no</code>と初期化してるところで<code>ax_pthread_ok=yes</code>にして見つからなくても見つかったようにするように)</p>
+
+<p>これでconfigureも通り、<code>make</code>も成功しました。
+(なので、やはり<code>pthread</code>はコンパイル時にちゃんと見えてるし使えている。。。)</p>
+
+<p>これを<strong>$HOME/usr/lib</strong>とかにインストールしてLD_LIBRARY_PATHとかの設定をして
+moshの方を再コンパイル。</p>
+
+<p>configureする時に</p>
+
+<pre><code>$ protobuf_CFLAGS="-L/usr/local/lib -lprotobuf " protobuf_LIBS="-L/usr/local/lib -lprotobuf " ./configure --prefix=$HOME/usr
+</code></pre>
+
+<p>これでmosh(1.3.2, 1.3.0ともに)を再コンパイルして試してみましたがやはり最初と同じエラーが出ます。</p>
+
+<p>protobuf-3.8.0でも同じ。protobuf-3.7.0も試してみましたがやはり同じ。</p>
+
+<p>protobufの更に古い2.6とかは
+最初に<code>autogen.sh</code>をする際に</p>
+
+<pre><code>[user@server ~/tmp/protobuf-2.6.0]$ ./autogen.sh
+Google Test not present.  Fetching gtest-1.5.0 from the web...
+tar: Error opening archive: Failed to open '/dev/sa0'
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1586  100  1586    0     0   1103      0  0:00:01  0:00:01 --:--:--  1104
+</code></pre>
+
+<p>とか出てしまい駄目。</p>
+
+<p>moshの古いa1.2.5だとconfigureで</p>
+
+<pre><code>configure: error: Package requirements (openssl) were not met:
+
+
+Package 'openssl', required by 'virtual:world', not found
+
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+
+Alternatively, you may set the environment variables OPENSSL_CFLAGS
+and OPENSSL_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+</code></pre>
+
+<p>みたいなのが出てしまいます。この辺はもう面倒になって真面目にチェックしてません。</p>
+
+<p>ここまで来て一旦諦め。</p>
+
+<p>そしてしばらくしてまた上のFreeBSDのフォーラムを見てみると結構アップデートがあって、</p>
+
+<blockquote>
+  <p>This only happens on FreeBSD 11.2 and 11.3, and the root cause is configure script of protobuf, but only exposed after protobuf 3.8 upgrade, in this protobuf commit:</p>
+</blockquote>
+
+<p>とあります。この環境は11.2なのでやはり起こる環境らしい。</p>
+
+<p>ただ、3.8にアップグレード後のみ、との話なので、
+上で3.7を入れて試したのになんで上手くいかないかは不明。
+これらを信じるとすると、コンパイル時にリンクが上手く行かずシステムのpthreadを使ってしまっている様な雰囲気。</p>
+
+<p>ただその後に書いてあるpatchは</p>
+
+<pre><code>--- configure~  2019-07-22 15:39:35.886057000 +0800
++++ configure   2019-07-22 15:40:41.618362000 +0800
+@@ -20122,7 +20122,7 @@
+        # ignore this macro, third-party headers might not.)
+
+        PTHREAD_CFLAGS="-pthread"
+-       PTHREAD_LIBS=
++       PTHREAD_LIBS="-pthread"
+
+        ax_pthread_ok=yes
+</code></pre>
+
+<p>こんなのがありますが、これは上にも書いた様にそもそもconfigureの段階でpthreadが見つからないとうまくいきません。</p>
+
+<p>多分何か上手くやってないところがあるだけだと思いますが、いまのところまだうまく行ってません。</p>
+
+<h2 id="公式のアップデートコミット">公式のアップデートコミット</h2>
+
+<p>これに関するアップデートが8月20日にFreeBSDのレポジトリにコミットされたようです。</p>
+
+<blockquote>
+  <p><a href="https://svnweb.freebsd.org/base?view=revision&amp;revision=351253">[base] Revision 351253</a></p>
+</blockquote>
+
+<p>これが実際に降りてくるのがいつになるかわかりませんが、FreeBSD側での対応で一応治るみたいです。</p>
+
+<p>ただ、それまでになんとかしたいのでまだ時々コンパイルを試しているのですが、まだ上手く行かず。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>moshは非常に便利なので普段から良くsshして作業している人は一度使ってみると
+手放せなくなると思います。
+(と言う割には皆あまり使ってくれない。。。)</p>
+
+<p>ノートPCで作業していて、ちょっと畳んで他に持っていって作業する際に
+即座に作業が開始できるのは一度やるとなくてはならないものになると思うのですが。</p>
+
+<p>今はちょっと上のサーバーで使えなくなっていて、ちょっと経由してでも他のところを踏み台にしたり
+色々してますが、早くなおってほしいところ。</p>
+
+<p>コンパイルのところもうちょっと真面目に見れば出来るはずのことではあるとは思いますが。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[多段sshでGitを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2018/11/16/computer-network-git/"/>
+    <updated>2018-11-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/11/16/computer-network-git</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873114403?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873114403&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51B2dc%2BsJGL._SS200_.jpg" alt="実用Git" /></a>
+</div>
+
+<p>外部から直接アクセスできないサーバーなどに
+踏み台サーバーを通して一発でsshを行う設定がありますが、
+Gitのsshを使ったアクセスについても同じようなことが出来ます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sshを使ったgitアクセス" id="markdown-toc-sshを使ったgitアクセス">sshを使ったGitアクセス</a></li>
+  <li><a href="#多段ssh" id="markdown-toc-多段ssh">多段ssh</a></li>
+  <li><a href="#ssh--wオプションは使えない" id="markdown-toc-ssh--wオプションは使えない"><code>ssh -W</code>オプションは使えない?</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sshを使ったgitアクセス">sshを使ったGitアクセス</h2>
+
+<p>Gitではコマンドラインからサーバーにいくつかの方法でアクセスすることが出来ますが、
+認証を要する接続では鍵認証を使ったsshの接続が一番良く使われています。</p>
+
+<p><strong>~/.ssh/git_rsa</strong>の様な鍵を用意しておいて、
+同時に作った<strong>git_rsa.pub</strong>をサーバー側に登録し
+以下の様な設定を<strong>~/.ssh/config</strong>に加えます。</p>
+
+<figure class="code"><figcaption><span>~/.ssh/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Host github.com
+</span><span class="line">  HostName github.com
+</span><span class="line">  User git
+</span><span class="line">  IdentityFile ~/.ssh/git_rsa
+</span></code></pre></td></tr></table></div></figure>
+
+<p>そうすると</p>
+
+<pre><code>$ ssh -T github.com
+Hi rcmdnk! You've successfully authenticated, but GitHub does not provide shell access.
+</code></pre>
+
+<p>の様にきちんと鍵で認証できることが確認でき、<code>git clone</code>などもsshプロトコルを通して
+行うことができる様になります。</p>
+
+<p>GitHubなどではユーザーはすべて<code>git</code>ですが、
+認証時に鍵を通じて各ユーザーを判断していることがわかります。</p>
+
+<h2 id="多段ssh">多段ssh</h2>
+
+<p>GitHubであれば通常どこからでもアクセスできますが、
+自前で立ち上げているGitサーバーで外部から直接アクセスできない様な所にある
+サーバーもあるかと思います。</p>
+
+<p>この様な場合に、外から<code>git clone</code>しようと思うと直接は出来ませんが、
+多段sshを使うことで操作できる様になります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873112877?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873112877&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41GJBSC36XL._SS90_CR0,0,120,90_.jpg" alt="実用SSH 第2版―セキュアシェル徹底活用ガイド" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/">多段ssh設定のまとめ</a></div></li></ul>
+
+<p>多段sshを行うためには、内部サーバーにアクセスでき、かつ外側にオープンになっている
+踏み台サーバーが必要になります。</p>
+
+<p>直接アクセスしようとすると</p>
+
+<pre><code>$ ssh -T git.example.com -p 7000
+ssh: connect to host git.exaple.com port 7000: Operation timed out
+ssh_exchange_identification: Connection closed by remote host
+</code></pre>
+
+<p>となって繋がれない。</p>
+
+<p>Gitのサーバーが<strong>git.exmaple.com</strong>、外からアクセスできる踏み台サーバーが<strong>login.exmaple.com</strong>だとすると
+以下の様な設定をすることで一発でアクセスできる様になります。</p>
+
+<figure class="code"><figcaption><span>~/.ssh/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Host login.example.com
+</span><span class="line">  HostName login.example.com
+</span><span class="line">  User user_at_login
+</span><span class="line">  IdentityFile ~/.ssh/login_rsa
+</span><span class="line">
+</span><span class="line">Host git.example.com
+</span><span class="line">  HostName git.example.com
+</span><span class="line">  User git
+</span><span class="line">  Port <span class="m">7000</span>
+</span><span class="line">  IdentityFile ~/.ssh/git_rsa
+</span><span class="line">  ProxyCommand ssh login.example.com -W %h:%p
+</span><span class="line">  <span class="c1">#ProxyCommand ssh login.example.com nc %h %p</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここで、<strong>login_rsa</strong>は<strong>login.example.com</strong>用の鍵、<strong>git_rsa</strong>は<strong>git.example.com</strong>用の鍵になります。
+この場合<strong>login.example.com</strong>には鍵を置いておく必要はありません。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2018/11/18 </strong></p>
+
+  <p>ここでは<code>ProxyCommand</code>として<code>-W</code>オプションを使って設定しています。
+このオプションはOpenSSHが5.4から有効ですが今はほとんど場合入っていると思います。</p>
+
+  <p>もし古いバージョンだったり、下に書くように<code>-W</code>が使えない状況の場合、
+コメントアウトしてある方の<code>nc</code>コマンドを使った設定が使えます。
+この場合、<code>nc</code>が踏み台用サーバーにインストールされている必要があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>これで</p>
+
+<pre><code>$ ssh -T git.example.com
+Welcome to GitLab, @rcmdnk!
+</code></pre>
+
+<p>みたいな感じでアクセスできる様になります(この表示はGitLabの場合)。</p>
+
+<p><code>git clone</code>/<code>git push</code>なども内部サーバーからやるのと同じ様にできる様になっているはずです。</p>
+
+<h2 id="ssh--wオプションは使えない"><code>ssh -W</code>オプションは使えない?</h2>
+
+<p>OpenSSHでは5.4から<code>-W</code>というオプションが出来て、これを使って</p>
+
+<pre><code>ProxyCommand ssh login.example.com -W %h:%p
+</code></pre>
+
+<p>と言った設定をすることで通常のsshでは多段接続できる様になっています。
+これにより踏み台サーバー側に<code>nc</code>がインストールされてなくても多段接続できます。</p>
+
+<p>ただ、この設定でGitサーバーにアクセスしようとしてみたところ</p>
+
+<pre><code>$ ssh -T git.exaple.com
+Stdio forwarding request failed: Session open refused by peer
+ssh_exchange_identification: Connection closed by remote host
+</code></pre>
+
+<p>の様な感じに失敗してしまいます。
+メッセージ的にはポート指定が間違ってる様な感じなのですが、
+ちょっと原因が分かりませんでした。
+もしかしたら試したサーバー特有のものかもしれませんが、とりあえず<code>nc</code>を使えばうまく行っているのでそれでOKとしています。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2018/11/18 </strong></p>
+
+  <p><code>-W</code>オプションが使えないのはGitサーバーだからではなく、
+踏み台サーバーの<strong>/etc/ssh/sshd_config</strong>の設定で</p>
+
+  <pre><code>AllowTcpForwarding=no
+</code></pre>
+
+  <p>が設定されていることが原因でした。
+実際、この踏み台サーバーを経由して通常の他のサーバーにログインしようと同じ現象が起きましたし、
+これを<code>yes</code>にしたらGitでもうまくいきました。</p>
+
+  <p>このサーバーではポートフォワードを許したくないのでこの設定を入れていたので、
+やはり<code>nc</code>を使った方法を行うことにします。</p>
+
+  <p>通常の多段sshを行う際にも踏み台サーバーでポートフォワーディングを許可していない場合には
+<code>-W</code>は使えいので<code>nc</code>を使った方法を行う必要があります。</p>
+
+  <p><code>-W</code>オプションも<code>nc</code>を使った方法も、<code>ProxyCommand</code>に書くと似たような設定になりますが、
+実際に行っていることはちょっと違って、</p>
+
+  <ul>
+    <li>ssh -W: 踏み台経由でポートフォワードを行い、そこにアクセスする</li>
+    <li>nc: 踏み台経由でncコマンドを実行して目的のサーバーにアクセスする</li>
+  </ul>
+
+  <p>という感じ。</p>
+
+  <p>最近のsshを使っていて踏み台サーバーがポートフォワードを許可しているのであれば
+<code>-W</code>を使ったほうが簡単です。</p>
+
+  <p>ポートフォワードが許可されてない場合、<code>nc</code>を使う必要がありますが、
+この場合には踏み台サーバー側に<code>nc</code>コマンドがインストールされている必要があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Gitのサーバーに対しても多段sshを使ったアクセスが可能です。</p>
+
+<p>ただし、sshのオプションである<code>-W</code>をProxyCommandに設定するとうまくいかない場合があり、
+その場合は<code>nc</code>コマンドを指定することで通常のsshの様にアクセスすることができるようになります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[DHCPでホスト名が配られる環境にノートPCを持っていた時に起こった問題]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/21/computer-network-screen/"/>
+    <updated>2018-08-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/21/computer-network-screen</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5510882581?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5510882581&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Ssi-E3KEL._SS200_.jpg" alt="Hostname" /></a>
+</div>
+
+<p>ノートパソコンを持ち歩いていろいろなところのWi-Fiで作業することが多いですが
+ネットワークによってはDHCPでホスト名も配っているところがあります。</p>
+
+<p>そんなところに繋いだり他で作業したりしてる間にちょっと問題が起こりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macのローカルホスト名" id="markdown-toc-macのローカルホスト名">Macのローカルホスト名</a></li>
+  <li><a href="#ホスト名が変わる" id="markdown-toc-ホスト名が変わる">ホスト名が変わる</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macのローカルホスト名">Macのローカルホスト名</h2>
+
+<p>Macでの話ですが、システム環境設定の<strong>共有</strong>から<strong>コンピューター名</strong>を決めることが出来、
+通常この値に<code>MyMac</code>とか入れておくと、</p>
+
+<pre><code>$ hostname
+MyMac.local
+</code></pre>
+
+<p>といった<code>.local</code>を付けたホスト名として認識されます。</p>
+
+<p>これ以外に、Mac特有のツールで</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ HostName
+MyMac.local
+</code></pre>
+
+<p>と、<code>scutil</code>を使っても確かめることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00LYTZROA?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00LYTZROA&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51HkL2NY6eL._SS90_CR0,0,120,90_.jpg" alt="My IP" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/12/09/computer-mac/">Mac 10.10 Yosemiteでのホスト名の設定</a></div></li></ul>
+
+<h2 id="ホスト名が変わる">ホスト名が変わる</h2>
+
+<p>これがDHCPサーバー側からホスト名が配られる様な設定になっていると、
+<code>hostname</code>の結果がその指定してきたものに変わってきます。</p>
+
+<pre><code>$ hostname
+example.host
+</code></pre>
+
+<p>一方<code>scutil</code>の結果は</p>
+
+<pre><code>$ scutil --get ComputerName
+MyMac
+$ scutil --get LocalHostName
+MyMac
+$ scutil --get HostName
+HostName: not set
+</code></pre>
+
+<p>といった具合に、<code>ComputerName</code>、<code>LocalHostName</code>は相変わらず同じ名前を出す一方、
+<code>HostName</code>は<code>not set</code>になっています。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>今回起こったのはGNU screenのソケットディレクトリの設定に関してです。</p>
+
+<p>通常、<strong>/tmp/uscreens/S-user</strong>の様なところに設定してありますが、
+<code>SCREENDIR</code>という環境変数で変更することが出来、これを</p>
+
+<pre><code>SCREENDIR=$HOME/.screen_$(hostname|cut -d. -f1
+</code></pre>
+
+<p>みたいな値に設定していました。</p>
+
+<p>これは<strong>/tmp</strong>に置くのが嫌なのと、分散サーバーみたいなところでHOMEを共有している場所で、
+他の端末でscreenを立ち上げてる時にさっと<code>ls ~/.screen_*</code>みたいにすると
+どこで立ち上がってるか簡単に確認出来る様にするためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1895636426?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1895636426&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Bh8%2BDwK9L._SS90_CR0,0,120,90_.jpg" alt="Socket" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/04/computer-screen-socket/">GNU screenでのソケットディレクトリについて</a></div></li></ul>
+
+<p>Macではホスト名を付ける必要は特にないのですが、
+<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>
+で共通のものを使ってるので持ち運び端末でも同じ様にホスト名のついたソケットディレクトリを使っていました。</p>
+
+<p>ここで、ある環境で<code>hostname</code>が<code>Mymac.local</code>の所でターミナルを立ち上げ、
+その後、DHCPでホスト名(<code>example.host</code>)が配られる環境に接続後、立ち上げ済のターミナルからGNU screenを立ち上げると</p>
+
+<pre><code>$ screen -ls
+No Sockets found in /Users/user/.screen_example
+</code></pre>
+
+<p>といった感じで中からscreenの情報が取れません。</p>
+
+<p>これは、GNU screenを立ち上げるターミナルでは<code>SCREENDIR</code>がターミナル立ち上げ立ち上げ時に設定された
+<code>~/.screen_MyMac</code>であるのに対し、
+立ち上げ後にscreen内で起動するBashは<code>SCREENDIR</code>を<code>~/.screen_example</code>と設定してしまうからです。</p>
+
+<p>これに対処するためにMacにおいては<code>scutil</code>を使うように変更しました。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$OSTYPE</span><span class="s2">&quot;</span> <span class="o">=</span>~ darwin <span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>scutil --get ComputerName<span class="k">)</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="nb">export</span> <span class="nv">SCREENDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.screen_<span class="k">$(</span>hostname<span class="p">|</span>cut -d. -f1<span class="k">)</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  mkdir -p <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">chmod <span class="m">700</span> <span class="s2">&quot;</span><span class="nv">$SCREENDIR</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>WindowsのノートPCに関してはどうするか、ちょっとまだ考え中です。
+<code>cygwin</code>ならまだ条件分岐出来ますが、
+最近使えるようになったUbuntu on Windowsとか
+そもそも区別し辛いものだと辛い。</p>
+
+<p>今のところこれ以外にホスト名に頼って直接何かするような設定はなさそうなんですが、
+結構こういうことは起こりそうなので気をつけて見ていかないと、と。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windowsで公式ツールでSSHサーバーを立てる2つの方法]]></title>
+    <link href="https://rcmdnk.com/blog/2018/04/27/computer-windows-network/"/>
+    <updated>2018-04-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/04/27/computer-windows-network</id>
+    <content type="html"><![CDATA[<p>以前はWindowsをSSHサーバーにしようと思うとCygwinを入れたりとか
+サードパーティー的なもので無理やり構築する必要がありましたが、
+最近のアップデートでオフィシャルな感じで簡単にSSHサーバーにすることができるようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#前にやってたこととか" id="markdown-toc-前にやってたこととか">前にやってたこととか</a></li>
+  <li><a href="#openssh-server" id="markdown-toc-openssh-server">OpenSSH Server</a></li>
+  <li><a href="#windows-subsystem-for-linux-wsl" id="markdown-toc-windows-subsystem-for-linux-wsl">Windows Subsystem for Linux (WSL)</a></li>
+  <li><a href="#ポート開放" id="markdown-toc-ポート開放">ポート開放</a></li>
+  <li><a href="#使えるか" id="markdown-toc-使えるか">使えるか?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="前にやってたこととか">前にやってたこととか</h2>
+
+<p>以前、WindowsでCygwinを入れてSSHサーバーを立てたりしていました。</p>
+
+<blockquote>
+  <p><a href="http://osksn2.hep.sci.osaka-u.ac.jp/~naga/miscellaneous/winssh/winssha.html">ウィンドウズにSSHサーバーを入れよう！</a></p>
+</blockquote>
+
+<p>他にも色々とSSHサーバーを立てる</p>
+
+<p>最近だとちょっと用途は違うかもしれませんが、Virtual Machine上にLinuxを入れて、とかで
+サーバーを立ててる人もいると思います。</p>
+
+<p>また、数年前から公式なSSHツールの開発も進められていて
+自分でインストールすることで使うこともできるようになっていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/Win32-OpenSSH">PowerShell/Win32-OpenSSH: Win32 port of OpenSSH</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/openssh-portable">PowerShell/openssh-portable: Portable OpenSSH, all Win32-OpenSSH releases and wiki are managed at https://github.com/powershell/Win32-OpenSSH</a></p>
+</blockquote>
+
+<p>このツールが今はWindowsから簡単な操作で有効にできる様になっています。</p>
+
+<h2 id="openssh-server">OpenSSH Server</h2>
+
+<p>昨年のAnniversary UpdateでWindows本体に導入され、まずは開発者モードでのみ使える様になっていたOpenSSH Server(及びClient)。
+さらに昨年末から今年始めにかけて配布されていたFall Creators Updateでこれらがオプション機能として開発者モードでなくても簡単に
+追加できる様になりました。</p>
+
+<p>このAnniversary Updateが入った時に、開発者モードにしていると自動でSSHサーバーが立ち上がる様になっていたとかで
+ちょっと騒ぎになった様なこともあった気がしますが、
+現在のWindowsではSSHの機能はデフォルトではOFFになっています。</p>
+
+<p>有効にするには<strong>Windowsの設定</strong>から<strong>アプリ</strong>へ行き、<strong>アプリと機能</strong>のページにある<strong>アプリと機能</strong>の欄の<strong>オプション機能の管理</strong>を開きます。
+ここで<strong>機能追加</strong>へ行くと
+<strong>OpenSSH Server (Beta)</strong>というのがあるのでこれをインストールします。
+とりあえずのテストとかでも便利なのでついでに必要なら<strong>OpenSSH Client (Beta)</strong>も。</p>
+
+<p>ここで2つ一気にインストールしようとすると失敗することもあるので
+ちゃんと<strong>オプション機能の管理</strong>ページにインストールしたものが追加されてるか確認してください。</p>
+
+<p>出来たらPowerShellなりコマンドプロンプトを立ち上げて</p>
+
+<pre><code>&gt; ssh localhost
+</code></pre>
+
+<p>とやってssh接続できるか試してみます。</p>
+
+<p>Puttyとかで<code>localhost</code>に向けて<code>ssh</code>してもチェックできます。</p>
+
+<p>上手く行かない場合、サービスが動いているかチェックするため、
+コルタナから<strong>サービス</strong>とかで検索してサービスのウィンドウを立ち上げ、<code>sshd</code>という名前のサービスが<strong>実行中</strong>になっているかチェックします。</p>
+
+<p>もし<code>sshd</code>がなければ上のインストールの所で失敗してるのでもう一回チェック。
+<strong>実行中</strong>になってなければ開始します。
+今後も使いたいのであればスタートアップが<strong>自動</strong>になっているかなどもチェック。</p>
+
+<p>うまくssh出来た場合、
+ログインした先のデフォルトシェルはコマンドプロンプトになっていますが、
+PowerShellを使いたい場合は</p>
+
+<pre><code>&gt; powershell.exe
+</code></pre>
+
+<p>と実行するとPowerShellに切り替わります。</p>
+
+<p>レジストリを書き換えるとPowerShellやWSL-bash.exeなどに変更できる、との
+記述もありましたが下記にあるやり方だと変更が有効になりませんでした。</p>
+
+<blockquote>
+  <p><a href="https://github.com/PowerShell/Win32-OpenSSH/wiki/Install-Win32-OpenSSH">Install Win32 OpenSSH · PowerShell/Win32-OpenSSH Wiki</a></p>
+</blockquote>
+
+<p>PowerShellを管理者権限で開いて</p>
+
+<pre><code>&gt; New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+</code></pre>
+
+<p>とするとレジストリを書き換えて上のページの例にあるような設定に出来たのですが、</p>
+
+<pre><code>&gt; net stop sshd
+&gt; net start sshd
+</code></pre>
+
+<p>としてSSHサーバーを再起動したりWindows自体を再起動してもSSHするとコマンドプロンプトのままでした。</p>
+
+<p>そのうちまた要チェック。</p>
+
+<p>また、次のWindows Subsytem for Linuxを使う場合には必ずこちらのsshサービスを止めてから
+行ってください。
+そうでないとこちらのサービスのほうが優先されてLinux側のSSHサーバーが見えなくなります。</p>
+
+<p>もしくはどちらかのサービスのポートを変える必要があります。</p>
+
+<h2 id="windows-subsystem-for-linux-wsl">Windows Subsystem for Linux (WSL)</h2>
+
+<p>もう一つの方法はWindows Subsystem for Linux (WSL)でLinuxを動かしてその中でsshサーバーを動かす方法。
+WLSは数年前から開発者向けに使えるようになっていましたが、
+Fall Creators Updateで正式に導入され、今は簡単に導入することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/">Windowsに採用されたBash (Ubuntu)を試してみる</a></div></li></ul>
+
+<p>導入するには<strong>Windowsの機能の有効化または無効化</strong>を開き
+<strong>Windows Subsytem for Linux</strong>にチェックを入れます。</p>
+
+<p>再起動して有効化した後、Microsoft Storeを開いて<strong>Ubuntu</strong>などを探してインストールします。</p>
+
+<p>今はUbuntu以外にもDebianやopenSUSEとかいくつかありますがとりあえず今回はUbuntuで。</p>
+
+<p>インストールするとスタートメニューに<strong>Ubuntu</strong>があるはずなのでそれを立ち上げます。
+最初に</p>
+
+<pre><code>Installing, this may take a few minutes...
+</code></pre>
+
+<p>みたいな表示がでてしばらく待ちますが、これ、上手く言ってもこのまま進まないことがあるので、
+しばらく立ったら適当にキーを押して進行状況を確認してみてください。</p>
+
+<p>また、最初にインストールするとき、</p>
+
+<pre><code>It appears this distro's installation has become corrupted.
+Please try uninstalling and reinstalling the app.
+Installation Failed!
+Error: 0x800700b7
+Press any key to continue...
+</code></pre>
+
+<p>みたいなエラーが出ることがあります。(Errorコードが0x8000000dだったりもする。)</p>
+
+<p>この場合、よくわからないのですが、とりあえず一度<strong>Ubuntu</strong>をアンインストールして
+もう一度インストールすると上手く行くことがあります。</p>
+
+<p>上手く行った場合はユーザー名やパスワードを聞かれますが、これは
+Windowsのものとは別でも好きなものに設定できます。</p>
+
+<p>Ubuntuが出来たらSSHサーバーを立ち上げますが、ストアからインストールしたUbuntuには
+最初から入っているので、</p>
+
+<pre><code>$ sudo service ssh start
+</code></pre>
+
+<p>とすればサーバーをスタートできます。</p>
+
+<p>が、最初にやったとき、</p>
+
+<pre><code>$ sudo service ssh start
+[sudo] password for user:
+* Starting OpenBSD Secure Shell server sshd
+Could not load host key: /etc/ssh/ssh_host_rsa_key
+Could not load host key: /etc/ssh/ssh_host_dsa_key
+Could not load host key: /etc/ssh/ssh_host_ecdsa_key
+Could not load host key: /etc/ssh/ssh_host_ed25519_key
+                                                                                                                 [ OK ]
+$ ssh localhost
+Connection closed by 127.0.0.1 port 22
+</code></pre>
+
+<p>みたいな感じで上手くいきませんでした。<code>OK</code>と出ていますがちゃんと起動できていませんし
+実際に上に出てるファイルもありません。
+ファイルの読み込み自体はクリティカルなところではないはずですが、色々と準備が足りない感じです。</p>
+
+<p>そこで、一旦最初に入っているものをアンインストールして再インストールすると上手くいきました。</p>
+
+<pre><code>$ sudo apt-get remove --purge openssh-server
+$ sudo apt-get update --fix-missing
+$ sudo apt-get install openssh-server
+</code></pre>
+
+<p>とします。途中、一回<code>update</code>を行っていますが、これを行わずにすぐに<code>install</code>しようとすると</p>
+
+<pre><code>$ sudo apt-get install openssh-server
+[sudo] password for user:
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following package was automatically installed and is no longer required:
+  libfreetype6
+Use 'sudo apt autoremove' to remove it.
+Suggested packages:
+  ssh-askpass rssh molly-guard monkeysphere
+The following NEW packages will be installed:
+  openssh-server
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 338 kB of archives.
+After this operation, 912 kB of additional disk space will be used.
+Err:1 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 openssh-server amd64 1:7.2p2-4ubuntu2.2
+  404  Not Found [IP: 2001:67c:1560:8001::14 80]
+E: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/o/openssh/openssh-server_7.2p2-4ubuntu2.2_amd64.deb  404  Not Found [IP: 2001:67c:1560:8001::14 80]
+</code></pre>
+
+<p>みたいなエラーが出たので<code>update</code>をしてから行ったところうまくいきました。</p>
+
+<p>このインストールでssh鍵とかも出来て</p>
+
+<pre><code>$ sudo service ssh start
+</code></pre>
+
+<p>とすると無事立ち上がりsshで入れる様になりました。</p>
+
+<p>ただし、注意として上にも書いたようにWindowsのOpenSSHサーバーが動いていると
+そちらが優先されるのでsshしたらコマンドプロンプトが立ち上がった、という場合には
+そちらを切るなどする必要があります。</p>
+
+<p>また、このサーバーはUbuntuを立ち上げてる時だけ動いているので、
+Ubuntuのターミナルを閉じると落ちてしまいます。</p>
+
+<p>Ubuntu自体はバックグラウンドでも走れる様になったみたいで、
+Windowsのスタートアップ時にsshサーバーを走らせるUbuntuを実行する
+みたいなことをするとsshサーバーを裏で動かすこともできる様ですが
+どうも上手く行かなかったのでまたそのうち試してみます。</p>
+
+<h2 id="ポート開放">ポート開放</h2>
+
+<p>これでローカルではSSHできるようになりましたが、外から入ろうとすると弾かれます。</p>
+
+<p><strong>コントロールパネル</strong><i class="fa fa-arrow-right"></i>
+<strong>システムとセキュリティ</strong><i class="fa fa-arrow-right"></i>
+<strong>Windows Defenderファイヤウォール</strong><i class="fa fa-arrow-right"></i>
+<strong>詳細設定</strong>
+に行き<strong>受信の規則</strong>を選択して<strong>新しい規則</strong>を作ります。</p>
+
+<ul>
+  <li>規則の種類: ポート</li>
+  <li>プロトコルおよびポート: TCP, 特定のローカルポート: 22</li>
+  <li>操作: 接続を許可する</li>
+  <li>プロファイル: そのまま(でファルトは全部チェック。必要があれば入られたくないところのチェックを外す。</li>
+  <li>名前: ssh (適当に)</li>
+</ul>
+
+<p>みたいな感じで新しい規則を作ります。</p>
+
+<p>これでSSHの22番ポートが開放されるので他のPCからも入れる様になるはずです。</p>
+
+<h2 id="使えるか">使えるか?</h2>
+
+<p>ということでWindowsの公式機能としてSSHサーバーを立てることができる様になりました。</p>
+
+<p>コマンドプロンプト(or PowerShell)使いたい場合hには最初の方法、
+Linuxを使いたい場合にはUbuntuなどをWLSで使う方法があります。</p>
+
+<p>これで実際にどうこうできるか、という話ですが、
+コマンドプロンプトとかを使い慣れていればその作業は十分にできると思います。</p>
+
+<p>Linuxに関してはLinuxとしてはWLS下での制限が色々ありますがとりあえず簡単にSSHできる環境としては作れます。
+ただ、サービスのように立ち上げるのがちょっと面倒。</p>
+
+<p>さらには未だにGNU screenとかがユーザー権限で立ち上がらなかったりしますが。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/09/01/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/01/computer-windows-ubuntu-bash/">Bash on Ubuntu on WindowsでGNU screenが使える様になった</a></div></li></ul>
+
+<p>また、Linux側からWindowsに対して色々自由にできるわけでもないので外からここに入って何ができるか、というのは微妙なところです。</p>
+
+<p>一方、今回は中心の話題ではなかったですが、
+<strong>OpenSSH Client (Beta)</strong>
+の方が通常使用ではインパクトが大きいかもしれません。</p>
+
+<p>これを入れればWindowsでもサードパーティーなアプリを入れなくても他のマシンに対してSSHできる様になります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

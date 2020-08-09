@@ -1,0 +1,912 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Install | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/install/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-09T19:48:47+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Brewall: brewパッケージを管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2013/09/13/computer-mac-install-homebrew/"/>
+    <updated>2013-09-13T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/09/13/computer-mac-install-homebrew</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0062009273?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0062009273&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51C2N2o2HkL._SS200_.jpg" alt="Bitter Brew: The Rise and Fall of Anheuser-Busch and Americas Kings of Beer" /></a>
+</div>
+
+<p>昨日、<a href="https://rcmdnk.com/blog/2013/09/12/computer-mac-install/">Homebrewの拡張:brewdler, tap, cask</a>
+という記事でbrewdlerを試したことを書きましたが、
+どうもただリストを管理してるだけなうえ、
+tapでインストールするパッケージはきちんとインストール出来ないし、
+削除も対応してなかったりして利点が見いだせなかったので、
+それらを出来るようにしたスクリプトを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brewall" id="markdown-toc-brewall">Brewall</a>    <ul>
+      <li><a href="#brewallのインストール" id="markdown-toc-brewallのインストール">Brewallのインストール</a></li>
+      <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>        <ul>
+          <li><a href="#インプットファイル" id="markdown-toc-インプットファイル">インプットファイル</a></li>
+          <li><a href="#インストール" id="markdown-toc-インストール">インストール</a></li>
+          <li><a href="#クリーンアップ" id="markdown-toc-クリーンアップ">クリーンアップ</a></li>
+          <li><a href="#brewfile編集" id="markdown-toc-brewfile編集">Brewfile編集</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="brewall">Brewall</h2>
+
+<p>ファイルはGitHubにあります。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-brewall"></div>
+
+<h3 id="brewallのインストール">Brewallのインストール</h3>
+<p>brew-tapでインストール出来るようにしたので、
+Homebrewがインストールされてれば</p>
+
+<pre><code>$ brew tap rcmdnk/brewall
+$ brew install brewall
+</code></pre>
+
+<p>でインストール出来ます。</p>
+
+<p>必要なファイルは<code>/bin/brewall</code>だけなので、これを取ってきてパスが通った好きな所に入れてもOKです。</p>
+
+<h3 id="使い方">使い方</h3>
+
+<h4 id="インプットファイル">インプットファイル</h4>
+<p>管理はデフォルトでは<code>/usr/local/Library/Brewfile</code>をインプットファイルとして使います。
+最初に</p>
+
+<pre><code>$ brewall -i
+</code></pre>
+
+<p>とすると、現在インストールされているファイルからBrewfileを作ってくれます。
+このファイルはBrewdlerでも使えますし、
+Brewdler様に作ったBrewfileもそのまま流用できます。</p>
+
+<p>Brewdler同様、<code>tap</code>/<code>cask</code>にも対応していて、こんな感じで
+Brewfilwを作って下さい(既にHomebrewで何かインストールしてある場合は先
+に<code>brewall -i</code>でファイルを作りそれを編集して下さい):</p>
+
+<pre><code>brew 'mercurial'
+brew 'macvim --with-lua'
+tap 'phinze/cask'
+cask 'firefox'
+</code></pre>
+
+<p>最初にコマンド(<code>brew</code>/<code>tap</code>/<code>cask</code>)、次にパッケージやインストール時のオプションです。
+基本的2番目以降の項目は<code>brew install</code>等の引数に直接渡されるだけなので、
+<code>brew install</code>に使える引数は全て使えます。</p>
+
+<p>なので、MacVimを<code>+lua</code>でコンパイルしてインストールしたい場合は上の様に<code>--with-lua</code>付きで。
+<code>brewall -i</code>でも、これらのオプション付きでインストールしたものはオプション付きで初期化します。</p>
+
+<p>また、Brewdlerだと<code>tap</code>で書いただけの場合、<code>brew install</code>が行われないので
+手作業が必要でしたが(上のファイルだと<code>cask</code>がないと言って怒られる)、
+Brewallは<code>brew install</code>もパッケージ名を探してきて自動的に一緒に<code>brew install</code>もされます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/09/15</strong></p>
+
+  <p>brew-tapに関して少し理解してなかった部分があって1レポジトリ1パッケージ(Formula)
+限定にしてましたが、そうでもないので、
+それに対応するようアップデート:<a href="https://rcmdnk.com/blog/2013/09/15/computer-mac-homebrew/">Brewallにtapall追加</a>。</p>
+
+  <p>これに伴い<code>tap</code>だけの場合は<code>tap</code>するだけ、<code>tapall</code>コマンドを使うと
+レポジトリ内の全てのFormulaeに従いパッケージをインストールする様になります。
+(上で書かれてる様な自動インストールをしたい場合は<code>tapall</code>を使う。)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>また、<code>cask</code>コマンドがある場合、自動で<code>tap 'phinze/cask'</code>と同じことをするようにしてあるので、
+上の例では<code>phinze/cask</code>の項を落としてもOKです。</p>
+
+<p>順番も、先に<code>cask</code>の項目があっても、その時に<code>cask</code>をインストールしてしまうので
+問題ありません。</p>
+
+<h4 id="インストール">インストール</h4>
+<p>引数なしで<code>brewall</code>を行うと、<code>Brewfile</code>にあるパッケージをインストールします。</p>
+
+<p>MacVim等、アプリケーションを含むパッケージの場合、<code>-l</code>を与えることで、
+ローカルの<code>~/Applications/</code>へ各アプリケションへのリンクを作ります(<code>brew linkapps</code>)。
+もし、グローバルな<code>/Applications/</code>へインストールしたい場合は<code>-g</code>を使います。
+この場合は<code>sudo</code>するのでrootパスワードを聞かれます。</p>
+
+<h4 id="クリーンアップ">クリーンアップ</h4>
+<p><code>brewall -c</code>とすると、<code>Brewfile</code>に無い項目を削除します。
+デフォルトではdry runモードで走るので実際には削除しません。</p>
+
+<p>一度<code>brewall -c</code>でチェックして、実際に削除したい場合は</p>
+
+<pre><code>$ brewall -c -r
+</code></pre>
+
+<p>と<code>-r</code>を付けて下さい。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/11/25</strong></p>
+
+  <p>現在のbrewall(v0.0.7以降)では、
+レポジトリ情報用にこの<code>-r</code>を使いたかったので、オプションの定義を変更して
+<code>-C</code>がこの実際に削除する時に使うオプションになっています。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>また、<code>cask</code>コマンドがある場合、<code>tap 'phinze/cask'</code>がなくてもこれを削除しません。</p>
+
+<h4 id="brewfile編集">Brewfile編集</h4>
+
+<pre><code>$ brewall -e
+</code></pre>
+
+<p>とするとBrewfileを編集できます。Editorはデフォルトでは<code>vim</code>ですが、
+<code>EDITOR</code>変数が設定してある場合はその値を使います。</p>
+
+<h2 id="まとめ">まとめ</h2>
+<p>Homebrew等、基本Rubyで書かれてるのでRubyで作った方が喜ばれるところかもしれませんが、
+RubyはOctopressで使うくらいでおぼつかない(じゃあなぜOctopressを使ったか。。。)ので、
+簡単にシェルスクリプトで書きました。</p>
+
+<p>Brewdlerで出来る事は網羅し、かつ、インストールは全自動化、
+削除も簡単に行える様にできたので取り敢えず満足なところ。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrewの拡張:brewdler, tap, cask]]></title>
+    <link href="https://rcmdnk.com/blog/2013/09/12/computer-mac-install/"/>
+    <updated>2013-09-12T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/09/12/computer-mac-install</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003HT5RV8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003HT5RV8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FeRgNZqeL._SS200_.jpg" alt="Same Old Story [Explicit]" /></a>
+</div>
+
+<p>Macでのパッケージ管理は<a href="https://rcmdnk.com/blog/2013/06/21/computer-mac/">Homebrewで行うようにしてますが</a>、
+<a href="https://github.com/andrew/brewdler">brewdler</a>というものがあって、
+より簡単に管理できそうだ、と言うことでちょっと試してみました。
+ついでに、brewdlerのREADMEで始めてHomebrewにtapというコマンドがあることや
+Homebrew-caskという拡張があることも知ったのでその辺について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brewdler" id="markdown-toc-brewdler">brewdler</a></li>
+  <li><a href="#brew-tap" id="markdown-toc-brew-tap">brew tap</a></li>
+  <li><a href="#brew-cask" id="markdown-toc-brew-cask">brew cask</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2013/09/13</strong></p>
+
+  <p><a href="https://github.com/rcmdnk/homebrew-brewall">Brewall</a>
+というHomebrewのパッケージたちをを管理するスクリプトを書いてみました。
+Brewdlerでの使い勝手に加え、Brewderでいまいちだったところを改善してあります。
+簡単なシェルスクリプトです。</p>
+
+  <blockquote>
+    <p>Ref: <a href="https://rcmdnk.com/blog/2013/09/13/computer-mac-install-homebrew/">Brewall: brewパッケージを管理する</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="brewdler">brewdler</h2>
+<p><a href="https://github.com/andrew/brewdler">brewdler</a>は、
+<a href="http://bundler.io/">Bundler</a>でRubyのプロジェクトを管理する感覚で、
+<a href="http://brew.sh/">Homebrew</a>で管理されるパッケージも管理しよう、という向きの管理パッケージです
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。
+現状は、インストールするパッケージリストの記述しておいて他のマシンに移った時でも
+簡単にまとめてインストール出来るようにする、と言った感じです。
+アップグレード等はbrewコマンド自体で管理。</p>
+
+<p>インストールは簡単でRubyGemsがインストールしてあれば
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup></p>
+
+<pre><code>$ gem install brewdler
+</code></pre>
+
+<p>でOK。
+使い方も簡単で、Gemfileの様な<code>Brewfile</code>と言う名前のファイルを作り、その中に、</p>
+
+<pre><code>brew 'vim'
+</code></pre>
+
+<p>と言った感じで記述しておくと、<code>Brewfile</code>のあるディレクトリで</p>
+
+<pre><code>$ brewdle
+</code></pre>
+
+<p>とするだけで記述されているパッケージをまとめてインストールしてくれます。</p>
+
+<p>現状Homebrewでインストールするvimは<code>-lua</code>な状態ですが、<code>+lua</code>にしたければ</p>
+
+<pre><code>brew 'vim --with-lua'
+</code></pre>
+
+<p>の様に、brewで使えるオプションをそのまま書いておけばそのオプション付きでインストールされます。
+(基本的には<code>第一引数のコマンド</code>+<code>install</code>+<code>第二引数</code>の様な感じをしているみたい。)</p>
+
+<p>これだけだとはっきり言って単にシェルスクリプトで回せば良いのでは。。。
+という疑問があって、あまりメリットを感じてないので実はbrewdler自体は使わないでいいかな、
+と思ってたりするんですが、
+<a href="https://github.com/andrew/brewdler">brewderのREADME</a>で、
+<a href="https://github.com/mxcl/homebrew/wiki/brew-tap">Homebrew brew-tap</a>と
+<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>も使えるとの
+記述があって、それらも初めて知ったのでちょっと試してみました。</p>
+
+<h2 id="brew-tap">brew tap</h2>
+<p><a href="https://github.com/mxcl/homebrew/wiki/brew-tap">brew tap</a>は
+Homebrewに実装されてるコマンドで、GitHubのレポジトリにある
+パッケージをそのままインストールするコマンドです。
+最近のHomebrewがインストールされてればそのまま使えます。</p>
+
+<p>使い方は<code>brew</code>の後に<code>tap</code>コマンドを入れて、後はレポジトリ名。
+次に使うcaskなんかだと、</p>
+
+<pre><code>$ brew tap phinze/homebrew-cask
+$ brew install brew-cask
+</code></pre>
+
+<p>こんな感じで。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2014/05/12</strong></p>
+
+  <p>Caskのレポジトリが更新され、現在は
+<a href="https://github.com/caskroom/homebrew-cask">caskroom/homebrew-cask</a>
+というアカウント名<strong>caskroom</strong>という元で管理されています。</p>
+
+  <blockquote>
+    <p><a href="https://rcmdnk.com/blog/2014/05/13/computer-mac-homebrew/">Homebrew Caskのアップデート等</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>まず<code>tap</code>コマンドでHomebrewに必要なファイルを取ってきて
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>、
+そのファイルに従いインストール出来るようにします。
+(<code>brew-cask</code>の名前は<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>
+にある<code>brew-cask.rb</code>の名前)</p>
+
+<p>その後、他のパッケージ同様、<code>brew install</code>コマンドでインストール出来るようになります。</p>
+
+<p>tapするときにレポジトリ名の<code>homebrew-</code>の部分は省略して<code>phinze/cask</code>でも通ります。
+逆に、tapで管理したいレポジトリを作りたい時は必ず<code>homebrew-</code>を付ける必要があり、
+また、この部分以外に<code>-</code>を付けるのは禁止だそうです
+<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p>(<strike>`/usr/local/Library/Taps/`以下にまずレポジトリごと取ってきてその中にある
+`brew-cask.rb`等を参照してるみたいで、かつ、`install`時には新たに
+GitHubから直接ファイルをとて来てるので、`Tap`ディレクトリにあるものが
+ただただムダに思えるんですが。。。
+設定ファイル用のレポジトリと実体用のレポジトリを分けて、
+設定ファイルでそのレポジトリを指定すれば良いのかもしれませんが、
+いずれにしろなんか無駄な感じが。。。</strike>
+caskだけ見てたのでよく分かってなかったですが、
+本来、Formulaを集めたリポジトリがあって、それをTapすることで
+新たにインストールできるパッケージを増やす、と言うのが
+Tapの使い方みたいですね。caskみたいな場合は、
+自分自身でFormulaも用意してる、と。そうすると、取り敢えず
+brewdlerで管理するときもTapするものはTapだけで、必要なパッケージだけ
+brew installするのが正しい感じ。)</p>
+
+<p>アンインストールする時はまず通常通り、</p>
+
+<pre><code>$ brew uninstall brew-cask
+</code></pre>
+
+<p>でbrew内でアンインストールし、</p>
+
+<pre><code>$ brew untap phinze/homebrew-cask
+</code></pre>
+
+<p>でアンタップ(<code>Tap</code>ディレクトリから削除)。</p>
+
+<p>これをbrewdlerで管理したい場合は</p>
+
+<pre><code>tap 'phinze/homebrew-cask'
+brew 'brew-cask'
+</code></pre>
+
+<p>の様に、<code>tap</code>と<code>brew</code>のコマンドを順に書きます。
+<code>tap</code>の方は第一項を<code>tap</code>にして第二項をレポジトリ名に。
+<a href="https://github.com/andrew/brewdler">brewderのREADME</a>だと、
+caskが<code>tap</code>だけ書かれてますが、
+これだと<code>tap</code>するだけでインストールしてくれません。
+なので、必ずインストールするために<code>brew</code>の項を下に書く必要があります。</p>
+
+<h2 id="brew-cask">brew cask</h2>
+<p><a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>は
+Homebrewの拡張でWebから落としてきてインストールする様なソフトを
+自動でインストールしてくれます。
+cask自体のインストールは上でやったように<code>brew tap</code>で。</p>
+
+<p>インストールできるソフトは現在デフォルトではこんな感じ:
+<a href="https://gist.github.com/rcmdnk/6541661">brew-cask-search.txt</a>。</p>
+
+<p>インストールは</p>
+
+<pre><code>$ brew cask install firefox
+</code></pre>
+
+<p>こんな感じで。
+実体は<code>/opt/homebrew-cask/Caskroom</code>にインストールされ、そこから
+デフォルトだと、<code>~/Applications/</code>へリンクが貼られます。
+(最初に<code>homebrew-cask</code>ディレクトリがない場合はディレクトリを作るためにroot権限が求められます。)</p>
+
+<p>インストール先を変えたい場合は環境変数<code>HOMEBREW_CASK_OPTS</code>を</p>
+
+<pre><code>$ export HOMEBREW_CASK_OPTS="--appdir=/Applications"
+</code></pre>
+
+<p>と設定すると<code>/Applications</code>にインストールする様になります。
+<code>brew cask install</code>コマンド時に直接<code>--appdir=/Applications</code>を加えてもOK
+<sup id="fninref:5"><a href="#fnin:5" rel="footnote">5</a></sup>。</p>
+
+<p>アンインストールは</p>
+
+<pre><code>$ brew cask uninstall firefox
+</code></pre>
+
+<p>で<code>~/Applications/</code>のリンクも<code>.../Caskroom/</code>の実体も削除。</p>
+
+<p>デフォルトのfirefoxは英語版ですが、日本語版をインストールしたい場合は</p>
+
+<pre><code>$ brew cask edit firefox
+</code></pre>
+
+<p>とすると設定ファイルが開けるので、その中で</p>
+
+<pre><code>-  url 'https://download.mozilla.org/?product=firefox-latest&amp;os=osx&amp;lang=en-US'
++  url 'https://download.mozilla.org/?product=firefox-latest&amp;os=osx&amp;lang=ja-JP-mac'
+</code></pre>
+
+<p>の様に、<code>url</code>の部分で<code>lang</code>を<code>en-US</code>から<code>ja-JP-mac</code>に変更します。</p>
+
+<p>ここで注意が必要なのが、一回<code>cask install</code>すると、
+<code>/Library/Caches/Homebrew/</code>に<code>firefox-latest</code>のキャシュが残ってて、
+これを使ってしまうので、再度違う言語でインストールしたい場合には
+このファイルを先に消しておく必要があります。
+(caskでダウンロードされたキャッシュは<code>brew cleanup</code>等で消えないので、
+手で消すしか無い？)</p>
+
+<p>これをbrewdleで管理したい場合はBrewfileに</p>
+
+<pre><code>cask 'firefox'
+</code></pre>
+
+<p>と書いて<code>brewdle</code>すれば良いだけです。</p>
+
+<p>ただ、<a href="https://github.com/andrew/brewdler">brewdleのREADME</a>にあるように
+いきなり<code>tap</code>での<code>cask</code>のインストールと<code>cask</code>でのインストールを</p>
+
+<pre><code>tap 'phinze/cask'
+cask 'firefox'
+</code></pre>
+
+<p>こんな感じで書いてもおいても、caskは無いと言われてしまいます。</p>
+
+<p>なので、これらがインストールされてない状態からBrewfileを作る時は、</p>
+
+<ol>
+  <li>tap ‘phinze/homebrew-cask’</li>
+  <li>brew ‘brew-cask’</li>
+  <li>cask ‘firefox’</li>
+</ol>
+
+<p>の様にまず、caskを<code>tap</code>、caskをインストール、
+その後に<code>cask</code>でインストールするもの、のように書いていく必要があります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+<p>brewdlerが便利そうだな、と思って使ってみたんですが、いまいち単なる
+リストと違って何が嬉しいのかわからないのが現状。
+いっそのこと適当なスクリプトを自分で書いてしまった方が色々できて
+良さそう。。。</p>
+
+<p>ただ、
+<a href="https://github.com/mxcl/homebrew/wiki/brew-tap">Homebrew brew-tap</a>と
+<a href="https://github.com/phinze/homebrew-cask">Homebrew-cask</a>を
+知れたのは良かったです。
+差し当たり現在入れてある物はcaskで置き換えたりはしてませんが、
+そのうち。</p>
+
+<p>と、思って、<code>cask</code>についていろいろ調べてた時、
+<code>cask</code>の実体が<code>/opt/</code>以下にあるのでちょっと<code>/opt/</code>行った所、
+<code>boxen</code>ディレクトリを発見。
+そう言えば、ちょっと前に</p>
+
+<blockquote>
+  <p>Ref: <a href="http://qiita.com/yuku_t/items/c6f20de0e4f4c352046c">Boxen使わなくても許されるのは2012年までだよね</a></p>
+</blockquote>
+
+<p>とかあったので<a href="http://boxen.github.com/">Boxen</a>
+入れてみようと思って、
+でも途中でMac1台しか持ってないし、まだ暫く買い換えなそうだし、
+次Mac買うとも限らないし、、、と思って途中で辞めたのを思い出しました。</p>
+
+<p>ただ、<a href="http://brew.sh/">Homebrew</a>
+自体がBoxenで管理できたりするので、
+まずはBoxenで管理出来るパッケージはBoxenでして、
+それ以外をHomebrew(+cask)で管理する、と言う感じにするのが良いのかも。</p>
+
+<p>そのうちやりたいところ。。。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/09/13</strong></p>
+
+  <p><a href="https://github.com/rcmdnk/homebrew-brewall">Brewall</a>
+もせっかく作ったのでもうちょっとHomebrewで弄びたいところでも。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU screenアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2013/05/11/computer-screen-install/"/>
+    <updated>2013-05-11T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/05/11/computer-screen-install</id>
+    <content type="html"><![CDATA[<p>仕事で使ってるLinuxのOSアップデートがあったので
+色々自分用に再インストールをしましたが、
+<a href="http://www.gnu.org/software/screen/">GNU screen</a>のインストール時にちょっとひっかかったのでメモしておきます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen開発版410のインストール" id="markdown-toc-gnu-screen開発版410のインストール">GNU screen開発版(4.1.0)のインストール</a></li>
+  <li><a href="#captionhardstatusの表示" id="markdown-toc-captionhardstatusの表示">caption/hardstatusの表示</a></li>
+  <li><a href="#tmux" id="markdown-toc-tmux">tmux…?</a></li>
+  <li><a href="#byobu" id="markdown-toc-byobu">byobu</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen開発版410のインストール">GNU screen開発版(4.1.0)のインストール</h2>
+<p>基本的に<a href="https://rcmdnk.com/blog/2013/03/22/screen-install/">以前やった通り</a>なんですが、
+4月にちょっとしたアップデートがあった様で、それによって
+コンパイルが通らなくなっているようです
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p><a href="http://git.savannah.gnu.org/cgit/screen.git/commit/?id=d94037c08a6dd30845b27cd76d99663e06aaabb2">non-BMPのサポートを入れた際</a>
+の恐らくタイポ?なんでしょうけど<code>src/anci.c</code>の一箇所
+2930行目辺り(パッチを当てた後に見ると2954行目辺り)を
+以下の様に訂正します</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span> # endif
+</span><span class="line"> #endif
+</span><span class="line"> #ifdef UTF8
+</span><span class="line"><span class="gd">-      if (p-&gt;encoding == UTF8)</span>
+</span><span class="line"><span class="gi">+      if (p-&gt;w_encoding == UTF8)</span>
+</span><span class="line">        {
+</span></code></pre></td></tr></table></div></figure>
+
+<p>取り敢えずこれで後は<a href="https://rcmdnk.com/blog/2013/03/22/screen-install/">以前</a>
+と同じ様にインストール。</p>
+
+<h2 id="captionhardstatusの表示">caption/hardstatusの表示</h2>
+<p>上で参照したページを見ていたら
+<code>%E</code>と言うエスケープがcaptionとかで使える様になっている、
+というのを見つけて、
+<a href="http://git.savannah.gnu.org/cgit/screen.git">screenのgitのコミットメッセージ</a>
+を見ると1年以上前に実装されていました。</p>
+
+<p><code>%E</code>は、コマンド入力待ち状態(<code>C-a</code>等escape文字を押した時)を
+判定してくれる、ということです。</p>
+
+<p>ということで、これを含めてcaption及びhardstatusは以下の様にしています。
+(hardstatusは<code>%E</code>を使ってませんが…)</p>
+
+<figure class="code"><figcaption><span>.screenrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">### caption for each window
+</span><span class="line">aption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%?%n %H %L=%h%&gt;%?%P *** copy/paste mode ***%?%?%E *** command mode ***%?%-0='
+</span><span class="line"># %?%F      # if the window has the focus
+</span><span class="line">#  %{=d Wk} #   set attribute = {dim, black(k) on bright Write(W)}
+</span><span class="line"># %:        # else
+</span><span class="line">#  %{=d Kk} #   set attribute = {dim, black(k) on bright Black(K)}
+</span><span class="line"># %?        # end if
+</span><span class="line"># %?%P      # if copy/paste mode
+</span><span class="line">#   %{=d Bk}#   set attribute = {dim, black(k) on bright Blue(B)}
+</span><span class="line"># %?        # end if
+</span><span class="line"># %n        # window number
+</span><span class="line">#           # space
+</span><span class="line"># %H        # hostname of the system
+</span><span class="line">#           # space
+</span><span class="line"># %L=       # Mark the position for the next truncation
+</span><span class="line"># %h        # window' hardstatus
+</span><span class="line"># %&gt;        # Truncate %L= ~ %&gt;
+</span><span class="line"># %?%P      # if copy/paste mode
+</span><span class="line">#   *** copy/paste mode *** # draw this sentence
+</span><span class="line"># %?        # end if
+</span><span class="line"># %?%E      # if copy/paste mode
+</span><span class="line">#   *** command mode *** # draw this sentence
+</span><span class="line"># %?        # end if
+</span><span class="line"># %-0=      # pad the string to the display's width. "-0" means start from
+</span><span class="line">#           # the rightest side 
+</span><span class="line">#           # (e.g. 10=: 10% from left, 010, 10 characters from left
+</span><span class="line">#           # (     -10=: 10% from right)
+</span><span class="line">#           # With %L&gt;, %= above, screen tries to truncates the part 
+</span><span class="line">#           # in the left of "%L&gt;"
+</span><span class="line">
+</span><span class="line">### hardstatus
+</span><span class="line">ardstatus alwayslastline "%{= Kk}%-w%40&gt;%{= Wk}%n %t%{-}%+w%-0="
+</span><span class="line">hardstatus alwayslastline "%{= Kk}%-w%{= Wk}%n %H %t%{-}%+w"
+</span><span class="line"># %{= Kk}   # set attribute = {black(k) on bright Black(K)}
+</span><span class="line"># %-w       # windows' list up to the current window (shown as "%n %t")
+</span><span class="line"># %40&gt;      # Mark here as a point to move when truncation
+</span><span class="line">#           # Try to move this point to the 40% point
+</span><span class="line"># %{= Wk}   # set attribute = {black(k) on bright Write(W)}
+</span><span class="line"># %n        # current window number
+</span><span class="line">#           # space
+</span><span class="line"># %t        # current window title
+</span><span class="line"># %{-}      # remove the set from the current attributes
+</span><span class="line"># %+w       # windows' list starting with the window after the current one (shown as "%n %t")</span></code></pre></td></tr></table></div></figure>
+
+<p><code>%E</code>の使い方としては、コマンド入力待機状態の時に
+<code>*** command mode ***</code>とcaptionに表示させるようにしました。</p>
+
+<p>こんな感じ</p>
+
+<p><a href="https://rcmdnk.com/images/post/20130511_screen.jpg"><img src="https://rcmdnk.com/images/post/20130511_screen.jpg" title="" alt="" /></a></p>
+
+<p>最初、copy/paste同様色も変えようかと思ったんですが、
+ウィンドウを移動するたびに色が変わると目がチカチカするので
+文字を追加するだけにしておきまた。</p>
+
+<p>1つ気になるのが、縦分割をしていると、何故か<code>%E</code>が横のウィンドウにも有効になって
+上の絵にあるように上側両方のウィンドウで<code>command mode</code>
+が表示されてしまっています。</p>
+
+<p>バグなのかどうなのか分かりませんが、
+まあ、ウィンドウの情報と言うより全体の情報ですし、
+それ程長い時間表示されるものでもないのでとりあえずはこの状態でOKとします。</p>
+
+<p>ちなみに、上のcopy/pasteの部分も随分前にどこかからコピペしたものだったと思ったんですが、
+恐らく上で参照したページと同じ方の</p>
+
+<blockquote>
+  <p>Ref: <a href="http://yskwkzhr.blogspot.ch/2011/12/master-copy-and-paste-of-gnu-screen.html"> 開発版GNU Screenでコピペを極める(ターミナルマルチプレクサ Advent Calendar 2011 : ATND の２４日目)</a></p>
+</blockquote>
+
+<p>を参照したみたいです。(毎度参考にさせて頂いてありがとうございます。)</p>
+
+<h2 id="tmux">tmux…?</h2>
+<p>最近<a href="http://www.gnu.org/software/screen/">GNU screen</a>よりも
+<a href="http://tmux.sourceforge.net/">tmux</a>
+の方が流行ってる感もあって、何度か
+乗り換えようと試してみたんですが、どうしてもtmux出来ないことがあって
+乗り換えられません。</p>
+
+<p>screenだと、ウィンドウを適当に分割した後、それぞれのウィンドウに
+適時好きなウィンドウを持ってこれます。</p>
+
+<p>これがtmuxだと、<code>window</code>と言うのが1つのタブみたいな感じで、
+それぞれで<code>pane</code>と呼ばれる領域に分けることが出来ます。</p>
+
+<p>この<code>pane</code>と言う単位を、screenで言うところのウィンドウの様に扱いたくて、
+別の<code>window</code>に行った時に他の<code>window</code>から<code>pane</code>を自由に取ってきたい、
+と思うんですが、これが簡単じゃありません。</p>
+
+<p>丁度、Advent Calenderの上の記事の前の日に、</p>
+
+<blockquote>
+  <p>Ref: <a href="http://d.hatena.ne.jp/kozo2/20111223/1324667710">tmuxのペイン切り替えをscreenみたくする(ターミナルマルチプレクサ Advent Calendar 2011 23日目)</a></p>
+</blockquote>
+
+<p>という記事があってまさにこのことを記事にしてありました。</p>
+
+<p>ですが、これだと前後の<code>window</code>の決まった<code>pane</code>しか取ってこれない上に
+交換的な事をしてるので、やっぱりscreenとは違う感じになってしまいます。
+(この辺<code>window</code>だとか<code>pane</code>という言葉が正確でなかったらすいません。)</p>
+
+<p>もうこの辺はツール自体の思想の問題で、
+tmux的な動作になれてしまえばそっちの方が便利だ、と言う人もいるんだと思うんですが、
+やっぱり暫くはscreenにとどまることになりそうです。</p>
+
+<p>しかしtmuxの方が良い、という感じの話のが多いのは何でなんでしょう…?
+(以前は画面分割の面で大分tmuxの方が先を言ってた感じですかね?
+今でもGNU screenの安定版は縦分割出来ない訳で…)</p>
+
+<p>tmuxの最大の利点はググる時に<code>tmux</code>と売っただけでもちゃんと<code>tmux</code>関連の
+話を検索してくれることかもしれません…
+(<code>screen</code>だと一般的単語過ぎてしまうので<code>GNU screen</code>とかしますが、
+これだと<code>GNU</code>を書いてない記事とかで結構ためになる話を後ろに回してしまったり…)</p>
+
+<h2 id="byobu">byobu</h2>
+<p><a href="http://byobu.co/">byobu</a>はGNU screenのラッパーツールみたいな感じで、
+中でGNU screenを起動しますが、設定変更を行う簡単なインターフェースがあるので、
+直接<code>.screenrc</code>を書かなくても指示に従って好きな物を選んであげれば簡単に好きな
+設定を作ることが出来る、と言う感じでしょうか?</p>
+
+<p>tmuxにも対応していて、screenの代わりに使う事も出来ます。</p>
+
+<p>既に自分で<code>.screenrc</code>等をがしがし書いている場合には必要無いですが、
+始めてGNU screenやtmuxを使う人にはとても便利なものだと思います。</p>
+
+<p>以前、外国人の同僚に</p>
+
+<p>“byobuっていう便利なものがあるよ”</p>
+
+<p>って言われて、
+最初何のことだか良く分からなかったけどどうやらターミナルで使う物で
+GNU screenとかと同じ様なものだな、と理解。
+それで、byobuってなんでそんな変な名前?と思ってたら</p>
+
+<p>“日本のものでしょ?”</p>
+
+<p>って言われて始めて<code>屏風</code>だったのか、と知ったという。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130511_byobu.jpg" title="" alt="" /></p>
+
+<p>byobuは殆ど使ったことがないのですが、
+ちょっとこの話を思い出したので最後に紹介してみました。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Macでの文字化け対策用のGNU screenのインストール]]></title>
+    <link href="https://rcmdnk.com/blog/2013/03/22/screen-install/"/>
+    <updated>2013-03-22T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/03/22/screen-install</id>
+    <content type="html"><![CDATA[<p>Macを使うようになってからずっと気になってたGNU screen使用時の
+日本語ファイル名の文字化けを回避するためにscreenの再インストールを
+今更ながら行ったのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screenでの文字化け" id="markdown-toc-gnu-screenでの文字化け">GNU screenでの文字化け</a></li>
+  <li><a href="#対策方法" id="markdown-toc-対策方法">対策方法</a></li>
+  <li><a href="#対策結果" id="markdown-toc-対策結果">対策結果</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screenでの文字化け">GNU screenでの文字化け</h2>
+
+<p>普段ターミナルから日本語ファイルを扱う事は殆ど無い上、
+<code>vim</code>で編集する際には、<code>vim</code>の設定で殆ど問題なく日本語を読み書きすることができるので
+放っておいてました。
+ただ、縦分割した時に<code>ls</code>で日本語ファイルを表示して表示がくずれて
+がっちゃがっちゃになってしまうことがあるので、
+取り敢えずは<code>clear</code>して描写しなおせば良いんですが、
+ちょっとストレスが溜まるものです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130322_screen_char_non.jpg" alt="20130322_screen_char_non.jpg" class="pic" /></p>
+
+<p>やること自体は簡単だと思ってたんですが、上手くいかずに嵌ったら
+やばいと思ってしばらく放っておきました…</p>
+
+<p>が、結果的に、取り敢えず主な問題は直ぐに解決できたので良かったな、と。</p>
+
+<h2 id="対策方法">対策方法</h2>
+
+<p>今回は作られた物を使っただけなので、今回は詳細はそちらのページで</p>
+
+<blockquote>
+  <p>Ref: <a href="http://yskwkzhr.blogspot.ch/2012/05/effectively-to-use-gnu-screen.html"> GNU Screenのhardstatusを有効活用する</a></p>
+</blockquote>
+
+<blockquote>
+  <p>Ref: <a href="http://d.hatena.ne.jp/mrkn/20101014/fix_screen_utf8_nfd_bug">screen が結合文字の後に存在しないはずの ÿ を出力しちゃうバグを直した</a></p>
+</blockquote>
+
+<p>これらのページで紹介されているパッチをあててインストールし直しただけです。</p>
+
+<pre><code>$ cd $TMPDIR
+$ git clone git://git.sv.gnu.org/screen.git
+$ cd screen
+$ wget https://gist.github.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+$ wget http://zuse.jp/misc/screen-utf8-osc.diff
+$ patch -p1 &lt; screen-utf8-nfd.patch
+$ patch -p1 &lt; screen-utf8-osc.diff
+$ cd src/
+$ ./autogen.sh
+$ ./configure --prefix=/Users/$USER/usr/local/  --enable-colors256 &amp;&amp; make &amp;&amp;  make install
+</code></pre>
+
+<p>新しいものは自分のディレクトリ下に入れました。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/11/07</strong></p>
+
+  <p>もし、<code>wget</code>で</p>
+
+  <pre><code>ERROR: The certificate of `gist.github.com' is not trusted.
+ERROR: The certificate of `gist.github.com' hasn't got a known issuer.
+</code></pre>
+
+  <p>こんな感じのエラーが出たら、さしあたり、</p>
+
+  <pre><code>$ wget --no-check-certificate https://gist.github.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+</code></pre>
+
+  <p>と<code>--no-check-certificate</code>で回避できます。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2015/03/10</strong></p>
+
+  <p>http://zuse.jp/misc/screen-utf8-osc.diffが
+リンク切れになってしまっていたので、
+以前インストールした時に残ってたファイルを元に
+Gistに載せておきました。</p>
+
+  <p><a href="https://gist.githubusercontent.com/rcmdnk/143cb56d31335dbccf70/raw/4b3e175946f2366b4076088c1c8f2bbe65b32e16/screen-utf8-osc.diff">https://gist.githubusercontent.com/rcmdnk/143cb56d31335dbccf70/raw/4b3e175946f2366b4076088c1c8f2bbe65b32e16/screen-utf8-osc.diff</a></p>
+
+  <p>取り敢えず上のドメインが切れてしまった？感じなので、
+復活するか戻るまではこちらを。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2017/01/20 </strong></p>
+
+  <p>screen-utf8-osc.diffに関しては4.5.0でそのまま使えなかったので新しいものを作りました。</p>
+
+  <ul>
+    <li>https://gist.githubusercontent.com/rcmdnk/7d504f2f9064162fac529ad0ddb87202/raw/ce910700dfec637f0e3b501c4a7d8b14260a4ef4/screen-utf8-osc.diff</li>
+  </ul>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M5DJDUH" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Nmk-gcq7L._SS90_CR0,0,120,90_.jpg" alt=" Patches (English Edition) 電子書籍: Sylvia Wadlington" /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/20/computer-screen/">GNU Screen 4.5.0日本語文字化け対策パッチアップデート</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2016/04/21 </strong></p>
+
+  <p>https://gist.github.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+の方もリンク切れになってしまったのでGistに置いておきました。</p>
+
+  <p><a href="http://gist.githubusercontent.com/rcmdnk/5e72a6fd14bf106f9d410ea68adf0644/raw/be75f51d16e5a24bcee9d357f785e95b008814df/screen-utf8-nfd.patch">http://gist.githubusercontent.com/rcmdnk/5e72a6fd14bf106f9d410ea68adf0644/raw/be75f51d16e5a24bcee9d357f785e95b008814df/screen-utf8-nfd.patch</a></p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2017/01/20 </strong></p>
+
+  <p>https://gist.github.com/raw/626040/be6a04f0e64c56185ba5850415ac59dad4cd62a0/screen-utf8-nfd.patch
+の方は現在また見える様になっています。</p>
+
+  <p>GitHubのGistの仕様変更等の関係で見えなかった?のかも。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="対策結果">対策結果</h2>
+
+<p>上にある画像は<code>iTerm2</code>でのものですが、
+この新しいscreenで起動すると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130322_screen_char_ok.jpg" alt="20130322_screen_char_ok.jpg" class="pic" /></p>
+
+<p>この様に、ちゃんと表示されました。</p>
+
+<p>ただ、Macのターミナルアプリで開くとまだ文字化けしていました。
+それについては</p>
+
+<blockquote>
+  <p>Ref: <a href="https://sites.google.com/site/togino77/home/screen-410">screen 4.1.0 で日本語の表示がおかしくなる件</a></p>
+</blockquote>
+
+<p>を参考にすればなんとかなるのかな(パッチが少しだけ違ってたりSIMBLプラグインを入れていたり)とも思ってますし、
+まだ一部<code>iTerm2</code>でもちょっとおかしなところもありますが、
+取り敢えず普段使う分には前よりストレスなくなったので今回はこれで良しとしておきます。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
