@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Java | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/java/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-10T19:28:04+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Pythonの'=='と'is'、ついでにJavaの'=='と'equals'について]]></title>
+    <link href="https://rcmdnk.com/blog/2015/07/09/computer-python-java/"/>
+    <updated>2015-07-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/07/09/computer-python-java</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1118844181?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1118844181&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/517NbTntOGL._SS200_.jpg" alt="Python for Data Science For Dummies" /></a>
+</div>
+
+<p>Pythonでオブジェクトの比較の時に気をつけることと、
+同じような事でJavaのString型の比較の時に気をつけることについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pythonのとis" id="markdown-toc-pythonのとis">Pythonの’==’と’is’</a></li>
+  <li><a href="#javaのとequalsについて" id="markdown-toc-javaのとequalsについて">Javaの’==’と’equals’について</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pythonのとis">Pythonの’==’と’is’</h2>
+
+<p>Pythonで2つの物が同値かどうか確認するには
+<code>==</code>を使う方法と<code>is</code>を使う方法がありますが、
+これらは少し違うものです。</p>
+
+<p>Immutable
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+なintやstring等の場合には基本的に結果は同じです。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>一方、Mutableなリストとかだと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="n">Same</span><span class="err">!</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span><span class="p">:</span>
+</span><span class="line"><span class="o">...</span>     <span class="k">print</span> <span class="s1">&#39;Same!&#39;</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に、<code>is</code>の方だと同値とみなしません。</p>
+
+<p>これは、<code>==</code>の方は値を比較しているのに対して、
+<code>is</code>の方は同じオブジェクト(同じID、メモリ上のアドレスに対応するもの)かどうかを比較してるからです。</p>
+
+<p>実際IDを見てみると、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="mi">140595231236200</span> <span class="mi">140595231236200</span> <span class="mi">140595231236200</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="nb">id</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+</span><span class="line"><span class="mi">4478530552</span> <span class="mi">4478530624</span> <span class="mi">4478530696</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>な感じでint型の方は<code>1</code>なものは全て同じIDですが、
+listの方では値が同じでもIDはそれぞれ違っています。</p>
+
+<h2 id="javaのとequalsについて">Javaの’==’と’equals’について</h2>
+
+<p>Javaの型にはプリミティブ型と呼ばれる基本的な方が有り、
+<code>byte</code>, <code>short</code>, <code>int</code>, <code>long</code>, <code>float</code>, <code>double</code>, <code>char</code>, <code>boolean</code>
+の基本的な型で小文字で始める型です。</p>
+
+<p>これらに関しては<code>==</code>で同値かどうか判断します。</p>
+
+<p>一方、String等は<strong>オブジェクト</strong>で、
+オブジェクトは全て<code>equals</code>というメソッドを持っています。</p>
+
+<p>この<code>equals</code>はデフォルトで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">equals</span><span class="o">(</span><span class="n">Object</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span>
+</span><span class="line">  <span class="k">return</span> <span class="o">(</span><span class="k">this</span> <span class="o">==</span> <span class="n">obj</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>という風に定義されていて、<code>==</code>と同じです。</p>
+
+<p>で、この<code>==</code>は、オブジェクトの参照先が同じものかどうか、でtrue or falseを返します。</p>
+
+<p>なので、String型とかでも、同じ文字列を持つものでも
+<code>==</code>で判断すると違うオブジェクトであれば違うものと判断されます。</p>
+
+<p>同じ内容かどうか、を判断するために、
+String型では<code>equals</code>メソッドをオーバーライドして
+文字列の内容が同じかどうか、を返す様にしてあります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="n">String</span> <span class="n">s1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="n">String</span> <span class="n">s2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">String</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">s1</span> <span class="o">==</span> <span class="n">s2</span><span class="o">){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;s1 == s2&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">s1</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">s2</span><span class="o">)){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;s1.equals(s2)&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると</p>
+
+<pre><code>s1.equals(s2)
+</code></pre>
+
+<p>だけ表示されます。</p>
+
+<p>ただ、次の様に<code>new</code>を使わずに直接文字列を入れるようにすると</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="n">String</span> <span class="n">s1</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span><span class="o">;</span>
+</span><span class="line"><span class="n">String</span> <span class="n">s2</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span><span class="o">;</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">s1</span> <span class="o">==</span> <span class="n">s2</span><span class="o">){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;s1 == s2&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">s1</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">s2</span><span class="o">)){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;s1.equals(s2)&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると</p>
+
+<pre><code>s1 == s2
+s1.equals(s2)
+</code></pre>
+
+<p>と両方表示されます。</p>
+
+<p>この場合はインスタンス化されてない文字列が擬似プリミティブ型と呼ばれ、
+<code>"abc"</code>がs1, s2両方で同じオブジェクトを指す様な形になるので
+<code>s1 == s2</code>でもtrueになります。</p>
+
+<p>ですが、普通に文字列の比較をしたい場合には
+必ず<code>equals</code>で比較するべきです。</p>
+
+<p>これと同じように、数字でもInteger型を使う時には
+<code>==</code>で比較するとおかしくなることがあります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="n">Integer</span> <span class="n">i1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Integer</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class="line"><span class="n">Integer</span> <span class="n">i2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Integer</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span> <span class="o">==</span> <span class="n">i2</span><span class="o">){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1 == i2&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">i2</span><span class="o">)){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1.equals(i2)&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると</p>
+
+<pre><code>i1.equals(i2)
+</code></pre>
+
+<p>なのでIntegerを比較する際にも<code>equals</code>を使います。</p>
+
+<p>Integerに直接数字を入れて</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="n">Integer</span> <span class="n">i1</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class="line"><span class="n">Integer</span> <span class="n">i2</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span> <span class="o">==</span> <span class="n">i2</span><span class="o">){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1 == i2&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">i2</span><span class="o">)){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1.equals(i2)&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>比較すると</p>
+
+<pre><code>i1 == i2
+i1.equals(i2)
+</code></pre>
+
+<p>となります。
+ただ、これは数値が<code>-128</code>から<code>127</code>までの間の場合だけで、
+この間ではこれらの数字がおあんじオブジェクトとして扱われますが、
+それ以上になるとIntegerに入れる時はインスタンス化されるので</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="java"><span class="line"><span></span><span class="n">Integer</span> <span class="n">i1</span> <span class="o">=</span> <span class="mi">200</span><span class="o">;</span>
+</span><span class="line"><span class="n">Integer</span> <span class="n">i2</span> <span class="o">=</span> <span class="mi">200</span><span class="o">;</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span> <span class="o">==</span> <span class="n">i2</span><span class="o">){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1 == i2&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line"><span class="k">if</span><span class="o">(</span><span class="n">i1</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">i2</span><span class="o">)){</span>
+</span><span class="line">  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">plingln</span><span class="o">(</span><span class="s">&quot;i1.equals(i2)&quot;</span><span class="o">);</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>比較すると</p>
+
+<pre><code>i1.equals(i2)
+</code></pre>
+
+<p>の様に<code>equals</code>だけがtrueを返します。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Pythonの場合もJavaの場合も最初の頃良くわからないまま
+適当にやってしまうところですが、
+両方見てみると<code>==</code>の意味合いが
+逆な感じになってるのでちょっと混乱の元です。</p>
+
+<p>というかちょっと混乱したのでまとめておきました。</p>
+
+<ul>
+  <li>Pythonで値を比較する時は<code>is</code>ではなく<code>==</code>。</li>
+  <li>JavaのStringやInteger等で値を比較する時は<code>==</code>ではなく<code>equals</code>。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Javaを8にアップデートしたらセキュリティ制限がきつくなって簡単に開けないアプリケーションが増えた]]></title>
+    <link href="https://rcmdnk.com/blog/2015/04/24/computer-java-mac/"/>
+    <updated>2015-04-24T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/04/24/computer-java-mac</id>
+    <content type="html"><![CDATA[<p>MacでJavaのアプリを立ち上げようとしたら、新しいのが出たから
+アップデートしなさい、と言われたのでアップデートした所、
+Java 8が入りました。</p>
+
+<p>そこでもう一回立ち上げようとするとセキュリティの問題で立ち上がらない状況に。</p>
+
+<p>どうもJava 8から一番低いセキュリティ状態が除かれて設定できない様になったみたいです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#javaセキュリティによってブロックされたアプリケーション" id="markdown-toc-javaセキュリティによってブロックされたアプリケーション">Javaセキュリティによってブロックされたアプリケーション</a></li>
+  <li><a href="#特定のサイトだけを許可する" id="markdown-toc-特定のサイトだけを許可する">特定のサイトだけを許可する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="javaセキュリティによってブロックされたアプリケーション">Javaセキュリティによってブロックされたアプリケーション</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20150424_block.jpg" alt="block" class="pic" /></p>
+
+<p>署名なしのアプリケーション等を実行しようとすると
+<code>Javaセキュリティによってブロックされたアプリケーション</code>
+みたいな警告が出て実行できません。</p>
+
+<blockquote>
+  <p><a href="https://www.java.com/ja/download/help/java_blocked.xml">セキュリティ設定によりJavaアプリケーションがブロックされるのはなぜですか。</a></p>
+</blockquote>
+
+<p>これを回避するために、以前は
+セキュリティレベルを<code>中</code>にして、この様なアプリケーションも
+実行出来るようにしていました。
+(基本、この様なアプリを実行する場合は自作のものだったりするものだけなので。)</p>
+
+<p>ただ、Java8からはこの<code>中</code>の設定が消えているので
+この様なアプリケーションを一概に許可することは出来なくなっています。</p>
+
+<h2 id="特定のサイトだけを許可する">特定のサイトだけを許可する</h2>
+
+<p>この様なアプリケーションを実行するためには、
+配布されているサイトを1つ1つ許可リストに入れる必要があります。
+以前もこの設定はありましたが、
+Java8からは上の様なアプリケーションはこれによってのみ実行出来ます。</p>
+
+<p>設定は<strong>環境設定</strong>から<strong>Java</strong>へ行くと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150424_setting.jpg" alt="setting" class="pic" /></p>
+
+<p>Javaのコントロールパネルが現れるので、
+<strong>セキュリティタブ</strong>へ行くと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150424_security.jpg" alt="security" class="pic" /></p>
+
+<p>今はセキュリティレベルの<code>非常に高</code>と<code>高</code>しか選べません。</p>
+
+<p>なので下にある<strong>サイトリストの編集</strong>を開き</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150424_add.jpg" alt="add" class="pic" /></p>
+
+<p>ここで、最初に
+<strong>Javaセキュリティによってブロックされたアプリケーション</strong>
+で出てきた画面の<code>場所</code>に書いてあるURLを記入します。</p>
+
+<p>これを適用後、同じアプリケーションを開こうとすると、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150424_warning.jpg" alt="warning" class="pic" /></p>
+
+<p>こんな感じでセキュリティ警告が出ますが、
+<strong>リスクを受け入れて</strong>実行出来る様になります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

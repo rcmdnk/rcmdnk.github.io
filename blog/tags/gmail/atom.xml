@@ -1,0 +1,1193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Gmail | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/gmail/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-10T19:28:04+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Gmailで外部SMTPサーバーが'TLS Negotiation failed, the certificate doesn't match the host. 'を出したときの対処法]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/29/computer-gmail/"/>
+    <updated>2020-04-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/29/computer-gmail</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4908686009?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4908686009&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41y5jGy1GrL._SS200_.jpg" alt="プロフェッショナルSSL/TLS" /></a>
+</div>
+
+<p>メールの取扱として、基本的にすべてのメールをGmailに転送して、
+返信する際もGmailから返信、という形にしているのですが、
+その中でSMTPサーバーを使えるアドレスに関して、
+今月に入ったくらいからエラーが出て使えなくなっていたのですが、
+それを直したのでメモ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gmailのsmtpサーバー設定" id="markdown-toc-gmailのsmtpサーバー設定">GmailのSMTPサーバー設定</a></li>
+  <li><a href="#tls-negotiation-failed-the-certificate-doesnt-match-the-host" id="markdown-toc-tls-negotiation-failed-the-certificate-doesnt-match-the-host">TLS Negotiation failed, the certificate doesn’t match the host.</a></li>
+  <li><a href="#gmail側の変更が原因だった模様" id="markdown-toc-gmail側の変更が原因だった模様">Gmail側の変更が原因だった模様</a></li>
+  <li><a href="#実際に起っていたこと" id="markdown-toc-実際に起っていたこと">実際に起っていたこと</a></li>
+  <li><a href="#正しいホスト名の調べ方" id="markdown-toc-正しいホスト名の調べ方">正しいホスト名の調べ方</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gmailのsmtpサーバー設定">GmailのSMTPサーバー設定</h2>
+
+<p>Gmailではそのアカウントのメールアドレス以外のメールも管理できるような
+設定があります。</p>
+
+<p>読むだけなら元の方から転送すればよいだけですが、
+Gmailから返信したいときはアドレスを追加してそのアドレスを選んで返信します。</p>
+
+<p>もし、そのアドレスがそれ程重要なものでなければ
+GmailのSMTPサーバーを使って”偽装”して送ることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00QE3YGJ8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00QE3YGJ8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/518yLaifMiL._SS90_CR0,0,120,90_.jpg" alt="SMTP 53 Success Secrets - 53 Most Asked Questions On SMTP - What You Need To Know" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/04/16/computer-gmail/">GmailでGmail以外のアドレスでGmailのSMTPが使えなくなってた件(実は使えた件)</a></div></li></ul>
+
+<p>ただ、そういったものを弾くものもあるので、
+きちんとしたアドレスに関してはそのアドレス扱うメールサービスが提供している
+SMTPサーバーを登録してそこ経由で送る様にします。</p>
+
+<p>それで正しくそのアドレスから返信することが出来るようになります。</p>
+
+<h2 id="tls-negotiation-failed-the-certificate-doesnt-match-the-host">TLS Negotiation failed, the certificate doesn’t match the host.</h2>
+
+<p>そうやって登録してあったあるアドレスに関して、突如</p>
+
+<blockquote>
+  <p>メールの配信エラー</p>
+
+  <p>[名前] の機能を使用して、別のアドレスまたは別のエイリアスからこのメールを送信しようとしています。[名前] のアカウントの設定に誤りがあるか、設定が最新の状態ではありません。設定を確認して、もう一度送信してみてください。</p>
+
+  <p><a href="https://support.google.com/mail/answer/22370?p=CustomFromDenied&amp;visit_id=637237399013598906-360352257&amp;rd=1">詳細</a></p>
+
+  <p>応答:</p>
+
+  <p>TLS Negotiation failed, the certificate doesn’t match the host.</p>
+</blockquote>
+
+<p>といったエラーを出して届かなくなってしまいました。</p>
+
+<p>試しに設定を見返してみようと登録してあるアドレスの設定を開いて進めていくと、
+SMTPサーバーの設定の所で、以前のままの状態で改めてパスワードを入れて登録しようとすると</p>
+
+<blockquote>
+  <p>認証が失敗しました。ユーザー名とパスワードを確認してください。</p>
+</blockquote>
+
+<p>と出て失敗する様になっていました。</p>
+
+<p>サーバー側に関して、パスワードなどは変更してません。(後で確認済。)</p>
+
+<p>ちょっと困ったな、と思ってたんですが、
+ちょうどこの時期から在宅ワークなどが始まっていて、
+このサーバーとかも、もしかしたらFirewallとかいじっておかしくなったのかな、とか思ってました。</p>
+
+<p>実際、問題が他の人にも出ればすぐに対処されるだろうし、
+色々大変だろうから無理に言わずに様子見、とか思って放置してました。</p>
+
+<p>そのアドレスを使う範囲でも、普段は別のアドレスを使うことのが多かったりもしたので。</p>
+
+<p>ただ、一向に治る気配もないのでちょっと調べてみることに。</p>
+
+<h2 id="gmail側の変更が原因だった模様">Gmail側の変更が原因だった模様</h2>
+
+<p>ちょっと調べればすぐに出てくるのですが、
+同じような人は自分と同じSMTPサーバーを使っている人、というわけではなく、
+Gmailそのものを使ってる人に居ました。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/thread/38336515?hl=en">my message can sometimes not be delivered because of an incorrect alias. Sometimes it works. - Gmail Community</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/thread/38667196?hl=ja">メールが突然配信エラーになる - Gmail Community</a></p>
+</blockquote>
+
+<p>上の中を見ているとちょっと間違った(というより正確でない)情報も多いので注意した方が良いですが、
+結論としてはGoogleがセキュリティアップデートを行って
+SMTPサーバーに設定する名前がそのサーバーの証明書にあるものと一致していないと駄目、
+とする様になった様です。</p>
+
+<p>今までは複数のホスト名が同一IP に付けられている場合、
+どれを使っても最終的に証明書にあるホスト名のものと一緒であればOKでした。</p>
+
+<p>それがちゃんと証明書にある名前を使わないと駄目、となった、ということ。</p>
+
+<p>通常のGmail的なところでのお知らせなどは来てないと思いますが、
+G Suite向けにはそれっぽいことが書いてあります。</p>
+
+<blockquote>
+  <p><a href="https://gsuiteupdates.googleblog.com/2020/04/improve-email-security-in-gmail-with-TLS.html">G Suite Updates Blog: Improve email security in Gmail with TLS by default and other new features</a></p>
+</blockquote>
+
+<h2 id="実際に起っていたこと">実際に起っていたこと</h2>
+
+<p>私の設定では</p>
+
+<pre><code>smtp.example.com
+</code></pre>
+
+<p>という感じで<strong>smtp</strong>という名前でSMTPサーバーを設定していました。
+まあ、この名前があるのでこれを通常SMTPサーバーとして登録します。</p>
+
+<p>ただ、実際にはこのサーバーには他にも名前があって、</p>
+
+<pre><code>mail.example.com
+</code></pre>
+
+<p>といった感じの(実際には<code>mail</code>じゃないんですが)
+メールサーバー用の名前(POP3やIMAP使うときにはそれを使う感じにしてるもの)
+が証明書に登録してあるものでした。</p>
+
+<p>なのでここで弾かれていた、と。</p>
+
+<p>実際、証明書にある<code>mail.example.com</code>の方を登録するとちゃんとパスワードも通り、
+メールも送れる様になりました。</p>
+
+<h2 id="正しいホスト名の調べ方">正しいホスト名の調べ方</h2>
+
+<p>上の様にいくつか名前があるのを知っていれば適当に入れてれば当たるかもしれませんが、
+ぱっとわからないこともあるかと思います。</p>
+
+<p>そういった時に、正しいホスト名
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+を確認する方法として、
+もし同じSMTPサーバーを使っている人が他に居てその人から過去にメールが来ているならば、
+Gmailから確認できます。
+ただし、そのメールが外部の別のSMTPサーバーを使ってない、ということは確認しないといけません。
+(外部のものであればすぐわかるでしょうし、そういった場合は何人もいると思うので
+何人か分で確認すれば間違いかと。)</p>
+
+<p>Gmailでその人のメールを開き、
+右上の三点マーク(<code>︙</code>)から<strong>メッセージのソースを表示</strong>を選んで<code>Received: </code>で始まる部分を見てみます。</p>
+
+<p>そうすると</p>
+
+<pre><code>Received: from mail.example.com (server.example.com. [xxx.xxx.xxx.xxx])
+</code></pre>
+
+<p>みたいな部分が見つかるはずです。この<code>from</code>の後にあるものが正しいもの。</p>
+
+<p>その後ろはまた別の名前だったりするかもしれませんが、<strong>server.example.com</strong>も
+これも同じIPアドレスについているホスト名です。(IPアドレスから通常逆引きして出てくるもの)</p>
+
+<p>もし、この確認が難しい場合、Linuxとかが使えるならターミナルで</p>
+
+<pre><code>$ openssl s_client -starttls smtp -showcerts -connect smtp.example.com:587 &lt;/dev/null 2&gt;/dev/null|grep -A1 "Server certificate"
+Server certificate
+subject=C = JP, ST = Tokyo, O = My Organization, OU = My Unit, CN = mail.example.com
+</code></pre>
+
+<p>のようにするとそのIPアドレスのSMTP (587ポート)サーバーとして登録されている
+名前がCN(Common Name)で確認出来ます。</p>
+
+<p>この辺でもどうしても上手く行かない場合は
+一度サーバーを管理している人や会社に聞いてみた方が早いです。</p>
+
+<p>オレオレ証明書でやっている場合には対処出来ないかもしれないので
+きちんとした証明書を入れてもらうしかないかもしれません。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[メールの内容がGmailでnonameという添付ファイルになってしまう問題]]></title>
+    <link href="https://rcmdnk.com/blog/2019/04/30/computer-gmail-linux/"/>
+    <updated>2019-04-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/04/30/computer-gmail-linux</id>
+    <content type="html"><![CDATA[<p>Linuxサーバーで動かしているcronジョブで問題があると
+メールを送る様にしているのですが、そのメールをGmailで受け取った際、
+本文がないメールで<strong>noname</strong>という名前のファイルが添付された状態になっていたので
+それを直したことについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#本文内容が添付ファイルになってしまう現象" id="markdown-toc-本文内容が添付ファイルになってしまう現象">本文内容が添付ファイルになってしまう現象</a></li>
+  <li><a href="#解決策" id="markdown-toc-解決策">解決策</a></li>
+  <li><a href="#その他の場合" id="markdown-toc-その他の場合">その他の場合</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="本文内容が添付ファイルになってしまう現象">本文内容が添付ファイルになってしまう現象</h2>
+
+<p>問題は<code>mail</code>コマンドなどでメールを送る際、
+メールツールが理解できない文字が入っているとそれを
+添付ファイルに変換して送る、という機能が働いてしまってるために起こったことでした。</p>
+
+<p>この際作られる添付ファイルには名前が付けられてないので
+Gmailだと<strong>noname</strong>、他のメールクライアントでみたら<strong>untitled-[1].octet-stream</strong>という名前に
+なっているものもありました。
+これらのファイルの中身を見てみると確かに送ったはずの内容になっていました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190430_noname.jpg" alt="20190430_noname.jpg" class="pic" /></p>
+
+<p>今回起こったのは<code>ssh</code>を使ったコネクションチェックみたいなもので、
+内容としては鍵認証で失敗したとかいう無いようなのですが、
+この出力の最後に<code>^M</code>とCR＋LFの改行コード(Windowsが使う)が付いていました。
+どうやらこれが理解できずに添付ファイルにしてしまったようです。</p>
+
+<h2 id="解決策">解決策</h2>
+
+<p>これに対する解決策としてはこの改行コードを消してやれば良いだけ。
+なので、出力を作るスクリプトに対して</p>
+
+<pre><code>make_output.sh |tr -d \\r|mail -s cron-mail my_mail@example.com
+</code></pre>
+
+<p>こんな感じで<code>tr</code>を使って余計な改行を消します。
+これでメッセージ内容がメール本文として送られる様になります。</p>
+
+<h2 id="その他の場合">その他の場合</h2>
+
+<p>改行以外にも色々とNon-ASCIIな文字が入っている場合もあると思います。</p>
+
+<p>そういった場合にはそれぞれの文字について対応するのは大変なので、
+例えばUTFな日本語が入っているなら</p>
+
+<pre><code>LANG=ja_JP.utf8
+</code></pre>
+
+<p>をスクリプトの最初に指定するか、複数cronジョブがあってそれらすべてが同じ状況であれば
+<code>crontab -e</code>で開いた編集画面で一番上にこれを書いておけばこの環境で作業を行ってくれて
+<code>mail</code>コマンドなどでも文字を理解してそのまま本文として送ってくれる様になります。</p>
+
+<blockquote>
+  <p><a href="http://dqn.sakusakutto.jp/2013/10/linux_sendmail_gmail_noname.html">LinuxからmailコマンドでメールするとGmailでnonameという添付ファイルになる件の対処法 · DQNEO起業日記</a></p>
+</blockquote>
+
+<p>また、英数字などしかないのであれば、</p>
+
+<pre><code>tr -cd '\11\12\15\40-\176'
+</code></pre>
+
+<p>というtrのテクニックを使う方法もあります。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/18999690/use-crontab-job-send-mail-the-email-text-turns-to-an-attached-file-which-named">linux - Use crontab job send mail, The email text turns to an attached file which named ATT00001.bin - Stack Overflow</a></p>
+</blockquote>
+
+<p><code>cd</code>で次のものにあたる文字<strong>以外</strong>を削除します。ここでバックスラッシュで指定されてるのは
+文字の8進法でのASCIIコードです。</p>
+
+<blockquote>
+  <p><a href="http://www.asciitable.com/">Ascii Table - ASCII character codes and html, octal, hex and decimal chart conversion</a></p>
+</blockquote>
+
+<ul>
+  <li>\11:       TAB (horizontal tab)</li>
+  <li>\12:       LF  (NL line feed, new line)</li>
+  <li>\15:       CR  (carriage return)</li>
+  <li>\40-\57:   Spaceや/などの記号。</li>
+  <li>\60-\71:   0-9</li>
+  <li>\72-\100:  :などの記号</li>
+  <li>\101-\132: A-Z</li>
+  <li>\133-\140: [などの記号</li>
+  <li>\141-\172: a-z</li>
+  <li>\173-\176: {などの記号</li>
+</ul>
+
+<p>です。</p>
+
+<p>ただし、ここでこのまま使うとLFとCR両方が入ってしまうので、上記問題を解決するためには</p>
+
+<pre><code>make_output.sh |tr -cd '\11\12\40-\176'|mail -s cron-mail my_mail@example.com
+</code></pre>
+
+<p>とCR(\15)は除いた状態で使う必要があります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Gmailのフィルタの順序が全く保存されなくなった?]]></title>
+    <link href="https://rcmdnk.com/blog/2018/09/13/computer-gmail/"/>
+    <updated>2018-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/09/13/computer-gmail</id>
+    <content type="html"><![CDATA[<p>ちょっとGmailのフィルタをアップデートしてて気づいたのですが、
+最近Gmailのフィルタの順序がまったく保存されなくなったようです。</p>
+
+<p>現在新しいインターフェースと古いインターフェースの両方が使えますが、
+いずれでも駄目でした。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gmailのフィルタ" id="markdown-toc-gmailのフィルタ">Gmailのフィルタ</a></li>
+  <li><a href="#フィルタの順序が保存されなくなった" id="markdown-toc-フィルタの順序が保存されなくなった">フィルタの順序が保存されなくなった?</a></li>
+  <li><a href="#とりあえずの対応策-google-app-scriptを使う" id="markdown-toc-とりあえずの対応策-google-app-scriptを使う">とりあえずの対応策: Google App Scriptを使う</a>    <ul>
+      <li><a href="#nolabel対策" id="markdown-toc-nolabel対策">NoLabel対策</a></li>
+      <li><a href="#inboxアーカイブ対策" id="markdown-toc-inboxアーカイブ対策">Inbox/アーカイブ対策</a></li>
+      <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gmailのフィルタ">Gmailのフィルタ</h2>
+
+<p>Gmailのフィルタは基本的にラベル付けに使っています。</p>
+
+<p>Gmailではフォルダという概念はなくて全てラベルで分ける仕様になっています。
+<strong>ラベル</strong>なのでEvernoteで言うタグみたいなもので一つのメールに複数のラベルを付けることも可能です。</p>
+
+<p>そういう意味もあって、Gmailのフィルタは入ってきたメールに対して全てのフィルタが適用される様になっています。
+フォルダ分けであれば最初に該当したフォルダに入れて終わり、ですが、ラベルであれば複数該当するフィルタがあってそれを付けたい、ということで。</p>
+
+<p>一つのフィルタも複数の条件の組み合わせでできるので簡単なことだけならそれで全てをまかなえるかもしれませんが、
+自分の使い方だとちょっと難しいところがあります。</p>
+
+<p>やりたいことは簡単にいうと</p>
+
+<ul>
+  <li>メーリングリスト宛などのものはその名前のラベルを付ける(もしくはある程度グループ化してそのラベルを付ける)</li>
+  <li>その他送り先などの条件でラベルを付ける</li>
+  <li>必要なものはInboxに残し、それ以外はアーカイブする</li>
+  <li>ラベルが何もついてなければ最後に<strong>00_NoLabel</strong>といったラベルを付けてアーカイブする</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>ただし、メールをアーカイブするかInboxに残すか、ということをやるのは結構面倒で、
+特定の送り先から来たら基本アーカイブ、だけどさらに特殊な条件のときだけInboxに残す、
+と言ったことをしようとすると</p>
+
+<ul>
+  <li>やり方1:
+    <ul>
+      <li>(from:mailinglist -to:bbb) -&gt; archiveする</li>
+      <li>(from:mailinglist) -&gt; label mailinglistをつける</li>
+    </ul>
+  </li>
+  <li>やり方2:
+    <ul>
+      <li>(from:mailinglist) -&gt; label mailinglistをつける</li>
+      <li>(to:bbb) -&gt; DummyInboxラベルを付ける</li>
+      <li>最後にDummyInboxラベルがついてないものをすべてarchiveする</li>
+    </ul>
+  </li>
+</ul>
+
+<p>といったどちらかの方法になります。これだけ見ると1のほうが簡単そうですが、
+たくさんのラベルをつけようと思うと1の方では全てに対して2つづつ作っていかなくてはいけないのに対し、
+2の方では各<code>mailinglist</code>に対しては一つの定義だけで済むのでフィルタの数が大分少なく住みます。</p>
+
+<p>また、フィルタの条件は色々条件が組み合わせられますが、文字数に制限があってあまり長い条件は書けません。
+なので2の様にそれぞれの場合で分けて作らないと無理な場合もあります。
+(この辺の数字も前にどこかで見たような気がしますが見つけられず。)
+ただ、長いものを作ろうとすると失敗することは確かです。</p>
+
+<p>フィルタの数にも制限があるとかないとか書かれてますが、200個とかならいける、といったものは見ました。
+いまのところこれの制限にかかったことはないです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter_120_90.jpg" width="120" height="90" alt="20140409_filter_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/">Gmailのラベルの使用法を工夫する</a></div></li></ul>
+
+<p>先の<strong>NoLabel</strong>とこの<strong>DummyInbox</strong>の適用を行うには
+確実に最後にこれらのフィルタが適用される必要があります。
+なので順序が大事。</p>
+
+<p>以前のGmailではフィルタは作成順に設置され、編集とかすると一番下に来る、といった感じでした。</p>
+
+<p>順序を簡単に変える方法がないので
+一旦エクスポートして編集して、一旦Gmail上のフィルタを全部消してインポートする、といったことをしてました。</p>
+
+<p>この作業も特にエクスポートされるXMLファイルの編集が
+面倒なのでそれを簡単にするツールとかも作ってました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter2_120_90.jpg" width="120" height="90" alt="20140409_filter2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する</a></div></li></ul>
+
+<p>そんな中、今年はじめくらい?から新しいGmailのインターフェースが使える様になっていて、
+最近では新しいものを使うことが推奨されています。</p>
+
+<p>タスクリストとかがよりきれいに統合されたり色々と外部連携が充実したりして
+全体的にはかなり良いアップデートかな、という感じなのですが、
+フィルタに関して言うとちょっと微妙な感じがありました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/08/02/computer-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180802_gmail_120_90.jpg" width="120" height="90" alt="20180802_gmail_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/08/02/computer-gmail/">新しいGmailではフィルタの表示では順序が保持されないが中では順序保持されている?</a></div></li></ul>
+
+<p>フィルタを設定で開いてみると、以前せっていしたものとは違う順序になっています。
+ただ、エクスポートしてみると以前の設定どおりになっている、といった状態。これが一ヶ月くらい前に確認した時のものです。</p>
+
+<h2 id="フィルタの順序が保存されなくなった">フィルタの順序が保存されなくなった?</h2>
+
+<p>これが昨日くらいにアップデートしようと思ってまたフィルタをインポートしてみたところ、
+どうも<strong>NoLabel</strong>に行くべきものがついてなかったり、Inboxに残したいものが残ってなかったりぐちゃぐちゃになってしまいました。</p>
+
+<p>フィルタを見ると、インポートした直後はただしく入れたとおりに表示されていたものの、
+その後開くと全く違う順序に。</p>
+
+<p>以前も新しいインターフェースでは順序は変わってましたが、エクスポートすると思い通りの順序だったのでエクスポートしてみると
+今度は順序がばらばらに。。。</p>
+
+<p>ばらばら、というかよく見ると<code>id</code>の数字の順序になってました。
+この<code>id</code>は<code>1524641463341</code>とか大きい数字で作った順序などには関係なく、ユーザーが管理できるものではありません。
+インポート時に、XMLファイルのなかの数字を変更してもGmail上で書き換えられて適当なidになります。
+(Gmail全体でuniqueな数字?)</p>
+
+<p>これが新しいインターフェースの変更のためか、と思って古いインターフェースに戻して
+しばらく試してみましたがやはり駄目でした。
+Gmail上の表示が思い通りになっていてもエクスポートするとバラバラでフィルタの動作を見てるとどうやらエクスポートされたもの
+の順序で適用されてる様子。</p>
+
+<h2 id="とりあえずの対応策-google-app-scriptを使う">とりあえずの対応策: Google App Scriptを使う</h2>
+
+<h3 id="nolabel対策">NoLabel対策</h3>
+
+<p>現状の対応策としては、<strong>NoLabel</strong>をつけるフィルタを削除しました。</p>
+
+<p>そのままだとラベルがつかないままアーカイブされて見えづらくなるメールが有って困るので、
+これに対しては<a href="https://script.google.com/home">Google Apps Script</a>
+を使ってラベルを付けます。</p>
+
+<p>以下の様なスクリプトを作成します。</p>
+
+<figure class="code"><figcaption><span>updateLabel.gs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span> <span class="nx">updateLabel</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">unlabeled</span> <span class="o">=</span> <span class="nx">GmailApp</span><span class="p">.</span><span class="nx">search</span><span class="p">(</span><span class="s2">&quot;has:nouserlabels -label:inbox -label:sent -label:chats -label:draft -label:spam -label:trash&quot;</span><span class="p">);</span>
+</span><span class="line">  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">unlabeled</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;thread: &quot;</span> <span class="o">+</span> <span class="nx">i</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">unlabeled</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">getFirstMessageSubject</span><span class="p">());</span>
+</span><span class="line">    <span class="nx">labels</span> <span class="o">=</span> <span class="nx">unlabeled</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">getLabels</span><span class="p">();</span>
+</span><span class="line">    <span class="kd">var</span> <span class="nx">n_labels</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line">    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">j</span> <span class="o">&lt;</span> <span class="nx">labels</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">      <span class="nx">n_labels</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class="line">      <span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;labels: &quot;</span> <span class="o">+</span> <span class="nx">i</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">labels</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nx">getName</span><span class="p">());</span>
+</span><span class="line">      <span class="nx">labels</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nx">addToThread</span><span class="p">(</span><span class="nx">unlabeled</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">    <span class="k">if</span> <span class="p">(</span><span class="nx">n_labels</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
+</span><span class="line">      <span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Add 00_NoLabel&quot;</span><span class="p">);</span>
+</span><span class="line">      <span class="nx">unlabeled</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">addLabel</span><span class="p">(</span><span class="nx">GmailApp</span><span class="p">.</span><span class="nx">getUserLabelByName</span><span class="p">(</span><span class="s2">&quot;00_NoLabel&quot;</span><span class="p">));</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最後の<code>if</code>文のところでラベルが付かずInboxにも無いものに対して<strong>00_NoLabel</strong>というラベルを付けています。</p>
+
+<p>その前の<code>for</code>文はスレッド内の他のメールにラベルが付いていた場合、そのラベルをスレッド内の全てのメールに
+つけるためのループです。
+条件によって同じスレッド内でもラベルが付いてたり着いてなかったりすることがありますが、
+それに<strong>00_NoLabel</strong>をつけてしまうとスレッドごと<strong>00_NoLabel</strong>にも入ってしまい邪魔なので。
+なのでこれでチェックもしてラベルがつかなかったら最後に<strong>00_NoLabel</strong>をつける、ということをしています。</p>
+
+<h3 id="inboxアーカイブ対策">Inbox/アーカイブ対策</h3>
+
+<p>Inboxに残すかどうか、という対処はさらに面倒で、今の所完璧なものではありません。</p>
+
+<p>とりあえず、<strong>DummyInbox</strong>ラベルをつけてそれがついてるもの以外はアーカイブ、というフィルタは残しています。</p>
+
+<p>ただし、このフィルタが中途半端な位置で適用されるとその後<strong>DummyInbox</strong>をつける予定だったものが先にアーカイブされてしまいます。</p>
+
+<p>これを救出するために以下の様なスクリプトを用意します。</p>
+
+<figure class="code"><figcaption><span>updateLabel.gs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span> <span class="nx">inboxCheck</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">threads</span> <span class="o">=</span> <span class="nx">GmailApp</span><span class="p">.</span><span class="nx">search</span><span class="p">(</span><span class="s2">&quot;-label:inbox -label:sent -label:trash label:99_DummyInbox&quot;</span><span class="p">);</span>
+</span><span class="line">  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">threads</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;thread: &quot;</span> <span class="o">+</span> <span class="nx">i</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">threads</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">getFirstMessageSubject</span><span class="p">());</span>
+</span><span class="line">    <span class="nx">threads</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">moveToInbox</span><span class="p">();</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こっちはもっと簡単なスクリプトで、<strong>99_DummyInbox</strong>ラベルが付いていてInboxにないものをInboxに戻す、というもの。</p>
+
+<p>ただこれの問題点は一度アーカイブされてしまうのでスマホへの通知が来なくなることです。
+アプリのアイコンに未読数として後から表示はされますが直接の通知は来ません。</p>
+
+<p>フィルタには<strong>アーカイブする</strong>、という動作はありますが、逆に<strong>Inboxに戻す</strong>という動作はないので
+一度アーカイブするフィルタがかけられてしまうとどうしようもありません。</p>
+
+<p>これでちょっと微妙な動作なんですが、
+基本的にInboxに残すメールは最小限にしてるので、能動的にチェックする様にすることで最悪通知がなくても
+大丈夫かな、というところで落ち着いています。</p>
+
+<p>まあ、リアルタイムで必要な連絡は友達ならラインなり、仕事でも別のもので来たりするのでそこまできちんと出来なくても大丈夫かな、と。</p>
+
+<h3 id="まとめ">まとめ</h3>
+
+<p>もともとGmailのフィルタは順序を考慮して使うように設計されてないもので
+順序がどう決定されるかという記述もどこにもないのですが、
+ラベルを振りながらInboxに残すかどうか決めようと思うと順序なしのフィルタだと
+かなり無理があると思います。</p>
+
+<p>実際問題、他の人がどうやってるのか不思議で仕方ないです。
+(Inboxに大量のメールがあっても気にしない人は別の意味で不思議ですが。)</p>
+
+<p>通知そのものを考えないのであればいっそInboxなんか無視して全てラベル分けするだけでも良いかもしれませんし
+そうしてる人もいるのかもしれません。</p>
+
+<p>どうするのが一番良いのかは人によるとは思いますが、
+なんかもうちょっと上手いこと出来ないかな、とはいまさら思ってます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[新しいGmailではフィルタの表示では順序が保持されないが中では順序保持されている?]]></title>
+    <link href="https://rcmdnk.com/blog/2018/08/02/computer-gmail/"/>
+    <updated>2018-08-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/08/02/computer-gmail</id>
+    <content type="html"><![CDATA[<p>結構前からデザインが新しく新機能が入るGmailのウェブインターフェースを試すことが出来る様になっていましたが、
+ついにデフォルトが新しいものに変わるというようなメッセージが出てました。</p>
+
+<p>新しいGmailで一つ心配なところがフィルタなんですが
+ちょっと試してみた所、一応今までどおりの動作を期待して良さそうな感じでした。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#新しいgmail" id="markdown-toc-新しいgmail">新しいGmail</a></li>
+  <li><a href="#gmailフィルタについて" id="markdown-toc-gmailフィルタについて">Gmailフィルタについて</a></li>
+  <li><a href="#新しいgmailフィルタの様子" id="markdown-toc-新しいgmailフィルタの様子">新しいGmailフィルタの様子</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="新しいgmail">新しいGmail</h2>
+
+<p>新しいGmailにするには右上の設定ボタンを押して一番上にある
+<strong>新しいGmailをお試しください</strong>を押します。</p>
+
+<p>一旦変えても同じところに表示される<strong>以前のGmailに戻る</strong>を押せば戻れるので
+とりあえず試してみることが可能です。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20180802_gmail_new.jpg" alt="20180802_gmail_new.jpg" class="pic" /></p>
+
+<p>新しいインターフェースはこんな感じで
+マテリアルマテリアルした感じになっています。</p>
+
+<p>新しいデザインでは左のラベル一覧を
+左上のハンバーガーメニューを押すことで閉じることが出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20180802_gmail_menu.jpg" alt="20180802_gmail_menu.jpg" class="pic" /></p>
+
+<p>また、すぐ気づくのが右側にカレンダー、Keep、Todoのボタンがあって
+これらの情報を右側に表示できるようになっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20180802_gmail_todo.jpg" alt="20180802_gmail_todo.jpg" class="pic" /></p>
+
+<p>アドオンを追加すると使用可能な時にこの欄に表示されるようにもなります。</p>
+
+<h2 id="gmailフィルタについて">Gmailフィルタについて</h2>
+
+<p>Gmailでラベルを付けたりするためにフィルタを設定することが出来ますが、
+古いのGmailでは表示されるフィルタの順に上からフィルタが適用されていました。</p>
+
+<p>ただ、この順序というのが意味があるものにも関わらず
+フィルタの並べ替えは簡単に出来ず、さらに編集すると必ず一番下に行ってしまう、
+という面倒な仕様になっています。</p>
+
+<p>おそらくGmailとしてはフィルタの順序を気にするような設定を想定していないのだと思います。
+(それもおかしな話だとは思うのですが。。。)</p>
+
+<p>その辺の順序を気にしながら上手いことやろう、というのが以下でやってたことです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter2_120_90.jpg" width="120" height="90" alt="20140409_filter2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter_120_90.jpg" width="120" height="90" alt="20140409_filter_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/">Gmailのラベルの使用法を工夫する</a></div></li></ul>
+
+<h2 id="新しいgmailフィルタの様子">新しいGmailフィルタの様子</h2>
+
+<p>Gmailを新しくして設定からフィルタを見てみた所、
+順序がめちゃくちゃになっていました。
+(おそらく自動で振られるID番号順。ただその番号も作られた順とかでもないのでただのランダム順みたいな状態。)</p>
+
+<p>これを見て以前試したときは駄目だと思ってすぐに元に戻したのですが、
+今回変更してみてしばらく様子を見てみた所
+どうもフィルタが以前設定した順序どおりに適用されているようでした。</p>
+
+<p>そこでフィルタをエキスポートしてみると
+表示の状態とは違い以前設定した順序どおりになっていました。</p>
+
+<p>なのでGmail上で表示されてるフィルタは表示する時に何らかのソートをかけて表示しているだけ、という感じで
+中では順序が保たれているようです。</p>
+
+<p>これだと今度こそウェブインターフェースで順序を気にしたフィルタを管理することは出来なくなりますが
+上の記事で書いたようにエキスポートして書き換えてインポートし直す、みたいな
+管理をすればこれまで通り順序を気にしたフィルタを使えそうです。</p>
+
+<p>今後仕様が変わるかもしれませんが今の所とりあえず今までどおりの使い方はできそうな感じです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"/>
+    <updated>2018-07-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/07/07/computer-gmail-python</id>
+    <content type="html"><![CDATA[<p>Gmailのラベルやフィルタの使い方を色々考え直していましたが、
+エキスポート出来るXMLファイルを直接手でいじるのが色々大変だったので
+YAML形式に変更して編集しやすくし、
+それをGmailにインポートできる形のXML形式に変更するコマンドを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gmail_filter_manager" id="markdown-toc-gmail_filter_manager">gmail_filter_manager</a></li>
+  <li><a href="#xml-to-yaml" id="markdown-toc-xml-to-yaml">XML to YAML</a></li>
+  <li><a href="#yamlでフィルタを作る" id="markdown-toc-yamlでフィルタを作る">YAMLでフィルタを作る</a>    <ul>
+      <li><a href="#フィルタの条件に使えるもの" id="markdown-toc-フィルタの条件に使えるもの">フィルタの条件に使えるもの</a>        <ul>
+          <li><a href="#含む含まないに使えるもの" id="markdown-toc-含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</a></li>
+        </ul>
+      </li>
+      <li><a href="#フィルタ後の処置" id="markdown-toc-フィルタ後の処置">フィルタ後の処置</a></li>
+      <li><a href="#yamlの書き方" id="markdown-toc-yamlの書き方">YAMLの書き方</a></li>
+    </ul>
+  </li>
+  <li><a href="#yaml-to-xml" id="markdown-toc-yaml-to-xml">YAML to XML</a></li>
+  <li><a href="#gmailのラベルの使用法を工夫する" id="markdown-toc-gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gmail_filter_manager">gmail_filter_manager</h2>
+
+<div class="github-widget" data-repo="rcmdnk/gmail_filter_manager"></div>
+
+<p>例のごとくGitHubにあります。</p>
+
+<p>コマンドは</p>
+
+<ul>
+  <li>bin/gfm_extract: GmailからエキスポートしたXMLファイルをYAML形式にコンバート</li>
+  <li>bin/gfm_make: YAML形式で書いたフィルタをGmailが読めるXML形式にコンバート</li>
+</ul>
+
+<p>の2つです。</p>
+
+<p>Mac + Homebrewであれば</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/gmail_filter_manager
+</code></pre>
+
+<p>で入ります。</p>
+
+<p>それ以外では</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/gmail_filter_manager/install/install.sh | prefix=~/usr/local/ sh
+</code></pre>
+
+<p>で<code>prefix</code>で入れたい場所を指定して入れることが出来ます。</p>
+
+<p>もしくは上のコマンドを適当にPATHの通ったディレクトリに入れてください。</p>
+
+<p>必要なものはPythonでMac上でPython2.7.15、及び3.7.0で動作を確認してあります。</p>
+
+<p>Pythonのパッケージで<code>ruamel.yaml</code>が必要なので入っていない場合は</p>
+
+<pre><code>$ pip install ruamel.yaml
+</code></pre>
+
+<p>などでインストールしてください。</p>
+
+<h2 id="xml-to-yaml">XML to YAML</h2>
+
+<p>YAMLで直接フィルタを書いても良いですが、
+すでにGmailでフィルタを設定していたりする場合それをエキスポートして
+YAMLに変換して編集することが出来ます。</p>
+
+<p>まず、GmailからフィルタをXML形式でエキスポートします。
+エキスポートはGmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+出力したいフィルタをチェックして下にある<strong>エキスポート</strong>ボタンを押します。</p>
+
+<p>通常は一覧の下にある<strong>すべて</strong>を押してすべて選択してエキスポートすれば良いと思います。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/6579?hl=ja">メールのフィルタルールの作成 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>エキスポートした<strong>mailFilters.xml</strong>は以下の様な形になってると思います。</p>
+
+<figure class="code"><figcaption><span>mailFilters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;UTF-8&#39;?&gt;</span><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&#39;http://www.w3.org/2005/Atom&#39;</span> <span class="na">xmlns:apps=</span><span class="s">&#39;http://schemas.google.com/apps/2006&#39;</span><span class="nt">&gt;</span>
+</span><span class="line">  <span class="nt">&lt;title&gt;</span>Mail Filters<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">  <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filters:1530786931071,1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">  <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">  <span class="nt">&lt;author&gt;</span>
+</span><span class="line">    <span class="nt">&lt;name&gt;</span>rcmdnk<span class="nt">&lt;/name&gt;</span>
+</span><span class="line">    <span class="nt">&lt;email&gt;</span>rcmdnk@gmail.com<span class="nt">&lt;/email&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/author&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;category</span> <span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line">    <span class="nt">&lt;title&gt;</span>Mail Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">    <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530786931071<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">    <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">    <span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;from&#39;</span> <span class="na">value=</span><span class="s">&#39;foo@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;label&#39;</span> <span class="na">value=</span><span class="s">&#39;foo&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;category</span> <span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line">    <span class="nt">&lt;title&gt;</span>Mail Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line">    <span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line">    <span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line">    <span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;from&#39;</span> <span class="na">value=</span><span class="s">&#39;bar@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;label&#39;</span> <span class="na">value=</span><span class="s">&#39;bar&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&#39;shouldArchive&#39;</span> <span class="na">value=</span><span class="s">&#39;true&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを再びインポートすればフィルタが作成できるので
+バックアップとして取っておいたり出来ます。</p>
+
+<p>以前はこれを直接編集していましたがいろいろ面倒なのでYAML形式で管理しよう、ということで
+<code>gfm_extrac</code>を使います。</p>
+
+<p><code>gfm_extract</code>は第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.xml</strong>、アウトプットに<strong>mailFilters.yaml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_extract
+</code></pre>
+
+<p>で出来た<strong>mailFilters.yaml</strong>を見てみると</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">foo@example.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bar@example.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">shouldArchive</span><span class="p p-Indicator">:</span> <span class="s">&#39;true&#39;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">namespaces</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">apps</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">http://schemas.google.com/apps/2006</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">atom</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">http://www.w3.org/2005/Atom</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのシンプルなものになっているかと思います。</p>
+
+<p>インポートする際、
+上のXMLファイルの中で実際に必要な部分だけを抜き出した形です。</p>
+
+<p>基本的に<code>entry</code>タグが一つのフィルタを表していて、その中の
+<code>apps:property</code>タグがフィルタ条件、処置方法についての内容になっていて、
+それ以外は必要ありません。</p>
+
+<p><code>namespaces</code>に関しては便宜上残していますが、
+<code>gfm_make</code>するときにこれらを補完するようにしてあるので
+自作する際にはなくても大丈夫です。</p>
+
+<h2 id="yamlでフィルタを作る">YAMLでフィルタを作る</h2>
+
+<p>簡単に作り方を知る方法としては、
+適当なフィルタをGmailで作って
+それらをエキスポートし、その内容を見てみるのが良いです。
+<code>gfm_extrac</code>でYAMLに変更することで更にわかりやすくなるはずです。</p>
+
+<p>YAMLの形式としては、<code>filters</code>というキーに対して
+フィルタを配列で配置していきます。</p>
+
+<p>各フィルタの中身は配列で、一つにつき一つ、<code>apps:property</code>タグに対応するものを書いていきます。
+キーとしてXMLの<code>name</code>属性を、値として<code>value</code>属性を書きます。</p>
+
+<p>フィルタの条件もフィルタ適用後の処置についても
+同じ様な記述で同列に書いていく形になります。
+(XMLでも全て<code>apps:property</code>で同様の書き方になっていて区別されてません。)</p>
+
+<h3 id="フィルタの条件に使えるもの">フィルタの条件に使えるもの</h3>
+
+<p>フィルタに使えるものは以下のものになります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">From</td>
+      <td style="text-align: left">from</td>
+      <td style="text-align: left">メールの送信者</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">To</td>
+      <td style="text-align: left">to</td>
+      <td style="text-align: left">メールの送信先</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">件名</td>
+      <td style="text-align: left">subject</td>
+      <td style="text-align: left">メールのタイトル</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含む</td>
+      <td style="text-align: left">hasTheWord</td>
+      <td style="text-align: left">これを含むメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含まない</td>
+      <td style="text-align: left">doesNotHaveTheWord</td>
+      <td style="text-align: left">これを含まないメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">添付ファイル有り</td>
+      <td style="text-align: left">hasAttachment</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">チャットは除外する</td>
+      <td style="text-align: left">excludeChats</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">サイズ</td>
+      <td style="text-align: left">size</td>
+      <td style="text-align: left">以下の2つとの組み合わせで指定サイズと比較する</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次の値より大きい/小さい</td>
+      <td style="text-align: left">sizeOperator</td>
+      <td style="text-align: left"><code>s_sl</code>なら上のサイズより大きい、<code>s_ss</code>なら小さい</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">MB/KB/バイト</td>
+      <td style="text-align: left">sizeUnit</td>
+      <td style="text-align: left">サイズに適用する単位。s_sb (バイト)、s_skb (KB)、s_smb (MB)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</h4>
+
+<p><strong>含む</strong>、<strong>含まない</strong>については複数のCCを指定したり、
+ラベルを指定したり、単にメールの本文に含まれるかどうかなどを組み合わせて使えます。</p>
+
+<p>fromやtoも指定できるので、上記の<code>From</code>などで指定せずにこちらですることも出来、
+組み合わせて使いたい場合はまとめて<strong>含む</strong>に入れたほうが楽だったりします。</p>
+
+<p>指定方法として、</p>
+
+<ul>
+  <li>from:foo@example.com</li>
+  <li>to:foo@example.com</li>
+  <li>subject:”Hello!”</li>
+  <li>label:foo # fooラベルのついたもの</li>
+  <li>has:nouserlabels # ラベルがついてないもの</li>
+</ul>
+
+<p>などがあります。</p>
+
+<p>組み合わせるときはそのままスペースで区切るかまたは<code>()</code>で囲むと<code>AND</code>になります。
+<code>{}</code>で囲むと<code>OR</code>になります。</p>
+
+<p>また、条件に<code>-label:foo</code>などとすると否定になります。</p>
+
+<p>したがって、<strong>含まない</strong>を使わずに<strong>含む</strong>だけでやりたいことをすべて行うことも出来ます。</p>
+
+<p>その他の細かいところは公式ヘルプで。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/7190">Gmail で使用できる検索演算子 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>一つ注意として、YAMLとして記述するとき</p>
+
+<ul>
+  <li>hasTheWord: {from:foo@example.com from:bar@example.com}</li>
+</ul>
+
+<p>の様に書いてしまうと値の部分がさらに辞書として理解されおかしなことになります。
+これを避けるため<code>hasTheWord</code>や<code>doesNotHaveTheWord</code>また<code>subject</code>などに関しては
+クォート(““で囲う)しておいた方が安全です。</p>
+
+<h3 id="フィルタ後の処置">フィルタ後の処置</h3>
+
+<p>フィルタ後の処置としては以下の様なものがあります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">受信トレイをスキップ(アーカイブする)</td>
+      <td style="text-align: left">shouldArchive</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">既読にする</td>
+      <td style="text-align: left">shouldMarkAsRead</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">スターを付ける</td>
+      <td style="text-align: left">shouldStar</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">ラベルを付ける</td>
+      <td style="text-align: left">label</td>
+      <td style="text-align: left">付けるラベルを指定</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次のアドレスに転送する</td>
+      <td style="text-align: left">forwrdTo</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">削除する</td>
+      <td style="text-align: left">shouldTrash</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">迷惑メールにしない</td>
+      <td style="text-align: left">shouldNeverSpam</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">常に重要マークを付ける</td>
+      <td style="text-align: left">shouldAlwaysMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">重要マークを付けない</td>
+      <td style="text-align: left">shouldNeverMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">適用するカテゴリ</td>
+      <td style="text-align: left">smartLabelToApply</td>
+      <td style="text-align: left">値は次のいずれか: “^smartlabel_personal”(個人)、”^smartlabel_social”(ソーシャル)、”^smartlabel_promo”(プロモーション)、”^smartlabel_notification”(新着)、”^smartlabel_group”(フォーラム)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="yamlの書き方">YAMLの書き方</h3>
+
+<p>上にも書いたようにまず<code>filters</code>というキーを作り
+そこに各フィルタの配列を与えます。</p>
+
+<p>フィルタの条件や処置についてはその中で配列として記述していきます。</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hasTheWord</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">foo@example.com bar@example.com</span><span class="p p-Indicator">}</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line"><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">from</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">baz.com</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">baz</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>唯一<code>label</code>だけは複数配列ツィて指定できる様にもなっていて、
+複数指定した場合にはそれぞれのラベルに対して他の条件、処置が同じフィルタを
+作成することになります。</p>
+
+<h2 id="yaml-to-xml">YAML to XML</h2>
+
+<p><code>gfm_make</code>を使ってYAMLからGmailにインポートできるXMLファイルを作ります。</p>
+
+<p><code>gfm_make</code>も第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.yaml</strong>、アウトプットに<strong>filters.xml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_make
+</code></pre>
+
+<p>最初にエキスポートした例で出して<code>gfm_extrac</code>で変形したものをそのまま
+XMLに変形すると</p>
+
+<figure class="code"><figcaption><span>filters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+</span><span class="line"><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span> <span class="na">xmlns:apps=</span><span class="s">&quot;http://schemas.google.com/apps/2006&quot;</span><span class="nt">&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;from&quot;</span> <span class="na">value=</span><span class="s">&quot;foo@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;label&quot;</span> <span class="na">value=</span><span class="s">&quot;MyLabel1&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line">  <span class="nt">&lt;entry&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;shouldArchive&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">    <span class="nt">&lt;apps:property</span> <span class="na">name=</span><span class="s">&quot;from&quot;</span> <span class="na">value=</span><span class="s">&quot;bar@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line">  <span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じになります。
+最初にエキスポートしたものに比べるとずいぶんスリムになりましたが
+これで全く同じフィルタを作成することが出来ます。</p>
+
+<p>フィルタをインポートするには
+Gmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+下の方にある<strong>フィルタをインポート</strong>を押してインポート画面を表示し、
+<strong>ファイルを選択</strong>でファイルを選択後、<strong>ファイルを開く</strong>を押すと
+フィルタが表示される様になります。</p>
+
+<p>この時点ではまだGmailにインポートされておらず、
+フィルタにチェックが入った状態でさらに下の<strong>フィルタを作成</strong>を押すと実際にインポートされます。</p>
+
+<p>このとき、右にある<strong>既存のメールに新しいフィルタを適用する</strong>にチェックしたくなりますが、
+すべてのメールを見るのでものすごい時間がかかるため、
+Gmailを使い始めて間もない、とかで無い限りチェックしない方が無難です。</p>
+
+<p>チェックしない状態で100個くらいのフィルタを作るのに1分位かかります。</p>
+
+<p>ここで、一度エキスポートして編集して再度インポートすることを考えると、
+<strong>ファイタを作成</strong>をする前に一度前のフィルタをすべて削除しておいた方が良いです。</p>
+
+<p>そうすると一瞬フィルタが無い時間ができ、その間に来たメールは振り分けられませんが、
+あとでいちいち古いフィルタを削除するよりは良いと思います。</p>
+
+<h2 id="gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</h2>
+
+<p>これを作ったのは色々Gmailのラベルやフィルタの使い方を変えようと思って
+いじってた時に手動でやっていくのが面倒になってきたからです。</p>
+
+<p>以下に書いてある様なことをやりたい場合、これらのコマンドを使って
+YAMLで管理すると非常に楽です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140409_filter_120_90.jpg" width="120" height="90" alt="20140409_filter_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/07/06/computer-gmail/">Gmailのラベルの使用法を工夫する</a></div></li></ul>
+]]></content>
+  </entry>
+  
+</feed>

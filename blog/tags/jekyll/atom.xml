@@ -1,0 +1,968 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Jekyll | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/jekyll/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-10T19:28:04+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Liquid 4.0.0のリリースに伴うプラグインのアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2017/06/22/blog-liquid-jekyll-octopress/"/>
+    <updated>2017-06-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/06/22/blog-liquid-jekyll-octopress</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0745624103?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0745624103&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41%2Bh4fODaQL._SS200_.jpg" alt="Liquid Modernity" /></a>
+</div>
+
+<p>このブログはOctopressで運用していますが、
+OctopressはJekyllという静的サイトジェネレーターを使っていて、
+JekyllではLiquidと呼ばれるテンプレートエンジンを使っています。</p>
+
+<p>そのLiquidの4.0.0がリリースされ、今まで使っていた自作プラグインで問題が起きたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tagクラスの変更" id="markdown-toc-tagクラスの変更">Tagクラスの変更</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tagクラスの変更">Tagクラスの変更</h2>
+
+<p>問題が起きたのは以下のプラグイン。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octopress-post-card"></div>
+
+<p>下みたいな感じに自分のブログ内へのリンクを画像つきでいい感じに表示してくれるプラグインです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<p>この中で他のプラグインを</p>
+
+<pre><code>thum = Jekyll::Thumbnail.parse('thumbnail', "small-thumbnail #{img}", '', '')
+</code></pre>
+
+<p>みたいな感じで呼んでいました。
+この<code>Thumbnail</code>も自作クラスですが、LiquidのTagクラスを引き継いだものになります。</p>
+
+<p>ここで<code>parse(tag_name, markup, tokenizer, options)</code>という関数を使ってますが、第1, 2, 4番目の引数がそのまま
+<code>new</code>(つまりは<code>initialize</code>の1, 2, 3番目の引数として渡されて新しいオブジェクトが出来る様な形になっています。
+(<code>parse</code>の第3引数はデフォルトでは何もしない、引き継ぎ先でその値を引数に持った<code>parse(tokenizer)</code>を作って色々出来る様にしている。)</p>
+
+<p>Liquid 3.X.XまではTagの<code>initialize</code>では</p>
+
+<pre><code>def initialize(tag_name, markup, options)
+  @tag_name   = tag_name
+  @markup     = markup
+  @options    = options
+end
+</code></pre>
+
+<p>みたいな形で引数をそのまま保存する様な形になっていました。</p>
+
+<p>Tagは記事の中でLiquidのタグを使った時に呼ばれますが、
+その際に3番目の引数には以前まではただのオプション情報を持ったハッシュが渡されていました。</p>
+
+<p>ただ、元々のTagクラスでは渡された後、他では使われませんし
+通常引き継いだ先のクラスでもこれを使うことはめったにありません。</p>
+
+<p>なので
+<code>options</code>に何のクラスのオブジェクトを渡しても問題は起こりませんし
+上の<code>Thumbnail</code>を作る際にも最後の引数に<code>''</code>と、Stringクラスの空文字を適当に入れてあります。(デフォルト引数が無いので。)</p>
+
+<p>これがLiquid 4.0.0になるにあたって<code>initialize</code>の中で
+第3引数のメソッドを使う様な形に変更されています。</p>
+
+<pre><code>def initialize(tag_name, markup, parse_context)
+  @tag_name   = tag_name
+  @markup     = markup
+  @parse_context = parse_context
+  @line_number = parse_context.line_number
+end
+</code></pre>
+
+<blockquote>
+  <p><a href="https://github.com/Shopify/liquid/commit/cebf75b8d700593af2d40021c825e1176b51ab33#diff-3970e340d3f16350fe5da9ba67649f05">Implement line numbers without the Liquid::Token class. · Shopify/liquid@cebf75b</a></p>
+</blockquote>
+
+<p>引数の名前も<code>options</code>から<code>parse_context</code>になっていますが
+実際に記事の中で使われるタグを処理する際には
+<code>ParseContext</code>と呼ばれるオプション情報を持ったクラスが渡される様に変更されています。</p>
+
+<p>これが<code>line_number</code>と呼ばれるメソッドを持っているわけですが、
+これがあるので適当なクラスを渡すとエラーが起きてしまいます。</p>
+
+<p>ただ、結局Tagの中では使わないので</p>
+
+<pre><code>begin
+  parse_context = Liquid::ParseContext.new({})
+rescue
+  parse_context = {}
+end
+thum = Jekyll::Thumbnail.parse('thumbnail', "small-thumbnail #{img}", '', parse_context)
+</code></pre>
+
+<p>という感じに空のParseContextを作って渡す様にしました。</p>
+
+<p>Liquid 4.0.0より前には<code>ParseContext</code>が無いのでない場合は空のハッシュを渡す様に(Stringな空文字でも問題ないですが一応元の形に合わせて)。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[OctopressのサイトジェネレーターをJekyll 3にアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2016/12/29/blog-octopress-jekyll/"/>
+    <updated>2016-12-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/12/29/blog-octopress-jekyll</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4082740317?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4082740317&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51WC7MWJ43L._SS200_.jpg" alt="ジキルとハイド (子どものための世界文学の森 31)" /></a>
+</div>
+
+<p>Octopress周りをちょっと整理でもしてみようかと思い、
+gemを全般的に新しいのにアップデートしてみました。</p>
+
+<p>特にJekyllが2.5.3から3.3.1と、3系になったのでちょっと色々といじる必要があって
+大変だったのでそのまとめ。</p>
+
+<p>Octopressでなくても素のJekyllでの2から3への移行の参考にもなると思います。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#octopressのバージョン" id="markdown-toc-octopressのバージョン">Octopressのバージョン</a></li>
+  <li><a href="#octogray" id="markdown-toc-octogray">octogray</a></li>
+  <li><a href="#jekyll-3" id="markdown-toc-jekyll-3">Jekyll 3</a>    <ul>
+      <li><a href="#jekyll_envproduction" id="markdown-toc-jekyll_envproduction">JEKYLL_ENV=production</a></li>
+      <li><a href="#plugin中のsiteposts" id="markdown-toc-plugin中のsiteposts">Plugin中の<code>site.posts</code></a></li>
+      <li><a href="#blocktagのplugin中のcontextpageについて" id="markdown-toc-blocktagのplugin中のcontextpageについて">Block/TagのPlugin中の<code>context['page']</code>について</a></li>
+      <li><a href="#_configymlgemfileのアップデート" id="markdown-toc-_configymlgemfileのアップデート">_config.yml/Gemfileのアップデート</a></li>
+      <li><a href="#gemojiは古いバージョンのまま" id="markdown-toc-gemojiは古いバージョンのまま">gemojiは古いバージョンのまま</a></li>
+      <li><a href="#permalinks" id="markdown-toc-permalinks">permalinks</a></li>
+      <li><a href="#hookとか" id="markdown-toc-hookとか">hookとか</a></li>
+      <li><a href="#filters" id="markdown-toc-filters">Filters</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="octopressのバージョン">Octopressのバージョン</h2>
+
+<p>Octopressは2.5のバージョンを使っています。</p>
+
+<div class="github-widget" data-repo="imathis/octopress"></div>
+
+<p>3.0の開発もありますが、こちらはOctopress自体がgemとして配布されていたり
+大分構造が違います。</p>
+
+<div class="github-widget" data-repo="octopress/octopress"></div>
+
+<p>ただ、どちらも最終コミットが1年前。。。</p>
+
+<p>3.0の方が活発に開発されていくならいずれ移ろうかとも
+思ってましたが、どうも停滞中なので
+今のところ苦労してまで敢えてOctopress 3.0に移行する必要はないかな、と思っています。</p>
+
+<h2 id="octogray">octogray</h2>
+
+<p>Octopress用のテーマです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octogray"></div>
+
+<p>変更されたGemfile/Rakefile/_config.yml等も含んでいてsetupスクリプトを走らせると必要な設定を一通りしてくれる様にもなっています。</p>
+
+<p>このテーマをJekyll 3用にアップデートしました。</p>
+
+<h2 id="jekyll-3">Jekyll 3</h2>
+
+<p>Jekyll 3に変更するにあたって一番意味がありそうなのは
+生成速度が上がっている、という点。</p>
+
+<blockquote>
+  <p><a href="https://byparker.com/blog/2014/jekyll-3-the-road-ahead/">Jekyll 3 - The Road Ahead - By Parker</a></p>
+</blockquote>
+
+<p>このサイトのビルドはwerkerで行ってますが、レンダリング時間は
+Jekyll 2のときと3のときとでそれ程変わらず2分前後になっています。
+若干3の方が速い様にも見えますが、一回一回結構差が大きいのと
+3の方はまだビルド数が少ないので、まあ今のところ同じくらいかちょっと速いかな、といった感じ。</p>
+
+<p>ビルドスピードに関しては下のようにちょっと工夫してたりしますが、
+まだ改善の余地がありそうなのとJekyll 3でまた出来る事もあるかもしれないので
+また見てみたい所。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003MY4UH0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003MY4UH0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZPJum6cCL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp： Speed Up (With Remixes) [Explicit]: Matt Harder: デジタルミュージック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/18/blog-octopress/">Octopressのgenerateを劇的にスピードアップする</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>他にもシンタックスハイライトなどがデフォルトで使えるようになったり色々アップデートがあるみたいで、
+GitHub Pagesのジェネレーターも今年の始めの頃にすでにJekyll 3になっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0">GitHub Pages now faster and simpler with Jekyll 3.0</a></p>
+</blockquote>
+
+<p>仕様のアップデートに関しては、おそらく今までに作ったプラグイン等、
+もっと簡単にうまく書けたりパフォーマンスも良く出来たりするものもあると思いますが、
+取り敢えず今回は動く様に、ということでアップデートをしています。</p>
+
+<p>以下、アップデートをする際にしたメモなど。</p>
+
+<h3 id="jekyll_envproduction">JEKYLL_ENV=production</h3>
+
+<p><code>jekyll build</code>を呼ぶ際に使われる<code>JEKYLL_ENV</code>という環境変数があり、
+3ではこれに<code>development</code>という値が入っています。</p>
+
+<p>これだといくつかの要素を無視したり、またシンボリックリンクが<code>source</code>内にあると
+そのままシンボリックリンクとしてコピーします。</p>
+
+<p>勿論そのままでは出来たものを他に持っていって使う事も出来ません。</p>
+
+<p>さらに2回目以降もシンボリックリンクをコピーしようとするので、既にあるシンボリックリンクとバッティングして
+エラーになります。</p>
+
+<p>実際に公開するものを作るには</p>
+
+<pre><code>$ JEKYLL_ENV=production jekyll build
+</code></pre>
+
+<p>とこの値を<code>production</code>にします。(環境変数として設定してしまっても勿論OK。)</p>
+
+<p>ctopressでは<code>generate</code>というタスクの中で<code>jekyll build</code>を呼んでますが、
+<code>development</code>にするメリットはないのと、シンボリックリンクを含むような<code>source</code>を使ってて
+<code>development</code>だと使いものにならないので
+Rakefileの該当箇所に<code>JEKYLL_ENV=production </code>を追加しました。</p>
+
+<blockquote>
+  <p><a href="https://jekyllrb.com/docs/configuration/">Configuration - Jekyll • Simple, blog-aware, static sites</a></p>
+</blockquote>
+
+<h3 id="plugin中のsiteposts">Plugin中の<code>site.posts</code></h3>
+
+<p>プラグインの中でブログポストの一覧を呼ぶ時に、2では<code>site.posts</code>と呼んでいましたが
+3では<code>site.posts.docs</code>がこれにあたります。</p>
+
+<p>一方<code>site.pages</code>の方はそのまま同じく<code>site.pages</code>です。</p>
+
+<p>この辺はビルド時にwarningが出る(エラーにはならないで一応2の時の様に良しなにしてくれる)ので発見しやすいです。</p>
+
+<p>また、ポストやページを書く際にLiquidタグの中で<code>site.posts</code>等を使う事もありますが、
+この場合は<code>site.posts</code>のままです。プラグインの中だけ変更する必要があります。
+さらに、このpostsの順番が前と違う?みたいで、
+前は古い方から入っていたため、
+アーカイブを作る時に以前は並びを逆順にしてたんですが(新しいものを上に書くため)、
+Jekyll 3ではどうも逆順に入ってるらしく
+この逆順にする部分をはずしました。</p>
+
+<figure class="code"><figcaption><span>source/blog/archives/index.html </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span> {% assign index = true %}
+</span><span class="line"><span class="gd">-{% for post in site.posts reversed %}</span>
+</span><span class="line"><span class="gi">+{% for post in site.posts %}</span>
+</span><span class="line"> {% capture this_year %}{{ post.date | date: &quot;%Y&quot; }}{% endcapture %}
+</span><span class="line"> {% unless year == this_year %}
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<h3 id="blocktagのplugin中のcontextpageについて">Block/TagのPlugin中の<code>context['page']</code>について</h3>
+
+<p>BlockやTagのプラグインを作る際、継承してる関数の引数にある<code>context</code>から
+<code>context['page']</code>を持ってくることでページの情報を取ってこれます。</p>
+
+<p>このオブジェクトはハッシュの様な機能も持っていて、どの様keyを持ってるかチェックすることがあるのですが、
+Jekyll 2では</p>
+
+<pre><code>context['page'].has_key?("xxx")
+</code></pre>
+
+<p>としていましたが、Jekyll 3ではこのメソッドは常にtrueを返します。
+実際にチェックしたい時には</p>
+
+<pre><code>context['page'].key?("xxx")
+</code></pre>
+
+<p>を使います。
+<code>has_key</code>の方は親クラスが持っていて<code>key</code>はこのオブジェクトのクラスで定義してる感じですが、
+以前は<code>has_key</code>を再定義していたのが何故か違うメソッドを導入したようです。
+まあ、なんか便利なことがあるんでしょうが、ここだけ見ると結構混乱のもとなので注意しないといけません。
+(trueを返すだけなのでこの場ではエラーにならず、その後実際呼ぼうとしてkeywordエラーが起こる。)</p>
+
+<h3 id="_configymlgemfileのアップデート">_config.yml/Gemfileのアップデート</h3>
+
+<p>ビルド時に出るwarningやerrorに従って</p>
+
+<figure class="code"><figcaption><span>_config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gd">-plugins: plugins</span>
+</span><span class="line"><span class="gi">+plugins_dir: plugins</span>
+</span><span class="line">...
+</span><span class="line">markdown: kramdown
+</span><span class="line">kramdown:
+</span><span class="line">use_coderay: true
+</span><span class="line"><span class="gd">-  coderay:</span>
+</span><span class="line"><span class="gd">-    coderay_line_number: table</span>
+</span><span class="line"><span class="gd">-    coderay_css: class</span>
+</span><span class="line"><span class="gi">+  syntax_highlighter: true</span>
+</span><span class="line"><span class="gi">+  syntax_highlighter_opts:</span>
+</span><span class="line"><span class="gi">+    line_number: table</span>
+</span><span class="line"><span class="gi">+    css: class</span>
+</span><span class="line">...
+</span><span class="line"><span class="gi">+gems: [jekyll-paginate]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの変更。</p>
+
+<p>またこれらのwarning等と一緒に出てきたgemを追加せよ、というものがあって、
+Gemfileに<code>jekyll-pagenate</code>と<code>pygments.rb</code>を追加。</p>
+
+<h3 id="gemojiは古いバージョンのまま">gemojiは古いバージョンのまま</h3>
+
+<p>Jekyll 3とは関係無いですが、ついでにgemを全て最新のにしてみたところ、
+<a href="https://github.com/github/gemoji">gemoji</a>というgemで問題が起こりました。</p>
+
+<p><a href="https://github.com/rcmdnk/octopress-gemoji">octopress-gemoji</a>というプラグインを作って
+この中で使っているんですが、gemoji 2.1の時には<strong>images/emoji/</strong>の中に
+絵文字の画像が全て入っていました。</p>
+
+<p>これが最新の3.0では無くなって<strong>images</strong>直下に、もともと<strong>images/emoji</strong>直下に
+置かれていたunicodeに登録されてない一部の絵文字だけが残っています。</p>
+
+<p>実際にサイトとかで絵文字を使いたい場合には
+<strong>macOS Sierra or late</strong>を用いて抜き出してください、とあります。。。</p>
+
+<p>手元にSierraはあるので一回抜き出してプラグインのレポジトリに入れてしまう、と言う手も無いでも無いですが、
+ちょっとあれなのでこのgemに関しては古い2.1を使います。</p>
+
+<blockquote>
+  <p><a href="https://github.com/github/gemoji/issues/102">Extracting emojis · Issue #102 · github/gemoji</a></p>
+</blockquote>
+
+<h3 id="permalinks">permalinks</h3>
+
+<p>Jekyll 2の時、<strong>_config.yml</strong>で</p>
+
+<pre><code>permalink: /blog/:year/:month/:day/:title/
+</code></pre>
+
+<p>という設定をしていました。これでブログポストのURLは
+<code>http://rcmdnk.github.io/blog/2016/12/28/computer-git/</code>みたいになります。
+(<code>blog/2016/12/28/computer-git/index.html</code>が実際のページのファイル)</p>
+
+<p>一方、<code>source</code>ディレクトリ直下に適当なMarkdownやHTMLを置いておくと、
+たとえば<strong>source/testpage.md</strong>というファイルを作れば
+そのまま<code>http://rcmdnk.github.io/testpage.html</code>と言ったHTMLが出来ていました。</p>
+
+<p>同じ設定のまま3でビルドしてみるとこのtestpageに関して
+<code>/testpage/index.html</code>というファイルが出来る様になっていました。</p>
+
+<p>ただし、直接HTMLを置いてYAMLの無いものだと何もせずにそのままコピーされるのでディレクトリを作ったりはしません。</p>
+
+<p>結論から言うと、2と同じ様な動作にさせたい場合、<strong>_config.yml</strong>の設定を</p>
+
+<pre><code>collections:
+  posts:
+    permalink: /blog/:year/:month/:day/:title/
+</code></pre>
+
+<p>と変更します。
+これで<strong>source/_posts/</strong>以下にあるブログポストのみにこのpermalinkが適用され
+他にはデフォルトの<code>date</code>という定義が使われ、この定義だと
+ディレクトリを作らずにHTMLのファイル名にもとの名前が使われます。</p>
+
+<p>以下ちょっと細かい話ですが、ちょっとこの辺きちんと見ないと理解できなかったので
+見てみました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/jekyll/jekyll/tree/stable-2-5/lib/jekyll">Jekyll 2.5のソース</a></p>
+</blockquote>
+
+<p>2.5の方では<strong>post.rb</strong>の中で　</p>
+
+<figure class="code"><figcaption><span>post.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">template</span>
+</span><span class="line">  <span class="k">case</span> <span class="n">site</span><span class="o">.</span><span class="n">permalink_style</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:pretty</span>
+</span><span class="line">    <span class="s2">&quot;/:categories/:year/:month/:day/:title/&quot;</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:none</span>
+</span><span class="line">    <span class="s2">&quot;/:categories/:title.html&quot;</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:date</span>
+</span><span class="line">    <span class="s2">&quot;/:categories/:year/:month/:day/:title.html&quot;</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:ordinal</span>
+</span><span class="line">    <span class="s2">&quot;/:categories/:year/:y_day/:title.html&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="n">site</span><span class="o">.</span><span class="n">permalink_style</span><span class="o">.</span><span class="n">to_s</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>という関数が定義されていて、ここで<code>site.permalink_style</code>という値が使われてますが、
+これは<strong>_config.yml</strong>で<code>permalink</code>で指定したものになります。</p>
+
+<p><code>pretty</code>とか<code>date</code>(これがデフォルト)とかを指定すると指定のフォーマットを使い、
+それ以外が指定されているとそのまま入力をフォーマットとして使う様になっています。</p>
+
+<p>一方、<strong>page.rb</strong>の中では</p>
+
+<figure class="code"><figcaption><span>page.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">template</span>
+</span><span class="line">  <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">permalink_style</span> <span class="o">==</span> <span class="ss">:pretty</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">index?</span> <span class="o">&amp;&amp;</span> <span class="n">html?</span>
+</span><span class="line">      <span class="s2">&quot;/:path/&quot;</span>
+</span><span class="line">    <span class="k">elsif</span> <span class="n">html?</span>
+</span><span class="line">      <span class="s2">&quot;/:path/:basename/&quot;</span>
+</span><span class="line">    <span class="k">else</span>
+</span><span class="line">      <span class="s2">&quot;/:path/:basename:output_ext&quot;</span>
+</span><span class="line">    <span class="k">end</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="s2">&quot;/:path/:basename:output_ext&quot;</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、<code>pretty</code>かつファイルがHTMLファイル(もしくはMarkdownから変更されたHTML)で
+かつ<code>index.html</code>でないと気に限りファイル名のディレクトリを作って
+その中に<code>index.html</code>を作る様になっています。</p>
+
+<p>つまり、上の様に<code>/blog...</code>みたいな定義だと一番下に行って
+そのファイル名のままのHTMLが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/jekyll/jekyll/tree/2fc800ebd26dcbab97fddef0462b051b9945eebb/lib/jekyll">Jekyll 3.3の現在のソース</a></p>
+</blockquote>
+
+<p>一方、3.3の場合だと<strong>post.rb</strong>ではなく<strong>document.rb</strong>になりますが、この中で</p>
+
+<figure class="code"><figcaption><span>document.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">url_template</span>
+</span><span class="line">  <span class="n">collection</span><span class="o">.</span><span class="n">url_template</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、この<code>collection.url_template</code>は</p>
+
+<figure class="code"><figcaption><span>collection.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">url_template</span>
+</span><span class="line">  <span class="vi">@url_template</span> <span class="o">||=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;permalink&quot;</span><span class="p">)</span> <span class="k">do</span>
+</span><span class="line">    <span class="no">Utils</span><span class="o">.</span><span class="n">add_permalink_suffix</span><span class="p">(</span><span class="s2">&quot;/:collection/:path&quot;</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">permalink_style</span><span class="p">)</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>で定義されています。</p>
+
+<p>さらに</p>
+
+<figure class="code"><figcaption><span>configuration.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">add_default_collections</span>
+</span><span class="line"><span class="o">...</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">config</span><span class="o">[</span><span class="s2">&quot;collections&quot;</span><span class="o">]</span> <span class="o">=</span> <span class="no">Utils</span><span class="o">.</span><span class="n">deep_merge_hashes</span><span class="p">(</span>
+</span><span class="line">    <span class="p">{</span> <span class="s2">&quot;posts&quot;</span> <span class="o">=&gt;</span> <span class="p">{}</span> <span class="p">},</span> <span class="n">config</span><span class="o">[</span><span class="s2">&quot;collections&quot;</span><span class="o">]</span>
+</span><span class="line">  <span class="p">)</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">collections</span><span class="o">|</span>
+</span><span class="line">    <span class="n">collections</span><span class="o">[</span><span class="s2">&quot;posts&quot;</span><span class="o">][</span><span class="s2">&quot;output&quot;</span><span class="o">]</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">config</span><span class="o">[</span><span class="s2">&quot;permalink&quot;</span><span class="o">]</span>
+</span><span class="line">      <span class="n">collections</span><span class="o">[</span><span class="s2">&quot;posts&quot;</span><span class="o">][</span><span class="s2">&quot;permalink&quot;</span><span class="o">]</span> <span class="o">||=</span> <span class="n">style_to_permalink</span><span class="p">(</span><span class="n">config</span><span class="o">[</span><span class="s2">&quot;permalink&quot;</span><span class="o">]</span><span class="p">)</span>
+</span><span class="line">    <span class="k">end</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">config</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>という定義もあります。</p>
+
+<p>簡単に解釈すると、documentの中で呼ばれる<code>url_template</code>は
+<code>collection</code>の<code>url_template</code>なのですが、
+<code>posts</code>の<code>collection</code>に関しては直接</p>
+
+<pre><code>collections:
+  posts:
+    permalink: /blog/:year/:month/:day/:title/
+</code></pre>
+
+<p>と指定しても</p>
+
+<pre><code>permalink: /blog/:year/:month/:day/:title/
+</code></pre>
+
+<p>とグローバルに指定してもこの値が入ってきます。
+なのでどちらで指定しても同じになります。
+(<code>pretty</code>などを変換するメソッドも<strong>configuration.rb</strong>の中にあって2と変わらない定義です。)</p>
+
+<p>一方、<strong>page.rb</strong>の方は</p>
+
+<figure class="code"><figcaption><span>page.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">template</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">!</span><span class="n">html?</span>
+</span><span class="line">    <span class="s2">&quot;/:path/:basename:output_ext&quot;</span>
+</span><span class="line">  <span class="k">elsif</span> <span class="n">index?</span>
+</span><span class="line">    <span class="s2">&quot;/:path/&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="no">Utils</span><span class="o">.</span><span class="n">add_permalink_suffix</span><span class="p">(</span><span class="s2">&quot;/:path/:basename&quot;</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">permalink_style</span><span class="p">)</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、この<code>add_permalink_suffix</code>は</p>
+
+<figure class="code"><figcaption><span>utils.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">def</span> <span class="nf">add_permalink_suffix</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">permalink_style</span><span class="p">)</span>
+</span><span class="line">  <span class="k">case</span> <span class="n">permalink_style</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:pretty</span>
+</span><span class="line">    <span class="n">template</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;/&quot;</span>
+</span><span class="line">  <span class="k">when</span> <span class="ss">:date</span><span class="p">,</span> <span class="ss">:ordinal</span><span class="p">,</span> <span class="ss">:none</span>
+</span><span class="line">    <span class="n">template</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;:output_ext&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="n">template</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;/&quot;</span> <span class="k">if</span> <span class="n">permalink_style</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">end_with?</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="n">template</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;:output_ext&quot;</span> <span class="k">if</span> <span class="n">permalink_style</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">end_with?</span><span class="p">(</span><span class="s2">&quot;:output_ext&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line">  <span class="n">template</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっています。</p>
+
+<p>通常の名前付きのHTMLファイルを置いた時にはこの<code>add_permalink_suffix</code>が呼ばれるわけですが、
+これを見ると自分で<code>permalink</code>を設定した場合は一番下に行き、
+URLの末尾の構造だけその設定したものと同じ様になる様にしています。</p>
+
+<p>つまり、<code>permalink</code>でタイトルをHTMLのファイル名に残すような設定にしていれば
+ページの方でもファイル名を残す様なURLになります。</p>
+
+<p>一方、上で設定したように最後が<code>/</code>で終わっていればページの方でも
+ファイル名のディレクトリを作ってその中に<strong>index.html</strong>を作る様になります。</p>
+
+<p>2では<code>pretty</code>かそうでないか、だけで分けていたものが
+3では独自設定の場合それに沿うような形になるようになっています。</p>
+
+<p>ということで、例えば<strong>404.md</strong>の様なファイルも
+<strong>source</strong>の下に置いていてそれを<strong>404.html</strong>として変換したかったりもするわけで、
+ページに関しては勝手にディレクトリを作る様なことはしたくないので
+上に書いたように<code>collections</code>を使って指定する様にしています。</p>
+
+<p>もし<strong>404.md</strong>とか特定のページだけをそうしたいなら
+そのページのYAMLブロックに<code>permalink</code>を書いても良いわけですが。</p>
+
+<p>で、一番の問題はこの辺のドキュメントがきちんとまだ整理されてないことです。</p>
+
+<blockquote>
+  <p><a href="https://jekyllrb.com/docs/permalinks/">Permalinks - Jekyll • Simple, blog-aware, static sites</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://jekyllrb.com/docs/pages/">Creating pages - Jekyll • Simple, blog-aware, static sites</a></p>
+</blockquote>
+
+<p>これらを見ると
+ページに関しては完全に独立で基本<code>date</code>のフォーマットで出力する、という感じに見れ、
+変えたいなら各ページのYAMLブロックでの指定、という感じがします。</p>
+
+<p>実際、stackoverflowにも同じ様な話があって、
+中の人?っぽい人がサポートしようとしてますが結局良くわからずじまいで終わっています。</p>
+
+<blockquote>
+  <p><a href="http://stackoverflow.com/questions/27737329/jekyll-how-do-i-create-pages-in-the-root-directory#comment43948903_27737401">html - Jekyll - How do I create pages in the root directory? - Stack Overflow</a></p>
+</blockquote>
+
+<p>おそらくこのアップデートは意図的にやってるんだと思いますが、
+ドキュメントがドキュメントなのでパット見良くわからないわけです。</p>
+
+<p>また、上の<code>collections</code>を使った書き方は別のところにあります。</p>
+
+<blockquote>
+  <p><a href="https://jekyllrb.com/docs/collections/">Collections - Jekyll • Simple, blog-aware, static sites</a></p>
+</blockquote>
+
+<p>この辺の話どうなってるのかな、と思ってレポジトリを見てみたら、
+2日前にまさにそんな感じのドキュメントのアップデートのPull Requestが出てました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/jekyll/jekyll/pull/5693">Improve permalinks docs by tomjohnson1492 · Pull Request #5693 · jekyll/jekyll</a></p>
+</blockquote>
+
+<p>まだペンディング中ですが、これに<code>collections</code>による書き方と、
+上の様な関係性を加えて、<code>permalink</code>のところに全部まとめてもらえると正しく分かる様になるかな、と。</p>
+
+<h3 id="hookとか">hookとか</h3>
+
+<p>Jekyll 3の開発者側の大きな変化として、ビルドのコマンドの中の
+様々なところにHookが仕掛けられる様になったことだと思います。</p>
+
+<p>サイト全体の情報をまとめて載せたかったり、
+各ページのレンダリング毎に色々やりたかったりする時、
+通常のプラグインを作るだけでは上手く行かないこともあります。</p>
+
+<p>そういった時、Octopressでは
+<a href="https://github.com/octopress/hooks">octopress/hooks</a>
+というツールを用意していて、ビルド時の色々な所にタスクを差し込める様にしていました。</p>
+
+<p>Jekyll 3の<a href="https://github.com/jekyll/jekyll/blob/master/lib/jekyll/site.rb">jekyll/site.rb</a>
+を見てみると色々な所に<code>Hooks</code>が入ってます。
+これでoctopress/hooksが無くても同じようなことが出来る様になっています。</p>
+
+<blockquote>
+  <p><a href="https://jekyllrb.com/docs/plugins/#hooks">Plugins - Jekyll • Simple, blog-aware, static sites</a></p>
+</blockquote>
+
+<p>Octopressの作者の人もJekyll 3の機能で特にこれが待ち望んでたものだと言ってたり。　</p>
+
+<blockquote>
+  <p><a href="https://github.com/jekyll/jekyll/issues/3324">3.0 RELEASE GAMEPLAN · Issue #3324 · jekyll/jekyll</a></p>
+</blockquote>
+
+<p><a href="https://github.com/rcmdnk/octogray">octogray</a>
+の中でもoctopress/hooksを使ったりモンキーパッチを入れたりしてますが、
+そのうちこれもちゃんと整理していこうかと。</p>
+
+<h3 id="filters">Filters</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2017/01/24 </strong></p>
+
+  <p>Jekyll 2で何かしら自分でLiquid Filter(``の様に使えるfilter)を追加したい時、</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">module</span> <span class="nn">Jekyll</span>
+</span><span class="line">  <span class="k">module</span> <span class="nn">Filters</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">my_filter</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class="line">      <span class="s2">&quot;After Filter: </span><span class="si">#{</span><span class="n">input</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line">    <span class="k">end</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいにしておくと<code>After Filter: xxx</code>の様に変換するフィルターが自作できました。</p>
+
+  <p>この様なFilterの仕組みを<strong>plugins/category_generator.rb</strong>の中で使っています。</p>
+
+  <p>octograyでは同じような<strong>plugins/tag_generator.rb</strong>
+を作ってタグの管理も行っています。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/04/12/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/04/12/blog-octopress/">Octopressでのタグの運用</a></div></li></ul>
+
+  <p>この中でカテゴリーやタグをリンク化するフィルターを登録していましたが
+これが動いていませんでした。(ポストの下にある<strong>Posted: …</strong>の部分。)</p>
+
+  <p>Jekyll 3では<strong>Filters</strong>というモジュールも特別なものではなくなり
+Filterを定義した後にきちんと登録の作業をしないといけないようです。</p>
+
+  <figure class="code"><figcaption><span>jekyll/filters.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="k">module</span> <span class="nn">Jekyll</span>
+</span><span class="line">  <span class="k">module</span> <span class="nn">Filters</span>
+</span><span class="line">    <span class="o">...</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="no">Liquid</span><span class="o">::</span><span class="no">Template</span><span class="o">.</span><span class="n">register_filter</span><span class="p">(</span>
+</span><span class="line">  <span class="no">Jekyll</span><span class="o">::</span><span class="no">Filters</span>
+</span><span class="line"><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>という、最後の<code>register_filter</code>がJekyll 2では無かったのが3ではあります。</p>
+
+  <p>ということで、ただ書くだけではダメなので敢えてFiltersの中に入れずに別途
+モジュールを作って登録する様にしました。</p>
+
+  <figure class="code"><figcaption><span>plugins/category_generator.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="o">...</span>
+</span><span class="line"><span class="k">module</span> <span class="nn">CategoryFilters</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">def</span> <span class="nf">category_links</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span>
+</span><span class="line">    <span class="n">categories</span><span class="o">.</span><span class="n">sort</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span> <span class="n">category_link</span> <span class="n">c</span> <span class="p">}</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">def</span> <span class="nf">category_link</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+</span><span class="line">    <span class="n">dir</span> <span class="o">=</span> <span class="vi">@context</span><span class="o">.</span><span class="n">registers</span><span class="o">[</span><span class="ss">:site</span><span class="o">].</span><span class="n">config</span><span class="o">[</span><span class="s1">&#39;category_dir&#39;</span><span class="o">]</span>
+</span><span class="line">    <span class="s2">&quot;&lt;a class=&#39;category&#39; href=&#39;/</span><span class="si">#{</span><span class="n">dir</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">category</span><span class="o">.</span><span class="n">to_url</span><span class="si">}</span><span class="s2">/&#39;&gt;&lt;span itemprop=&#39;articleSection&#39;&gt;</span><span class="si">#{</span><span class="n">category</span><span class="si">}</span><span class="s2">&lt;/span&gt;&lt;/a&gt;&quot;</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="k">end</span>
+</span><span class="line"><span class="no">Liquid</span><span class="o">::</span><span class="no">Template</span><span class="o">.</span><span class="n">register_filter</span> <span class="no">CategoryFilters</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>こんな感じで登録してあげれば<code>category_links</code>等が使える様になります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>大概の所はビルド時にwarningやerrorが出てそこから追えば
+すぐわかるところが大体でしたが、
+permalinksの所はドキュメントを見ると内容がアップデートされてないので
+逆に混乱してしまったりして、最終的にちゃんとコードを追わないとわからなかったので面倒でした。</p>
+
+<p>でも一通り出来たと思うのでアップデートしてこれも作っています。</p>
+
+<p>ということで、もし何か変なところとかあったら指摘してもらえるとありがたいです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Pagesの仕様がアップデート: Jekyll/Octopressなどで直接ビルド後のサイトを送ってる場合にちょっと注意]]></title>
+    <link href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/"/>
+    <updated>2016-12-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll</id>
+    <content type="html"><![CDATA[<p>先日GitHubから
+<a href="https://github.com/blog/2289-publishing-with-github-pages-now-as-easy-as-1-2-3">Publishing with GitHub Pages, now as easy as 1, 2, 3</a>
+というニュースが公開され、GitHub Pagesでより簡単にサイトが公開できる様になったよ、
+という話が出ていましたが、
+より少ない手順でMarkdownのファイルをJekyllで返還して公開出来る、というのが売りで、
+逆に言うと何もしなくてもJekyllで勝手に変換する、と言う状態になっています。</p>
+
+<p>GitHub Pagesの使い方として、OctopressにしろJekyllで自分でビルドするにしろ、
+これまで公開できる状態にした上でGitHubのレポジトリに送っていた場合に
+はちょっと注意する必要があります。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-pagesのアップデートで起こった問題" id="markdown-toc-github-pagesのアップデートで起こった問題">GitHub Pagesのアップデートで起こった問題</a></li>
+  <li><a href="#github-pagesでjekyllを走らせない設定" id="markdown-toc-github-pagesでjekyllを走らせない設定">GitHub PagesでJekyllを走らせない設定</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-pagesのアップデートで起こった問題">GitHub Pagesのアップデートで起こった問題</h2>
+
+<p>このブログは
+Octopressでビルドしたものを
+GitHubのレポジトリに送り、
+GitHub Pagesを使って公開しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<p>OctopressではJekyllを使ってMarkdownで書いたファイルを
+HTMLにしていて、
+GitHubのレポジトリに送った時点で既にHTMLになっています。</p>
+
+<p>これまではGitHubでビルドの設定をしない限りは
+GitHub Pagesとして公開する場合、指定したブランチに送られた
+ものがそのまま公開される様になっていました。</p>
+
+<p>一方で、Markdownでファイルを送り、それをGitHub側でJekyllを使ってビルドする、
+ということも可能になっています。</p>
+
+<p>これが下のアナウンスによってちょっと状況が変わりました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/blog/2289-publishing-with-github-pages-now-as-easy-as-1-2-3">Publishing with GitHub Pages, now as easy as 1, 2, 3</a></p>
+</blockquote>
+
+<p>簡単に言うと、何も設定しなくてもMarkdownのファイルはJekyllでHTMLに変換して
+公開するようにするよ、ということ。</p>
+
+<p>通常Octopressで送った場合、全てHTMLになっていて
+さらにJekyllをかけても何もならないので、ちょっと公開までに時間がかかる、
+という以外何も問題ありません。</p>
+
+<p>が、今、この公開してるブログでは、Octopress(Jekyll)でビルドする
+Markdownファイルの拡張子を<code>.md</code>にしていて、
+<code>.markdown</code>という拡張子があっても無視されてそのまま送られる様になっています。</p>
+
+<p>それを使って、ちょっと例としてMarkdownのファイルをおいておきたかったので、
+<code>.markdown</code>の拡張子が入ったものをサイトに一つ置いていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/11/17/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20131117_vim-markdown_120_90.jpg" width="120" height="90" alt="20131117_vim-markdown_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/11/17/computer-vim/">VimでのMarkdown環境を整える</a></div></li></ul>
+
+<p>ただ、この中で色々書いてるものは、今使ってるOctopress(+Plugins)で使える
+Liquidタグが書かれていて、純粋なJekyllだと使えないものも入っています。</p>
+
+<p>ので、これにJekyllをかけるとエラーが出るわけですが、
+今回、GitHub Pagesにこのファイルが送られて、
+Jekyllがこのファイルにかかったことでエラーが出ていました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20161212_githubpageserr.jpg" alt="20161212_githubpageserr.jpg" class="pic" /></p>
+
+<p><strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Options</strong>にある項目です。</p>
+
+<p>このエラーが起こると公開まで持っていってくれないらしく、
+古い状態のサイトが表示されたままになっていました。
+(エラーが出るとサイト自体が落ちる、ということはない模様。)</p>
+
+<h2 id="github-pagesでjekyllを走らせない設定">GitHub PagesでJekyllを走らせない設定</h2>
+
+<p>これを解決するには余計なMarkdownファイルを置かない、と言う手もありますが、
+これまで通りJekyllを走らせないのが一番良い策です。</p>
+
+<p>やり方としては上のアナウンスにもありますが、送るレポジトリのトップディレクトリに
+<strong>.nojekyll</strong>という空ファイルを置いておけばJekyllが走らなくなります。</p>
+
+<p>Octopressでは<strong>source</strong>ディレクトリの下に置いておけばOK。</p>
+
+<p>Jekyllを走らせるとGitHubのレポジトリにpushしてから実際に公開されるまでのタイミングも無駄に遅れるし、
+意図しない変換が起こるかのうせいもあります。</p>
+
+<p>なので、Octopress/Jekyll、またHugoの様なMarkdownからHTMLを作ってるサイトに限らず、
+GitHub Pagesにて直接HTMLをレポジトリに送ってサイトを公開している様な場合、
+送るディレクトリのトップに<strong>.nojekyll</strong>を置いておくべきです。</p>
+]]></content>
+  </entry>
+  
+</feed>
