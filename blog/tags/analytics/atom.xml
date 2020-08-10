@@ -1,0 +1,1083 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Analytics | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/analytics/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-10T11:22:47+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[google-api-ruby-clientが非互換なアップデートされた]]></title>
+    <link href="https://rcmdnk.com/blog/2016/01/17/blog-octopress-javascript-analytics/"/>
+    <updated>2016-01-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/01/17/blog-octopress-javascript-analytics</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B019PO1B7M?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B019PO1B7M&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510XtDWsFpL._SS200_.jpg" alt="Analytics: Data Science, Data Analysis and Predictive Analytics for Business (Algorithms, Business Intelligence, Statistical Analysis, Decision Analysis, ... Data Mining, Big Data) (English Edition)" /></a>
+</div>
+
+<p>GoogleのRuby用APIライブラリの
+<a href="https://github.com/google/google-api-ruby-client">google-api-ruby-client</a>
+がアップデートされ、
+ちょっと仕様が変更されていたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#google-api-clientのアップデート" id="markdown-toc-google-api-clientのアップデート">Google API Clientのアップデート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="google-api-clientのアップデート">Google API Clientのアップデート</h2>
+
+<div class="github-widget" data-repo="google/google-api-ruby-client"></div>
+
+<p>GoogleのAPIを色々使うためのRuby用ライブラリですが、
+これまで0.8.6だったバージョンが0.9にアップデートされ、
+それらの間で互換性が無いのでちょっと問題が起こりました。</p>
+
+<p>このOctopressのサイトではビルド時にページビュー数を取ってきて
+リストを作ったりしてますが、
+その際にAnalyticsのAPIを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150210_popularlist_120_90.jpg" width="120" height="90" alt="20150210_popularlist_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/">Google AnalyticsのView数を取ってきてランキングを作る</a></div></li></ul>
+
+<p>以下のプラグインを使っています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octopress-page-view"></div>
+
+<p>この中で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/api_client&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を使ってますが、これが0.9ではなくなっています。</p>
+
+<p>0.9では</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/apis/analytics_v3&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで各サービスごとに読み込む様になっています。
+書くサービスの名前やバージョンは以下のディレクトリを見ることで分かります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/google-api-ruby-client/tree/master/generated/google/apis">google-api-ruby-client/generated/google/apis at master · google/google-api-ruby-client</a></p>
+</blockquote>
+
+<p>また、認証の仕方にはAPI Keyを用いていましたが、
+今後、<a href="https://github.com/google/google-auth-library-ruby">googleauth</a>
+というOAuth 2.0認証を使った方法に変えていくべきだ、とのこと
+がIssueで言われています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/google-api-ruby-client/issues/252">Missing loading pkcs keys · Issue #252 · google/google-api-ruby-client</a></p>
+</blockquote>
+
+<p>ただ、今のところ、取り敢えずAPI Keyを使うためのKeyUtilsが残される事になったので、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/api_client/auth/key_utils&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を読み込むことで今までのようにAPI Keyを使って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="n">key</span> <span class="o">=</span> <span class="no">Google</span><span class="o">::</span><span class="no">APIClient</span><span class="o">::</span><span class="no">KeyUtils</span><span class="o">.</span><span class="n">load_from_pkcs12</span><span class="p">(</span><span class="n">pv</span><span class="o">[</span><span class="s1">&#39;key_file&#39;</span><span class="o">]</span><span class="p">,</span> <span class="n">pv</span><span class="o">[</span><span class="s1">&#39;key_secret&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span class="line"><span class="n">client</span><span class="o">.</span><span class="n">authorization</span> <span class="o">=</span> <span class="no">Signet</span><span class="o">::</span><span class="no">OAuth2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class="line">  <span class="ss">:token_credential_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:audience</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://www.googleapis.com/auth/analytics.readonly&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:issuer</span> <span class="o">=&gt;</span> <span class="n">pv</span><span class="o">[</span><span class="s1">&#39;service_account_email&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:signing_key</span> <span class="o">=&gt;</span> <span class="n">key</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな事をすることは出来ます。</p>
+
+<p>OAuth 2.0だとUIが必要なので、werckerに投げてそこで実行、的な事は出来ません。</p>
+
+<p>なので、ローカルで認証して認証情報ファイル自体をBitbucket等に送る事も出来ない
+わけではないですが、認証が切れる度に手動で行わなくてはならないし、
+そもそもそのようなファイルを送るならAPI Keyで良いと。</p>
+
+<p>ということで取り敢えずサポートされてる間はAPI Keyを使った形で使っていきます。</p>
+
+<p>使っている
+<a href="https://github.com/rcmdnk/octopress-page-view/blob/master/plugins/page_view.rb">octopress-page-view</a>
+という中のプラグインの変更は以下の様な感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span> require &#39;jekyll&#39;
+</span><span class="line"> require &#39;jekyll/post&#39;
+</span><span class="line"> require &#39;rubygems&#39;
+</span><span class="line"><span class="gd">-require &#39;google/api_client&#39;</span>
+</span><span class="line"><span class="gi">+require &#39;google/apis/analytics_v3&#39;</span>
+</span><span class="line"><span class="gi">+require &#39;google/api_client/auth/key_utils&#39;</span>
+</span><span class="line"> require &#39;chronic&#39;
+</span><span class="line">
+</span><span class="line"> module Jekyll
+</span><span class="line">...
+</span><span class="line">         pv[&#39;name&#39;][i] = &#39;_pv_&#39; + pv[&#39;start&#39;][i].gsub(&#39; &#39;, &#39;-&#39;)+&#39;-to-&#39;+pv[&#39;end&#39;][i].gsub(&#39; &#39;,&#39;-&#39;)
+</span><span class="line">       end
+</span><span class="line">
+</span><span class="line"><span class="gd">-      # API client</span>
+</span><span class="line"><span class="gd">-      client = Google::APIClient.new(</span>
+</span><span class="line"><span class="gd">-        :application_name =&gt; &#39;octopress-page-view&#39;,</span>
+</span><span class="line"><span class="gd">-        :application_version =&gt; &#39;1.0&#39;,</span>
+</span><span class="line"><span class="gd">-      )</span>
+</span><span class="line"><span class="gi">+      # Analytics service</span>
+</span><span class="line"><span class="gi">+      service = Google::Apis::AnalyticsV3::AnalyticsService.new</span>
+</span><span class="line">
+</span><span class="line">       # Load our credentials for the service account
+</span><span class="line">       key = Google::APIClient::KeyUtils.load_from_pkcs12(pv[&#39;key_file&#39;], pv[&#39;key_secret&#39;])
+</span><span class="line"><span class="gd">-      client.authorization = Signet::OAuth2::Client.new(</span>
+</span><span class="line"><span class="gi">+      service.authorization = Signet::OAuth2::Client.new(</span>
+</span><span class="line">         :token_credential_uri =&gt; &#39;https://accounts.google.com/o/oauth2/token&#39;,
+</span><span class="line">         :audience =&gt; &#39;https://accounts.google.com/o/oauth2/token&#39;,
+</span><span class="line"><span class="gd">-        :scope =&gt; &#39;https://www.googleapis.com/auth/analytics.readonly&#39;,</span>
+</span><span class="line"><span class="gi">+        :scope=&gt; Google::Apis::AnalyticsV3::AUTH_ANALYTICS_READONLY,</span>
+</span><span class="line">         :issuer =&gt; pv[&#39;service_account_email&#39;],
+</span><span class="line">         :signing_key =&gt; key)
+</span><span class="line"><span class="gd">-      analytics = client.discovered_api(&#39;analytics&#39;,&#39;v3&#39;)</span>
+</span><span class="line">
+</span><span class="line">       # Request a token for our service account
+</span><span class="line"><span class="gd">-      client.authorization.fetch_access_token!</span>
+</span><span class="line"><span class="gi">+      service.authorization.fetch_access_token!</span>
+</span><span class="line">
+</span><span class="line">       for i in 0..(pv[&#39;start&#39;].size-1)
+</span><span class="line"><span class="gd">-        params = {</span>
+</span><span class="line"><span class="gd">-          &#39;ids&#39; =&gt; pv[&#39;profileID&#39;],</span>
+</span><span class="line"><span class="gd">-          &#39;start-date&#39; =&gt; Chronic.parse(pv[&#39;start&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gd">-          &#39;end-date&#39; =&gt; Chronic.parse(pv[&#39;end&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gd">-          &#39;dimensions&#39; =&gt; &quot;ga:pagePath&quot;,</span>
+</span><span class="line"><span class="gd">-          &#39;metrics&#39; =&gt; pv[&#39;metric&#39;],</span>
+</span><span class="line"><span class="gd">-          &#39;max-results&#39; =&gt; 100000,</span>
+</span><span class="line"><span class="gd">-        }</span>
+</span><span class="line"><span class="gd">-        if pv[&#39;segment&#39;]</span>
+</span><span class="line"><span class="gd">-          params[&#39;segment&#39;] = pv[&#39;segment&#39;]</span>
+</span><span class="line"><span class="gd">-        end</span>
+</span><span class="line"><span class="gd">-        if pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gd">-          params[&#39;filters&#39;] = pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gd">-        end</span>
+</span><span class="line"><span class="gd">-</span>
+</span><span class="line"><span class="gd">-        response = client.execute(:api_method =&gt; analytics.data.ga.get, :parameters =&gt; params)</span>
+</span><span class="line"><span class="gd">-        results = Hash[response.data.rows]</span>
+</span><span class="line"><span class="gi">+        response = service.get_ga_data(</span>
+</span><span class="line"><span class="gi">+          pv[&#39;profileID&#39;],</span>
+</span><span class="line"><span class="gi">+          Chronic.parse(pv[&#39;start&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gi">+          Chronic.parse(pv[&#39;end&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gi">+          pv[&#39;metric&#39;],</span>
+</span><span class="line"><span class="gi">+          dimensions: &quot;ga:pagePath&quot;,</span>
+</span><span class="line"><span class="gi">+          max_results: 100000,</span>
+</span><span class="line"><span class="gi">+          segment: pv[&#39;segment&#39;],</span>
+</span><span class="line"><span class="gi">+          filters: pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gi">+        )</span>
+</span><span class="line"><span class="gi">+        results = Hash[response.rows]</span>
+</span><span class="line">
+</span><span class="line">         site.config[pv[&#39;name&#39;][i]] = 0
+</span></code></pre></td></tr></table></div></figure>
+
+<p><strong>analytics_v3</strong>と<strong>key_utils</strong>を<strong>api_client</strong>*の代わりに<code>require</code>し、
+中ではAPIClientオブジェクトを作る代わりにAnalyticsService
+を使っています。</p>
+
+<p>認証の所は基本、同じですが、親が上の様に変わっているのと、
+<strong>Google::Apis::AnalyticsV3::AUTH_ANALYTICS_READONLY</strong>
+という値がAPIの中で定義されていて、これは
+<strong>https://www.googleapis.com/auth/analytics.readonly</strong>
+になっています。</p>
+
+<p>なので、そこ変数を使うように。</p>
+
+<p>後は、結果を取ってくる関数とかがちょっと変わってきますが、
+基本的には同じような引数を渡してあげれば同じような回答が帰ってきます。</p>
+
+<p>ただし、<code>get_ga_data</code>という関数は
+<code>ids</code>, <code>start_date</code>, <code>end_date</code>, <code>metrics</code>という引数を必ず取り、
+後はオプションで渡す形になります。</p>
+
+<p>取り敢えずGoogleでAPI Keyを使って情報にアクセスしている場合なんかは
+こんな感じでアップデートすればGoogle API Client 0.9でも
+使える様になる感じです。</p>
+
+<p>もしくは<strong>Gemfile</strong>に</p>
+
+<pre><code>gem 'google-api-client', '~&gt; 0.8.6'
+</code></pre>
+
+<p>とでも書いて古いバージョンを使う、と言う手もありますが。
+(今のGemfileでは<strong>google-api-client</strong>のバージョン指定をしてません。)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Analyticsに現れるスパムなURL達に関して]]></title>
+    <link href="https://rcmdnk.com/blog/2015/05/30/blog-analytics/"/>
+    <updated>2015-05-30T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/05/30/blog-analytics</id>
+    <content type="html"><![CDATA[<p>Google Analyticsを見てたら
+イベントの所に
+<code>to use this feature visit: EVENT-TRACKING.COM</code>
+みたいなのが出てました。</p>
+
+<p>完全にスパムなわけですが、
+ちょっと対処してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#イベント内に現れた変なイベント" id="markdown-toc-イベント内に現れた変なイベント">イベント内に現れた変なイベント</a></li>
+  <li><a href="#analyticsの中で除外する" id="markdown-toc-analyticsの中で除外する">Analyticsの中で除外する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="イベント内に現れた変なイベント">イベント内に現れた変なイベント</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_event.jpg" alt="event" class="pic" /></p>
+
+<p>こんな感じに<strong>イベント</strong>の所に変な物が出てきました。
+勿論自分で送ってるものではありません。</p>
+
+<p>Analyticsに送るスパムとしては、
+まずはスパムサイトに勝手にリンクを張って、それを踏んで来る事で
+参照元として送る方法があります。</p>
+
+<p>これは<strong>.htaccess</strong>とかの設定で特定のサイトからのアクセスを拒否することで
+回避することが出来ます。</p>
+
+<p>また、別の方法としてはAnalyticsのコードを盗んで
+(サイトのソースを見れば分かるので)
+それを勝手に自分のサイトに埋め込んで
+<strong>すべてのページ</strong>とかの中に表示させる方法。
+ページURLに無理やり見させたいURLなんかにした物を作っておけば簡単に出来ます。</p>
+
+<p>これに関してはサイト自体にアクセスしてるわけでもないのでサイト側では
+どうしようもありません。</p>
+
+<p>また、上のイベントの所に表示させるのは最近出てきた新たな手法らしいです。
+この方法も、Analyticsの番号さえ分かれば、後は適当に
+どこからでもJavaScriptを使ってイベントを勝手に送ってしまえば良いだけなので
+サイト側では防ぎようがありません。</p>
+
+<h2 id="analyticsの中で除外する">Analyticsの中で除外する</h2>
+
+<p>上に書いたように、基本的にサイト側ではどうしようもないものもあります。
+これらを無視するには、Analyticsの中でフィルタをかけてしまうしかありません。</p>
+
+<p>ということで</p>
+
+<p>上にある
+<strong>アナリティクス設定</strong><i class="fa fa-arrow-right"></i>
+一番右の列にある<strong>フィルタ</strong>
+<i class="fa fa-arrow-right"></i><strong>+新しいフィルタ</strong>
+から
+次のようなフィルタを作ります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_filtersetting.jpg" alt="filtersetting" class="pic" /></p>
+
+<p><strong>フィルタの種類</strong>で<code>カスタム</code>を選んで
+<strong>除外</strong>を選択し、<strong>フィルタフィールド</strong>で<code>キャンペーンのソース</code>を選びます。
+(これがURLとか含め一番広くかけやすい)</p>
+
+<p>フィルタパターンに</p>
+
+<pre><code>EVENT-TRACKING\.COM
+</code></pre>
+
+<p>と入れておきます。
+他にもあれば、<code>|</code>で<code>or</code>として続けて書けます。
+正規表現とかも使えますが
+最大で255文字までです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_filtermaximum.jpg" alt="filtermaximum" class="pic" /></p>
+
+<p>それ以上設定したい場合は別のフィルタを新たに作ればOK。</p>
+
+<p><code>.</code>は任意の一文字になるので、<code>.</code>自体を使いたい場合は<code>\.</code>で。</p>
+
+<p>設定して<strong>このフィルタを確認する</strong>をしてみると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_filtercheck.jpg" alt="filtercheck" class="pic" /></p>
+
+<p>こんな感じでどれだけ該当したか示してくれます。
+もし無ければフィルタの設定が正規表現とか何かおかしいのでチェック。</p>
+
+<p>取り敢えずこれで暫くの間フィルタをかけて見たところ
+6日間消えていました。</p>
+
+<p>その後、もう一度フィルタを外してみるとまた来てました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_aftercheck.jpg" alt="aftercheck" class="pic" /></p>
+
+<p>で、どうしようかな、と思ったんですが、
+フィルタをかけてると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150530_viewwithfilter.jpg" alt="viewwithfilter" class="pic" /></p>
+
+<p>こんな感じに
+<strong>ビューがフィルタされているため、ユーザー数が正確でない可能性があります。</strong>
+という注意が出ます。</p>
+
+<p>これが逆に邪魔臭いので、結局のところ外したままにすることにしました。</p>
+
+<p>スパムですが、別にそのリンクをわざわざ開いたりしない限りは害はないですし、
+それ程の量でもないので別に無視しておけばいいかな、と。</p>
+
+<p>参考:</p>
+
+<blockquote>
+  <p><a href="http://blog.analytics-toolkit.com/2015/guide-referrer-spam-google-analytics/">Guide to Removing Referrer Spam in Google Analytics  Blog for Web Analytics, Statistics and Data-Driven Internet Marketing  Analytics-Toolkit.com</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://www.analyticsedge.com/2014/12/removing-referral-spam-google-analytics/">Definitive Guide to Removing Referral Spam - Analytics Edge</a></p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Google AnalyticsのView数を取ってきてランキングを作る]]></title>
+    <link href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/"/>
+    <updated>2015-02-10T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/02/10/blog-octopress</id>
+    <content type="html"><![CDATA[<p><a href="https://rcmdnk.com/blog/2015/02/08/blog-octopress/">サイドバーのRecent Postsを画像付きにした</a>、
+<a href="https://rcmdnk.com/blog/2015/02/09/blog-octopress/">はてなブックマークの人気リストを画像付きにしてみる</a>、
+に引き続き
+Google AnalyticsのView数を取ってきてView数を表示したりランキングを作ったり
+してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#analyticsのview数をrubyを使って取ってくる" id="markdown-toc-analyticsのview数をrubyを使って取ってくる">AnalyticsのView数をRubyを使って取ってくる</a>    <ul>
+      <li><a href="#スクリプトの準備" id="markdown-toc-スクリプトの準備">スクリプトの準備</a></li>
+      <li><a href="#google-developers-consoleへ登録" id="markdown-toc-google-developers-consoleへ登録">Google Developers Consoleへ登録</a></li>
+      <li><a href="#google-analyticsでの設定" id="markdown-toc-google-analyticsでの設定">Google Analyticsでの設定</a></li>
+      <li><a href="#スクリプトの編集" id="markdown-toc-スクリプトの編集">スクリプトの編集</a></li>
+    </ul>
+  </li>
+  <li><a href="#octopressのプラグインの導入" id="markdown-toc-octopressのプラグインの導入">Octopressのプラグインの導入</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="analyticsのview数をrubyを使って取ってくる">AnalyticsのView数をRubyを使って取ってくる</h2>
+
+<h3 id="スクリプトの準備">スクリプトの準備</h3>
+
+<p>最終的にOctopressのプラグインにして記事生成時にリストを作りますが、
+取り敢えずテストとして簡単なスクリプトで取って来れる事を確認します。</p>
+
+<p><a href="https://github.com/google/google-api-ruby-client">google/google-api-ruby-client</a>
+を使うことで簡単にGoogle関連のサービスにアクセス出来るようになります。</p>
+
+<figure class="code"><figcaption><span>analyticsTest.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="ch">#!/usr/bin/env ruby</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">require</span> <span class="s1">&#39;google/api_client&#39;</span>
+</span><span class="line"><span class="nb">require</span> <span class="s1">&#39;chronic&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Update these to match your own apps credentials</span>
+</span><span class="line"><span class="n">service_account_email</span> <span class="o">=</span> <span class="s1">&#39;YOURMAILADDRESS@EXAMPLE.COM&#39;</span> <span class="c1"># Email of service account</span>
+</span><span class="line"><span class="n">key_file</span> <span class="o">=</span> <span class="s1">&#39;YOURFILE.P12&#39;</span> <span class="c1"># File containing your private key</span>
+</span><span class="line"><span class="n">key_secret</span> <span class="o">=</span> <span class="s1">&#39;notasecret&#39;</span> <span class="c1"># Password to unlock private key</span>
+</span><span class="line"><span class="n">profileID</span> <span class="o">=</span> <span class="s1">&#39;PROFILE_ID&#39;</span> <span class="c1"># Analytics profile ID.</span>
+</span><span class="line">
+</span><span class="line"><span class="n">client</span> <span class="o">=</span> <span class="no">Google</span><span class="o">::</span><span class="no">APIClient</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:application_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Octopress&#39;</span><span class="p">,</span> <span class="ss">:application_version</span> <span class="o">=&gt;</span> <span class="s1">&#39;0.0.1&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Load our credentials for the service account</span>
+</span><span class="line"><span class="n">key</span> <span class="o">=</span> <span class="no">Google</span><span class="o">::</span><span class="no">APIClient</span><span class="o">::</span><span class="no">KeyUtils</span><span class="o">.</span><span class="n">load_from_pkcs12</span><span class="p">(</span><span class="n">key_file</span><span class="p">,</span> <span class="n">key_secret</span><span class="p">)</span>
+</span><span class="line"><span class="n">client</span><span class="o">.</span><span class="n">authorization</span> <span class="o">=</span> <span class="no">Signet</span><span class="o">::</span><span class="no">OAuth2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class="line">  <span class="ss">:token_credential_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:audience</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://www.googleapis.com/auth/analytics.readonly&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:issuer</span> <span class="o">=&gt;</span> <span class="n">service_account_email</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:signing_key</span> <span class="o">=&gt;</span> <span class="n">key</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Request a token for our service account</span>
+</span><span class="line"><span class="n">client</span><span class="o">.</span><span class="n">authorization</span><span class="o">.</span><span class="n">fetch_access_token!</span>
+</span><span class="line">
+</span><span class="line"><span class="n">analytics</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">discovered_api</span><span class="p">(</span><span class="s1">&#39;analytics&#39;</span><span class="p">,</span><span class="s1">&#39;v3&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">startDate</span> <span class="o">=</span> <span class="no">Chronic</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;3 years ago&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">endDate</span> <span class="o">=</span> <span class="no">Chronic</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ret</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="ss">:api_method</span> <span class="o">=&gt;</span> <span class="n">analytics</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ga</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="ss">:parameters</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class="line">  <span class="s1">&#39;ids&#39;</span> <span class="o">=&gt;</span> <span class="s2">&quot;ga:&quot;</span> <span class="o">+</span> <span class="n">profileID</span><span class="p">,</span>
+</span><span class="line">  <span class="s1">&#39;start-date&#39;</span> <span class="o">=&gt;</span> <span class="n">startDate</span><span class="p">,</span>
+</span><span class="line">  <span class="s1">&#39;end-date&#39;</span> <span class="o">=&gt;</span> <span class="n">endDate</span><span class="p">,</span>
+</span><span class="line">  <span class="s1">&#39;dimensions&#39;</span> <span class="o">=&gt;</span> <span class="s2">&quot;ga:pagePath&quot;</span><span class="p">,</span>
+</span><span class="line">  <span class="s1">&#39;metrics&#39;</span> <span class="o">=&gt;</span> <span class="s2">&quot;ga:pageviews&quot;</span><span class="p">,</span>
+</span><span class="line">  <span class="s1">&#39;max-results&#39;</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="p">,</span>
+</span><span class="line"><span class="p">})</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">#p ret.data</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span>
+</span><span class="line">  <span class="nb">print</span> <span class="n">r</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">),</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなスクリプト。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2016/01/18 </strong></p>
+
+  <p>Google API Clientが0.8.6から0.9にアップデートされて仕様ちょっと変わって
+書き換える事が必要になりました。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B019PO1B7M" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510XtDWsFpL._SS90_CR0,0,120,90_.jpg" alt="Analytics: Data Science, Data Analysis and Predictive Analytics for Business (Algorithms, Business Intelligence, Statistical Analysis, Decision Analysis, ... Data Mining, Big Data) (English Edition) " /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/01/17/blog-octopress-javascript-analytics/">google-api-ruby-clientが非互換なアップデートされた</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><strong>Gemfile</strong>に</p>
+
+<pre><code>gem 'chronic'
+gem 'google-api-client'
+</code></pre>
+
+<p>を足して<code>bundle install</code>するか</p>
+
+<pre><code>gem install google-api-client chronic
+</code></pre>
+
+<p><a href="https://github.com/mojombo/chronic">Chronic</a>
+の方は必須では無いですが、上の例にあるように
+時間指定するのに<code>~ years ago</code>や<code>now</code>と言った指定方法が使えるので便利です。</p>
+
+<h3 id="google-developers-consoleへ登録">Google Developers Consoleへ登録</h3>
+
+<p>このスクリプトを有効にするために、まず、
+<a href="https://console.developers.google.com">Google Developers Console</a>
+へ新規プロジェクトを登録します。</p>
+
+<p>上記のページから<code>プロジェクトを作成</code>ボタンを押して<code>Analytics</code>なりなんなりの
+適当な名前のプロジェクトを作成します。</p>
+
+<p>プロジェクトを選択すると、左の一覧に
+<code>APIと認証</code><i class="fa fa-arrow-right"></i><code>API</code>という欄があるのでそれをクリック。</p>
+
+<p>上の方に現在有効な<code>API</code>一覧が表示されてますが、その下にある
+<code>APIを見る</code>の下のフィルタリング欄で<code>Analytics</code>と入れて
+<code>Analytics API</code>を探してこれを右の<code>ステータス</code>ボタンを使って<code>ON</code>にします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150210_console.jpg" alt="console" class="pic" /></p>
+
+<p><code>Analytics API</code>が<code>ON</code>になったら
+<code>APIと認証</code><i class="fa fa-arrow-right"></i><code>認証情報</code>へ行き、
+<code>新しいクライアントIDを作成</code>をクリックして新しいIDを生成します。</p>
+
+<p>出てくるポップアップで<code>サービスアカウント</code>を選んで<code>クライアントIDを作成</code>を押すと、
+秘密キーのダウンロード開始(もしくはブラウザでどうやって開くか聞かれる)とともに、
+秘密キーのパスワードが表示されます。
+(通常はこのパスワードは<code>notasecret</code>で共通な様です。)</p>
+
+<p>作成が成功すると、
+<code>認証情報</code>のページに<code>サービスアカウント</code>として新しいクライアントIDが登録されているはずです。</p>
+
+<p>ここにある<code>メールアドレス</code>が後で必要になるのでメモっておきます。</p>
+
+<p>取り敢えずここまででGoogle Developers Consoleでの作業は終了。</p>
+
+<h3 id="google-analyticsでの設定">Google Analyticsでの設定</h3>
+
+<p>Google Analyticsで先ほど作ったクライアントIDで
+アクセス出来るように設定します。</p>
+
+<p>アクセスしたいアカウントを選んで、上にある<code>アナリティクス設定</code>へ行きます。</p>
+
+<p>ここで、<code>プロパティ</code>欄にある<code>ユーザー管理</code>へ行き、
+先ほどGoogle Developers Consoleで得たメールアドレスを
+<code>権限を付与するユーザー</code>に入力して右のタブら<code>表示と分析</code>を選んで
+<code>追加</code>します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150210_analytics.jpg" alt="analytics" class="pic" /></p>
+
+<p>これでアクセス出来る様になりますが、
+すぐには反映されずに
+数分程時間がかかるようなのですぐに繋がらなかった場合には
+少し待ちます。</p>
+
+<p>ついでに、上のスクリプトに必要な情報として、
+設定ページの右側の<code>ビュー</code>欄の<code>ビュー設定</code>を選び、
+一番上の<code>ビューID</code>という8桁の数字をメモっておきます。</p>
+
+<h3 id="スクリプトの編集">スクリプトの編集</h3>
+
+<p>ひと通り準備が終わったのでスクリプトに必要な情報を加えていきます。</p>
+
+<p>上のスクリプトの中で</p>
+
+<ul>
+  <li>‘YOURMAILADDRESS@EXAMPLE.COM’: Google Developers Consoleで得たメールアドレスに変更。
+    <ul>
+      <li>これを自分の通常のGoogleのメールアドレスだと思って少し時間を無駄にしました。。。</li>
+    </ul>
+  </li>
+  <li>‘YOURFILE.P12’: 先ほどクライアントID作成時にダウンロードした秘密キーへのパスに変更。</li>
+  <li>‘notasecret’: もし、クライアントID作成時に違うパスワードが出たらこれも変更。</li>
+  <li>‘PROFILE_ID’: 先ほどAnalyticsのビュー設定から取得したビューIDに変更。</li>
+</ul>
+
+<p>編集できたら</p>
+
+<pre><code>$ ruby analyticsTest.rb
+/blog/2013/05/blog-octopress 10
+/blog/2013/07/blog-octopress 33
+...
+</code></pre>
+
+<p>みたいにページとView数が取得出来たらOKです。</p>
+
+<pre><code>$ ruby analyticsTest.rb
+/Library/Ruby/Gems/2.0.0/gems/signet-0.6.0/lib/signet/oauth_2/client.rb:947:in `fetch_access_token': Authorization failed.  Server message: (Signet::AuthorizationError)
+{
+  "error" : "invalid_grant"
+}
+        from /Library/Ruby/Gems/2.0.0/gems/signet-0.6.0/lib/signet/oauth_2/client.rb:964:in `fetch_access_token!'
+        from test.rb:25:in `&lt;main&gt;'
+</code></pre>
+
+<p>みたいなのが出たらメールアドレスが間違ってる可能性が大きいです。</p>
+
+<pre><code>$ ruby test.rb
+/Library/Ruby/Gems/2.0.0/gems/google-api-client-0.8.2/lib/google/api_client/auth/key_utils.rb:88:in `rescue in load_key': Invalid keyfile or passphrase (ArgumentError)
+        from /Library/Ruby/Gems/2.0.0/gems/google-api-client-0.8.2/lib/google/api_client/auth/key_utils.rb:80:in `load_key'
+        from /Library/Ruby/Gems/2.0.0/gems/google-api-client-0.8.2/lib/google/api_client/auth/key_utils.rb:34:in `load_from_pkcs12'
+        from test.rb:15:in `&lt;main&gt;'
+</code></pre>
+
+<p>であれば秘密鍵へのパスが間違ってるかパスワードが間違ってるか、です。</p>
+
+<p>これらが出ずにページやView数の表示が出ない場合は</p>
+
+<pre><code>#p ret.data
+</code></pre>
+
+<p>のところのコメントを外して帰ってくるのが出たりしてチェックします。</p>
+
+<pre><code>#&lt;Google::APIClient::Schema::Analytics::V3::GaData:0x3fe8954aec60 DATA:{"error"=&gt;{"errors"=&gt;[{"domain"=&gt;"global", "reason"=&gt;"insufficientPermissions", "message"=&gt;"User does not have sufficient permissions for this profile."}], "code"=&gt;403, "message"=&gt;"User does not have sufficient permissions for this profile."}}&gt;
+</code></pre>
+
+<p>などと出たら、
+指定したクライアントIDがAnalyticsの方で登録が済んでいないか、
+ビューIDが間違ってる可能性があります。</p>
+
+<h2 id="octopressのプラグインの導入">Octopressのプラグインの導入</h2>
+
+<p>Rubyを使ってAnalyticsへアクセス出来るようになったら
+Octopressでの準備を行います。</p>
+
+<blockquote>
+  <p><a href="https://github.com/imathis/octopress/wiki/3rd-party-plugins">3rd party plugins</a></p>
+</blockquote>
+
+<p>ここに<a href="https://github.com/jhshi/octopress-popular-posts">octopress-popular-posts</a>
+があったのでこれを使いたいと思います。</p>
+
+<p>コレを使うには
+<a href="https://github.com/jhshi/octopress-page-view">octopress-page-view</a>
+も必要です。</p>
+
+<p>これらに入ってる<strong>plugins/page_view.rb</strong>と<strong>plugins/popular_posts.rb</strong>を<strong>plugins</strong>へコピー。</p>
+
+<p>このままだと上手く使えなくてそれぞれ以下の様な変更をしておきます。</p>
+
+<figure class="code"><figcaption><span>page_view.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gu">@@ -55,7 +55,7 @@</span>
+</span><span class="line">       tot = 0
+</span><span class="line">       # display per post page view
+</span><span class="line">       site.posts.each { |post|
+</span><span class="line"><span class="gd">-        url = (site.config[&#39;baseurl&#39;] || &#39;&#39;) + post.url + &#39;index.html&#39;</span>
+</span><span class="line"><span class="gi">+        url = (site.config[&#39;baseurl&#39;] || &#39;&#39;) + post.url</span>
+</span><span class="line">         hits = (results[url])? results[url].to_i : 0
+</span><span class="line">         post.data.merge!(&quot;_pv&quot; =&gt; hits)
+</span><span class="line">         tot += hits
+</span><span class="line"><span class="gu">@@ -65,13 +65,9 @@ module Jekyll</span>
+</span><span class="line">       site.pages.each { |page|
+</span><span class="line">         url = (site.config[&#39;baseurl&#39;] || &#39;&#39;) + page.url
+</span><span class="line">         hits = (results[url])? results[url].to_i : 0
+</span><span class="line"><span class="gi">+        page.data.merge!(&quot;_pv&quot; =&gt; hits)</span>
+</span><span class="line">         tot += hits
+</span><span class="line">       }
+</span><span class="line"><span class="gd">-</span>
+</span><span class="line"><span class="gd">-      # display total page view in page</span>
+</span><span class="line"><span class="gd">-      site.pages.each { |page|</span>
+</span><span class="line"><span class="gd">-        page.data.merge!(&quot;_pv&quot; =&gt; tot)</span>
+</span><span class="line"><span class="gd">-      }</span>
+</span><span class="line">     end
+</span><span class="line">   end
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>popular_posts.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gu">@@ -4,13 +4,14 @@</span>
+</span><span class="line">
+</span><span class="line">   class PopularPosts &lt; Generator
+</span><span class="line">     safe :true
+</span><span class="line"><span class="gd">-    priority :low</span>
+</span><span class="line"><span class="gi">+    priority :lowest</span>
+</span><span class="line">
+</span><span class="line">     def generate(site)
+</span><span class="line">       # require octopress-page-view plugin
+</span><span class="line">       if !site.config[&#39;page-view&#39;]
+</span><span class="line">         return
+</span><span class="line">       end
+</span><span class="line"><span class="gi">+      n_posts = site.config[&#39;page-view&#39;][&#39;n_posts&#39;]</span>
+</span><span class="line">
+</span><span class="line">       popular_posts = site.posts.sort do |px, py|
+</span><span class="line">         if px.data[&#39;_pv&#39;] == nil || py.data[&#39;_pv&#39;] == nil then 0
+</span><span class="line"><span class="gu">@@ -20,6 +21,12 @@</span>
+</span><span class="line">         end
+</span><span class="line">       end
+</span><span class="line">
+</span><span class="line"><span class="gi">+      site.posts.each { |post|</span>
+</span><span class="line"><span class="gi">+        post.data.merge!(&quot;popular_posts&quot; =&gt; popular_posts[0,n_posts])</span>
+</span><span class="line"><span class="gi">+      }</span>
+</span><span class="line"><span class="gi">+      site.pages.each { |page|</span>
+</span><span class="line"><span class="gi">+        page.data.merge!(&quot;popular_posts&quot; =&gt; popular_posts[0,n_posts])</span>
+</span><span class="line"><span class="gi">+      }</span>
+</span><span class="line">       site.config.merge!(&#39;popular_posts&#39; =&gt; popular_posts)
+</span><span class="line">     end
+</span><span class="line">   end
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2015/02/10</strong></p>
+
+  <p><code>priority</code>を<code>low</code>から<code>lowest</code>へ変更。
+<code>priority</code>はプラグインがロードされる順番を指定しますが、
+<code>:highest</code>、<code>:high</code>、 <code>:normal</code>、 <code>:low</code>、 <code>:lowest</code>の
+指定が出来、<code>:highest</code>の物から実行されていきます。</p>
+
+  <p>プラグインの中にはタグページやカテゴリーのページなどを作るものもあり、
+これらよりも先に上のプラグインが動いてしまうと
+まだ<code>site.pages</code>の中に登録されてないので情報が入りません。</p>
+
+  <p>従って、このプラグインを<code>:lowest</code>にして、他のページ作成などのプラグイン
+(<strong>category_generator.rb</strong>等)よりも後に実行される様にする必要があります。
+大概のプラグインは<code>:low</code>が指定されています。
+デフォルトは<code>:normal</code>みたいです。</p>
+
+  <blockquote>
+    <p><a href="http://jekyllrb.com/docs/plugins/">Plugins</a></p>
+  </blockquote>
+
+  <blockquote>
+    <p><a href="http://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Plugin.priority">Method: Jekyll::Plugin.priority — Documentation for jekyll/jekyll (master)</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><code>page_view.rb</code>の方は余計な<code>index.html</code>を別途付けて数が取得出来ないのでこれを消去。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2015/02/16</strong></p>
+
+  <p><code>page</code>の方のPVの指定がおかしかったのでそれも直す様に変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><code>popular_posts.rb</code>の
+<code>site.config['page-view']['n_posts']</code>
+の設定は後で保存しておく数を<code>_config.yml</code>から簡単に変更できる様にするための設定です。</p>
+
+<p>下の方で<code>site.config</code>へ<code>popular_posts</code>を登録する代わりに、
+各ページ、ポストにこの値を入れています。
+今の環境だとこの<code>site.config</code>への変更が他の所に反映されず、
+<code>post</code>等に入れると取得することが出来たのでこの様にしました。
+これだと各ポスト毎に全く同じ変数を入れてく事になるので結構無駄ですが、
+他に上手いやり方が思いつかなかったので取り敢えずの処置。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2015/06/09</strong></p>
+
+  <p>何か勘違いしてたのか<code>site.config.popular_posts</code>とか間違って呼んでたのか分かりませんが、
+改めて試してみると</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">section</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Popular Posts<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">ul</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;posts&quot;</span><span class="p">&gt;</span>
+</span><span class="line">    {% for post in site.popular_posts limit:5 %}
+</span><span class="line">    <span class="p">&lt;</span><span class="nt">li</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;post index_click_box&quot;</span><span class="p">&gt;</span>
+</span><span class="line">      {% include post_list.html%}
+</span><span class="line">    <span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">    {% endfor %}
+</span><span class="line">  <span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">section</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいにしておけば普通に取ってこれました。</p>
+
+  <p>ので、上の</p>
+
+  <pre><code>site.posts.each { |post|
+  post.data.merge!("popular_posts" =&gt; popular_posts[0,n_posts])
+}
+site.pages.each { |page|
+  page.data.merge!("popular_posts" =&gt; popular_posts[0,n_posts])
+}
+</code></pre>
+
+  <p>の部分は削除しました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>次に、各ページごとのView数の表示ですが、これは<code>page_view.rb</code>の中で定義されている
+<code>pageview</code>を使うと取得することが出来、
+好きな所で</p>
+
+<pre><code>{% pageview %}
+</code></pre>
+
+<p>と呼べばそのページのView数が表示されます。</p>
+
+<p><a href="https://github.com/jhshi/octopress-page-view">octopress-page-view</a>
+の中にも
+<strong>source/_includes/custom/asides/pageview.html</strong>という
+サイドバーにビュー数を表示するだけのパーツが入っています。</p>
+
+<p>一方、
+<a href="https://github.com/jhshi/octopress-popular-posts">octopress-popular-posts</a>
+の中には
+<strong>source/_includes/custom/asides/popular_posts.html</strong>
+というファイルがあってこれがView数の多い順にリストをサイドバーに載せるものなので、
+これを元に
+<a href="https://rcmdnk.com/blog/2015/02/08/blog-octopress/">サイドバーのRecent Postsを画像付きにした</a>
+でやったようなリストを作ります。</p>
+
+<p><a href="https://rcmdnk.com/blog/2015/02/08/blog-octopress/">サイドバーのRecent Postsを画像付きにした</a>
+の所で、imgタグが上手く動かないのを治すために別途<strong>source/_includes/asides/recent_post.html</strong>
+というファイルを作りましたが、
+このView数によるランキングでも同じものが使えるので、共通にするためこれを
+<strong>source/_includes/post_list.html</strong>というファイルに置き換えます。</p>
+
+<p>さらに下みたいな感じでView数の表示も出来るように変更。</p>
+
+<figure class="code"><figcaption><span>source/_includes/post_list.html </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">li</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;post index_click_box&quot;</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;group&quot;</span><span class="p">&gt;</span>
+</span><span class="line">    {% if post.ogimage and post.no_ogimage != true %}
+</span><span class="line">    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;title-smallthumb&quot;</span><span class="p">&gt;</span>
+</span><span class="line">      <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{{ root_url }}{{ post.url }}&quot;</span><span class="p">&gt;</span>{%img val:post.ogimage%}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+</span><span class="line">    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</span><span class="line">    {% else %}
+</span><span class="line">    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;title-smallthumb&quot;</span><span class="p">&gt;</span>
+</span><span class="line">      <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{{ root_url }}{{ post.url }}&quot;</span><span class="p">&gt;</span>{%img val:site.sitelogo%}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+</span><span class="line">    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</span><span class="line">    {% endif %}
+</span><span class="line">    <span class="p">&lt;</span><span class="nt">a</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;click_box_link&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{{ root_url }}{{ post.url }}&quot;</span><span class="p">&gt;</span>{% if site.titlecase %}{{ post.title | titlecase }}{% else %}{{ post.title }}{% endif %}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>{%if site.page-view.show_views and post._pv %}<span class="p">&lt;</span><span class="nt">br</span><span class="p">&gt;&lt;</span><span class="nt">span</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;views&quot;</span><span class="p">&gt;</span>{{post._pv}} views<span class="p">&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>{%endif%}
+</span><span class="line">  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>View数の化粧として<strong>sass/plugins/_plugins.scss</strong>へ</p>
+
+<figure class="code"><figcaption><span>sass/plugins/_plugins.scss </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="scss"><span class="line"><span></span><span class="nc">.views</span> <span class="p">{</span>
+</span><span class="line">  <span class="nt">background-color</span><span class="nd">:</span> <span class="nn">#ccccff</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">font-weight</span><span class="nd">:</span> <span class="nt">bold</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">font-size</span><span class="nd">:</span> <span class="nt">0</span><span class="nc">.9em</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">font-style</span><span class="nd">:</span> <span class="nt">normal</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">display</span><span class="nd">:</span> <span class="nt">inline</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">color</span><span class="nd">:</span> <span class="nt">blue</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">text-decoration</span><span class="nd">:</span> <span class="nt">underline</span><span class="o">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とでも書いておきます。</p>
+
+<p>最後に、<strong>_config.yml</strong>へ</p>
+
+<figure class="code"><figcaption><span>_config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="c1"># page-view settings</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">page-view</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">service_account_email</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">YOURMAILADDRESS@EXAMPLE.COM</span> <span class="c1"># service accoutn email</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">key_file</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">YOURFILE.P12</span>    <span class="c1"># service account private key file</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">key_secret</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">notasecret</span>    <span class="c1"># service account private key&#39;s password</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">profileID</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ga:PROFILE_ID</span>  <span class="c1">#ga:XXXXXXXX</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">start</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3 years ago</span>        <span class="c1"># Beginning of report</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">end</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">now</span>                  <span class="c1"># End of report</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">metric</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ga:pageviews</span>      <span class="c1"># Metric code</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">segment</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaid::-1</span>         <span class="c1"># all visits</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">filters</span><span class="p p-Indicator">:</span>                  <span class="c1"># optional</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">n_posts</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>                <span class="c1"># Number of popular posts</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">show_views</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>          <span class="c1"># If n_views is shown or not</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな設定をすれば(メールやPROFILE_ID等を適時変更)、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150210_popularlist.jpg" alt="popularlist" class="pic" /></p>
+
+<p>こんな感じのサイドバーが出来ます。</p>
+
+<p>後は適当に、全ての期間の合計にしたければ
+<code>start</code>を<code>10 years ago</code>等十分大きい値にしたり、
+<code>1 month ago</code>で過去一ヶ月分だけ撮ったり
+<code>n_posts</code>で表示する数を変更したり、
+View数は要らないのであれば<code>show_vies</code>を<code>false</code>にしたりしてください。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

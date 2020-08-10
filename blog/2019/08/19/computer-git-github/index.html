@@ -1,0 +1,1554 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた">
+  <meta name="description" content="先日GitHubがCI/CDをサポートをする、というアナウンスメントがあって
+ベータ版をスタートしたとありましたが、
+使えるようになったので使ってみました。">
+  
+  <meta property="og:title" content="GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="先日GitHubがCI/CDをサポートをする、というアナウンスメントがあって
+ベータ版をスタートしたとありましたが、
+使えるようになったので使ってみました。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20190819_githubactions1.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,googleplus_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRN6WBX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2019-08-19T00:00:00+00:00'><span class='time'>19 Aug 2019</span></time></span>
+    <span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2020-05-05T12:00:00+00:00'><span class='date'>05 May 2020</span></time></span>
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/git/"><span>Git</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/github/"><span>GitHub</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2019/08/19/computer-git-github/" itemprop="url">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2019/08/19/computer-git-github/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/" data-count="2">2</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F&url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/" data-count="2">2</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&title=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Share on Google+"
+    target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCount"  data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&amp;t=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&title=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20190819_githubactions1_200_200.jpg" width="200" height="200" alt="20190819_githubactions1_200_200">
+      </div>
+      
+      <p>先日GitHubがCI/CDをサポートをする、というアナウンスメントがあって
+ベータ版をスタートしたとありましたが、
+使えるようになったので使ってみました。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#github-action新旧" id="markdown-toc-github-action新旧">GitHub Action新旧</a></li>
+  <li><a href="#以前のgithub-actions" id="markdown-toc-以前のgithub-actions">以前のGitHub Actions</a></li>
+  <li><a href="#新しいgithub-actions" id="markdown-toc-新しいgithub-actions">新しいGitHub Actions</a></li>
+  <li><a href="#とりあえずやってみる" id="markdown-toc-とりあえずやってみる">とりあえずやってみる</a></li>
+  <li><a href="#設定項目" id="markdown-toc-設定項目">設定項目</a>    <ul>
+      <li><a href="#トリガー" id="markdown-toc-トリガー">トリガー</a></li>
+      <li><a href="#ビルド環境" id="markdown-toc-ビルド環境">ビルド環境</a></li>
+      <li><a href="#暗号化" id="markdown-toc-暗号化">暗号化</a></li>
+      <li><a href="#job_idごとの依存関係" id="markdown-toc-job_idごとの依存関係">job_idごとの依存関係</a></li>
+      <li><a href="#その他設定項目" id="markdown-toc-その他設定項目">その他設定項目</a></li>
+    </ul>
+  </li>
+  <li><a href="#実行制限" id="markdown-toc-実行制限">実行制限</a></li>
+  <li><a href="#料金" id="markdown-toc-料金">料金</a></li>
+  <li><a href="#他ciサービスの状況" id="markdown-toc-他ciサービスの状況">他CIサービスの状況</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-action新旧">GitHub Action新旧</h2>
+
+<p>GitHub Actionsという物自体は昨年アナウンスされベータ版として使える様になってました。
+それが今月CI/CDを使えるようになった、というので話題になってたので使ってみようとしたところ、
+なんか違うものしか見れなくて(最初のベータ版に申し込んで出たものと同じもの)
+なんだろう、と思ってたんですが、
+新しいものに変更されるのも徐々に行われていたようです。</p>
+
+<p>メールが来てやっと新しいものが使える様になったので使ってみました。</p>
+
+<p>Actionsが使える様になっていても下に書くように古いままの場合には
+新しいベータが使える様になったというメールを心待ちにしてください。</p>
+
+<h2 id="以前のgithub-actions">以前のGitHub Actions</h2>
+
+<p>まだベータ版ですが、以下のページから登録して使える様にリクエストを出すことが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/features/actions">Features • GitHub Actions</a></p>
+</blockquote>
+
+<p>GitHub Actionsという物自体は昨年発表されベータ版で使える様になっていました。</p>
+
+<p>ベータ版が使える様になると、レポジトリの上側のタブの<strong>Pull requests</strong>と<strong>Projects</strong>の間に
+<strong>Actions</strong>というタブが出来ます。</p>
+
+<p>ここをクリックすると以前は以下のページに有るようなGUIな感じで
+ワークフローを作っていく様なページに行きました。</p>
+
+<blockquote>
+  <p><a href="https://github.blog/jp/2018-10-24-action-demos/">GitHub Actions： みなさんが開発し、GitHubで実行 - The GitHub Blog - Japan</a></p>
+</blockquote>
+
+<p>以下のページにあるような専用フォーマット?(main.workflow)で直接ワークフローを編集することも出来ました。</p>
+
+<blockquote>
+  <p><a href="https://github.blog/2019-02-07-an-open-source-parser-for-github-actions/">An open source parser for GitHub Actions - The GitHub Blog</a></p>
+</blockquote>
+
+<p>一般的なCI/CDサービスだとYAML形式でワークフローを書いていくことが多いので
+書くのはちょっと面倒な感じ。
+どちらかというとGUIでやっていくことに頑張ってしまった感じでした。</p>
+
+<p>こちらも<a href="https://github.blog/changelog/2018-10-16-github-actions-limited-beta/">limited public beta (2019/10/16)</a>
+だったので登録後しばらくしてから使える様になっていましたが、
+ちょっと使いづらい感じがしてちゃんと使っていませんでした。</p>
+
+<h2 id="新しいgithub-actions">新しいGitHub Actions</h2>
+
+<p>先日このGitHub Actionsの新しいバージョンが発表されました。</p>
+
+<blockquote>
+  <p><a href="https://github.blog/changelog/2019-08-08-updates-to-github-actions-limited-public-beta/">Updates to GitHub Actions (limited public beta) - The GitHub Blog</a></p>
+</blockquote>
+
+<p>これも
+<a href="https://github.blog/changelog/2019-08-08-updates-to-github-actions-limited-public-beta/">limited public beta (2019/08/08)</a>
+です。</p>
+
+<p>ただ、ベータ版の申込みとしては以前のGitHub Actionsと同じページからになるので
+これが発表されてから申し込んでみたところすでに申し込んであります、と出てました。</p>
+
+<p>それで<strong>Actions</strong>というタブは出来てるのでてっきり新しいものが使える様になっていたと思ってましたが
+前のベータ版が使えていてもすぐに新しいものが使えるわけではなかったようです。</p>
+
+<p>今日<strong>You’re in! Get started with GitHub Actions beta</strong>という題名のメールが来ていて
+見てみたら<strong>Actions</strong>の中身が新しくなっていました。</p>
+
+<p>以前のベータ版は2018年10月に発表されてすぐ登録して2019年1月に
+<strong>Your GitHub Actions invite is Ready</strong>というメールが来て使える様になっていたようです。</p>
+
+<p>ということで適当なレポジトリで見てみるとこんな感じで
+以前とは違いテンプレートを選べる様になっていて
+選ぶと<strong>.github/workflows/XXX.yml</strong>というYAML形式のファイルを編集するページに飛ぶようになっています。</p>
+
+<p>この<strong>.github/workflows</strong>というディレクトリにYAMLファイルを置くとそれを元にActionを起こしてくれる仕組みです。
+(名前は<strong>.yml</strong>拡張子なら何でも良い。)</p>
+
+<p>これは他のCI/CDサービスでもよく見るような形で
+他のところで行っているCI/CDを移植するのも簡単そうです。</p>
+
+<h2 id="とりあえずやってみる">とりあえずやってみる</h2>
+
+<p>適当なレポジトリで
+<strong>Actions</strong>に行くと一番上にレポジトリに基づいたワークフローのテンプレートが選べる様になっています。
+もしくは右上の<strong>Set up a workflow yourself</strong>を選ぶとシンプルなテンプレートから作れます。</p>
+
+<p><img src="/images/post/20190819_githubactions1.jpg" alt="20190819_githubactions1.jpg" class="pic" /></p>
+
+<p>とりあえずこのテストレポジトリにはなにもないのでシンプルなテンプレートが表示されてたのでそれを使ってみます。</p>
+
+<p><img src="/images/post/20190819_githubactions2.jpg" alt="20190819_githubactions2.jpg" class="pic" /></p>
+
+<figure class="code"><figcaption><span>.github/workflows/blank.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">CI</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">on</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">]</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">jobs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">build</span><span class="p p-Indicator">:</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">runs-on</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v1</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Run a one-line script</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">echo Hello, world!</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Run a multi-line script</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">        <span class="no">echo Add other actions to build,</span>
+</span><span class="line">        <span class="no">echo test, and deploy your project.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>on</code>でどの様なタイミングで実行するかトリガーを指定します。
+ここでは<code>push</code>されたとき。</p>
+
+<p>その後に<code>jobs.build</code>とありますが、この<code>build</code>のところは<code>&lt;job_id&gt;</code>と呼ばれ、
+複数の<code>&lt;job_id&gt;</code>を<code>jobs</code>の中に指定することが出来ます。
+<code>build</code>というのはただのid名なので<code>job1</code>とかでもOK。</p>
+
+<p><code>jobs.&lt;job_id&gt;.runs-on</code>では実行環境を選びます。ここではUbuntuが選ばれてます。</p>
+
+<p>その後の<code>jobs.&lt;job_id&gt;.steps</code>で実際に実行したいことを書いていきます。</p>
+
+<p>最初に使っている<code>uses</code>では外部レポジトリで定義されたアクションを実行することができます。
+<a href="https://github.com/actions/checkout/blob/v1/action.yml">actionsレポジトリのcheckoutのv1のaction.yml</a>
+の内容が実行されることになります。
+アクションを実行するディレクトリは最初何もない状態なので、
+大概の場合はまず最初に該当のレポジトリを持ってこないと始まりません。
+<code>actions/checkout</code>を呼ぶとカレントディレクトリに
+該当のレポジトリを持ってきます。
+カレントディレクトリの中にレポジトリを置く、のではなく、
+カレントディレクトリ自体がレポジトリのトップになるようなことをしてくれます。</p>
+
+<p>各ステップごとに<code>cd</code>などしても次のステップでは必ず
+<code>GITHUB_WORKSPACE</code>
+(Ubuntuだと
+<strong>/home/runner/work/&lt;repository name&gt;/&lt;repository name&gt;</strong>
+)
+からスタートするので、
+その場で<code>actions/checkout</code>をすることですべてのステップでレポジトリのトップから作業を行う様になります。</p>
+
+<p>そのあと各実行項目として<code>name</code>、<code>run</code>で
+実行コマンドごとの名前と内容を指定しています。</p>
+
+<p>このままWeb上からcommit出来るのでしてみます。</p>
+
+<p>しばらくすると<strong>Actions</strong>のタブの中が変わって実行結果が見れるようになります。</p>
+
+<p><img src="/images/post/20190819_githubactions3.jpg" alt="20190819_githubactions3.jpg" class="pic" /></p>
+
+<p>実行されたものを選択してみてみるとこんな実行内容が見れます。</p>
+
+<p><img src="/images/post/20190819_githubactions4.jpg" alt="20190819_githubactions4.jpg" class="pic" /></p>
+
+<p>実行中もここで経過を見ることも出来ます。</p>
+
+<p>ここではWebインターフェースから作りましたが、
+直接**.github/workflows/<name>.yml**を作ってcommitすることでも
+Actionsを定義することが出来ます。</name></p>
+
+<p>また、以下のレポジトリにいろいろな言語様などのテンプレートがあります。</p>
+
+<div class="github-widget" data-repo="actions/starter-workflows"></div>
+
+<p><a href="https://github.com/features/actions">Features • GitHub Actions</a>
+のページの下の方に行くと他の人が作った例を色々と見ることが出来ます。
+今はこの紹介ページでたくさんのレポジトリが流れる様な表示になっていますが、
+このうち<strong>actions</strong>というユーザー名の名のもとにまとめられているものもあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/actions">GitHub Actions</a></p>
+</blockquote>
+
+<p>また、Marketplaceにも例が色々とあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/marketplace?type=actions">GitHub Marketplace · Actions to improve your workflow</a></p>
+</blockquote>
+
+<p>ただここはまだ古いバージョン用のもの(YAML形式でないもの)も混じっているのでちょっと注意が必要です。</p>
+
+<p>多分そのうちこれ以外にもまとめられたページが出来るかもしれません。
+(先にサードパーティーで作られるかも。)</p>
+
+<h2 id="設定項目">設定項目</h2>
+
+<h3 id="トリガー">トリガー</h3>
+
+<p>GitHubの直サービスなので他の連携サービスに比べかなり細かく色々とトリガーが選べます。</p>
+
+<p>cronジョブの様に定期的に実行することも出来ます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/articles/events-that-trigger-workflows">Events that trigger workflows - GitHub Help</a></p>
+</blockquote>
+
+<h3 id="ビルド環境">ビルド環境</h3>
+
+<p>GitHub ActionsではLinux(Ubuntu)、macOS、Windowsの環境で実行することが出来ます。
+これらはMicrosoft Azure上の仮想環境ということで、
+Microsoftによる買収が用方向に行ってる一つの例だと思います。</p>
+
+<p>今現在使えるバージョンは以下から確認出来ます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/articles/virtual-environments-for-github-actions#about-virtual-environments">Virtual environments for GitHub Actions - GitHub Help</a></p>
+</blockquote>
+
+<p>書く環境のソフトウェアなどの状況は以下から確認できます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/articles/software-in-virtual-environments-for-github-actions">Software in virtual environments for GitHub Actions - GitHub Help</a></p>
+</blockquote>
+
+<p>指定は<code>jobs.&lt;job_id&gt;.runs-on</code>というパラメーターに設定しますが、
+複数まとめて行いたい場合には<code>matrix</code>を使って</p>
+
+<pre><code>jobs:
+  build:
+
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+</code></pre>
+
+<p>の様に書くことが出来ます。この<code>matrix</code>で複数を指定する方法はは他の項目にも使えます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+。</p>
+
+<h3 id="暗号化">暗号化</h3>
+
+<p>CI/CDを回したい時にどうしてもパスワードなどの秘密情報をどこかに書いておかないと
+やりたいことが出来ないことがあります。</p>
+
+<p>GitHub Actionsでもその様な状況に対応していて、
+文字列を暗号化して入れておくことが出来るようになっています。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables">Creating and using secrets (encrypted variables): Virtual environments for GitHub Actions - GitHub Help</a></p>
+</blockquote>
+
+<p><strong>Settings</strong>の中にActions用の<strong>Secrets</strong>という項目が出来ていてここで暗号化したい文字列を設定することができます。</p>
+
+<p>また、CIでレポジトリにpushしたり何らか変更したりしたい場合がありますが、
+その場合GITHUB_TOKENを発行してそれを使う必要がありました。
+他のサービスを使う場合にはこれをGitHubで発行して、各サービスでこれを暗号化して登録して使います。</p>
+
+<p>GitHub Actionsでは実行するレポジトリのGITHUB_TOKENは自分で発行しなくても<code>$</code>
+で専用のトークンを使える様になっています。
+こういった事をよくしてる場合にはかなり工程が減るので便利だし、
+トークンが漏れる可能性も減るので良いと思います。</p>
+
+<h3 id="job_idごとの依存関係">job_idごとの依存関係</h3>
+
+<p><code>jobs.&lt;job_id&gt;.needs</code>
+を使うと他の<code>job_id</code>の内容が成功したときだけ実行する様にできます。</p>
+
+<h3 id="その他設定項目">その他設定項目</h3>
+
+<p>以下からActions用のYAMLでの設定項目が確認できます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/articles/workflow-syntax-for-github-actions">Workflow syntax for GitHub Actions - GitHub Help</a></p>
+</blockquote>
+
+<h2 id="実行制限">実行制限</h2>
+
+<p>現在の実行制限は以下の様なものです<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<ul>
+  <li>同時に実行できるワークフローはレポジトリ毎に20個まで。</li>
+  <li>実行できるAPIリクエストはレポジトリ毎に1時間で1000。</li>
+  <li>各ジョブの実行時間は最大6時間。</li>
+  <li>同時に走らせられるのはレポジトリ毎に20ジョブ。</li>
+</ul>
+
+<p>と、かなり緩いものになっています。
+色々テストしてみましたが待たされる、といったことは今の所ありませんでした。</p>
+
+<h2 id="料金">料金</h2>
+
+<p>パブリックレポジトリに関してはすべて無料です。</p>
+
+<p>プライベートレポジトリに関しては無料では2000時間/月まで。
+GitHubでProに入ってる人は3000時間/月まで。</p>
+
+<p>あとは超えた分だけの従量課金せいで、各OSによって違います
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<ul>
+  <li>Linux (2cores, 7GB): $0.008/min</li>
+  <li>Windows (2cores, 7GB): $0.016/min</li>
+  <li>macOS (2cores, 7GB): $0.08/min</li>
+</ul>
+
+<p>OS代?なのかわかりませんが、Linuxが一番安くなっています。
+そしてMicrosoftなので?macOSよりWindowsの方が圧倒的に安い。</p>
+
+<p>2000分(33時間)追加で</p>
+
+<ul>
+  <li>Linux: $16</li>
+  <li>Windows: $32</li>
+  <li>macOS: $160</li>
+</ul>
+
+<p>となります。</p>
+
+<p>さらに今後<strong>Self-hosted</strong>で走らせることも出来るようになる様で、
+これを使うのであればPrivateでも制限なく無料で使えるようになるようです。</p>
+
+<h2 id="他ciサービスの状況">他CIサービスの状況</h2>
+
+<p>ちなみに、GitHubは昨年Microsoftに買収されましたが、
+CIサービスとして、
+<a href="https://app.wercker.com/">wercker</a>
+は一昨年にOracleに、<a href="https://travis-ci.org/">Travis CI</a>は今年はじめにIDeraに買収されています。
+ともにデータベース系の会社が買収している、と。</p>
+
+<p>あとはDevOps環境に関するサービスを展開しているJFrogも今年はじめに
+<a href="https://www.shippable.com/">Shippable</a>を買収しています。</p>
+
+<p>未だ独立なサービスでこれらに匹敵するものとしては
+<a href="https://circleci.jp/">CircleCI</a>や
+Androidなどの環境などのためによく使われる
+<a href="https://www.bitrise.io/">Bitrise</a>
+とかがあります。</p>
+
+<p>あとはWindowsのGUIなどで使われる
+<a href="https://www.appveyor.com/">AppVeyor</a>。
+以前はWindows用、という感じでしたが今はLinuxもサポートしているみたいです。</p>
+
+<p>この辺のサービスはBitBucketなど他のGitホスティングサービスなどもサポートしてたりしますが、
+主なものはやはりGitHubのレポジトリになっていると思います。</p>
+
+<p>ちょっとこれらのサービスをGoogle Trendsで見てみると</p>
+
+<p><img src="/images/post/20190819_googletrends1.jpg" alt="20190819_googletrends1.jpg" class="pic" /></p>
+
+<p>こんな感じで2016年位まではTravis CIが圧倒的だったのに対して、
+最近ではCircleCIが逆転しています。
+また、Bitriseが最近ではTravis CIに迫る勢いです。
+AppVeyorは入ってませんが今現在はBitriseの半分くらいの検索ボリュームで
+Werckerとかよりは検索されています。</p>
+
+<p>これだけ見ると中国とかでTravis CIが人気なようですが、
+ここ30日で見るとそうでもないので単にTravis CIが優勢だった頃に
+中国とかでよく検索されていた、ということみたいです。
+一方なぜか今も南半球ではTravis CIが人気a?</p>
+
+<p><img src="/images/post/20190819_googletrends1.jpg" alt="20190819_googletrends1.jpg" class="pic" /></p>
+
+<p>日本だけで見ると日本語のインターフェースが無いためかTravis CIがずっと苦戦しています。</p>
+
+<p><img src="/images/post/20190819_googletrends3.jpg" alt="20190819_googletrends3.jpg" class="pic" /></p>
+
+<p>てっきり未だにTravis CIが圧倒的かと思ってたんですが、
+そうでもないみたいです。
+もちろんGoogle検索と使われてるかどうかは直接は関係ありませんが。</p>
+
+<p>GitHub Actionsも見てみると</p>
+
+<p><img src="/images/post/20190819_googletrends4.jpg" alt="20190819_googletrends4.jpg" class="pic" /></p>
+
+<p>昨年最初のベータ版が出た所で一時Bitriseも超える検索を受け、
+また最近の新しいリリースで検索数が一気に上がっています。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ちょっと見てみただけですが、YAML形式でかけるワークフローで他のサービスでCI/CDを使ってた人が入りやすいサービスになっていると思います。</p>
+
+<p>Microsoft Azureをバックグラウンドに、ジョブの実行の利用制限も非常にゆるいです。
+あまり回数流しているわけではないのであれですが、
+実際のところ今の時点では他のサービスに比べて圧倒的にストレスが少ない状態ですぐにジョブが流れる様になっています。</p>
+
+<p>実行環境もLinux/macOS/windowsでそれぞれ最新のものとちょっと古いバージョンが使え、
+2coresで7GBなのでこの辺も大概の他のサービスよりも良い環境です。</p>
+
+<p>プライベートレポジトリでも無料で2000時間まで使えるというのも
+最近プライベートレポジトリ自体が無料になったGitHubでは嬉しいところ。</p>
+
+<p>また、GitHubの直サービスなのでトリガーに細かい指定が出来ることや
+GITHUB_TOKENなどを直接扱えるなど他のサービスにはない特徴もあります。</p>
+
+<p>まだ細かいところまでは実際に使ってみないとわからない部分もあるかと思いますが、
+後発サービスなので他のサービスの良いものやプラスアルファの機能も多いのでは、と。</p>
+
+<p>今の時点でも多くのテンプレートや例が充実していて、
+今後正式公開されればさらに増えていくと思います。</p>
+
+<p>見ている限りでは他のサービスにできてGitHub Actions出でいないこと、というのはほとんどなさそう。
+AndroidやiOS系のテスト環境やAppVeyor的なWindowsのアプリのテストなど?(GitHub Actionsでも出来る?)</p>
+
+<p>無料の範囲で、ということで考えると、werckerは無料でプライベートレポジトリを使えるので
+今後も需要はありそうです。</p>
+
+<p>あと、Travis CIを辞めてGitHub Actionsにしてしまうと成功/失敗を示すバッチが貼れない。。。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2014/09/08/computer-github-travis/"><img class="small-thumbnail-img" src="/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2014/09/08/computer-github-travis/">Travis CIを使ってみた: GitHubのレポジトリにバッジを貼りたかったから</a></div></li></ul>
+
+<p>ちょっとこれはなんとかして欲しいかも。
+自分でやろうと思えば出来ないこともないものではありますが。
+(Actions実行時にREADMEを編集する、か、外部からActionsの結果を参照して表示を変える様なサービスを作ってREADMEから参照するか?)</p>
+
+<p>とはいえ、実行的な部分に関しては最早他のサービスを使う意味がほとんどない状態なので
+今後作るものはGitHub Actionsで作っていくと思います。
+今まであるものも気が向いたら変更していこうかと思います。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2020/04/20 </strong></p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2020/04/20/computer-git-github/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20200420_githubactionsbadge_120_90.jpg" width="120" height="90" alt="20200420_githubactionsbadge_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2020/04/20/computer-git-github/">GitHub Actionsに関する追記</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<div class="footnotes"><ol><li id='fnin:1'>
+<p><a href="https://github.blog/2019-08-08-github-actions-now-supports-ci-cd/#matrix-builds">Matrix builds: GitHub Actions now supports CI/CD, free for public repositories</a>
+ <a href="#fninref:1" rel="reference">↩</a></p>
+</li><li id='fnin:2'>
+<p><a href="https://help.github.com/en/articles/workflow-syntax-for-github-actions#usage-limits">Workflow syntax for GitHub Actions - GitHub Help</a>
+ <a href="#fninref:2" rel="reference">↩</a></p>
+</li><li id='fnin:3'>
+<p><a href="https://github.com/features/actions">Features • GitHub Actions</a>
+ <a href="#fninref:3" rel="reference">↩</a></p>
+</li></ol></div>
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished' class='entry-date' datetime='2019-08-19T00:00:00+00:00'><span class='date'>19 Aug 2019</span></time></span><span class="date-wrapper">Last update<time itemprop='dateModified' class='updated' datetime='2020-05-05T12:00:00+00:00'><span class='date'>05 May 2020</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/git/'><span>Git</span></a>, <a class='tag' href='/blog/tags/github/'><span>GitHub</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2019/08/19/computer-git-github/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F&url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&title=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Share on Google+"
+    target="_blank"><p class="googleplus_custom"><span class="googleplusBig"  data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">Google+でシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&amp;t=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2019/08/19/computer-git-github/&title=GitHub%E3%81%A7%E6%96%B0%E3%81%97%E3%81%84Actions%E3%81%8C%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%84%E3%81%9F%E3%81%AE%E3%81%A7CI%2FCD%E3%82%92%E3%82%84%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2019/08/18/computer-iot-raspberrypi/" title="Previous Post: Blynkを使ってRaspberryi Piをスマホから操作する">&laquo; Blynkを使ってRaspberryi Piをスマホから操作する</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2019/08/20/computer-chrome/" title="Next Post: 最近Google Chromeの拡張機能がよく壊れる様になった?">最近Google Chromeの拡張機能がよく壊れる様になった? &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/gp/redirect.html?ie=UTF8&location=http%3A%2F%2Fwww.amazon.co.jp%2Fgp%2Fregistry%2Fwishlist%2F%3Fie%3DUTF8%26type&tag=rcmdnk0c-22&linkCode=ur2&camp=247&creative=1211"></a>
+
+
+
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/1533103852' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51XYnJFLlKL._SS90_CR0,0,120,90_.jpg' alt='Remote Desktop Services Windows Server 2012 R2: Design, Deployment and Management (Rds Pocket Consultant)'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/10/computer-windows-github/">GitHub Actions使うWindows環境にリモートデスクトップアクセスする</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2020/08/09/computer-windows-github/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20200809_win_120_90.jpg" width="120" height="90" alt="20200809_win_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/09/computer-windows-github/">AppVeyorで何故か失敗しているのをリモートデスクトップで入って確かめる</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2020/07/29/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20200730_menubarnormal_120_90.jpg" width="120" height="90" alt="20200730_menubarnormal_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/07/29/computer-mac-karabiner-vim/">Vim emulation using Karabiner-Elements (on macOS)でメニューバーに状態表示させたり通知でお知らせしたり</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B07QBXMY2Z' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/415l0kv0gGL._SS90_CR0,0,120,90_.jpg' alt='Anker Nebula Capsule II（世界初 Android TV搭載 モバイルプロジェクター）【200ANSI ルーメン / オートフォーカス機能 / 8W スピーカー / DLP搭載 / 5000種類以上のアプリケーション / ホームエンターテインメント】'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/07/24/life-shopping-iot/">モバイルプロジェクター:Anker Nebula Capsule IIを買った</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2020 (41)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2020/08/'>AUG (3)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (97)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (5)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (72)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (2)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (152)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (13)</a></li><li><a href='/blog/2016/09/'>SEP (14)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (187)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (13)</a></li><li><a href='/blog/2015/10/'>OCT (18)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (32)</a></li><li><a href='/blog/2015/05/'>MAY (22)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (135)</a></li><li><a href='/blog/categories/computer/'>Computer (875)</a></li><li><a href='/blog/categories/life/'>Life (40)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.41095890410959%'>AeroFS(2)</a> <a href='/blog/tags/amazon/' style='font-size: 100.20547945205479%'>Amazon(1)</a> <a href='/blog/tags/analytics/' style='font-size: 100.61643835616438%'>Analytics(3)</a> <a href='/blog/tags/android/' style='font-size: 103.6986301369863%'>Android(18)</a> <a href='/blog/tags/applescript/' style='font-size: 103.28767123287672%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.41095890410959%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 104.10958904109589%'>AutoHotkey(20)</a> <a href='/blog/tags/bash/' style='font-size: 120.75342465753425%'>Bash(101)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.20547945205479%'>Bitbucket(1)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.82191780821918%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.61643835616438%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.0958904109589%'>Brew-file(54)</a> <a href='/blog/tags/bsd/' style='font-size: 101.64383561643835%'>BSD(8)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.41095890410959%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.82191780821918%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.52054794520548%'>Chrome(22)</a> <a href='/blog/tags/colinux/' style='font-size: 100.41095890410959%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 101.02739726027397%'>CSS(5)</a> <a href='/blog/tags/cygwin/' style='font-size: 106.36986301369863%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.20547945205479%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.41095890410959%'>Desktop(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 102.05479452054794%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.61643835616438%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 101.02739726027397%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.26027397260275%'>Evernote(11)</a> <a href='/blog/tags/feedly/' style='font-size: 100.20547945205479%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 112.12328767123287%'>Firefox(59)</a> <a href='/blog/tags/geektool/' style='font-size: 100.61643835616438%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.20547945205479%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 101.84931506849315%'>git(9)</a> <a href='/blog/tags/git/' style='font-size: 106.36986301369863%'>Git(31)</a> <a href='/blog/tags/github/' style='font-size: 112.12328767123287%'>GitHub(59)</a> <a href='/blog/tags/github/' style='font-size: 100.20547945205479%'>Github(1)</a> <a href='/blog/tags/gmail/' style='font-size: 103.28767123287672%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.43835616438356%'>GNU(7)</a> <a href='/blog/tags/go/' style='font-size: 100.61643835616438%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 101.43835616438356%'>Google(7)</a> <a href='/blog/tags/gpu/' style='font-size: 100.20547945205479%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 101.02739726027397%'>HHKB(5)</a> <a href='/blog/tags/homebrew/' style='font-size: 117.67123287671232%'>Homebrew(86)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.46575342465754%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.82191780821918%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.41095890410959%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 103.28767123287672%'>IoT(16)</a> <a href='/blog/tags/iphone/' style='font-size: 102.46575342465754%'>iPhone(12)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.82191780821918%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.41095890410959%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.34246575342466%'>JavaScript(26)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.61643835616438%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.82191780821918%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.93150684931507%'>Karabiner(24)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.20547945205479%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.64383561643835%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.20547945205479%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.20547945205479%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.15068493150685%'>Linux(64)</a> <a href='/blog/tags/liquid/' style='font-size: 100.41095890410959%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.61643835616438%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(292)</a> <a href='/blog/tags/markdown/' style='font-size: 102.46575342465754%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.84931506849315%'>Music(9)</a> <a href='/blog/tags/network/' style='font-size: 105.75342465753425%'>Network(28)</a> <a href='/blog/tags/octopress/' style='font-size: 124.65753424657534%'>Octopress(120)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.41095890410959%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.61643835616438%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.82191780821918%'>Pocket(4)</a> <a href='/blog/tags/powershell/' style='font-size: 101.64383561643835%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 101.84931506849315%'>PR(9)</a> <a href='/blog/tags/prompt/' style='font-size: 100.61643835616438%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.87671232876713%'>PuTTY(14)</a> <a href='/blog/tags/python/' style='font-size: 106.98630136986301%'>Python(34)</a> <a href='/blog/tags/qi/' style='font-size: 101.02739726027397%'>Qi(5)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.20547945205479%'>Rakuten(1)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 101.23287671232876%'>RaspberryPi(6)</a> <a href='/blog/tags/ruby/' style='font-size: 102.87671232876713%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 107.8082191780822%'>screen(38)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.87671232876713%'>sentaku(14)</a> <a href='/blog/tags/shopping/' style='font-size: 105.54794520547945%'>Shopping(27)</a> <a href='/blog/tags/slack/' style='font-size: 100.20547945205479%'>Slack(1)</a> <a href='/blog/tags/svn/' style='font-size: 100.41095890410959%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 101.02739726027397%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.41095890410959%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.43835616438356%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.87671232876713%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 101.02739726027397%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.82191780821918%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 118.4931506849315%'>Vim(90)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.9041095890411%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.23287671232876%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.23287671232876%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.41095890410959%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 127.73972602739727%'>Windows(135)</a> <a href='/blog/tags/word/' style='font-size: 100.20547945205479%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.43835616438356%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.47945205479452%'>Zsh(51)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/02/01/compouter-chrome/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180201_chrome_120_90.png" width="120" height="90" alt="20180201_chrome_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/02/01/compouter-chrome/">Google Chrome上でマウスカーソルが消えてしまう場合の対処法</a><br><span class="views">1915 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2017/03/03/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20170303_key_120_90.jpg" width="120" height="90" alt="20170303_key_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2017/03/03/computer-windows/">ノートPCのキーボードのボタン一つだけが壊れた時の対処法</a><br><span class="views">1030 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/05/16/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180516_macdic_120_90.jpg" width="120" height="90" alt="20180516_macdic_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/05/16/computer-mac/">Macで勝手に英文先頭が大文字になったり二重ハイフンが大きなハイフンになったりするのを止める</a><br><span class="views">976 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2016/11/27/computer-android/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20161127_android_120_90.jpg" width="120" height="90" alt="20161127_android_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2016/11/27/computer-android/">Androidで、プロセス「system」は応答していません、が出てまともに起動出来ないときの対処法</a><br><span class="views">930 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4534054890' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/518QWm86x9L._SS90_CR0,0,120,90_.jpg' alt='「数字」が読めると本当に儲かるんですか?'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2018/09/05/computer-bash-zsh/">シェルスクリプトで数字かどうか判断する方法(exprだけじゃない)</a><br><span class="views">762 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://b.st-hatena.com/images/append.gif' alt='append'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2020 - rcmdnk -
+    <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<script>
+  window.GoogleAnalyticsObject = 'ga';
+  if (!('ga' in window)){
+    ga = function(){
+      ga.q.push(arguments);
+    };
+  }
+  ga.l = (new Date()).getTime();
+  ga.q = [['create', 'UA-39086461-1', 'auto'], ['send', 'pageview'], ['require', 'linkid', 'linkid.js']];
+</script>
+<script src="//www.google-analytics.com/analytics.js" async defer></script>
+
+
+<script>(function(w,d,s,l,i){
+           w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+         })(window,document,'script','dataLayer','GTM-MRN6WBX');</script>
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2019/08/19/computer-git-github/';
+  var disqus_url = 'https://rcmdnk.com/blog/2019/08/19/computer-git-github/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+
+
+
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery//jquery.min.js" defer></script>
+  <![endif]-->
+  
+
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" defer></script>
+  <!--<![endif]-->
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/git/",
+        "name": "Git"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>
