@@ -1,0 +1,1045 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-11T22:46:49+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Vim (Neovim)起動時にPythonの仮想環境を準備する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/08/11/computer-vim/"/>
+    <updated>2020-08-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/08/11/computer-vim</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0899SR52S?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0899SR52S&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51joaz95UyL._SS200_.jpg" alt="Vimが好きになる本 (技術の泉シリーズ（NextPublishing）)" /></a>
+</div>
+
+<p>NeovimではPythonを使ったプラグインがありますが、
+そのPythonを仮想環境から呼んでやることも出来ます。</p>
+
+<p>Pythonを使ったプラグインを使う際には
+<a href="https://github.com/neovim/pynvim">pynvim</a>(旧<code>neovim</code>)というパッケージが入っていないと
+動かない場合がありエラーが出たりします。</p>
+
+<p>ユーザーの全体環境に入れてしまっても良いのですが、
+エラーを吐かずに気づかずに使えてない場合とかもあるので、
+できれば初期設定としてどの環境でも同じにしたいところです。</p>
+
+<p>そこで<strong>.vimrc</strong>の中で仮想環境がなければ作って
+それを使うようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#設定" id="markdown-toc-設定">設定</a></li>
+  <li><a href="#各所の説明" id="markdown-toc-各所の説明">各所の説明</a>    <ul>
+      <li><a href="#実行するかどうかのチェック" id="markdown-toc-実行するかどうかのチェック">実行するかどうかのチェック</a></li>
+      <li><a href="#python3チェック" id="markdown-toc-python3チェック">Python3チェック</a></li>
+      <li><a href="#インストール場所" id="markdown-toc-インストール場所">インストール場所</a></li>
+      <li><a href="#仮想環境構築" id="markdown-toc-仮想環境構築">仮想環境構築</a></li>
+      <li><a href="#仮想環境を使う設定" id="markdown-toc-仮想環境を使う設定">仮想環境を使う設定</a></li>
+    </ul>
+  </li>
+  <li><a href="#チェック" id="markdown-toc-チェック">チェック</a></li>
+  <li><a href="#アップデート方法" id="markdown-toc-アップデート方法">アップデート方法</a></li>
+  <li><a href="#deinの自動インストール" id="markdown-toc-deinの自動インストール">Deinの自動インストール</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="設定">設定</h2>
+
+<p><strong>.vimrc</strong>の最初の方に、以下のようなブロックを追加します。</p>
+
+<figure class="code"><figcaption><span>.vimrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">if has('nvim') &amp;&amp; !filereadable(expand('~/.vim_no_python'))
+</span><span class="line">  let s:python3 = system('which python3')
+</span><span class="line">  if strlen(s:python3) != 0
+</span><span class="line">    let s:python3_dir = $HOME . '/.vim/python3'
+</span><span class="line">    if ! isdirectory(s:python3_dir)
+</span><span class="line">      call system('python3 -m venv ' . s:python3_dir)
+</span><span class="line">      call system('source ' . s:python3_dir . '/bin/activate &amp;&amp; pip install neovim flake8 jedi')
+</span><span class="line">    endif
+</span><span class="line">    let g:python3_host_prog = s:python3_dir . '/bin/python'
+</span><span class="line">    let $PATH = s:python3_dir . '/bin:' . $PATH
+</span><span class="line">  endif
+</span><span class="line">endif</span></code></pre></td></tr></table></div></figure>
+
+<p>以下各所の説明。</p>
+
+<h2 id="各所の説明">各所の説明</h2>
+
+<h3 id="実行するかどうかのチェック">実行するかどうかのチェック</h3>
+
+<pre><code>if has('nvim') &amp;&amp; !filereadable(expand('~/.vim_no_python'))
+</code></pre>
+
+<p>Vimでもシンタックスチェックでpipで入れた実行ファイルを使いたい場合とかも
+ありますが、最近は
+<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>
+入れる環境ではすべてNeovimを使ってるので余計なことをしないように、ということで
+Neovimの場合だけ。</p>
+
+<p>さらに、もしこれを入れたくない環境があったらHOMEに<strong>.vim_no_python</strong>というファイルを
+置いておけば無視するようになります。</p>
+
+<h3 id="python3チェック">Python3チェック</h3>
+
+<pre><code>let s:python3 = system('which python3')
+if strlen(s:python3) != 0
+</code></pre>
+
+<p>これで<code>python3</code>が環境にある場合だけ以下を行います。</p>
+
+<h3 id="インストール場所">インストール場所</h3>
+
+<pre><code>let s:python3_dir = $HOME . '/.vim/python3'
+</code></pre>
+
+<p>仮想環境は<strong>~/.vim/</strong>の下に<code>python3</code>という名前で作ることにしました。</p>
+
+<h3 id="仮想環境構築">仮想環境構築</h3>
+
+<pre><code>if ! isdirectory(s:python3_dir)
+  call system('python3 -m venv ' . s:python3_dir)
+  call system('source ' . s:python3_dir . '/bin/activate &amp;&amp; pip install neovim flake8 jedi')
+endif
+</code></pre>
+
+<p>仮想環境のディレクトリがない場合、<code>-m venv</code>で新たな仮想環境を作ります。
+そして、その環境下に<code>pip</code>で必要なパッケージを入れます。</p>
+
+<pre><code>  call system('source ' . s:python3_dir . '/bin/activate')
+  call system('pip install neovim flake8 jedi')
+</code></pre>
+
+<p>みたいに2つに分けてしまうと、2つ目では仮想環境下ではなくユーザーの通常環境への
+インストールになってしまうのでまとめて(<code>system</code>は恐らくサブプロセスを呼ぶだけなのでここで行ったものは維持されない。以下にある<code>PATH</code>の設定とかも<code>system</code>の中で<code>export</code>とかしても意味が無い)。</p>
+
+<h3 id="仮想環境を使う設定">仮想環境を使う設定</h3>
+
+<pre><code>let g:python3_host_prog = s:python3_dir . '/bin/python'
+let $PATH = s:python3_dir . '/bin:' . $PATH
+</code></pre>
+
+<p>1つ目がPythonを使うモジュールが使うPythonの指定。
+<code>g:python3_host_prog</code>という値に仮想環境の場所の中のPythonを指定してあげればOK。</p>
+
+<p>2つ目が仮想環境下にインストールされた実行ファイル(<code>flake8</code>とか)を使うための設定。
+上の仮想環境を使う設定をしてもPythonを直接呼ぶだけで、いわゆる手元で<code>activate</code>した状態、とは違って
+シェルのPATHとかは通らないので、インストールしたコマンドを使いたい場合には
+この様に別途PATHを通す必要があります。</p>
+
+<blockquote>
+  <p><a href="https://vim.fandom.com/wiki/Environment_variables">Environment variables  Vim Tips Wiki  Fandom</a></p>
+</blockquote>
+
+<p>せっかく入れるので最優先で見るように一番前に追加。</p>
+
+<h2 id="チェック">チェック</h2>
+
+<p>Neovimを立ち上げて<code>:checkhealth</code>コマンドを打ってみると、</p>
+
+<pre><code>## Python 3 provider (optional)
+  - INFO: Using: g:python3_host_prog = "/home/user/.vim/python3/bin/python"
+  - INFO: Executable: /home/user/.vim/python3/bin/python
+  - INFO: Python version: 3.8.5
+  - INFO: pynvim version: 0.4.1
+  - OK: Latest pynvim is installed.
+</code></pre>
+
+<p>みたいな感じの部分があるかと思います。
+ここできちんと<code>g:python3_host_prog</code>が指定されていて、
+<code>pynvim</code>のパッケージもちゃんと入っていればOK。</p>
+
+<p>他のコマンド類もちゃんと使えるか、</p>
+
+<pre><code>:echo system('which flake8')
+</code></pre>
+
+<p>とかしてみて、ちゃんと
+<code>/home/user/.vim/python3/bin/flake8</code>で見つかればOK。</p>
+
+<h2 id="アップデート方法">アップデート方法</h2>
+
+<p>この方法で作ると手動でアップデートするか、ディレクトリを一旦消すかしないと
+仮想環境がアップデートされません。</p>
+
+<p>たまに手でやってもよいのですが、
+普段、Homebrewのパッケージやらなにやらを毎日cronでアップデートしていて、
+その中でNeovimのプラグインもアップデートしているので
+その前にディレクトリを削除して再構築するようにしてみます。</p>
+
+<figure class="code"><figcaption><span>update.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="nb">type</span> nvim &gt;<span class="p">&amp;</span> /dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nv">vim_proc</span><span class="o">=</span><span class="k">$(</span>pgrep -l -f <span class="s2">&quot;nvim -c&quot;</span><span class="p">|</span>cut -d <span class="s1">&#39; &#39;</span> -f <span class="m">1</span><span class="k">)</span>
+</span><span class="line">  <span class="k">if</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$vim_proc</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nb">echo</span> <span class="s2">&quot;previous nvim -c is still running, kill it.&quot;</span>
+</span><span class="line">    <span class="nb">kill</span> -kill <span class="s2">&quot;</span><span class="nv">$vim_proc</span><span class="s2">&quot;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line">  rm -rf ~/.vim/python3
+</span><span class="line">  nvim -c <span class="s2">&quot;silent call dein#update()&quot;</span> -c <span class="s2">&quot;quit&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>前半部分はたまにスタックしてしまう場合があったので、
+残ってたら強制削除して新たに始めるにするためのもの。</p>
+
+<p>その後で仮想環境を削除して、
+プラグインのアップデートを呼んでいます。</p>
+
+<p>プラグインはDeinでやってるのでその<code>update</code>を呼んでいます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00L8P0R6I?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00L8P0R6I&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61AOinx9z-L._SS90_CR0,0,120,90_.jpg" alt="be quiet! 静音PC電源 80PLUS GOLD認証 DARK POWER PRO 10シリーズ 750W 国内正規代理店品" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/03/10/computer-vim/">NeoBundleからDein.vimへの移行</a></div></li></ul>
+
+<p>このときにNeovimが立ち上がるのでPythonの仮想環境がインストールされます。</p>
+
+<p>これを適当な時間に</p>
+
+<pre><code>30 12 * * * /path/to/update.sh
+</code></pre>
+
+<p>みたいに設定して呼んであげればOK(上のは毎日お昼の12:30。ずっと動かしてるサーバーとかなら深夜とか使わない時間にしたほうが良いです。)</p>
+
+<h2 id="deinの自動インストール">Deinの自動インストール</h2>
+
+<p>同じ様な初期インストールをDeinに関しても行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4760860096?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4760860096&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41CGhPHUoVL._SS90_CR0,0,120,90_.jpg" alt="対話的な学び: アクティブ・ラーニングの1つのキーポイント (教育フォーラム)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/08/20/computer-vim/">Vim起動時にdeinを使うかどうか対話的に設定する(confirm())</a></div></li></ul>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>この辺の初期環境構築に関しては、毎回Vim(Neovim)起動時にチェックすることになるので、
+別の仕組みで行った方が良いとは思います。</p>
+
+<p>ただ、最初の構築時に数秒かかる程度で、一回作ってしまえばほとんど負荷はかかりません。
+それを全部<strong>.vimrc</strong>の中で出来てしまうならそれで良いかな、という感じ。</p>
+
+<p>アップデートに関しても、適当なタイムスタンプ付けたファイルを作っておいて、
+それ見ながらもし期限切れになってたら再構築、
+みたいなことを<strong>.vimrc</strong>の中でやっても良いかな、とも思いましたが、
+それはやりすぎかな、というのと、
+上の様に別のところで毎日動かしてるcronがあるのでそれに乗ったほうが良いな、という感じです。</p>
+
+<p>ちなみにPython2に関しては作ってないです。
+大概のプラグインがPython3があればそちらを使うのでなくても問題がないので。
+あと、Python2だと<code>pip install virtualenv</code>する必要があったりひと手間かかるので。
+今後消えゆくPython2は無理に入れる必要はないかな、と。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actions使うWindows環境にリモートデスクトップアクセスする]]></title>
+    <link href="https://rcmdnk.com/blog/2020/08/10/computer-windows-github/"/>
+    <updated>2020-08-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/08/10/computer-windows-github</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1533103852?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1533103852&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XYnJFLlKL._SS200_.jpg" alt="Remote Desktop Services Windows Server 2012 R2: Design, Deployment and Management (Rds Pocket Consultant)" /></a>
+</div>
+
+<p><a href="https://rcmdnk.com/blog/2020/08/09/computer-windows-github/">前回</a>、
+CI/CDサービスのAppVeyorを使う際に、実行するWindows環境にリモートデスクトップ
+で入ってチェックすることをやってみましたが、
+GitHub ActionsもWindows環境が使えるわけで、
+そこにアクセスする方法について調べてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#appveyorでのリモートデスクトップアクセス" id="markdown-toc-appveyorでのリモートデスクトップアクセス">AppVeyorでのリモートデスクトップアクセス</a></li>
+  <li><a href="#github-actionsでのリモートデスクトップアクセス" id="markdown-toc-github-actionsでのリモートデスクトップアクセス">GitHub Actionsでのリモートデスクトップアクセス</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="appveyorでのリモートデスクトップアクセス">AppVeyorでのリモートデスクトップアクセス</h2>
+
+<p>以下参照:</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/08/09/computer-windows-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200809_win_120_90.jpg" width="120" height="90" alt="20200809_win_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/08/09/computer-windows-github/">AppVeyorで何故か失敗しているのをリモートデスクトップで入って確かめる</a></div></li></ul>
+
+<h2 id="github-actionsでのリモートデスクトップアクセス">GitHub Actionsでのリモートデスクトップアクセス</h2>
+
+<p>公式にAppVeyorの様な方法は出されて居ないようです。</p>
+
+<p>動いているVM自体に直接アクセスすることは出来なそうですが、</p>
+
+<p>以下の様に外部サービスを経由して接続している人がいました。</p>
+
+<div class="github-widget" data-repo="nelsonjchen/reverse-rdp-windows-github-actions"></div>
+
+<p>やっていることはリモートデスクトップのポートを外部の参照できるサーバーに飛ばして
+そこにアクセスする、という方法。</p>
+
+<p>ワークフローの例<a href="https://github.com/nelsonjchen/reverse-rdp-windows-github-actions/blob/master/.github/workflows/reverse_rdp.yml">reverse_rdp.yml</a>
+を見るとわかりますが、
+この際に
+<a href="https://ngrok.com/">ngrok</a>
+という、そういったポートを飛ばして公開できる様なサービスを使っています。</p>
+
+<p>これだとこのポート飛ばしを行った状態で止まり続け、その先続けるためには
+リモートデスクトップでアクセスしてngrokのプロセスをkillする、とかしかありません。</p>
+
+<p>もしくは上のREADMEにあるようにジョブ自体をキャンセルしてしまうか。</p>
+
+<p>なのでAppVeyorの様な使い方は出来ませんが、
+途中で止まってしまって良くわからない、とか、
+一通り終わったけど良くわからないエラーが起きている、とか言う場合には
+使えそうです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AppVeyorで何故か失敗しているのをリモートデスクトップで入って確かめる]]></title>
+    <link href="https://rcmdnk.com/blog/2020/08/09/computer-windows-github/"/>
+    <updated>2020-08-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/08/09/computer-windows-github</id>
+    <content type="html"><![CDATA[<p>GitHubと連携できるCI/CDサービスでWindows環境も使える
+<a href="https://www.appveyor.com/">AppVeyor</a>
+でログだけ見ても良くわからないエラーが出たので
+実行しているWindowsにリモートデスクトップでログインしてエラーを分析してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#appveyor" id="markdown-toc-appveyor">AppVeyor</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#リモートデスクトップの設定" id="markdown-toc-リモートデスクトップの設定">リモートデスクトップの設定</a></li>
+  <li><a href="#今回の問題" id="markdown-toc-今回の問題">今回の問題</a></li>
+  <li><a href="#解決法" id="markdown-toc-解決法">解決法</a></li>
+  <li><a href="#github-actionsでのリモートデスクトップアクセス" id="markdown-toc-github-actionsでのリモートデスクトップアクセス">GitHub Actionsでのリモートデスクトップアクセス?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="appveyor">AppVeyor</h2>
+
+<p><a href="https://www.appveyor.com/">AppVeyor</a>
+はGitHubと連携できるCI/CDサービスで
+Windows環境を使えるサービスは少ないのでWindowsを使いたいときはよく使われてました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/09/26/computer-windows-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190926_appveyornewproject_120_90.jpg" width="120" height="90" alt="20190926_appveyornewproject_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/09/26/computer-windows-github/">AppVeyorでGitHubのリリースにビルドしたファイルを追加する</a></div></li></ul>
+
+<p>(ただ最近はGitHub Actionsが出来てWindowsも使えるのであれかも。)</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>とかでテストやリリース用のバイナリを
+コンパイルするのに使ってます。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>最近新しいリリースを作ったらバイナリが作られず、ログを見てみると
+コンパイルしているところで止まっっていました。</p>
+
+<p>具体的には
+<a href="https://github.com/AutoHotkey/Ahk2Exe">Ahk2Exe</a>
+というアプリでAutoHotkeyのスクリプトをexeファイルに変換する部分で止まっていました。</p>
+
+<p>止まった状態で最終的にタイムアウト(60分)経って失敗する、という感じ。</p>
+
+<p>このアプリは細かいデバッグログを吐く様な設定が無いし、
+手元のWinodwsだと何も問題なく動くのでどうもわからない状態でした。</p>
+
+<p>そこで実際にコンパイルしている環境に入って見てみることに。</p>
+
+<h2 id="リモートデスクトップの設定">リモートデスクトップの設定</h2>
+
+<p>AppVeyorでは実行しているWindowsのVMにリモートデスクトップ(RDP)でアクセスすることが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://www.appveyor.com/docs/how-to/rdp-to-build-worker/">Accessing Windows build worker via Remote Desktop (RDP)  AppVeyor</a></p>
+</blockquote>
+
+<p>上にある通りやればOK。</p>
+
+<p>AppVeyorの設定ファイル<strong>.appveyor.yml</strong>で、
+<code>init</code>のセクションに</p>
+
+<pre><code>init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+</code></pre>
+
+<p>と、リモートデスクトップを有効にする設定を入れます。
+これをするとこれ以降の部分でスクリプトを実行している間リモートデスクトップでログイン出来るようになります。</p>
+
+<p>これを設定して実行すると、AppVeyorのウェブから見えるログに、</p>
+
+<pre><code>iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+Remote Desktop connection details:
+  Server: XX.XXX.XXX.XXX:XXXXX
+  Username: appveyor
+  Password: XXXXXXXXXXXXXXX
+Build paused. To resume it, open a RDP session to delete 'Delete me to continue build.txt' file on Desktop.
+</code></pre>
+
+<p>といった表示の状態でAppVeyorのページで見れるログの表示が止まる様になります。</p>
+
+<p>ここにログインに必要なサーバー、ユーザー名(必ず<code>appveyor</code>)、パスワードの情報が表示されます。</p>
+
+<p>この状態でリモートデスクトップを立ち上げて上の通りに接続してあげれば
+実行している環境にログイン出来ます。</p>
+
+<p>パスワードは何も設定してないと毎回自動的に決めて上の様に表示してくれますが、
+そのプロジェクトの<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Environment</strong>
+から<code>APPVEYOR_RDP_PASSWORD</code>という値を決めておくと上の<code>Password</code>表示がなくなり、
+<code>APPVEYOR_RDP_PASSWORD</code>がパスワードになります。</p>
+
+<p>または<strong>.appveyor.yml</strong>の<code>environment</code>セクションで<code>APPVEYOR_RDP_PASSWORD</code>の値を
+設定することでも同様になります。</p>
+
+<pre><code>environment:
+  - APPVEYOR_RDP_PASSWORD: XXXXXXXXXXXXX
+</code></pre>
+
+<p>ログインしたらWindowsなのでコマンドプロンプトを立ち上げて実行スクリプトを手で
+実行してみたり色々試すことが出来ます。</p>
+
+<p>これだと実行スクリプトが一通り終わると立ち上がったVMも終了してしまい、
+すぐに終わるスクリプトだとログインする暇も無いですが、
+すべて終わった状態で調べたい場合には
+代わりに終了時に以下を実行する様に設定:</p>
+
+<pre><code>on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+</code></pre>
+
+<p><code>$blockRdp = $true;</code>加えることでこれを実行した箇所でスクリプト自体が止まる様になり、
+その状態でログイン出来るようになります。</p>
+
+<p>これは別に<code>on_finish</code>でなくても良くて、</p>
+
+<pre><code>build_script:
+  - cmd echo test1
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - cmd echo test2
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - ...
+</code></pre>
+
+<p>みたいな感じで止めたいところに複数置くことが出来ます。</p>
+
+<p><code>$blockRdp = $true;</code>な状態でログインするとデスクトップに
+<strong>Delete me to continue build.txt</strong>というファイルがあります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200809_rdp.jpg" alt="20200809_rdp" class="pic" /></p>
+
+<p>このファイルを消すとブロック状態が終わってスクリプトが先に進んでいきます。</p>
+
+<p>その後に止まるところがなければ全部終了してVMも落ちるので
+接続したままでもそのうちサーバー側がなくなって切断します。</p>
+
+<p><code>init</code>セクションなどで
+<code>$blockRdp = $true</code>なしでログインした場合にはスクリプトが終わるまでログイン出来る状態になっています。</p>
+
+<h2 id="今回の問題">今回の問題</h2>
+
+<p>さて、上の様にしてログインしてみると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200809_ahk2exe.jpg" alt="20200809_ahk2exe" class="pic" /></p>
+
+<p>みたいなのが出てました。</p>
+
+<p>この</p>
+
+<pre><code>Error: Unable to copy AutoHotkeySC binary file to destination.
+</code></pre>
+
+<p>でググってみるとこのバイナリが別プロセスで実行中だったりすでにこのファイルがあったり、
+だとか言う話が出てきましたが、
+調べてみると<strong>C:\Users\appveyor\AppData\Local\Temp\ **には</strong>~Ahk2Exe~build**というフォルダすらない状態。</p>
+
+<p>で、どうやら単に<strong>C:\Users\appveyor\AppData\Local\Temp~Ahk2Exe~build\vim_ahk~exe~xxxxxxx.tmp</strong>
+というファイルが書き込めない、という状態らしい。</p>
+
+<p>試しに<strong>C:\Users\appveyor\AppData\Local\Temp~Ahk2Exe~build</strong>というフォルダを手動で作ってやると
+コマンドが成功しました。</p>
+
+<p>パーミッションか何かおかしいのかな、と思ってちょっと調べてみます。</p>
+
+<pre><code>C:\Users\appveyor&gt;dir /q C:\Users\appveyor\AppData\Local\Temp
+ Volume in drive C is Windows
+ Volume Serial Number is D4AB-4044
+
+ Directory of C:\Users\appveyor\AppData\Local\Temp
+
+08/09/2020  08:54 AM    &lt;DIR&gt;          APPVYR-WIN\appveyor    .
+08/09/2020  08:54 AM    &lt;DIR&gt;          APPVYR-WIN\appveyor    ..
+08/09/2020  08:54 AM    &lt;DIR&gt;          BUILTIN\Administrators 1
+               0 File(s)              0 bytes
+               3 Dir(s)  44,071,612,416 bytes free
+
+C:\Users\appveyor&gt;
+</code></pre>
+
+<p>ということで、<strong>Temp</strong>の下に<strong>1</strong>という管理者が作ったものはありますが、
+<strong>Temp</strong>自体は<code>appveyor</code>ユーザーのもので特におかしくない模様。</p>
+
+<p>実際、上にも書いてますが、フォルダから手動でも作れましたし、コマンドで、</p>
+
+<pre><code>C:\Users\appveyor&gt;mkdir "C:\Users\appveyor\AppData\Local\Temp\~Ahk2Exe~build"
+</code></pre>
+
+<p>としても作れました。なのでパーミッションの問題、
+というよりはフォルダがない状態でその中に書き込もうとしてるの問題という感じ。</p>
+
+<p>ちょっと色々やってみようと、</p>
+
+<pre><code>SET AHKPath=C:\Program Files\AutoHotkey
+"%AHKPath%\compiler\ahk2exe.exe" /in vim.ahk /out build/vim_ahk.exe
+</code></pre>
+
+<p>というコマンドを</p>
+
+<pre><code>SET AHKPath=C:\Program Files\AutoHotkey
+"%AHKPath%\compiler\ahk2exe.exe" /in vim.ahk /out build/vim_ahk.exe /bin "%AHKPath%\compiler\AutoHotkeySC.bin
+</code></pre>
+
+<p>としてみても特に変わらず(相変わらずAutoHotkeySCをコピーしようとする)。</p>
+
+<p><strong>ahk2exe.exe</strong>はそのまま実行するとGUIで使えるので、
+GUIを立ち上げて上の入出力ファイルを設定してConvertしてみると
+<strong>C:\Users\appveyor\AppData\Local\Temp~Ahk2Exe~build</strong>
+がなくても成功します。</p>
+
+<p>どうやらコマンドとして実行するときだけ一時ファイルを使う?</p>
+
+<p>試しにローカル環境で<strong>Temp</strong>にファイルが出来るかどうか見てみると、</p>
+
+<pre><code>**C:\Users\user\AppData\Local\Temp\~temp507510843.tmp**
+</code></pre>
+
+<p>みたいに<strong>Temp</strong>直下に一時ファイルが出来ていました。
+GUIでやると何も出来ず。</p>
+
+<p>手元のWindowsはWindows 10、AppVeyorはWindows Server 2012 R2 Datacenter。
+AutoHotkeyは手元が
+1.1.31.00、
+Appveyorでは最新の1.1.33.2。</p>
+
+<p>まず、Windowsの違いで<strong>%TEMP%</strong>か<strong>%TMP%</strong>の値が違うのか、と思って<code>cmd: echo %TEMP%</code>とかで見てみると
+とちらも
+<strong>C:\Users\appveyor\AppData\Local\Temp</strong>
+で特に変わらず。</p>
+
+<p>AutoHotkeyのバージョンも違いますが、関係ないかな、と思いながら手元のAutoHotkeyをアップデートして試してみると、
+同じエラーが出ました。。。</p>
+
+<p>どうやらAutoHotkeyのバージョンのせいらしい。</p>
+
+<p>AutoHotkeyの現在のレポジトリは以下。</p>
+
+<div class="github-widget" data-repo="Lexikos/AutoHotkey_L"></div>
+
+<p>で、ちゃんと理解してないですが、おそらく上のメインのレポジトリで作られるsetupファイルで、
+実際にインストールするときに入れられるAhk2Exeは以下。</p>
+
+<div class="github-widget" data-repo="AutoHotkey/Ahk2Exe"></div>
+
+<p>これらを見ても上の様な問題がIssueになったりはしてません。</p>
+
+<p><a href="https://www.autohotkey.com/boards/viewtopic.php?t=65095">Upcoming Ahk2Exe Changes (2019) - AutoHotkey Community</a></p>
+
+<p>この辺のところを見ても特になし。</p>
+
+<p>調べてみると1.1.32.00では問題なく、1.1.33.00から問題が起こっている模様。
+1.1.33.00が今年の6月に作られたもの。</p>
+
+<p>問題があればIssueとかになってても良さそうなものですが、
+そもそもAhk2Exeを使ってバイナリ化する、ということがそれほどないかもしれませんし、
+GUIを使う人はあれ、コマンドとして実行する、というのが稀すぎて気づかれてないだけかも?</p>
+
+<p>もうちょっと調べてIssueとかに投げてみます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2020/08/10 </strong></p>
+
+  <p>いくつかの環境で再現したのと、version 1.1.32.00だと出なくて1.1.33.00で出てきたものだということまで確認出来たのでIssueを投げておきました。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/AutoHotkey/Ahk2Exe/issues/68">Unable to copy error by command line · Issue #68 · AutoHotkey/Ahk2Exe</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2020/08/10 </strong></p>
+
+  <p>上のIssueで返事をいただきましたが、問題はvim_ahkのコンパイルのときに、</p>
+
+  <pre><code>"%AHKPath%\compiler\ahk2exe.exe" /in vim.ahk /out build/vim_ahk.exe
+</code></pre>
+
+  <p>としていて、最後のexeの出力でパスの区切りに<code>/</code>を使ってることでした。
+v1.33.00の時点で、一時ファイルの作り方を改善したらしく、
+出力ファイルの名前も使うようになり、パスをパースするする際に
+Windows的なバックスラッシュを使うのでスラッシュがあるとおかしな変換になり、
+結果ディレクトリを余計に作る様な状態に陥ってしまっていたようです。
+(<code>/</code>をパスの区切りとしたり、そうでなかったりするWindowsの弊害。。。)</p>
+
+  <p>ということで、上のものを</p>
+
+  <pre><code>"%AHKPath%\compiler\ahk2exe.exe" /in vim.ahk /out build\vim_ahk.exe
+</code></pre>
+
+  <p>とすれば(最後の<code>build/</code>の部分が<code>build\</code>に)<code>%TEMP%</code>直下に直接一時ファイルを作るようになり、上記のエラーは出なくなります。</p>
+
+  <p>こちらのレポジトリまで見に来てくれてバグを見つけてくれて、
+作者の人にはホント感謝(すいません、お騒がせしました)。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="解決法">解決法</h2>
+
+<p>上にも書いたとおりフォルダが無いのが問題なので、コンパイルを実行する前に
+<strong>%TEMP%</strong>の下にディレクトリを作ってやればよいわけですが、
+手元の環境でもなるということで、コンパイルするためのスクリプトの中に入れてしまいます。</p>
+
+<figure class="code"><figcaption><span>build.bat </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bat"><span class="line"><span></span><span class="k">SET</span> <span class="nv">AHKPath</span><span class="p">=</span>C:\Program Files\AutoHotkey
+</span><span class="line"><span class="k">SET</span> <span class="nv">AHK_TEMP</span><span class="p">=</span><span class="s2">&quot;</span><span class="nv">%TEMP%</span><span class="s2">\~Ahk2Exe~build&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="k">not</span> <span class="k">exist</span> <span class="s2">&quot;</span><span class="nv">%AHK_TEMP%</span><span class="s2">&quot;</span> <span class="k">mkdir</span> <span class="s2">&quot;</span><span class="nv">%AHK_TEMP%</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">&quot;</span><span class="nv">%AHKPath%</span><span class="s2">\compiler\ahk2exe.exe&quot;</span> /in vim.ahk /out build/vim_ahk.exe
+</span></code></pre></td></tr></table></div></figure>
+
+<p>な感じ。</p>
+
+<p>取り敢えずAhk2Exeでfixされるまで。</p>
+
+<h2 id="github-actionsでのリモートデスクトップアクセス">GitHub Actionsでのリモートデスクトップアクセス?</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1533103852" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XYnJFLlKL._SS90_CR0,0,120,90_.jpg" alt="Remote Desktop Services Windows Server 2012 R2: Design, Deployment and Management (Rds Pocket Consultant)" /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/08/10/computer-windows-github/">GitHub Actions使うWindows環境にリモートデスクトップアクセスする</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[日本語含めてソートしたときに最初と最後に来る文字]]></title>
+    <link href="https://rcmdnk.com/blog/2020/08/02/computer-google/"/>
+    <updated>2020-08-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/08/02/computer-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4542201295?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4542201295&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS200_.jpg" alt="JIS漢字字典" /></a>
+</div>
+
+<p>何か保存してあるものを見るときに、ファイル名とかでソートされて表示されたときに
+日本語があるとどのようなものが最初と最後に来るか問題。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#順序を上手く制御したい" id="markdown-toc-順序を上手く制御したい">順序を上手く制御したい</a></li>
+  <li><a href="#最初と最後に置く" id="markdown-toc-最初と最後に置く">最初と最後に置く</a></li>
+  <li><a href="#漢字の文字コード" id="markdown-toc-漢字の文字コード">漢字の文字コード</a></li>
+  <li><a href="#記号を含めると" id="markdown-toc-記号を含めると">記号を含めると</a></li>
+  <li><a href="#どの文字を使えばよいか" id="markdown-toc-どの文字を使えばよいか">どの文字を使えばよいか?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="順序を上手く制御したい">順序を上手く制御したい</h2>
+
+<p>GmailのラベルとかEvernoteとかでノートブックを作っていく際、ノートブック名を適当につけていくと
+表示順の変更が出来ないので、<code>a</code>とか<code>あ</code>とかの文字が最初にあればそれが上の方に来ます。</p>
+
+<p>ただ、自分的な優先度はその通りにはなってないことが多いのでなんとかしたいと思います。</p>
+
+<p>そんな時は、</p>
+
+<pre><code>0_重要
+1_Todo
+2_仕事
+3_買い物
+</code></pre>
+
+<p>とか、最初に数字を付けておくと良い感じに制御できます。(もっと多い場合は<code>123_</code>とか桁数を増やして)</p>
+
+<h2 id="最初と最後に置く">最初と最後に置く</h2>
+
+<p>ただ、そこまでしなくても、要らなくなったら一番下に、欲しいものは上に、位でも結構便利に使えます。</p>
+
+<p>最初、というのは比較的簡単で、記号を使ってないのであれば<code>0</code>を先頭につけておけば最初に来ます。</p>
+
+<p>最後は数字アルファベットだけなら<code>Z</code>を付けておけばよいわけですが、
+日本語が入ってくるとそうは行きません。</p>
+
+<p>ひらがな、カタカナ、漢字のような順ですが、漢字はどの様になってるか、という話。</p>
+
+<h2 id="漢字の文字コード">漢字の文字コード</h2>
+
+<p>漢字はJIS規格で第一水準、第二水準、などという区画に分かれているということですが、
+普段使うのは第二水準くらいまでのものです。</p>
+
+<p>それぞれの文字コードは以下がわかりやすいです。</p>
+
+<blockquote>
+  <p><a href="http://ash.jp/code/unitbl21.htm">Unicode対応 文字コード表(JIS第一水準漢字)</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="http://ash.jp/code/unitbl22.htm">Unicode対応 文字コード表(JIS第二水準漢字)</a></p>
+</blockquote>
+
+<p>これを見ると、第二水準漢字の<code>熙</code>(キ)(SJIS: 0xEAA4, UTF-16: 0x7199)が最後になっています。</p>
+
+<p>第一水準だと<code>腕</code>(SJIS: 0x4F57, UTF-16: 0x8155)。</p>
+
+<p>実際、漢字や平仮名だけを並べてこの文字を最初に持つファイルとかを並べると最後に来てくれます。</p>
+
+<h2 id="記号を含めると">記号を含めると</h2>
+
+<p>ただちょっと良くわからない文字を使うのもあれなので、他に無いかということで
+記号も含めてみます。</p>
+
+<p>ただ、上の文字コード表のJIS第一水準漢字の方には全角記号も含まれていて、
+それらは文字コード上は小さい方に入っています。</p>
+
+<p>なので使えないかな、と思ったらそういうわけではなく、OSやアプリによって
+記号をどの様に処理するか、は違う模様。</p>
+
+<blockquote>
+  <p><a href="https://yoruboshi.diarynote.jp/201408170059253179/">エクスプローラーの名前順</a></p>
+</blockquote>
+
+<p>こんな話があって、エクスプローラーだと</p>
+
+<ul>
+  <li>全角スペース(SJIS: 0x3000, UTF-16: 0x8140)が数字とかをも抜いて一番上に来る</li>
+  <li>ダッシュ(―, SJIS: 0x815C, UTF-16: 0x2015)が最後に来る。</li>
+  <li>長音記号ー, SJIS: 0x815B, UTF-16: 0x30FC)がその前。</li>
+</ul>
+
+<p>とのこと。Windows 10のエクスプローラーでみてみましたが、
+手元の環境だと確かにこれらは漢字や数字より前や後ろに来てましたが、
+長音記号の方がダッシュより後に来ていました。</p>
+
+<p>全角スペースに関しては、通常のハイフン(-, SJIS=UTF-16: 0x002D)の方がさらに上に来ていました。
+ビックリマーク(!, SJIS=UTF-16: 0x0021)は全角スペースより下でした。</p>
+
+<p>このハイフンに似通った記号はたくさんありますが良くわからない振る舞いしてます。</p>
+
+<p>ただ、これはあくまでエクスプローラーでの話で、
+例えばExcelでm知恵見ると、長音記号がダッシュより下には来ますが、
+さらに全角スペースが一番下に来ます。</p>
+
+<p>そもそもExcelだと数字が特別扱いされるので、どの文字よりも一番上に来るようになり、
+それと合わせてスペースも少し別の扱いをされてる?みたいです。</p>
+
+<p>似たようなGoogleスライドで見てみると、今度は数字の次に全角スペース、その後に
+ダッシュ記号、長音記号が来て、その後にアルファベットやひらがな、漢字が来ました。</p>
+
+<p>さらに、ビックリマークはダッシュと長音記号の間に来るようになってました。</p>
+
+<p>どれもUTFな文字コード順ともSJISな順とも言い切れないような形で、
+なかなか複雑なようです。。。</p>
+
+<h2 id="どの文字を使えばよいか">どの文字を使えばよいか?</h2>
+
+<p>記号だと場所によって違うみたいなのでやはり漢字を使うべきか?</p>
+
+<p>日本語を含む名目を整理したい場合、先頭に持ってきたければ取り敢えず<code>0_</code>で良いかな、とは思います。
+他の記号をわざわざ付けてることは通常無いと思うので。</p>
+
+<p>後ろの方に回すにはどうすればよいか、というのが難しいところですが、<code>熙_</code>を付けておけば取り敢えず後ろに回せますが、なんなのか、という感じはします。</p>
+
+<p>JIS第二水準漢字の上の方に<code>鮨</code>、<code>丼</code>とか一部普段も使いそうなものや、人名に使われそうなものはありますが、全体的にそこまで使われてるわけでもないかな、という感じもするので、
+なんとなく使いやすそうな文字を探してみると、
+<code>囗</code>(イ、コク, SJIS: 0x9A98, UTF-16: 0x56D7、<code>口</code>(クチ)じゃない)がスペース的な感じで良さげかな、と。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Vim emulation using Karabiner-Elements (on macOS)でメニューバーに状態表示させたり通知でお知らせしたり]]></title>
+    <link href="https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim/"/>
+    <updated>2020-07-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim</id>
+    <content type="html"><![CDATA[<p>macOS上のVim以外の部分でVimな動作をKarabiner-Elementsを使って
+再現しようとして作ったVim emulationに関して、
+これまで今どういう状態にあるか、はパット見わからない状態でした。</p>
+
+<p>そこで、メニューバーに状態を表示したり変更時に通知を出したりできるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim-emulation-using-karabiner-elements" id="markdown-toc-vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</a></li>
+  <li><a href="#モードインジケーターの実装" id="markdown-toc-モードインジケーターの実装">モードインジケーターの実装</a></li>
+  <li><a href="#通知" id="markdown-toc-通知">通知</a></li>
+  <li><a href="#メニューバー" id="markdown-toc-メニューバー">メニューバー</a></li>
+  <li><a href="#windowsでは" id="markdown-toc-windowsでは">Windowsでは</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</h2>
+
+<p><a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>
+は言わずとしれたmacOS上でキーマップを自在に出来るツールです。</p>
+
+<p>色々な設定も公開されています。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">karabiner-elements-complex_modifications</a></p>
+</blockquote>
+
+<p>これとは別に個人的に公開してるのが以下のもの。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<div class="github-widget" data-repo="rcmdnk/KE-complex_modifications"></div>
+
+<p>この中にVim emulationがあります。</p>
+
+<p>本家の方にもViモードとかありますが、より色々なことができるようになっています。
+(上の方のに入れようかと思ってたんですが、スクリプトをあまりに変更しすぎて統一するのが大変そうだったのでできてない。。。)</p>
+
+<p>Vim emulationを有効にするとではメモ帳などの上で<i class="key">ESC</i>を押すと
+<strong>ノーマルモード</strong>に入って
+<i class="key">H</i>、<i class="key">J</i>、<i class="key">K</i>、<i class="key">L</i>で左下上右に動ける様になったり
+コピーしたり貼り付けたり、ビジュアルモードが使えたりするようになります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170905_vimemu_120_90.jpg" width="120" height="90" alt="20170905_vimemu_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/">Vim以外でVimする: Mac+Karabiner-Elements編</a></div></li></ul>
+
+<h2 id="モードインジケーターの実装">モードインジケーターの実装</h2>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/KE-complex_modifications/issues/6">Visual Indicator of Mode · Issue #6 · rcmdnk/KE-complex_modifications</a></p>
+</blockquote>
+
+<p>前から自分でもやりたいな、とは思ってたんですが、
+Issueでもらったのでやってみました。</p>
+
+<p>実装したのは</p>
+
+<ul>
+  <li><i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>でモード変更時に通知センターを使って通知を出すようにする(もう一回押すと停止する)</li>
+  <li><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>を使ってメニューバーに状態を表示する</li>
+</ul>
+
+<p>の二種類です。</p>
+
+<h2 id="通知">通知</h2>
+
+<p>Vim emulationに</p>
+
+<pre><code>Vim emulation: Enable the display notification when the mode is changed: toggle by Ctrl-Cmd-Shift-v
+</code></pre>
+
+<p>という項目を加わえたので、これをEnableすると使えるようになります。</p>
+
+<p>ただ、他の項目も中で変更があるので、すでにVim emulationを使ってた人は、一旦設定を外し、一覧表の方からも削除して新しいものを入れ直す必要があります。</p>
+
+<p>有効にして、<i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>
+を押すと、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_notification.jpg" alt="20200730_notification.jpg" class="pic" /></p>
+
+<p>こんな感じでモードが変更されるたびに通知が出ます。</p>
+
+<p>実装としては、変更するキーを押した際に</p>
+
+<pre><code>{
+  shell_command: "osascript -e 'display notification \"Normal Mode\" with title \"vim_emu\"'"}]
+}
+</code></pre>
+
+<p>といった感じのシェルコマンドも送るようにして、これによって通知を出しています。</p>
+
+<p>ただ、通知の表示時間はmacOS自体の設定で決まっいて、</p>
+
+<pre><code>$ defaults write com.apple.notificationcenterui bannerTime -int 1 &amp;&amp; killall NotificationCenter
+</code></pre>
+
+<p>とかすると1秒にしたり出来ますが、他の通知も同様になってしまいます。</p>
+
+<p>まあ面倒なことをしようとすれば、毎回現在の設定を取ってきて、一時的に変更して、通知出した後に戻す、とか出来なくも無いわけですが。</p>
+
+<p>もう一つ問題があって、これを有効、無効化出来るようにしてるわけですが、
+これ実はある値が1の時はこれ、0の時はこれ、という2つの別の設定を入れていて、
+設定ファイルが膨大になってしまっています。</p>
+
+<p>なので入れてみたものの、もしかしたらそのうち外すかも。。。</p>
+
+<h2 id="メニューバー">メニューバー</h2>
+
+<p>メニューバーにどうやって表示しようか、と思ったんですが、
+やったことは別のアプリを作って、Karabiner-Elementsの状態を監視して表示する、というもの。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_vem.png" alt="20200730_vem.png" class="pic" /></p>
+
+<p><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>というアプリをrumpsを使って作りました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151116_rumps_test_120_90.jpg" width="120" height="90" alt="20151116_rumps_test_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/">rumpsを使ってPythonで簡単にMacのメニューバーアプリを作る</a></div></li></ul>
+
+<p>Vim emulationではKarabiner-Elementsの中で変数を覚えておける機能を使ってモードの変更を行っていますが、
+それらの値は以下のファイルに記録されています。</p>
+
+<pre><code>/Library/Application Support/org.pqrs/tmp/karabiner_grabber_manipulator_environment.json
+</code></pre>
+
+<blockquote>
+  <p><a href="https://github.com/pqrs-org/Karabiner-Elements/issues/2278">Request for a –get-variables option for cli · Issue #2278 · pqrs-org/Karabiner-Elements</a></p>
+</blockquote>
+
+<p>なので、後はアプリ側でこれを定期的に見に行くようにすれば良いだけ。</p>
+
+<p>rumpsを使えばそういったメニューバーアプリは簡単に作れます。</p>
+
+<p>なのでこれに関してはVim emulationの方は何も変更せず、アプリを入れるだけで使えるようになります。</p>
+
+<p>起動すると、Vim emulationが有効になっていてモードを変えたりしていれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsert.jpg" alt="20200730_menubarinsert.jpg" class="pic" /></p>
+
+<p>こんな感じで現在のモードがメニューバーに表示されます。</p>
+
+<p>ノーマルモードになれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarnormal.jpg" alt="20200730_menubarnormal.jpg" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<p>デフォルトは色付きアイコンですが、グレースケールな方が良ければ、
+オプションで設定できて、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsertgray.jpg" alt="20200730_menubarinsertgray.jpg" class="pic" /></p>
+
+<p>こんな感じで全部がグレースケールなアイコンになります。</p>
+
+<p>rumpsで定期的に実行できる最小単位が1秒なので、変更した後、メニューバーの表示が変わるまでちょっとタイムラグがあります。</p>
+
+<p>ちょっと使ってみた感じでは1秒ごとにチェックしてもシステムに負荷をかけることはないです。</p>
+
+<p>最初はVim emulation側でモード変更時に信号を送って積極的に変更するようなものを考えていたんですが、
+rumpsで簡単に作れてしまったのと、Vim emulation側に手を加えなくてもよいということで
+まずはこれで。</p>
+
+<p>実際作ってみた感じ、このVEMは思った以上にいい感じに出来たと思ってます。</p>
+
+<p>もう1つ欲しい機能としてはVim emulationが有効でないアプリの上に来たときに
+Disabled表示にしたい、というものがあるのですが、</p>
+
+<h2 id="windowsでは">Windowsでは</h2>
+
+<p>Windowsでは
+<a href="https://www.autohotkey.com/">AutoHotkey</a>を使って同じようなものを作っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>最近一番スターがあるレポジトリになってきました。</p>
+
+<p>こちらでは結構前にタスクトレイアイコンとして状態を表示できるようにしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/">AutoHotkeyでのメニューの追加</a></div></li></ul>
+
+<p>AutoHotkey自体がポップアップメッセージを出したりも出来るので、インジケーター的なものもあります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
