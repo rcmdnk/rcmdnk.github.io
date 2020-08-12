@@ -1,0 +1,1502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Zsh | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/zsh/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-12T00:23:20+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LinuxにHomebrewでShellCheckをインストールしたい(が、諦める)]]></title>
+    <link href="https://rcmdnk.com/blog/2020/01/24/computer-linux-bash/"/>
+    <updated>2020-01-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/01/24/computer-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4774186945?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4774186945&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41i956UyusL._SS200_.jpg" alt="[改訂第3版]シェルスクリプト基本リファレンス ──#!/bin/shで、ここまでできる (WEB+DB PRESS plus)" /></a>
+</div>
+
+<p>シェルスクリプトのチェックツールShellCheckをHomebrewでインストールしようとしたら
+ちょっと面倒だった件。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shellcheck" id="markdown-toc-shellcheck">ShellCheck</a></li>
+  <li><a href="#linuxでのshellcheckのインストール" id="markdown-toc-linuxでのshellcheckのインストール">LinuxでのShellCheckのインストール</a></li>
+  <li><a href="#gcc8をwithout-glibcで入れられるように" id="markdown-toc-gcc8をwithout-glibcで入れられるように">gcc@8を–without-glibcで入れられるように</a></li>
+  <li><a href="#without-glibcなgcc8でトライ" id="markdown-toc-without-glibcなgcc8でトライ">without-glibcなgcc@8でトライ</a></li>
+  <li><a href="#without-glibcなgcc9でトライ" id="markdown-toc-without-glibcなgcc9でトライ">without-glibcなgcc@9でトライ</a></li>
+  <li><a href="#gcc7とか" id="markdown-toc-gcc7とか">gcc@7とか</a></li>
+  <li><a href="#gccとか全部なしでやって見る" id="markdown-toc-gccとか全部なしでやって見る">gccとか全部なしでやって見る</a></li>
+  <li><a href="#直接cabal-install" id="markdown-toc-直接cabal-install">直接cabal install</a></li>
+  <li><a href="#諦めて直接" id="markdown-toc-諦めて直接">諦めて直接</a></li>
+  <li><a href="#macでのshecllcheck" id="markdown-toc-macでのshecllcheck">MacでのShecllCheck</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shellcheck">ShellCheck</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/11/26/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20141126_shellcheckcli_120_90.jpg" width="120" height="90" alt="20141126_shellcheckcli_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/11/26/computer-bash-zsh/">シェルスクリプトを簡単にチェックできるShellCheck, Vimでも使える</a></div></li></ul>
+
+<p>ShellCheckはシェルスクリプトの文法をチェックしてくれるツールで、
+Vimとかと連携しておくと捗ります。</p>
+
+<h2 id="linuxでのshellcheckのインストール">LinuxでのShellCheckのインストール</h2>
+
+<p>インストールするのはCentOS 7です。</p>
+
+<p>LinuxbrewがHomebrewに統合されたのを機に、
+ユーザーローカルエリアにインストールするツールはLinuxでもHomebrewで行うようにしてきました。</p>
+
+<p>その話は随分前の話なんですがなんですが、今更ShecllCheckが入ってないことに気が付きました。</p>
+
+<p>ということでインストールしてみようとすると、</p>
+
+<pre><code>$ brew install shellcheck
+Updating Homebrew...
+==&gt; Auto-updated Homebrew!
+Updated 1 tap (homebrew/core).
+No changes to formulae.
+==&gt; Installing dependencies for shellcheck: pandoc
+==&gt; Installing shellcheck dependency: pandoc
+==&gt; Downloading https://hackage.haskell.org/package/pandoc-2.9.1.1/pandoc-2.9.1.1.tar.gz
+Already downloaded: /home/user/.cache/Homebrew/downloads/4292bf61443a19f2a8957e8af9c220e56e8b2d83a1497b14fbbb1715811569f5--pandoc-2.9.1.1.tar.gz
+==&gt; cabal v1-sandbox init
+==&gt; cabal v1-update
+==&gt; cabal v1-sandbox init
+==&gt; cabal v1-install --jobs=32 --max-backjumps=100000 --only-dependencies
+Last 15 lines from /home/user/.cache/Homebrew/Logs/pandoc/04.cabal:
+2020-XX-XX XX:XX:XX +0900
+cabal
+v1-install
+--jobs=32
+--max-backjumps=100000
+--only-dependencies
+gcc-5: error: unrecognized command line option '-no-pie'
+`gcc-5' failed in phase `C Compiler'. (Exit code: 1)
+READ THIS: https://docs.brew.sh/Troubleshooting
+</code></pre>
+
+<p>というエラー。
+探してみるとこんなIssueが。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/linuxbrew-core/issues/10694">shellcheck fails to install · Issue #10694 · Homebrew/linuxbrew-core</a></p>
+</blockquote>
+
+<p>ここで</p>
+
+<pre><code>brew install gcc@8
+brew install shellcheck -svd --cc=gcc-8
+</code></pre>
+
+<p>というのがありますが、ちょっと注意が必要なのは何も考えずに<code>gcc@8</code>を入れると
+<code>glibc</code>が入って環境によっては問題が起こる点。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/05/08/computer-linux-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190208_homebrew_120_90.jpg" width="120" height="90" alt="20190208_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/05/08/computer-linux-homebrew/">Linuxbrew改めHomebrew@Linuxでrelocation errorに対する対処法</a></div></li></ul>
+
+<p><code>gcc</code>には<code>--without-glibc</code>というオプションがあるのですが、<code>gcc@8</code>の<a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc@8.rb">Formula</a>にはその様なオプションはありません。</p>
+
+<p>ということで仕方ないので自作。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-rcmdnkpac/blob/master/rcmdnk-gcc%408.rb">homebrew-rcmdnkpac/rcmdnk-gcc@8.rb at master · rcmdnk/homebrew-rcmdnkpac</a></p>
+</blockquote>
+
+<p><a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc@8.rb">gcc@8のFormula</a>
+に
+<a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc.rb">gccのFormula</a>
+のglibcのところをちょっと足しただけですが。</p>
+
+<p>これで、Linuxで</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/rcmdnk-gcc@8 --without-glibc
+</code></pre>
+
+<p>でglibcなしでgcc@8が入れられます。</p>
+
+<p>これでOK、と思ってたら</p>
+
+<pre><code>$ brew install shellcheck --cc=gcc-8
+Warning: You passed `--cc=gcc-8`.
+You will encounter build failures with some formulae.
+Please create pull requests instead of asking for help on Homebrew's GitHub,
+Discourse, Twitter or IRC. You are responsible for resolving any issues you
+experience while you are running this unsupported configuration.
+==&gt; Installing dependencies for shellcheck: pandoc
+==&gt; Installing shellcheck dependency: pandoc
+Error: An exception occurred within a child process:
+  RuntimeError: The requested Homebrew GCC was not installed. You must:
+    brew install gcc@8
+</code></pre>
+
+<p>どうやら<code>--cc</code>オプションはHomebrewの中でFormulaから処理しているらしく、
+<code>gcc@8</code>の名前で入ってないとだめ、ということに。。。</p>
+
+<p>同じ名前のFormulaを別のTapで入れるとconflictを起こして問題になるので、
+Linuxbrew-coreのFormulaをアップデートするしかありません。</p>
+
+<h2 id="gcc8をwithout-glibcで入れられるように">gcc@8を–without-glibcで入れられるように</h2>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/linuxbrew-core/pull/19054">add –without-glibc option to gcc@X by rcmdnk · Pull Request #19054 · Homebrew/linuxbrew-core</a></p>
+</blockquote>
+
+<p>gccのFormulaを参考にすれば簡単にできるのでgcc@8なども<code>--without-glibc</code>出来るように変更。</p>
+
+<p>Pull Requestを出してある状態ですが、とりあえず自分でFormula(gcc@8.rbなど)を</p>
+
+<pre><code>~/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core/Formula
+</code></pre>
+
+<p>にコピーしてインストール。</p>
+
+<pre><code>$ brew install gcc@8  --without-glibc
+</code></pre>
+
+<p>入りました。</p>
+
+<p>すでにPull Requestはマージされてるので<code>brew update</code>すれば<code>gcc@8</code>なども<code>--without-glibc</code>で入れられるはずです。</p>
+
+<h2 id="without-glibcなgcc8でトライ">without-glibcなgcc@8でトライ</h2>
+
+<p>これでもう一度トライ:</p>
+
+<pre><code>$ brew install shellcheck -svd --cc=gcc-8
+...
+Downloaded   aeson-1.4.6.0
+Starting     aeson-1.4.6.0
+Building     JuicyPixels-3.3.4
+Building     aeson-1.4.6.0
+Completed    hxt-9.3.1.18
+Failed to install JuicyPixels-3.3.4
+Build log ( /tmp/pandoc-20200115-158652-15h1ohp/pandoc-2.9.1.1/.cabal-sandbox/logs/ghc-8.8.1/JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes.log ):
+cabal: Entering directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Configuring JuicyPixels-3.3.4...
+Preprocessing library for JuicyPixels-3.3.4..
+Building library for JuicyPixels-3.3.4..
+[ 1 of 30] Compiling Codec.Picture.InternalHelper ( src/Codec/Picture/InternalHelper.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/InternalHelper.o )
+[ 2 of 30] Compiling Codec.Picture.Metadata.Exif ( src/Codec/Picture/Metadata/Exif.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata/Exif.o )
+[ 3 of 30] Compiling Codec.Picture.Metadata ( src/Codec/Picture/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata.o )
+[ 4 of 30] Compiling Codec.Picture.Tiff.Internal.Types ( src/Codec/Picture/Tiff/Internal/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Types.o )
+[ 5 of 30] Compiling Codec.Picture.Tiff.Internal.Metadata ( src/Codec/Picture/Tiff/Internal/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Metadata.o )
+[ 6 of 30] Compiling Codec.Picture.Types ( src/Codec/Picture/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Types.o )
+&lt;command line&gt;: /lib/libz.so: wrong ELF class: ELFCLASS32
+cabal: Leaving directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Completed    cryptonite-0.26
+Completed    aeson-1.4.6.0
+cabal: Error: some packages failed to install:
+JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes failed during the building phase. The
+exception was:
+ExitFailure 1
+/home/user/.linuxbrew/opt/curl/bin/curl --version
+java -version
+/home/user/.linuxbrew/Homebrew/Library/Homebrew/build.rb (Formulary::FormulaLoader): loading /home/user/.linuxbrew/Homebrew/Library/Taps/linuxbrew/homebrew-xorg/Formula/xorg.rb
+</code></pre>
+
+<p>で止まってしまいます。</p>
+
+<pre><code>Failed to install JuicyPixels-3.3.4
+    Build log ( /tmp/pandoc-20200115-158652-15h1ohp/pandoc-2.9.1.1/.cabal-sandbox/logs/ghc-8.8.1/JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes.log ):
+</code></pre>
+
+<p>の辺が失敗している模様。</p>
+
+<p>このログを見てみると</p>
+
+<pre><code>cabal: Entering directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Configuring JuicyPixels-3.3.4...
+Preprocessing library for JuicyPixels-3.3.4..
+Building library for JuicyPixels-3.3.4..
+[ 1 of 30] Compiling Codec.Picture.InternalHelper ( src/Codec/Picture/InternalHelper.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/InternalHelper.o )
+[ 2 of 30] Compiling Codec.Picture.Metadata.Exif ( src/Codec/Picture/Metadata/Exif.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata/Exif.o )
+[ 3 of 30] Compiling Codec.Picture.Metadata ( src/Codec/Picture/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata.o )
+[ 4 of 30] Compiling Codec.Picture.Tiff.Internal.Types ( src/Codec/Picture/Tiff/Internal/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Types.o )
+[ 5 of 30] Compiling Codec.Picture.Tiff.Internal.Metadata ( src/Codec/Picture/Tiff/Internal/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Metadata.o )
+[ 6 of 30] Compiling Codec.Picture.Types ( src/Codec/Picture/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Types.o )
+&lt;command line&gt;: /lib/libz.so: wrong ELF class: ELFCLASS32
+cabal: Leaving directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+</code></pre>
+
+<p>どうも<code>/lib/libz.so</code>を見てるのが悪いようですが、
+<code>~/.linuxbrew/lib/libz.so</code>にもちゃんとHomebrewで入れたのが入っていて、
+環境変数<code>LD_LIBRARY_PATH</code>にも<code>~/.linuxbrew/lib/libz.so</code>は入っています。</p>
+
+<h2 id="without-glibcなgcc9でトライ">without-glibcなgcc@9でトライ</h2>
+
+<p>もう一つ新しいgccがあるのでそれを入れてみる</p>
+
+<pre><code>$ brew install gcc@9  --without-glibc
+Updating Homebrew...
+==&gt; Auto-updated Homebrew!
+Updated Homebrew from 13f508d0d to 50354852f.
+No changes to formulae.
+==&gt; Downloading https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz
+==&gt; ../configure --with-bugurl=https://github.com/Homebrew/linuxbrew-core/issues --disable-multilib --prefix=/home/user/.linuxbrew/Cellar/gcc@9/9.2.0_1 --libdir=/home/user/.linuxbrew/Cellar/gcc@9/9.2.0_1/lib/gcc/9 --enable-languages=c,c++,objc,obj-c++,fortran --disable-nls --enable-checking=release --program-suffix=-9 --with-gmp=/home/user/.linuxbrew/opt/gmp --with-mpfr=/home/user/.linuxbrew/opt/mpfr --with-mpc=/home/user/.linuxbrew/opt/libmpc --with-isl=/home/user/.linuxbrew/opt/isl --with-pkgversion=Homebrew GCC 9.2.0_1 --without-glibc
+==&gt; make
+Last 15 lines from /home/user/.cache/Homebrew/Logs/gcc@9/02.make:
+/bin/sh ../../gcc/../move-if-change tmp-constrs.h tm-constrs.h
+/bin/sh ../../gcc/../move-if-change tmp-preds.c insn-preds.c
+echo timestamp &gt; s-constrs-h
+/bin/sh ../../gcc/../move-if-change tmp-preds.h tm-preds.h
+echo timestamp &gt; s-preds
+/bin/sh ../../gcc/../move-if-change tmp-condmd.c build/gencondmd.c
+echo timestamp &gt; s-preds-h
+echo timestamp &gt; s-conditions
+rm gcc.pod
+make[3]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build/gcc'
+make[2]: *** [all-stage1-gcc] Error 2
+make[2]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build'
+make[1]: *** [stage1-bubble] Error 2
+make[1]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build'
+make: *** [all] Error 2
+sh: line 1: 193696 Segmentation fault      /usr/bin/gcc --version 2&gt; /dev/null
+READ THIS: https://docs.brew.sh/Troubleshooting
+These open issues may also help:
+llvm: can't pick up gcc-toolchain if run from opt/llvm/bin/clang++  https://github.com/Homebrew/linuxbrew-core/issues/18601
+</code></pre>
+
+<p>ここでsegmentation fault…</p>
+
+<p>これは面倒なのでこれ以上見てません。。。</p>
+
+<h2 id="gcc7とか">gcc@7とか</h2>
+
+<p>もうちょっと前のgccを使ってみてもインストールは出来ましたがshellcheckのインストールで
+<code>gcc@8</code>の場合と同じようになりました。</p>
+
+<h2 id="gccとか全部なしでやって見る">gccとか全部なしでやって見る</h2>
+
+<p>その他、<code>gcc</code>自体も<code>brew rm</code>して、とかもやってみましたが何も上手く行かず。。。</p>
+
+<p>Homebrewではどうやってもうまく行きません。</p>
+
+<h2 id="直接cabal-install">直接cabal install</h2>
+
+<p>shellcheckのインストール時に、<code>cabal</code>を使っているので直接使ってみる</p>
+
+<pre><code>$ cabal install ShellCheck
+</code></pre>
+
+<p>が、これも最初のものと同じエラーが出ます。。。</p>
+
+<h2 id="諦めて直接">諦めて直接</h2>
+
+<div class="github-widget" data-repo="koalaman/shellcheck"></div>
+
+<p>のREADMEに従ってpre-compiledされたものを入れてしまうことにしました。</p>
+
+<pre><code>$ scversion="stable"
+$ wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-${scversion?}.linux.x86_64.tar.xz" | tar -xJv
+$ cp shellcheck-${shellcheck} ~/usr/bin
+</code></pre>
+
+<p>もうこれで良しとしておきます。。。</p>
+
+<h2 id="macでのshecllcheck">MacでのShecllCheck</h2>
+
+<p>Macでも確認したらなぜか入ってなくてHomebrewで再インストールしたのですが、
+その際にBrewfileにすでにあるよ、という
+<a href="https://github.com/rcmdnk/homebrew-file">homebrew-file</a>
+のwarningが出て、おかしいなと思って
+<a href="https://github.com/rcmdnk/Brewfile/blob/master/Brewfile">Brewfile</a>
+の履歴を見ると<code>shellcheck</code>自体は2017年に追加されてそのままでした。
+それだと前のMacのときのものなので、Mac新しくしてからずっと使ってなかった?
+(でも最近でもVimでシェルスクリプトのチェックを見たような気がするが。。。)</p>
+
+<p>確かに再インストール前はVim+Aleでチェックが効いてなかったのが、</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/25/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170925_vimale_120_90.jpg" width="120" height="90" alt="20170925_vimale_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/25/computer-vim/">VimのSyntaxチェッカーをALEにした</a></div></li></ul>
+
+<p>インストール後には効くようになりました、当たり前だけど。</p>
+
+<p>なぞ。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actionsを使ってsentakuのシェルスクリプトに対するテストの実装]]></title>
+    <link href="https://rcmdnk.com/blog/2019/10/15/computer-github-bash-zsh-sentaku/"/>
+    <updated>2019-10-15T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/10/15/computer-github-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsを使っていきたいのでまだテストをきちんと作っていない
+<a href="https://github.com/rcmdnk/sentaku">sentaku</a>のテストを追加しました。</p>
+
+<p>まだ取り敢えず、の状態ですがGitHub Actionsを使っていくスタートとして。</p>
+
+<p>シェルスクリプトなのでbatsを使っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sentaku" id="markdown-toc-sentaku">sentaku</a></li>
+  <li><a href="#bats" id="markdown-toc-bats">bats</a></li>
+  <li><a href="#github-actions" id="markdown-toc-github-actions">GitHub Actions</a></li>
+  <li><a href="#設定" id="markdown-toc-設定">設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sentaku">sentaku</h2>
+
+<p>対話的に入力項目の中から選択が出来るシェルスクリプト製のツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/01/24/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20140124_sentaku.gif" width="120" height="90" alt="20140124_sentaku" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/01/24/computer-bash-zsh/">シェルスクリプトで対話的な選択を出来るようにするスクリプトを作った:sentaku</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/09/30/computer-bash-zsh-sentaku/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20190930_sentakucontentview.gif" width="120" height="90" alt="20190930_sentakucontentview" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/09/30/computer-bash-zsh-sentaku/">sentakuでファイルの中身を選択中に表示する</a></div></li></ul>
+
+<h2 id="bats">bats</h2>
+
+<p>シェルスクリプトのテストツールとして恐らく一番有名なツール。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0002J57FM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0002J57FM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XWTT0N0XL._SS90_CR0,0,120,90_.jpg" alt="BATS~蝙蝠地獄~ コレクターズ・エディション [DVD]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/10/11/computer-github-bash/">Batsを使ったシェルスクリプトのテスト</a></div></li></ul>
+
+<h2 id="github-actions">GitHub Actions</h2>
+
+<p>まだベータ版ですが申し込むと順次使える様になります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190819_githubactions1_120_90.jpg" width="120" height="90" alt="20190819_githubactions1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></div></li></ul>
+
+<p>新しくなってYAML形式のファイルをレポジトリの<strong>.github/workflows/</strong>の中に入れておくと
+条件に応じてActionsが実行されます。</p>
+
+<p>今のところまだベータ版ということもありますが非常にさくさく動いてくれます。</p>
+
+<p>GitHub純正の連携なので、push後の動作はTravis CIなどに比べても早いということのがあると思います。</p>
+
+<h2 id="設定">設定</h2>
+
+<p>レポジトリに<strong>.github/workflows/</strong>というディレクトリを作りそこにActionを定義したYAMLファイルを置くと
+それに応じてGitHub側でActionを起こしてくれます。</p>
+
+<p>今回は以下の様なファイルを用意:</p>
+
+<figure class="code"><figcaption><span>sentaku/.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">CI</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">on</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">]</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">jobs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">function_test</span><span class="p p-Indicator">:</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">runs-on</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v1</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">sudo apt install bats</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cd tests &amp;&amp; ./get_bats_libs.sh</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">        <span class="no">export PATH=$PWD/bin:$PATH</span>
+</span><span class="line">        <span class="no">export TERM=dumb</span>
+</span><span class="line">        <span class="no">./tests/function_check.bats</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>push</code>されたときにUbuntuの環境を用意して、レポジトリを取ってきて<code>bats</code>をインストール、
+必要なライブラリ(bats-assert, bats-support)も取ってきて(<a href="https://github.com/rcmdnk/sentaku/blob/6378b384769320f7b645173530ce82fba82459ce/tests/get_bats_libs.sh">get_bats_libs.sh</a>)
+テストスクリプト
+(<a href="https://github.com/rcmdnk/sentaku/blob/6378b384769320f7b645173530ce82fba82459ce/tests/function_check.bats">function_check.bats</a>)
+を実行、といった感じです。</p>
+
+<p>各部分の説明については
+<a href="https://rcmdnk.com/blog/2019/10/11/computer-github-bash/">前回のポストを</a>参照。</p>
+
+<p>テストスクリプトは取り敢えず全部関数を並べて簡単に出来るものだけテストを入れただけです。</p>
+
+<p>インタラクティブツールなのでちょっとどこまでテストできるかと言うのが難しい。</p>
+
+<p>あと、ちょっと面倒だったのがsentakuの中では<code>tput</code>とかを利用してターミナルの幅(<code>tput cols</code>)の情報を得たり
+カーソルを移動させたりしているわけですが、
+こういったテストではターミナルが定義されてないのでそこで</p>
+
+<pre><code>tput: No value for $TERM and no -T specified
+</code></pre>
+
+<p>といったエラーが出ます。</p>
+
+<p>とりあえずこれを抑えるためには適当な定義として</p>
+
+<pre><code>export TERM=dumb
+</code></pre>
+
+<p>と、ダミーの端末
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+を与えことで<code>tput cols</code>とかに関してはエラーを回避できます。</p>
+
+<p>ただ、これでも完全には回避できなくて、</p>
+
+<pre><code>tput cnorm &gt;/dev/tty 2&gt;/dev/null || tput vs &gt;/dev/tty 2&gt;/dev/null
+</code></pre>
+
+<p>という一度隠したカーソルをもう一度表示するコマンドのところで</p>
+
+<pre><code> sentaku: line 285: /dev/tty: No such device or address
+</code></pre>
+
+<p>というエラーが出てしまいます。</p>
+
+<p>ちょっとこの辺は面倒なのでとりあえずテストを飛ばしています。</p>
+
+<p>pushするとこんな感じで結果が見れます:</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/sentaku/commit/fbb6c432d2f3d0dc85ef66dc3b71045896282b93/checks?check_suite_id=264975133">Merge branch ‘bats’ · rcmdnk/sentaku@fbb6c43</a></p>
+</blockquote>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>GitHub Actionsを使ったテストを作ってみました。</p>
+
+<p>他のレポジトリでも今後はGitHub Actions中心で良いかな、という感じがします。</p>
+
+<p>sentakuのテスト自身に関しては細かい部分のテストはまだしも、
+インタラクテ思った以上に難しそう。。。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Batsを使ったシェルスクリプトのテスト]]></title>
+    <link href="https://rcmdnk.com/blog/2019/10/11/computer-github-bash/"/>
+    <updated>2019-10-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/10/11/computer-github-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0002J57FM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0002J57FM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XWTT0N0XL._SS200_.jpg" alt="BATS~蝙蝠地獄~ コレクターズ・エディション [DVD]" /></a>
+</div>
+
+<p>(Bashの)シェルスクリプトに関してテストを導入するために
+フレームワークとしてBatsを導入します。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#bats" id="markdown-toc-bats">bats</a></li>
+  <li><a href="#batsの使い方" id="markdown-toc-batsの使い方">batsの使い方</a></li>
+  <li><a href="#assertion" id="markdown-toc-assertion">assertion</a></li>
+  <li><a href="#シェルスクリプトでなくても使える" id="markdown-toc-シェルスクリプトでなくても使える">シェルスクリプトでなくても使える</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="bats">bats</h2>
+
+<p>シェルスクリプトのテストツールとして恐らく一番有名なツール。</p>
+
+<p>オリジナルはこちら。</p>
+
+<div class="github-widget" data-repo="sstephenson/bats"></div>
+
+<p>こちらは4年くらい前に更新が止まっていますが、
+個人でメンテナンスを続けていくことが難しくなったときに
+みんなで続けていこうとして使われる様になったのが
+以下のレポジトリ。</p>
+
+<div class="github-widget" data-repo="bats-core/bats-core"></div>
+
+<p><code>bats</code>というアカウントはすでに他に取られていたのでこういう名前になった模様。</p>
+
+<blockquote>
+  <p><a href="https://github.com/sstephenson/bats/issues/150">Call for Maintainers · Issue #150 · sstephenson/bats</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/sstephenson/bats/issues/236">Information about community-maintained fork · Issue #236 · sstephenson/bats</a></p>
+</blockquote>
+
+<p>なので基本的にはbats-coreを使ったほうが新しい機能が入っていたりして良いです。</p>
+
+<p>どちらもインストールするコマンドは<code>bats</code>です。</p>
+
+<p>ただ、<code>bats</code>は<code>yum</code>や<code>apt</code>で入れられますが、これらはオリジナルの方のもので、
+<code>ba-ts-core</code>に関してはまだ用意されていません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/bats-core/bats-core/issues/103">Create bats-core packages to install easilly on linux · Issue #103 · bats-core/bats-core</a></p>
+</blockquote>
+
+<p>bats-coreの方で特に新しい機能としてはbatsファイル探すときに<code>-r</code>によるリカーシブな検索ができるかどうか、というのが一番大きいところです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/bats-core/bats-core/releases">Releases · bats-core/bats-core</a></p>
+</blockquote>
+
+<p>それが必要なければ取り敢えずは古い<code>bats</code>でも使える事は使えます。</p>
+
+<p>Linuxでyumやaptで入れたい場合には古いので我慢するのもあり。</p>
+
+<p>一方、Homebrewにはbats-coreもあります。</p>
+
+<pre><code>$ brew install bats-core
+</code></pre>
+
+<p>で入れられます。<code>bats</code>のFormulaも残っているので、これと同時に入れてしまうとファイルが衝突してしまうので
+気をつけてください。通常<code>bats-core</code>の方だけ入れておけばOKです。</p>
+
+<p>LinuxでもHomebrewを使って<code>bats-core</code>を入れる事もできます。</p>
+
+<h2 id="batsの使い方">batsの使い方</h2>
+
+<p>スクリプト言語の様にShebangに<code>bats</code>を指定してスクリプトを書いていくか、
+書いたスクリプトを<code>bats</code>コマンドの引数に渡すことで実行します。</p>
+
+<figure class="code"><figcaption><span>test.bats </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/usr/bin/env bats</span>
+</span><span class="line">
+</span><span class="line">setup<span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">test_file</span><span class="o">=</span><span class="s2">&quot;./test.txt&quot;</span>
+</span><span class="line">  touch <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">teardown<span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  rm -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;addition using bc&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">result</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span> <span class="m">2</span>+2 <span class="p">|</span> bc<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> -eq <span class="m">4</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;addition using bc (fail)&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">result</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span> <span class="m">2</span>+1 <span class="p">|</span> bc<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">  <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> -eq <span class="m">4</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;check file&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="o">[</span> -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;skip test&quot;</span> <span class="o">{</span>
+</span><span class="line">  skip
+</span><span class="line">  <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;normal command&quot;</span> <span class="o">{</span>
+</span><span class="line">  ls
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのファイル。</p>
+
+<p>各テストユニットは<code>@test "&lt;description&gt;" { &lt;test&gt; }</code>
+といった感じの書式で定義します。</p>
+
+<p>テスト内容はシェルスクリプトで書いていけばOK。</p>
+
+<p>上の例だと最後にテスト演算子(<code>[</code>, <code>]</code>)で最後のチェックを行っているのが多いですが、
+最後のテストのように通常のコマンドだけでもテストは出来ます。</p>
+
+<p>途中でエラーステータスを返す行があればそこで終了です。</p>
+
+<p>また、成功した場合にはコマンドの出力は表示されません、</p>
+
+<p>失敗した場合、その失敗したコマンドが出力を出していればそれも表示します。</p>
+
+<p>また、<code>@test</code>ユニットの中に<code>skip</code>コマンドを入れるとそのテストはスキップされます。</p>
+
+<p>各テストは独立に環境が作られますが、
+<code>setup()</code>関数を定義しておくとここで共通の設定が定義できます。</p>
+
+<p>また<code>teardown()</code>関数ですべてのテストが終わった後の処理を定義することも出来ます。</p>
+
+<p>とりあえず上のファイルを実行して見ると、</p>
+
+<pre><code>$ chmod 755 ./test.bats
+$ ./test.bats
+ ✓ addition using bc
+ ✗ addition using bc (fail)
+   (in test file a.bats, line 19)
+     `[ "$result" -eq 4 ]' failed
+ ✓ check file
+ - skip test (skipped)
+ ✓ normal command
+
+5 tests, 1 failure, 1 skipped
+</code></pre>
+
+<p>と言った具合に結果が出ます。</p>
+
+<p>こんな感じで<code>bats</code>自体が<code>bash</code>で書かれているため
+bash用のテストツールという感じが強いですが、
+使い方としてはコマンドラインで実行できることがらであれば
+そのまま簡単にテストにすることが出来ます。</p>
+
+<h2 id="assertion">assertion</h2>
+
+<p><code>bats</code>の機能だと、各テストの結果として成功か失敗か、しか分からず
+どの様な失敗だったのかちょっと分かりづらいところがあります。</p>
+
+<p>これを解決するために<code>bats</code>用のassertionツールが色々作られていますが、
+以下のものが多分一番使われているもの。</p>
+
+<div class="github-widget" data-repo="ztombol/bats-assert"></div>
+
+<p>使えるのは以下の関数:</p>
+
+<ul>
+  <li>assert: 引数に置く評価が成功する</li>
+  <li>refute: 引数に置く評価が失敗する</li>
+  <li>assert_equal: 第一引数が第二引数に一致</li>
+  <li>assert_success: 直前のコマンドが成功する(終了ステータス0)</li>
+  <li>assert_failure: 直前のコマンドが失敗する(終了ステータス0以外)。引数を与えた場合にはその終了ステータスでの終了。</li>
+  <li>assert_output: 直前コマンドの出力と引数が一致する</li>
+  <li>refute_output: 直前コマンドの出力と引数が一致しない</li>
+  <li>assert_line: 直前コマンドの出力の中に引数と一致する行がある</li>
+  <li>refute_line: 直前コマンドの出力の中に引数と一致する行がない</li>
+</ul>
+
+<p>下4つにある出力との比較には正規表現も使えます。</p>
+
+<p>bats-assertを使うにはまず
+<a href="https://github.com/ztombol/bats-assert">bats-assert</a>、
+<a href="https://github.com/ztombol/bats-support">bats-support</a>
+の2つを用意する必要があります。</p>
+
+<p>適当なディレクトリで、</p>
+
+<pre><code>$ git clone https://github.com/ztombol/bats-assert
+$ git clone https://github.com/ztombol/bats-support
+</code></pre>
+
+<p>しておきます。</p>
+
+<p>これらに対して<code>setup()</code>の中で</p>
+
+<pre><code>setup() {
+  load ./bats-assert/load
+  load ./bats-support/load
+  ...
+}
+</code></pre>
+
+<p>の様に<code>load</code>を使ってレポジトリ内の<code>load</code>ファイルを呼ぶことで
+必要な関数を読み込むことができます。</p>
+
+<p>これらを使って上のテストスクリプトを書き換えると</p>
+
+<figure class="code"><figcaption><span>test_assert.bats </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/usr/bin/env bats</span>
+</span><span class="line">
+</span><span class="line">setup<span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  load ./bats-assert/load
+</span><span class="line">  load ./bats-support/load
+</span><span class="line">
+</span><span class="line">  <span class="nv">test_file</span><span class="o">=</span><span class="s2">&quot;./test.txt&quot;</span>
+</span><span class="line">  touch <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">teardown<span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  rm -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;addition using bc&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">result</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span> <span class="m">2</span>+2 <span class="p">|</span> bc<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">  assert_equal <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> <span class="m">4</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;addition using bc (fail)&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">result</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span> <span class="m">2</span>+1 <span class="p">|</span> bc<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">  assert_equal <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> <span class="m">4</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;check file&quot;</span> <span class="o">{</span>
+</span><span class="line">  assert <span class="o">[</span> -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;skip test&quot;</span> <span class="o">{</span>
+</span><span class="line">  skip
+</span><span class="line">  refute <span class="o">[</span> -f <span class="s2">&quot;</span><span class="nv">$test_file</span><span class="s2">&quot;</span> <span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">@test <span class="s2">&quot;normal command&quot;</span> <span class="o">{</span>
+</span><span class="line">  ls
+</span><span class="line">  assert_success
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じになります。</p>
+
+<p>これを実行すると</p>
+
+<pre><code>$ chmod 755 ./test_assert.bats
+$ ./test_assert.bats
+ ✓ addition using bc
+ ✗ addition using bc (fail)
+   (from function `assert_equal' in file ./bats-assert/src/assert.bash, line 91,
+    in test file test.bats, line 22)
+     `assert_equal "$result" 4' failed
+
+   -- values do not equal --
+   expected : 4
+   actual   : 3
+   --
+
+ ✓ check file
+ - skip test (skipped)
+ ✓ normal command
+
+5 tests, 1 failure, 1 skipped
+</code></pre>
+
+<p>といった出力になります。
+失敗したときに<code>4</code>であるべきところが<code>3</code>であった、という事がわかります。</p>
+
+<p>先程は評価式そのものが表示されるだけだったので
+どういう値になってしまって失敗したか分かりませんでしたが、
+これなら<code>3</code>になってしまった事が分かるので対処しやすくなります。</p>
+
+<h2 id="シェルスクリプトでなくても使える">シェルスクリプトでなくても使える</h2>
+
+<p>Bats自体がBashのシェルスクリプトで作られてることがあり
+Bash用のテストフレームワークと言う面がありますが、
+実際には上記の様にコマンドの結果をチェックすることを行う、という形なので
+Zshでも他の言語で作られたコマンドラインツールでも
+実行結果をチェックすることには使えます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[sentakuでファイルの中身を選択中に表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/30/computer-bash-zsh-sentaku/"/>
+    <updated>2019-09-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/30/computer-bash-zsh-sentaku</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/rcmdnk/sentaku/">sentaku</a>
+で<code>ls</code>などでファイル一覧を渡して選ぶ時に
+現在カーソルがある行のファイルの中身を見れるようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sentaku" id="markdown-toc-sentaku">sentaku</a></li>
+  <li><a href="#ファイルの中身を常に表示する" id="markdown-toc-ファイルの中身を常に表示する">ファイルの中身を常に表示する</a></li>
+  <li><a href="#sによる内容表示" id="markdown-toc-sによる内容表示"><code>s</code>による内容表示</a></li>
+  <li><a href="#表示内容を変更する" id="markdown-toc-表示内容を変更する">表示内容を変更する</a></li>
+  <li><a href="#他のツールでの状況" id="markdown-toc-他のツールでの状況">他のツールでの状況</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sentaku">sentaku</h2>
+
+<div class="github-widget" data-repo="rcmdnk/sentaku"></div>
+
+<p>シェルスクリプトで作った対話的な選択ができるツールです。</p>
+
+<p>pecoだとかfzfと言ったツールと似たような事が出来ます。</p>
+
+<div class="github-widget" data-repo="peco/peco"></div>
+
+<div class="github-widget" data-repo="junegunn/fzf"></div>
+
+<p>sentakuのデフォルトは一覧を表示してVimっぽく<code>j</code>や<code>k</code>などで上下選択する様になっています。</p>
+
+<p>pecoやfzfっぽくしたい場合は<code>sentaku -E</code>としてemacsモードで立ち上げると
+<code>C-n</code>/<code>C-p</code>で上下選択すると同時に、適当なキーを打てばそれで絞り込み検索が出来るので
+pecoやfzfっぽくなります。</p>
+
+<p>シェルスクリプトなのでちょっともっさり感は出てしまいますが、
+中にある関数を直接流用して対話的な選択ができるツールの拡張が
+簡単に?できる様にしてある点が特徴です。
+その辺はほとんど使われてないとは思いますが。。。</p>
+
+<h2 id="ファイルの中身を常に表示する">ファイルの中身を常に表示する</h2>
+
+<p>今回新たに以下の様なオプションを加えました。</p>
+
+<pre><code>-C         Show the file content at the list view
+-R         Show the file content in the right (default: right)
+-U         Show the file content under the list (default: right)
+-L         Number of lines to show the file content under the list (default: 10)
+-S         Show the file content of the colleslponding line at s
+           instead of full line of the selected one
+</code></pre>
+
+<p><code>-U</code>は以前は選択行をハイライトする代わりにアンダーラインを引く、
+というためのオプションでしたが上みたいに揃えるために<code>-U</code>は上で使って
+元々あったアンダーライン用オプションは<code>-u</code>にしました。
+(なぜ元々大文字を使っていたのか思い出せない。。。)</p>
+
+<pre><code>-u         Use underline to show selected line, instead of highlighting.
+</code></pre>
+
+<p>このうち<code>-C</code>/<code>-R</code>/<code>-U</code>を使うとファイルを選択項目としてリストしている時
+選択行がファイルの場合に右側や下側にその内容を表示できる様になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190930_sentakucontentview.gif" alt="20190930_sentakucontentview.gif" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<p>デフォルトが右側表示なので何も設定してなければ<code>-C</code>と<code>-R</code>は同じです。</p>
+
+<pre><code>export SENTAKU_CONTENT_SHOW_UNDER=1
+</code></pre>
+
+<p>の様に環境変数を設定しておくとデフォルト表示が下側表示でになって<code>-C</code>と<code>-U</code>が同じ動作になります。</p>
+
+<p><code>-L</code>は下側に表示する時に内容表示に使う行数です。
+デフォルトは10で<code>-L</code>で変更できる他、</p>
+
+<pre><code>export SENTAKU_CONTENT_LINES=20
+</code></pre>
+
+<p>という環境変数の設定でも変更可能です。</p>
+
+<p>下側表示の場合には十分なスペースが確保出来ない場合には表示されません。
+なのであまり<code>-L</code>や<code>SENTAKU_CONTENT_LINES</code>で大きな数字を指定してしまうと
+表示されない様になってしまうので気をつけてください。</p>
+
+<p>ちなみに中身を表示できるものはテキストファイルのみです。</p>
+
+<p>チェックは<code>file &lt;file&gt;|grep -q text</code>で行っています。</p>
+
+<h2 id="sによる内容表示"><code>s</code>による内容表示</h2>
+
+<p>もともと選択画面で<code>s</code>を押すとその行の文字列を表示する、という機能がありました。</p>
+
+<p>これは長いファイル名だったり文章を選択する際に
+画面に収まる様に切って表示しているので、そういったものの全部を確認するための機能です。</p>
+
+<p>この<code>s</code>を押した際に、文字列を表示する代わりにテキストファイル出あった場合には
+中身を<code>${VISUAL:-less}</code>で開いて確認できるようになります。</p>
+
+<p>上のgifではVISUALがvimに設定されてるのでvimで開いています。
+閉じれば元の選択画面に戻ります。</p>
+
+<h2 id="表示内容を変更する">表示内容を変更する</h2>
+
+<p>選択中に表示するものも<code>s</code>で表示するものも<code>_sf_get_content</code>という関数で取得しています。</p>
+
+<figure class="code"><figcaption><span>sentaku </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_sf_get_content <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="k">if</span> ! file <span class="s2">&quot;</span><span class="si">${</span><span class="nv">_s_inputs</span><span class="p">[</span><span class="nv">$_s_current_n</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">|</span>grep -q text<span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nb">echo</span> <span class="s2">&quot;Not a text file&quot;</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    cat <span class="s2">&quot;</span><span class="si">${</span><span class="nv">_s_inputs</span><span class="p">[</span><span class="nv">$_s_current_n</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>なのでこれを変更してやると該当する行のものに対する好きな情報を表示させることも出来ます。</p>
+
+<p>例えば、<code>ls -l</code>の内容を表示させたいのであれば</p>
+
+<figure class="code"><figcaption><span>file_detail </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line">. sentaku -n
+</span><span class="line">
+</span><span class="line">_sf_get_content <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  ls -l <span class="s2">&quot;</span><span class="si">${</span><span class="nv">_s_inputs</span><span class="p">[</span><span class="nv">$_s_current_n</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">ls <span class="p">|</span> _sf_main -U -L <span class="m">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなスクリプトを作って</p>
+
+<pre><code>$ ./file_detail
+</code></pre>
+
+<p>と実行すれば現在いるディレクトリのファイル一覧を表示して、
+カーソル下のファイルの<code>ls -l</code>の結果を一番下に表示するようなツールが作れます。</p>
+
+<p>もしくは<strong>.bashrc</strong>などで</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>file_detail <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">  <span class="o">(</span>
+</span><span class="line">    . sentaku -n
+</span><span class="line">
+</span><span class="line">    _sf_get_content <span class="o">()</span> <span class="o">{</span>
+</span><span class="line">        ls -l <span class="s2">&quot;</span><span class="si">${</span><span class="nv">_s_inputs</span><span class="p">[</span><span class="nv">$_s_current_n</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line">      <span class="o">}</span>
+</span><span class="line">
+</span><span class="line">    ls <span class="p">|</span> _sf_main -U -L <span class="m">1</span>
+</span><span class="line">  <span class="o">)</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に関数として定義したほうが便利かもしれません。</p>
+
+<p><code>. sentaku -n</code>で関数を読み込んでロードするので、
+現環境を汚さないために<code>()</code>で囲ってサブシェルの中で実行する様にしています。</p>
+
+<h2 id="他のツールでの状況">他のツールでの状況</h2>
+
+<p>元々これをちゃんとsentakuに入れようと思ったのは以下のエントリーを見てから。</p>
+
+<blockquote>
+  <p><a href="https://petitviolet.hatenablog.com/entry/20190708/1562544000">fzfで快適なターミナルライフ - petitviolet_blog</a></p>
+</blockquote>
+
+<p>fzfだと<code>--preview</code>というオプションにコマンドを指定すると
+そのコマンドを選択中の行に対して適用して結果を表示する、というもの。</p>
+
+<p>実はこの様な機能はsentaku自身には入ってませんでしたが、
+拡張例として<code>file_selector</code>というスクリプトで似たようなことができる様にしていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/sentaku/blob/master/bin/file_selector">sentaku/file_selector at master · rcmdnk/sentaku</a></p>
+</blockquote>
+
+<p>また、<code>s</code>による内容確認の変更は
+ゴミ箱ツールのtrashの中でも行っていて、
+これだとファイルの中身や削除した日、元々の場所、現在の実体の位置、
+などが表示される様になっています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/trash"></div>
+
+<p>このゴミ箱ツールもシェルスクリプトで、LinuxでもMacでもどこでも動くので便利です(宣伝)。</p>
+
+<p>というわけで、fzfにpreview機能があってpecoより便利だよ、という話があったので
+sentakuもできるよ、ということにしたかったので本体の方に組み込んでみました。</p>
+
+<p>fzfの<code>--preview</code>オプションの様に表示の内容を変更したい場合には
+上の例の様にスクリプトや関数を作って使って貰えればsentakuでも同じ様な設定が出来ます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>sentakuでファイルの中身を確認しながら選択できる機能を追加しました。</p>
+
+<p>関数などを作って確認する内容を自分で設定することも可能です。</p>
+
+<p>sentakuに関してはシェルスクリプトで作る、ということにこだわってやっていくので、
+もし何か別の面白そうな機能などがありましたら
+<a href="https://github.com/rcmdnk/sentaku/issues">Issues</a>
+とかで提案していただけたら嬉しいです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトで0埋め数字の処理を行うときの注意]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/09/computer-bash-zsh/"/>
+    <updated>2019-09-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/09/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/486158065X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=486158065X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41WzECTiByL._SS200_.jpg" alt="尊徳を発掘する―埋められたゼロからの社会構築論" /></a>
+</div>
+
+<p>シェルスクリプトとかでファイル名やディレクトリ名に数字をつける際、
+桁を合わせるために上の桁を0で埋めたりすることはよくあると思いますが、
+そういった数字を扱うときの注意について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#0埋め" id="markdown-toc-0埋め">0埋め</a></li>
+  <li><a href="#0始まりの文字の8進法扱い" id="markdown-toc-0始まりの文字の8進法扱い">0始まりの文字の8進法扱い</a></li>
+  <li><a href="#起こりうる問題" id="markdown-toc-起こりうる問題">起こりうる問題</a></li>
+  <li><a href="#対処法" id="markdown-toc-対処法">対処法</a></li>
+  <li><a href="#その他の言語での8進法などの扱い" id="markdown-toc-その他の言語での8進法などの扱い">その他の言語での8進法などの扱い</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="0埋め">0埋め</h2>
+
+<p>日付とかをファイル名に付ける際、桁数を合わせるために</p>
+
+<pre><code>file_name=${year}$(printf "%02d" ${month})$(printf "%02d" ${day})
+</code></pre>
+
+<p>みたいにすると、<code>year=2019</code>、<code>month=9</code>、<code>day=8</code>だとすると</p>
+
+<pre><code>file_name=20190908
+</code></pre>
+
+<p>となります。<code>"%02d"</code>は<code>d</code>が整数値で<code>02</code>で2文字分確保、足りない分は左側を0で埋める、という意味になります。
+<code>%2d</code>だと足りない分は空白になります。
+<code>d</code>の代わりに<code>s</code>なら通常の文字列を扱うようになります。</p>
+
+<h2 id="0始まりの文字の8進法扱い">0始まりの文字の8進法扱い</h2>
+
+<p>シェルスクリプトでは変数としては全て単なる文字列で、
+<code>printf</code>などではそのコマンドの中で整数などを判断しますが、
+整数でも8進法や16進法を認識してくれるものもあります。</p>
+
+<p><code>printf</code>とかだと、</p>
+
+<ul>
+  <li><code>0</code>で始まる数字: 8進法</li>
+  <li><code>0x</code>で始まる数字: 16進法</li>
+</ul>
+
+<p>と判断されます。</p>
+
+<pre><code>$ printf "%d\n" 10
+10
+$ printf "%d\n" 010
+8
+$ printf "%d\n" 0x10
+16
+</code></pre>
+
+<p>この時、<code>09</code>などは8進法でありえない数字なのでエラーになり、<code>00</code>を返します。</p>
+
+<pre><code>$ printf "%02d" 09
+bash: printf: 09: invalid number
+00
+</code></pre>
+
+<p>単に<code>a</code>とか文字列を渡した場合も同様のエラーが出ます。</p>
+
+<p>逆に、<code>printf</code>の出力整形で、<code>d</code>は10進法の出力を表していて、<code>o</code>だと8進法、<code>x</code>で16進法を表示することも出来ます。</p>
+
+<pre><code>$ printf "%d\n" 10
+10
+$ printf "%o\n" 10
+12
+$ printf "%x\n" 10
+a
+</code></pre>
+
+<p>これ以外にも算術式でも<code>0</code>/<code>0x</code>が使えます。</p>
+
+<pre><code>$ echo $((010+0x10))
+24
+</code></pre>
+
+<p>ただし、<code>expr</code>や<code>bc</code>では通常0がついてても0を除いた整数値として扱うので注意。</p>
+
+<pre><code>$ expr 010 + 010
+20
+$ expr 010 + 0x10
+expr: not a decimal number: '0x10'
+$ echo 010 + 010|bc
+20
+$ echo 010 + 0x10|bc
+(standard_in) 1: parse error
+</code></pre>
+
+<p><code>bc</code>では<code>ibase=8</code>とかすると入力を8進法にすることができますが、この場合は0などを付けずに入力します。</p>
+
+<pre><code>$ echo "ibase=8;010 + 010"|bc
+16
+</code></pre>
+
+<p><code>ibase=16</code>なら16進法でこの場合も入力数字に<code>0x</code>とかを付けずに。
+(付けるとエラーになります。)</p>
+
+<p>逆に出力を16進法とかに変えたければ<code>obase=16</code>とかを付けます。</p>
+
+<pre><code>$ echo "obase=16;5+5"|bc
+A
+</code></pre>
+
+<h2 id="起こりうる問題">起こりうる問題</h2>
+
+<p>この様な数字の扱いですが、Bashなどのシェルスクリプトでは
+変数自体は単なる文字列なのできちんと確認しないとちょっと問題が起こります。</p>
+
+<p>例えば月を最終的に0埋めの文字列にしたい時。</p>
+
+<p>整形するには</p>
+
+<pre><code>month=$(printf "%02d" {$month})
+</code></pre>
+
+<p>とか変換すれば出来ます。</p>
+
+<p>ただし、 月をスクリプトの引数で設定するようにしたりする時、
+人によっては親切に<code>09</code>などと0を付けて入力してくれるかもしれません。</p>
+
+<p>この場合、上の式で</p>
+
+<pre><code>bash: printf: 09: invalid number
+</code></pre>
+
+<p>というエラーが出てしまいます。</p>
+
+<p>また、<code>date</code>コマンドとかで</p>
+
+<pre><code>date +"%m"
+</code></pre>
+
+<p>とかすると</p>
+
+<pre><code>09
+</code></pre>
+
+<p>と0埋めした状態で返してくれます。</p>
+
+<p>これを上の式に渡せば上の様にエラーになります。</p>
+
+<p>ただ、この問題が起こるのは8月、9月だけなので
+それ以外の月に作ってテストして大丈夫だと思っていると
+8月に入った段階でエラーになってしまいます。
+また、エラーになっても<code>bash -e</code>とかで終了させる様な設定にしてないと
+<code>00</code>という文字列を使って実行してしまい予期せぬ動作をするので危険です。</p>
+
+<p>月の指定であれば08, 09のみが問題で、その他の数字はそのまま正しく出るので良いのですが、
+3桁以上の場合とかなら<code>012</code>は</p>
+
+<pre><code>$ printf "%03d" 012
+010
+</code></pre>
+
+<p>となるのでこれも予期せぬ結果になってしまいます。</p>
+
+<p>なのでこの辺りの0埋め数字を扱う際にはそれぞれのタイミングできちんと確認する必要があります。</p>
+
+<h2 id="対処法">対処法</h2>
+
+<p>0がついてる場合に外してあげてから渡せば問題がなくなります。</p>
+
+<p>上の月の例であれば0が1つつくだけなので</p>
+
+<pre><code>$ month=${month#0}
+</code></pre>
+
+<p>とすれば0が付いてれば消されます。</p>
+
+<p>もうちょっと一般的にやりたければ</p>
+
+<pre><code>$ month=$(echo $month|sed 's/^0*//')
+</code></pre>
+
+<p>みたいに左の0をすべて消すようにsedとかを使えばOK。</p>
+
+<p>ちょっと別の話になりますが、Linux(GNU)だと</p>
+
+<pre><code>$ month=$(echo $month|sed 's/^0\+//')
+</code></pre>
+
+<p>とすれば<strong>0の1回以上の繰り返し</strong>に対応しますが、
+Mac(BSD)だとこの正規表現は使えません。</p>
+
+<p>今回の場合は<code>0*</code>として<strong>0の0回以上の繰り返し</strong>に対応させても同じことなので
+こちらにしておいたほうが移植性があがります。</p>
+
+<p>これらの様に数字をきちんと処理しても良いですが、
+そもそもこの例では数字を計算しているわけではないので
+単に文字列として</p>
+
+<pre><code>$ printf "%02s" $month
+09
+</code></pre>
+
+<p>とすれば<code>month</code>が<code>0</code>でも<code>09</code>でも<code>09</code>という出力になります。
+<code>12</code>とかもそのまま<code>12</code>になります。</p>
+
+<p>単に数字を整形したいだけ、というのであればこ方法が一番確実かと思います。</p>
+
+<h2 id="その他の言語での8進法などの扱い">その他の言語での8進法などの扱い</h2>
+
+<p>Pythonだと</p>
+
+<ul>
+  <li><code>0b</code>始まりで2進法</li>
+  <li><code>0o</code>始まりで8進法</li>
+  <li><code>0x</code>始まりで16進法</li>
+</ul>
+
+<p>を表します。</p>
+
+<pre><code>&gt;&gt;&gt; 10
+10
+&gt;&gt;&gt; 0b10
+2
+&gt;&gt;&gt; 0o10
+8
+&gt;&gt;&gt; 0x10
+16
+</code></pre>
+
+<p>10進法を各進法で表示したければ<code>bin</code>、<code>oct</code>、<code>hex</code>という組み込み関数が使えます。</p>
+
+<pre><code>&gt;&gt;&gt; bin(10)
+'0b1010'
+&gt;&gt;&gt; oct(10)
+'012'
+&gt;&gt;&gt; hex(10)
+'0xa'
+</code></pre>
+
+<p>これらの関数で出力されるのは文字列です。(数字じゃないので注意。)</p>
+
+<p>C++だと</p>
+
+<ul>
+  <li><code>0b</code>始まりで2進法</li>
+  <li><code>0</code>始まりで8進法</li>
+  <li><code>0x</code>始まりで16進法</li>
+</ul>
+
+<p>を表します。</p>
+
+<figure class="code"><figcaption><span>main.cxx </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">){</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="n">b10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mo">010</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mh">0x10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>で</p>
+
+<pre><code>10
+2
+8
+16
+</code></pre>
+
+<p>となります。</p>
+
+<p>Pythonと違って8進法で<code>0o10</code>とかするとエラーになります。</p>
+
+<pre><code>error: unable to find numeric literal operator 'operator""o10'
+</code></pre>
+
+<p><code>cout</code>で各進法で表示したければ
+マニピュレーターを使います。
+<code>std::showbase</code>で<code>0</code>や<code>0x</code>の表示をし、<code>std::oct</code>や<code>std::hex</code>で進法を指定します。
+prefixが必要ないなら<code>std::showbase</code>なしで。(<code>noshowbase</code>で元に戻せします。)</p>
+
+<p>2進法では<code>hex</code>や<code>oct</code>の様なマニピュレーターは無いのでからりに<code>bitset</code>を使い変換し、
+必要であれば<code>0b</code>などは自分で付ける必要があります。</p>
+
+<figure class="code"><figcaption><span>main.cxx </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;bitset&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">){</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">showbase</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">oct</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;0b&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">bitset</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">noshowbase</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">oct</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>出力は</p>
+
+<pre><code>10
+012
+0xa
+0b1010
+12
+a
+</code></pre>
+
+<p>となります。</p>
+]]></content>
+  </entry>
+  
+</feed>
