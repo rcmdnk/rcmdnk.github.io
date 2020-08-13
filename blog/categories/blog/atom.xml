@@ -1,0 +1,1190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Blog | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/blog/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-13T00:24:10+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ブログのビルド環境をGitHub Actionsに変更]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/"/>
+    <updated>2020-04-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/16/blog-octopress-github</id>
+    <content type="html"><![CDATA[<p>これまでこのブログは元のソースコードはBitbucketのプライベートレポジトリで管理し、
+werckerを使ってpushした際にビルドしてGitHubに送ってGitHub pagesを通して公開、
+ということをしていました。</p>
+
+<p>それをソースコードの管理もGitHubに移行して
+ビルドをGitHub Actionsを使ってやるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#githubのプライベートレポジトリへ移行" id="markdown-toc-githubのプライベートレポジトリへ移行">GitHubのプライベートレポジトリへ移行</a></li>
+  <li><a href="#github-actionsのプライベートレポジトリ対応" id="markdown-toc-github-actionsのプライベートレポジトリ対応">GitHub Actionsのプライベートレポジトリ対応</a></li>
+  <li><a href="#werckerのジョブを移行してみる" id="markdown-toc-werckerのジョブを移行してみる">werckerのジョブを移行してみる</a></li>
+  <li><a href="#アクションを作って使う" id="markdown-toc-アクションを作って使う">アクションを作って使う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="githubのプライベートレポジトリへ移行">GitHubのプライベートレポジトリへ移行</h2>
+
+<p>だいぶ前に無料でもプライベートレポジトリが使える様になったり、
+先日無料の利用が強化されて
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+何人とでもプライベートレポジトリを共有できる様になったりと、
+今となってはプライベートレポジトリに関して最も制限が少ないとも
+言えるGitホスティングサービスになってきた<a href="https://github.com/">GitHub</a>なので
+これまで<a href="https://bitbucket.org/">Bitbucket</a>で管理していたブログのソースコード部分をGitHubに移行しました。</p>
+
+<p>Bitbucketはプライベートレポジトリが無料で使える、というだけの理由で
+ブログのソースコードに関してだけ使っていたので。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<h2 id="github-actionsのプライベートレポジトリ対応">GitHub Actionsのプライベートレポジトリ対応</h2>
+
+<p><a href="https://app.wercker.com/">wercker</a>
+はBitbucketやGitHubのプライベートレポジトリも無料で扱える、という理由で使っていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p>それ以外のCIなどは基本的に<a href="https://travis-ci.org/">Travis CI</a>
+を使っていました。</p>
+
+<p>機能などについては、werckerの方はcron的に定期的に自動で走らせる様なことが出来ないなど
+いくつか不満なところがありました。</p>
+
+<p>ただ、Travis CIはプライベートレポジトリを見るためには有料になります。</p>
+
+<p>そんなかGitHub Actionsがリリースされ、最終的にyamlファイルで管理するような
+他のCIサービスと同じ様な使用感になり、
+またやはりGitHubのものということで盛り上がってactionsと呼ばれるモジュールも沢山
+作られてきて良い感じになっています。</p>
+
+<p>環境もMicrosoftの買収が良きに働いてる感じで、
+Azure環境で動いて他のサービスよりサクサク動いている感じ。</p>
+
+<p>使える環境もLinux(Ubuntu)とmacOSに加えてWindowsもあります。
+また、Dockerを使った実行も出来るのである意味なんでもありです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190819_githubactions1_120_90.jpg" width="120" height="90" alt="20190819_githubactions1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></div></li></ul>
+
+<p>GitHub Actionsに関してはGitHubのレポジトリ限定になりますが、
+プライベートレポジトリに関しても無料でも扱えます。</p>
+
+<p>ただし、少し制限があってプライベートレポジトリに関しては無料だと月2000分まで、
+となっています。
+それ以上は従量課金になります。
+(デフォルトの設定だと従量課金部分は0円まで、という制限にしてあって自動でお金がかかることはありません。)</p>
+
+<p>ただし有料版でもTeamで3000分まで、とかなのでこれを使い切る、という以外では
+このために有料にする、という意味はあまり無いかも。</p>
+
+<p>Linuxだと過剰部分は$0.008/minの課金なので
+$8/1000minになって3000分以上使うなら
+Team($4/month)にしたほうが安くなってきますし、macOSだと
+$0.08/minなのでよく使う(毎日2時間とか)なら超えるかもしれませんが。</p>
+
+<p>この辺の料金に関してはまだちょっと記述が古くて<code>Pro</code>の料金と<code>Team</code>の料金が出ています。</p>
+
+<blockquote>
+  <p><a href="https://github.co.jp/features/actions">Actions  GitHub</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/getting-started-with-github-actions/about-github-actions#usage-limits">GitHub Actionsについて - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>ただ、GitHubのプランを直接見ると、そもそも<code>Pro</code>はすでになく、<code>Team</code>が3000分使えるよ、
+とかなっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/pricing">Pricing · Plans for every developer</a></p>
+</blockquote>
+
+<p>今のブログのビルドは大体10分程度なので、毎日1回定期的に更新するジョブと、
+新しくブログを書いた時に多くて1日数回、とかなので
+2000min/monthでも十分な量です。</p>
+
+<h2 id="werckerのジョブを移行してみる">werckerのジョブを移行してみる</h2>
+
+<p>werckerで実行しているジョブを移行しています。</p>
+
+<p>基本的にはyamlファイルに実行コマンドを羅列しているようなもので、
+後はサービスごとに違うのはトリガーの設定や環境の設定などです。</p>
+
+<p>元のwerckerの設定はこんな感じ</p>
+
+<figure class="code"><figcaption><span>wercker.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">box</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ruby</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">no-response-timeout</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">60</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">command-timeout</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">60</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">build</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Initialize git submodules</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">git submodule update --init --recursive</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">set env</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">export RUBYOPT=-EUTF-8</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bundle install</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bundle install</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Octopress generate</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">              <span class="no">rake integrate</span>
+</span><span class="line">              <span class="no">rake generate[&quot;no_minify&quot;] --trace</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">add-ssh-key</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">keyname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">GITHUB_DEPLOY_KEY</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">github.com</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">add-to-known_hosts</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">hostname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">github.com</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">fingerprint</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rsa</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Prepare gitconfig</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">                <span class="no">git config --global user.email &quot;rcmdnk@gmail.com&quot;</span>
+</span><span class="line">                <span class="no">git config --global user.name &quot;rcmdnk&quot;</span>
+</span><span class="line">        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deploy to github pages</span>
+</span><span class="line">            <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">              <span class="no">rake deploy[&quot;push_ex&quot;]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>WerckerではDocker環境を使いますが、RubyのDockerを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170119_werckerenvironment_120_90.jpg" width="120" height="90" alt="20170119_werckerenvironment_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/">werckerのアプリを古いLXCベースからDockerベースに移行</a></div></li></ul>
+
+<p>後は<code>build</code>というジョブの中で<code>steps</code>で実行することを定義してあります。</p>
+
+<p><code>script</code>の<code>code</code>というのがコマンドラインから実行するコマンドそのままのやつです。</p>
+
+<p><code>add-ssh-key</code>などは事前に定義されているモジュールのようなもので
+必要なキーワードを与えて実行させています。</p>
+
+<p>これをGitHub Actionsにしてみるとこんな感じ。</p>
+
+<figure class="code"><figcaption><span>.github/workflows/octopress.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Octopress site CI</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">on</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">push</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">branches</span><span class="p p-Indicator">:</span>
+</span><span class="line">      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">master</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">schedule</span><span class="p p-Indicator">:</span>
+</span><span class="line">      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">cron</span><span class="p p-Indicator">:</span>  <span class="s">&#39;0</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">jobs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">main</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">runs-on</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">submodules</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">recursive</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/setup-ruby@v1</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">ruby-version</span><span class="p p-Indicator">:</span> <span class="s">&#39;2.7&#39;</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bundle insatll</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bundle install</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Octopress generate</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">        <span class="no">rake integrate</span>
+</span><span class="line">        <span class="no">rake generate[&quot;no_minify&quot;] --trace</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Install SSH key</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shimataro/ssh-key-action@v2</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">key</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">known_hosts</span><span class="p p-Indicator">:</span> <span class="s">&#39;github.com</span><span class="nv"> </span><span class="s">ssh-rsa</span><span class="nv"> </span><span class="s">AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==&#39;</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Prepare gitconfig</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">        <span class="no">git config --global user.email &quot;rcmdnk@gmail.com&quot;</span>
+</span><span class="line">        <span class="no">git config --global user.name &quot;rcmdnk&quot;</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deploy to github pages</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+</span><span class="line">        <span class="no">rake deploy[&quot;push_ex&quot;]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>環境はruns-onでUbuntuに設定。</p>
+
+<p><code>steps</code>の中で<code>run</code>となってる部分がコマンドを直接実行する部分で
+werckerの<code>code</code>をそのまま移せば良し。</p>
+
+<p>事前に定義されているモジュール(actions)は<code>uses</code>を使って利用します。</p>
+
+<p>上ではレポジトリを取ってきたり、Rubyの環境を作ったり、
+sshの鍵を登録したり、というところ。</p>
+
+<p>後は最初の部分で<code>on</code>がありますが、これが実行するためのトリガーで、
+<code>master</code>ブランチに<code>push</code>したときか
+毎日0時0分(UTC)に定期実行する様にしています。</p>
+
+<p>細かい書き方(<code>on</code>とか<code>jobs</code>だとか)は公式のドキュメントがよくまとまっていますし、
+上の様に全体的な流れは他のCIサービスと似た様なものなので
+他のCIサービスを使ったことがあればそんなに苦労すること無く移行することが出来ると思います。</p>
+
+<blockquote>
+  <p>各言語環境に関する例など: <a href="https://github.com/actions/starter-workflows/tree/master/ci">starter-workflows/ci at master · actions/starter-workflows</a></p>
+</blockquote>
+
+<h2 id="アクションを作って使う">アクションを作って使う</h2>
+
+<p>今、上の様な作業を日本語版ブログと英語版ブログの両方についてやっています。
+(英語版はほとんど更新してないですが。。。)</p>
+
+<p>ワークフローとしては全く一緒なので、これらを一つのアクションとして定義して
+それを使うようにしてみます。</p>
+
+<p>作ったアクションはこれ。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octopress-action"></div>
+
+<p>これを使うと</p>
+
+<figure class="code"><figcaption><span>.github/workflows/octopress.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Octopress site CI</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">on</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">push</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">branches</span><span class="p p-Indicator">:</span>
+</span><span class="line">      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">master</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">schedule</span><span class="p p-Indicator">:</span>
+</span><span class="line">      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">cron</span><span class="p p-Indicator">:</span>  <span class="s">&#39;0</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">jobs</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">main</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">runs-on</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line">    <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">submodules</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">recursive</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">uses</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rcmdnk/octopress-action@v1</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">ssh_key</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">git_user_email</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rcmdnk@gmail.com</span>
+</span><span class="line">        <span class="l l-Scalar l-Scalar-Plain">git_user_name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rcmdnk</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで各レポジトリのワークフローの定義をシンプルにすることが出来ますし、
+他のレポジトリでの再利用が可能になります。</p>
+
+<p><a href="https://github.com/marketplace?type=actions&amp;query=octopress">GitHub Marketplace</a>
+に公開すれば他の人からも簡単に検索されるようになります。</p>
+
+<p>ここに公開しなくてもパブリックレポジトリならレポジトリさえ知っていれば
+他の人でも使うことは出来ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[IFTTT経由でTweetする際にURLを短縮しないようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/22/blog-ifttt/"/>
+    <updated>2019-08-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/22/blog-ifttt</id>
+    <content type="html"><![CDATA[<div class="app-img">
+  <a href="//itunes.apple.com/jp/app//Twitter,?at=10lc94" rel="nofollow" target="_blank"><img src="http://is3.mzstatic.com/image/thumb/Purple123/v4/90/3d/58/903d582a-0a9f-ca31-b1c5-f42058c360cb/ProductionAppIcon-0-1x_U007emarketing-0-0-GLES2_U002c0-512MB-sRGB-0-0-0-85-220-0-0-0-7.png/200x200bb.jpg" alt="Twitter" /></a>
+</div>
+
+<p>このブログで記事を投稿するとRSSで発信されたのを見てツイートする、
+みたいなことを
+<a href="https://ifttt.com/">IFTTT</a>
+経由で行っていますが、これまでは短縮URLを載せていました。</p>
+
+<p>それを短縮しないURLにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#以前の方法" id="markdown-toc-以前の方法">以前の方法</a></li>
+  <li><a href="#直接ツイートする" id="markdown-toc-直接ツイートする">直接ツイートする</a></li>
+  <li><a href="#設定変更" id="markdown-toc-設定変更">設定変更</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="以前の方法">以前の方法</h2>
+
+<p>相当前に設定したものですが、TwitterがまだURLとかも文字数として数えていて
+普通にURLを貼ってたんじゃ足りない状態でした。</p>
+
+<p>また、今はIFTTTで自動でURLの短縮機能があるのですが、
+確か最初の頃はIFTTTではURLの短縮などなかったと思います。(あったかも)</p>
+
+<p>ということで、やっていたのは
+<a href="https://bitly.com/">Bitly</a>
+というURL短縮サービスを使ってURLの短縮を行ってそれをツイートしていました。</p>
+
+<p>IFTTTのAppletは2つ必要で、</p>
+
+<ul>
+  <li>RSSで新しいポストが来たら &lt;i class=”fa fa-arrow-right”&gt;&lt;/i&gt; Bitlyで短縮URLを作成</li>
+  <li>Bitlyで新しい短縮URLが出来たら &lt;i class=”fa fa-arrow-right”&gt;&lt;/i&gt; URLとタイトルをツイート</li>
+</ul>
+
+<p>という感じでした。これで<strong>bit.ly/XXXX</strong>といった短縮URLで送られます。</p>
+
+<p>2つ目をIFTTTで行う代わりに
+<a href="https://publish.buffer.com/profile/516812888bd7f81e13000004/tab/queue">Buffer</a>
+で短縮URLを取得して決まった時刻に流すようにする、
+みたいなことも一時期していました。</p>
+
+<h2 id="直接ツイートする">直接ツイートする</h2>
+
+<p>最近IoT関係でIFTTTを色々設定するようになったので見直していたところ、
+この辺もアップデートしたいな、と思って直すことにしました。</p>
+
+<p>Twitterではとっくの昔にURLなどは140文字のカウントには入らないようになっています。</p>
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Say more about what&#39;s happening! Rolling out now: photos, videos, GIFs, polls, and Quote Tweets no longer count toward your 140 characters. <a href="https://t.co/I9pUC0NdZC">pic.twitter.com/I9pUC0NdZC</a></p>&mdash; Twitter (@Twitter) <a href="https://twitter.com/Twitter/status/777915304261193728?ref_src=twsrc%5Etfw">September 19, 2016</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>よくわからない短縮URLよりもドメイン名が入っていた方が良いな、と思ったので
+URLをそのまま載せるようにしたいと思います。</p>
+
+<p>bit.lyなんかだとどれだけクリックされたか的な統計も手に入ったりしますが、
+特に見てないので要らないかな、と。</p>
+
+<p>また、Bufferも何やら使いづらくなってることもあって、
+そういうのを挟まずに送ることに。</p>
+
+<p>ということで</p>
+
+<ul>
+  <li>RSSで新しいポストが来たら &lt;i class=”fa fa-arrow-right”&gt;&lt;/i&gt; URLとタイトルをツイート</li>
+</ul>
+
+<p>という単純なものを作りました。</p>
+
+<p>ただ、これだと今度は<strong>ift.tt/XXX</strong>といった短縮URLが送られていました。</p>
+
+<p>IFTTTはデフォルトでURLをツイートする際には短縮URLにしてくれてしまうようです。</p>
+
+<h2 id="設定変更">設定変更</h2>
+
+<p>これは設定から変更することでURLをそのままにすることも出来ます。</p>
+
+<p>Web版の方でログインし、右上の人形マークをクリックして<strong>Acccount</strong>を選びます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190822_iftttaccount.jpg" alt="20190822_iftttaccount.jpg" class="pic" /></p>
+
+<p>そうすると色々設定項目がありますが、下の方に<strong>URL shortening</strong>という項目があるかと思います。</p>
+
+<p>ここにある<strong>Auto-shorten URLs</strong>のチェックを外せばツイートなどにURLを渡す際
+URLをそのまま渡すようになります。</p>
+
+<p>下にあるように、デフォルトでは<strong>ift.tt</strong>を使いますが、
+これはIFTTTがbit.lyのサービスを利用していて、
+自分のbit.lyのアカウントで独自のドメインを使ってる場合にはそれを指定することも出来ます。</p>
+
+<p>で、この設定ですが、なぜか(iPhoneの?)あぷりからだと設定できません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190822_settingsonapp.jpg" alt="20190822_settingsonapp.jpg" class="pic" /></p>
+
+<p>アプリで見るとなぜかこの項目だけ消えてます。
+ちょうど上にある2段階認証をこの時点でしてなかったので試しに設定してみたりもしてみましたが
+やはりアプリには出ません。</p>
+
+<p>もちろｎスマホでもWebからIFTTTのページに行ってログインすればURL shorteningの項目はありました。</p>
+
+<p>単に忘れてるだけなのか何か意図があるのかわかりませんが、
+アプリの設定だけ見て見つからない、という場合には慌てずにWeb版で設定してみてください。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Travis CIでのantが使えなくなっていたので設定アップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/07/blog-travisci/"/>
+    <updated>2019-08-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/07/blog-travisci</id>
+    <content type="html"><![CDATA[<p>このブログはビルドはWerckerを使っていますが、
+その後リンクのチェックなどをするためにもう一度Travis CIでチェックを行っています。</p>
+
+<p>その中で2週間ほど前からチェックするジョブが失敗していたので修復。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#現在のブログのworkflow" id="markdown-toc-現在のブログのworkflow">現在のブログのworkflow</a></li>
+  <li><a href="#travis-ciで起こったエラー" id="markdown-toc-travis-ciで起こったエラー">Travis CIで起こったエラー</a></li>
+  <li><a href="#xenialに対応antを入れる" id="markdown-toc-xenialに対応antを入れる">xenialに対応(antを入れる)</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="現在のブログのworkflow">現在のブログのworkflow</h2>
+
+<p>このブログはOctopressを使っていてGitHub Pagesで公開しています。</p>
+
+<p>その際に元のOctopressで書いている部分はBitBucketのプライベートレポジトリを使って
+管理しています。
+下書きとか特に出して困るものでも無いのですが無駄に公開するのもあれなので。</p>
+
+<p>BitBucketを使っているのは以前はGitHubでは無料でプライベートレポジトリを使えなかったからですが、</p>
+
+<p>そのBitBucketにpushしたコードをCIサービスのWerckerでビルドします。
+ここでWerckerを使ってる理由はWerckerだとプライベートレポジトリでも無料で使えるからです(BitBucketでもGitHubでも)。</p>
+
+<p>その後、出来上がっったHTML達はGitHubにpushされGitHub Pagesの機能を使って公開されます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p>これでブログの公開までは出来ますが、さらにGitHubにpushされたら
+それをTravis CIが受け取ってリンク切れなどのチェックを行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00JBGC8PY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00JBGC8PY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Oo-NwAK-L._SS90_CR0,0,120,90_.png" alt="Link Check Free 1.3" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/11/22/blog-octopress-travisci/">Travis CIを使ってブログのリンクチェックを自動化する</a></div></li></ul>
+
+<p>その後でもう一度GitHubにpushし直していますが、
+これは管理用のページに結果を足して自分で見やすくしているだけです。</p>
+
+<p>まとめるとこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190807_workflow.png" alt="20190807_workflow.png" class="pic" /></p>
+
+<p>BitBucket/GitHub、Wercker/Travis CIと同じ様なサービスを２つずつ使っているのが微妙ですが、
+BitBucketやWerckerは今はここでしか触ってないのでサービスを知っておく機会としても残しておこうかな、と思ってます。</p>
+
+<p>あとはいい加減Octopressを使い続けるのもどうかな、とは常々。
+もう3.0に向けての開発も進んで無いようですし、今後アップデートは期待できません。</p>
+
+<p>ちょっと工夫してビルド時間はこのポスト数でもまともに使えるレベルには出来ていますが、
+普通にビルドしたら1時間じゃ済まないレベルです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003MY4UH0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003MY4UH0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZPJum6cCL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp： Speed Up (With Remixes) [Explicit]: Matt Harder: デジタルミュージック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/18/blog-octopress/">Octopressのgenerateを劇的にスピードアップする</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>そういった事もあって多くの人はHugoに移行している様に見えます。</p>
+
+<p>あとはRubyからGoに移る、というのも個人的にはやりたいかな、と思う理由の一つです。
+Goを触る機会がないのでこれを機に使う様になりたい。</p>
+
+<p>簡単な移行スクリプトでHugoのプロジェクトを作ってビルドしてみたところ確かにビルドのスピードは圧倒的に早かったです。
+上の様な工夫をしなくても数分レベル。</p>
+
+<p>ただプラグインなどを全て使えるようにするのが大変なのでまだ出来ていません。。。
+(何回かトライしようとしては途中で挫折する繰り返し。。。)</p>
+
+<p>これはそのうち。</p>
+
+<p>ちなみにさらに関係のない話になりますが、WerckerがOracleに買収されていて
+<a href="https://wercker.com">https://wercker.com</a>に行くと
+<a href="https://www.oracle.com/corporate/acquisitions/wercker/">Oracle Buys Wercker</a>
+というページに飛ばされる様になっていてちょっとびっくり。
+Werckerは<a href="https://app.wercker.com/">https://app.wercker.com/</a>
+と、<code>app</code>のついたURLからアプリケーションが使える様になっています。
+(Oracleのページってシンプルなので逆に何かフィッシングサイト系な感じに見えてWerckerに行ったはずなのにこのページが出るとちょっとビビる。。。)</p>
+
+<h2 id="travis-ciで起こったエラー">Travis CIで起こったエラー</h2>
+
+<p>話が逸れましたが、上の最後のTravis CIでのリンクチェックなどをしているジョブのセットアップのところで失敗する様になっていました。</p>
+
+<ul>
+  <li>最後に成功したもの: <a href="https://travis-ci.org/rcmdnk/rcmdnk.github.io/builds/562953824">Build #2418 - rcmdnk/rcmdnk.github.io - Travis CI</a></li>
+  <li>失敗が始まったもの: <a href="https://travis-ci.org/rcmdnk/rcmdnk.github.io/builds/563897498">Build #2419 - rcmdnk/rcmdnk.github.io - Travis CI</a></li>
+</ul>
+
+<p>エラーとしては</p>
+
+<pre><code>The program 'ant' is currently not installed. To run 'ant' please ask your administrator to install the package 'ant'
+</code></pre>
+
+<p>というのが出ています。</p>
+
+<p>上の２つのビルドを比べると環境として
+成功したものが</p>
+
+<pre><code>Operating System Details
+Distributor ID:  Ubuntu
+Description:  Ubuntu 14.04.5 LTS
+Release:  14.04
+Codename:  trusty
+</code></pre>
+
+<p>なのに対して失敗したものが</p>
+
+<pre><code>Operating System Details
+Distributor ID:  Ubuntu
+Description:  Ubuntu 16.04.6 LTS
+Release:  16.04
+Codename:  xenial
+</code></pre>
+
+<p>となっていました。</p>
+
+<p>で、Travis CIのJavaプロジェクトのの説明ページを見てみると</p>
+
+<blockquote><p>Because there is no single standard way of installing project dependencies with Ant, you need to specify the exact command to run using install: key in your .travis.yml, for example:</p><footer><strong>Building a Java project - Travis CI</strong> <cite><a href="https://docs.travis-ci.com/user/languages/java/">docs.travis-ci.com/user/java/&hellip;</a></cite></footer></blockquote>
+
+<p>と書いてありました。</p>
+
+<p>ということで原因はTravis CIでデフォルトのLinux環境がUbuntu 14.04.5 trustyからUbuntu 16.04.6 xenialに変わったことで
+antが最初から入っていない状態になっていたからでした。</p>
+
+<p>ちなみにこのチェック用のプロジェクトはJavaではなくて</p>
+
+<pre><code>language: python
+python: 2.7
+</code></pre>
+
+<p>と言った形(.travis.yaml)のPythonのプロジェクトになっていました。
+それでもtrustyだとJavaおよびantは入っていたようです。</p>
+
+<h2 id="xenialに対応antを入れる">xenialに対応(antを入れる)</h2>
+
+<p>ということでantを入れればよいわけですが、Pythonを使いたいのでとりあえずそのままJavaを入れようとすると</p>
+
+<pre><code>addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+</code></pre>
+
+<p>と.travis.yamlに書けば良いような感じなのですが、</p>
+
+<pre><code>E: Package 'oracle-java8-installer' has no installation candidate
+</code></pre>
+
+<p>みたいなエラーが出て駄目。他に古い?記事などで
+<code>oracle-java8-set-default</code>や
+<code>oracle-java8-set-installer</code>
+といったものも見かけたのでやってみるとこれらも</p>
+
+<pre><code>E: Unable to locate package oracle-java8-set-installer
+
+
+E: Unable to locate package oracle-java8-set-default
+</code></pre>
+
+<p>とか出てだめ。ただこれらはあるにはあるみたいなのでなんか設定がおかしいみたいです。</p>
+
+<p>で、特にJavaを他で使ってるわけでもないので動けば良い、ということで
+プロジェクトをJavaにしてPythonは横から入れるようにしました。</p>
+
+<p><code>language</code>などの設定を</p>
+
+<pre><code>dist: xenial
+language: java
+addons:
+  apt:
+    packages:
+      - ant
+</code></pre>
+
+<p>とします。一応今後突然default OSが変わっても良いようにOSも指定。</p>
+
+<p>逆にいうと今ならtrustyを指定すれば元のママ動くのですがそのうち使えなくなるかもしれないのでxenialで動くようにしました。</p>
+
+<p><code>language</code>をJavaにしてantを<code>addons</code>で入れます。</p>
+
+<p>これで試しにやってみると、環境としてPython 2.7が入っているようなのでPythonを別途入れる必要はなさそう。</p>
+
+<p>ただ、<code>pip</code>などでパッケージをインストールしている箇所で</p>
+
+<pre><code>ERROR: Could not install packages due to an EnvironmentError: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/xdg'
+Consider using the `--user` option or check the permissions.
+</code></pre>
+
+<p>みたいなエラーが出てしまいました。</p>
+
+<p>今まであまり意識してませんでしたが、どうも<code>language</code>に指定した言語に関しては
+システム領域の管理権限を持った状態で作業が進められる一方、
+他の部分は通常ユーザーとしていじれない様になっているみたいです。
+(少なくともPythonは。)</p>
+
+<p>特にシステム領域に入れたい理由もないので<code>pip install --user &lt;package&gt;</code>
+みたいな感じで<code>--user</code>を足してユーザー領域に入れるようにしてあげればOK。</p>
+
+<p>最終的に以下の様な変更で動くようになりました。</p>
+
+<figure class="code"><figcaption><span>.travis.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gh">diff --git a/source/.travis.yml b/source/.travis.yml</span>
+</span><span class="line"><span class="gh">index 29144a7a..9f348ba1 100644</span>
+</span><span class="line"><span class="gd">--- a/source/.travis.yml</span>
+</span><span class="line"><span class="gi">+++ b/source/.travis.yml</span>
+</span><span class="line"><span class="gu">@@ -1,9 +1,9 @@</span>
+</span><span class="line"><span class="gd">-language: python</span>
+</span><span class="line"><span class="gd">-python: 2.7</span>
+</span><span class="line"><span class="gd">-#addons:</span>
+</span><span class="line"><span class="gd">-#  apt:</span>
+</span><span class="line"><span class="gd">-#    packages:</span>
+</span><span class="line"><span class="gd">-#      - oracle-java8-set-default</span>
+</span><span class="line"><span class="gi">+dist: xenial</span>
+</span><span class="line"><span class="gi">+language: java</span>
+</span><span class="line"><span class="gi">+addons:</span>
+</span><span class="line"><span class="gi">+  apt:</span>
+</span><span class="line"><span class="gi">+    packages:</span>
+</span><span class="line"><span class="gi">+      - ant</span>
+</span><span class="line"> env:
+</span><span class="line">   global:
+</span><span class="line">     - GIT_COMMITTER_NAME=rcmdnk
+</span><span class="line"><span class="gu">@@ -23,10 +23,10 @@ install:</span>
+</span><span class="line">   - cd ../
+</span><span class="line">   - git clone https://github.com/linkcheck/linkchecker.git
+</span><span class="line">   - cd linkchecker
+</span><span class="line"><span class="gd">-  - pip install -r requirements.txt</span>
+</span><span class="line"><span class="gd">-  - python setup.py install</span>
+</span><span class="line"><span class="gi">+  - pip install --user -r requirements.txt</span>
+</span><span class="line"><span class="gi">+  - python setup.py install --user</span>
+</span><span class="line">   - cd $curdir
+</span><span class="line"><span class="gd">-  - pip install html5validator</span>
+</span><span class="line"><span class="gi">+  - pip install --user html5validator</span>
+</span><span class="line">   - git clone https://github.com/w3c/css-validator.git
+</span><span class="line">   - cd css-validator
+</span><span class="line">   - ant jar
+</span></code></pre></td></tr></table></div></figure>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Google Analytics始まるData Retention controlsについて]]></title>
+    <link href="https://rcmdnk.com/blog/2018/05/15/blog-google/"/>
+    <updated>2018-05-15T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/05/15/blog-google</id>
+    <content type="html"><![CDATA[<p>Google Analyticsを使ってる人には数か月前からリマインダーのメールが
+何度も来てるかと思いますが、
+5月25日からData Retention controls(データ保持コントロール)と呼ばれる機能が有効になります。</p>
+
+<p>デフォルトのままだと今後26ヶ月以上経ったデータは削除されるデータが出てきます。
+ただし全てのデータではなくユーザー個々に関わるデータに関してのみで
+アクセス数などの統計データには影響はありません。</p>
+
+<p>これに関して設定の確認をしてくださいと言われてるので何が必要か見てみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#data-retention-controls" id="markdown-toc-data-retention-controls">Data Retention controls</a></li>
+  <li><a href="#設定変更" id="markdown-toc-設定変更">設定変更</a></li>
+  <li><a href="#設定変更すべきか" id="markdown-toc-設定変更すべきか">設定変更すべきか</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="data-retention-controls">Data Retention controls</h2>
+
+<p>数か月前から何度か<strong>Important Reminder</strong>とか<strong>Action Required</strong>とか言う題名で
+メールが来てましたが
+Data Retention controlsが有効になると以下のようなデータが
+指定した期間より古くなった場合に削除される様になります。</p>
+
+<blockquote><p>保持期間は、Cookie、ユーザーの識別子（例: ユーザー ID）、広告 ID（DoubleClick Cookie、Android の広告 ID、Apple 広告主向け識別子など）に関連付けられたユーザー単位やイベント単位のデータに適用されます。</p><footer><strong>データの保持 - アナリティクス ヘルプ</strong> <cite><a href="https://support.google.com/analytics/answer/7667196">support.google.com/analytics/&hellip;</a></cite></footer></blockquote>
+
+<p>これはヨーロッパで制定された
+<a href="https://ja.wikipedia.org/wiki/EU%E4%B8%80%E8%88%AC%E3%83%87%E3%83%BC%E3%82%BF%E4%BF%9D%E8%AD%B7%E8%A6%8F%E5%89%87">EU一般データ保護規則(General Data Protection Reguration, GDPR)</a>
+に対応するためで、この規則が施行されるのが5月25日なのでその日に合わせて
+Google AnalyticsでもData Retention controlsが有効になるようになっています。</p>
+
+<p>GDPRは個人のデータ保護について今まで以上に強力な規則の様なものです。
+この規則の中でデータ管理者と処理者を分けて考えるところがあり、
+Google Analyticsは処理者で管理者がAnalyticsの使用者になります。</p>
+
+<p>そういった点も含めてAnalytics側としてはユーザーデータに関して一定期間で削除したり
+出来る様にしたようです。</p>
+
+<p>デフォルトでは26ヶ月間のデータ保持期間になっていて
+26ヶ月以上経ったデータについて削除していきます。</p>
+
+<p>なので今から2年以上は何もしなくても消えるものはありませんが、
+それ以降にはこれから取るデータが期間を超えると消えていくことになります。</p>
+
+<p>ただし、これは個々のユーザーのデータに限ったことで
+アクセス数だとかそういった統計的なデータに関しては過去のデータでも消えることはありません。</p>
+
+<h2 id="設定変更">設定変更</h2>
+
+<p>設定を変更したい場合は
+Google Aanlyticsの管理ページから
+各アカウントの<strong>プロパティ</strong>の欄ある<strong>トラッキング情報</strong>をクリックして
+項目を開き<strong>データ保持</strong>をクリックします。</p>
+
+<p>すると以下の様な設定画面が出てくるので
+<strong>ユーザーデータとイベントデータの保持</strong>
+の設定を変更します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20180515_googleanalytics.jpg" alt="google analytics" class="pic" /></p>
+
+<p><strong>14ヶ月</strong>、<strong>26ヶ月</strong>、<strong>38ヶ月</strong>、<strong>50ヶ月</strong>または<strong>自動的に期限切れにならない</strong>から選べるので
+適当な物を選択。</p>
+
+<p><strong>自動的に期限切れにならない</strong>を選べばこれまで通り
+データを保持し続けられます。</p>
+
+<p>下の<strong>新しいアクティビティをリセット</strong>は同じユーザーからのアクセスが有った場合に
+そのユーザーに関連するデータの保持期間を全てリセットするかどうか、という設定です。
+<strong>自動的に期限切れにならない</strong>にしている場合は意味はなくなります。</p>
+
+<p>また、関連するところとして、以前からあるものですが、
+<strong>アカウント設定</strong>のところに<strong>データ処理修正条項</strong>を確認して同意するところがありますが、
+これに関しては特別ヨーロッパ向けのサイトでない限りは無視してかまわないようです。
+(ヨーロッパ向けのサイトの場合はきちんと確認してどうするかする必要がありそうです。)</p>
+
+<h2 id="設定変更すべきか">設定変更すべきか</h2>
+
+<p>このようにユーザーデータを保持し続ける事は出来ますが、
+その意味がない場合は単なるリスクでしか無いので適当に時間を置いて削除する様にしておいた方が無難です。</p>
+
+<p>商用サイトであればそれらのデータを解析してどうこうしたいところだと思いますが、
+単にアクセス数を見てニヤニヤしたいだけならば
+削除されるデータは関係ないものです。</p>
+
+<p>一方、GDPRはヨーロッパ以外の管理者に対しても影響するので、
+下手にユーザーデータを保持し続けていていると極端な場合何らかの訴訟等の対象になりかねません。
+日本語サイトでもヨーロッパからアクセスが無いとも限らないので。</p>
+
+<p>26ヶ月の保持が安全かどうか、どの期間なら良いのか、というのはまだ始まってもないのでわからないところですが、
+意図的に永久保持する様にした場合はきちんと管理しないと問題にされやすいと思います。</p>
+
+<p>とりあえず26ヶ月とかにしておけばすぐに大きな問題にはならないと思います。</p>
+
+<p>また、GDPRでは個人情報の収集などに関しても厳しく規定しているので
+プライバシーポリシーなどの掲示もきちんとしてないと大きな問題になる可能性があるので
+この際その辺も見直しておいた方が良いかと。</p>
+
+<p>ということで、この様な個人データに関して深く解析したり
+使ったりすることもないので、
+とりあえずGoogleが設定したデフォルトのまま26ヶ月のデータ保持ということにしておこうと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub PagesでカスタムドメインでもHTTPS化がサポートされた]]></title>
+    <link href="https://rcmdnk.com/blog/2018/05/02/blog-octopress-github/"/>
+    <updated>2018-05-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/05/02/blog-octopress-github</id>
+    <content type="html"><![CDATA[<p>GitHubのレポジトリにHTMLファイルを置いておくことで公開できる
+GitHub PagesというGitHubのサービスがありますが、
+このサービスでカスタムドメインのHTTPS化がサポートされました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-pages" id="markdown-toc-github-pages">GitHub Pages</a></li>
+  <li><a href="#github-pagesでのカスタムドメインのhttps化サポート" id="markdown-toc-github-pagesでのカスタムドメインのhttps化サポート">GitHub PagesでのカスタムドメインのHTTPS化サポート</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+  <li><a href="#その他ブログでやりたいこと" id="markdown-toc-その他ブログでやりたいこと">その他ブログでやりたいこと</a>    <ul>
+      <li><a href="#hugo化" id="markdown-toc-hugo化">Hugo化</a></li>
+      <li><a href="#netlify" id="markdown-toc-netlify">Netlify</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-pages">GitHub Pages</h2>
+
+<p>GitHubの特定のレポジトリ(<code>user.github.io</code>)を使ったりレポジトリ内の設定で
+特定のブランチを指定するとそのレポジトリに置かれたファイルを<strong>http://user.github.io</strong>という
+URLの元に公開できます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20161212_githubpageserr_120_90.jpg" width="120" height="90" alt="20161212_githubpageserr_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/">GitHub Pagesの仕様がアップデート: Jekyll/Octopressなどで直接ビルド後のサイトを送ってる場合にちょっと注意</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B004HCWUO6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B004HCWUO6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41f02sO4oML._SS90_CR0,0,120,90_.jpg" alt="Page" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/07/10/blog-octopress-githubpages/">GtHub Pagesについて</a></div></li></ul>
+
+<p>このブログもGitHub Pagesで公開しています。</p>
+
+<p>カスタムドメイン(独自ドメイン)を指定することも可能です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon200_120_90.png" width="120" height="90" alt="icon200_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/">rcmdnk.com: 独自ドメインになりました</a></div></li></ul>
+
+<p>ただし、<code>user.github.io</code>の方は2016年ころからHTTPS化のサポートが始まっていましたが
+独自ドメインではサポートされていませんでした。</p>
+
+<p><strong>https:…</strong>としてもアクセスできますが証明書の設定が出来ないので
+警告が出る状態になっていました。</p>
+
+<p>なのでカスタムドメインを使う場合にはCloudflareとかCDNを使って
+HTTPS化をするのがよく使われる手法になっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/03/blog-github-web/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170103_cloudflare_120_90.jpg" width="120" height="90" alt="20170103_cloudflare_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/03/blog-github-web/">CloudflareでGitHub PagesをHTTPS化</a></div></li></ul>
+
+<h2 id="github-pagesでのカスタムドメインのhttps化サポート">GitHub PagesでのカスタムドメインのHTTPS化サポート</h2>
+
+<p>そのGitHub PagesでついにカスタムドメインのHTTPS化のサポートが入りました。</p>
+
+<blockquote>
+  <p><a href="https://blog.github.com/2018-05-01-github-pages-custom-domains-https/">Custom domains on GitHub Pages gain support for HTTPS  The GitHub Blog</a></p>
+</blockquote>
+
+<p>上でポストにあるように、このブログではCNAMEを使った独自ドメイン化をしていますが
+その場合には特に何もしなくてもHTTPSでの接続を行った場合に警告無しで
+接続できるようになるようです。
+この証明書まわりは
+<a href="https://letsencrypt.org/">Let’s Encrypt</a>
+と提携してやっているとのこと。</p>
+
+<p>このままだと<strong>http://…</strong>でも接続できる状態ですが、
+設定で<strong>Enforce HTTPS</strong>をチェックすれば<strong>http://…</strong>に接続しても
+<strong>https://…</strong>に飛ばされる様になります。</p>
+
+<p>さらにはCDNを採用したということで
+より高速なアクセスができるようになったようです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>最近ではHTTPS化が標準とも言われる様な位になってきたので
+可能な限りWebサイトとかをHTTPS化したいところですが、
+GitHub Pagesでもこれでカスタムドメインを入れても簡単にHTTPS化できる様になりました。</p>
+
+<p>Cloudflareとかを使うと色々設定は出来ますが、
+GitHub PagesでもCDNも入ってるので敢えてCloudflareとかを使うメリットもそれほどなくなったかもしれません。</p>
+
+<p>このブログではせっかく設定したし変更し直すのも面倒なのでとりあえずは現行のまま
+GitHub Pages + Cloudflareで行こうと思いますが、
+新しくGitHub Pagesを使おうと思う場合にはGitHub Pagesだけで簡単にHTTPS化が出来て良いと思います。</p>
+
+<h2 id="その他ブログでやりたいこと">その他ブログでやりたいこと</h2>
+
+<h3 id="hugo化">Hugo化</h3>
+
+<p>HTTPS化はとりあえずはCloudflareで出来てるので良いとして、
+他にもいくつかこのブログで変更したら良いかもな、と思ってることがあります。</p>
+
+<p>一つはOctopressをやめて他のものに変更する、という方向。
+現在Octopress 2.Xを使っていますがもう3年くらい前にアップデートは止まっていて、
+3.0のプロジェクトも中途半端なママ2年前からアップデートがない状態です。</p>
+
+<blockquote>
+  <p><a href="https://github.com/octopress/octopress">octopress/octopress: Octopress 3.0 – Jekyll’s Ferrari</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/imathis/octopress">imathis/octopress: Octopress is an obsessively designed framework for Jekyll blogging. It’s easy to configure and easy to deploy. Sweet huh?</a></p>
+</blockquote>
+
+<p>中で使っているパーサーのJekyll自体はもちろんアップデートがあるのでそちらの更新は使えるし、
+プラグインとかやりたいことは大分自分独自で作っているものがあるので
+外側のOctopress自体はそれほど重要でもないかな、
+という感じもしますが、
+最近Jekyllの3.8.0が出て、これにアップデートしたところ自作プラグインがエラーを出すようになってしまいました。</p>
+
+<p>ちょっと見てみましたがかなりコアな部分の仕様変更があって一筋縄で対応できなかったので
+今はJekyll 3.7.Xを使う様にして対応しています。</p>
+
+<p>また、良く言われてたことですが、Octopress(というかJekyll)は大量にページがあると
+コンパイルするのに非常に時間がかかります。</p>
+
+<p>このブログでも既に800ページ以上ありますが、これを普通にやったら1時間以上かかります。
+なので割りと長くやってる人はそれに耐えられなくなって他に移っていく感じですが、
+一応このブログではちょっと工夫をして数分程度でサイトすべてを作れる様になっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>それでもローカルでちょちょっと作ってみるには大変な作業です。</p>
+
+<p>と、色々あるので他のものにしたいと思っていますが、
+一番の候補はHugoです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/gohugoio/hugo">gohugoio/hugo: The world’s fastest framework for building websites.</a></p>
+</blockquote>
+
+<p>もともとOctopressもその時期に一番流行っていた感のあるものだったので使ってみた感じですが、
+今静的サイトジェネレーターで一番キテる感じなのはHugoだと思います。</p>
+
+<p>Octopress(Jekyll)はRuby製でGitHubが出てきたというのにも関連して流行っていた感があったと思いますが、
+今はやはりGoでしょう、ということでHugoも注目を浴びてると思います。</p>
+
+<p>Octopressを使うことで普段使ってなかったRubyもある程度は使える様になったし、
+Hugoを使いながらGoを勉強できるのも良いな、という点も。</p>
+
+<p>ただ独自プラグインとか色々と手を入れてるので、
+用意されている変換コードとかだと問題が多発してしまうので
+変換ルールもある程度自分で作らないといけない、ということでまだ出来てません。</p>
+
+<p>そのうちやりたい。</p>
+
+<h3 id="netlify">Netlify</h3>
+
+<p>もう一つはGitHub Pagesを使い続けて良いのか、ということ。
+便利なんですが、もともとそれほど大きなトラフィックを想定して提供されているものではないため、
+またフリーで提供されているものなのである程度の制限があります。</p>
+
+<blockquote><p>GitHub Pages sites are subject to the following usage limits:</p><p>GitHub Pages source repositories have a recommended limit of 1GB .<br />Published GitHub Pages sites may be no larger than 1 GB.</p><p>GitHub Pages sites have a soft bandwidth limit of 100GB per month.</p><p>GitHub Pages sites have a soft limit of 10 builds per hour.</p><footer><strong>What is GitHub Pages? - User Documentation</strong> <cite><a href="https://help.github.com/articles/what-is-github-pages/#usage-limits">help.github.com/articles/&hellip;</a></cite></footer></blockquote>
+
+<p>以前はこれに加えて<strong>100GB per month</strong>のところが
+<strong>100GB or 100,000 requests per month</strong>
+みたいになっていて、
+よく言われていたのがGitHub Pagesは10万PVまで、ということでしたが
+今はその記述がなくなって単に帯域量だけの制限になっています。</p>
+
+<p>この制限がかかってもすぐにサイトが見れなくなるわけではなくて
+まずはサポートから連絡が来る、とあるので超えるか超えないか、
+という場合にはすぐに心配する必要はないと思います。</p>
+
+<p>ですがコンスタントに超え始めたら考えないといけません。</p>
+
+<p>また、レポジトリの制限として1GB程度ということなのですが、
+このサイトはまだ700MB位ですが最近大きな画像ファイル(80MB位)を
+送ろうとしたら大きすぎて駄目、と言われました。
+(<code>git push</code>時にエラーになる。)</p>
+
+<p>同じファイルを他のレポジトリに送ったところ問題なく送れました。</p>
+
+<p>一応GitHub的には100MBを目安に一つのファイルのサイズの制限があります。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/articles/what-is-my-disk-quota/">What is my disk quota? - User Documentation</a></p>
+</blockquote>
+
+<p>ですが一つのレポジトリである程度使っていくと
+一つのファイルサイズの制限もきつくなっていくようです。</p>
+
+<p>まあ、80MBのファイルはちょっとどうにかしなきゃいけないレベルではあるのですが。</p>
+
+<p>レポジトリの制限もあれですが、それ以上に帯域制限があるので
+他に移りたい、という人が結構居るようです。</p>
+
+<p>そんな中で最近、Netlifyというサービスがちょっと流行ってる模様で、
+GitHub Pagesから移った、という人が結構見られました。</p>
+
+<blockquote>
+  <p><a href="https://www.netlify.com/">Netlify: All-in-one platform for automating modern web projects.</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://photo-tea.com/p/17/netlify-github-pages-hexo/">Netlify移行記：GitHub Pagesから独自ドメイン＋Netlifyの引っ越しでやったこと  TPB</a></p>
+</blockquote>
+
+<p>Netlifyは静的サイトを簡単に公開できるサービスで、
+GitHubと連携してCIをNetlify側で動かしてサイトをデプロイしたりすることが出来ます。</p>
+
+<p>ただ、このCIは15分の制限があるらしく、Octopressで長くかかる場合にはちょっと厳しいかも。
+(このサイトなら多分大丈夫。)</p>
+
+<p>また、外からファイルを直接送ろうとした場合、APIを使って送ったりすると200リクエスト/分の制限があるので
+Zipとかでまとめて送ったりすることを考えないといけないとのこと。</p>
+
+<p>そんなこんなでも移って人が居るのは帯域制限がGitHub Pagesよりも大きいからということですが、
+制限としては<strong>100GB per month</strong>です。</p>
+
+<p>ただ、GitHub Pagesと量的には同じで、GitHub Pages側に
+<strong>100,000 requests per month</strong>が無くなったので実は現在は実質的に一緒なのかもしれません。</p>
+
+<p>そう考えるとあまり意味ないかも。</p>
+
+<p>あと、いずれにしろ、現在はCloudflareを使ってCDNを通して配信しているので
+そもそもこの辺の計算があまり意味をなしてません。</p>
+
+<p>なのでNetlifyはちょっと気になったのですが
+Cloudflareを使ってる以上あまり帯域自体は気にしなくても良いところだと思います。</p>
+
+<p>カスタムドメインのHTTPS化がサポートされたのでGitHub Pagesだけで配信しようと思うと
+多少気になるところですが、制限的にNetlifyの方が優れている、ということも今は無いようです。</p>
+
+<p>ということでこちらはとりあえず変更する意味は無いかな、といった感じです。</p>
+]]></content>
+  </entry>
+  
+</feed>

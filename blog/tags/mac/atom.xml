@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Mac | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/mac/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-13T00:24:10+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Vim emulation using Karabiner-Elements (on macOS)でメニューバーに状態表示させたり通知でお知らせしたり]]></title>
+    <link href="https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim/"/>
+    <updated>2020-07-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim</id>
+    <content type="html"><![CDATA[<p>macOS上のVim以外の部分でVimな動作をKarabiner-Elementsを使って
+再現しようとして作ったVim emulationに関して、
+これまで今どういう状態にあるか、はパット見わからない状態でした。</p>
+
+<p>そこで、メニューバーに状態を表示したり変更時に通知を出したりできるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim-emulation-using-karabiner-elements" id="markdown-toc-vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</a></li>
+  <li><a href="#モードインジケーターの実装" id="markdown-toc-モードインジケーターの実装">モードインジケーターの実装</a></li>
+  <li><a href="#通知" id="markdown-toc-通知">通知</a></li>
+  <li><a href="#メニューバー" id="markdown-toc-メニューバー">メニューバー</a></li>
+  <li><a href="#windowsでは" id="markdown-toc-windowsでは">Windowsでは</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</h2>
+
+<p><a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>
+は言わずとしれたmacOS上でキーマップを自在に出来るツールです。</p>
+
+<p>色々な設定も公開されています。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">karabiner-elements-complex_modifications</a></p>
+</blockquote>
+
+<p>これとは別に個人的に公開してるのが以下のもの。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<div class="github-widget" data-repo="rcmdnk/KE-complex_modifications"></div>
+
+<p>この中にVim emulationがあります。</p>
+
+<p>本家の方にもViモードとかありますが、より色々なことができるようになっています。
+(上の方のに入れようかと思ってたんですが、スクリプトをあまりに変更しすぎて統一するのが大変そうだったのでできてない。。。)</p>
+
+<p>Vim emulationを有効にするとではメモ帳などの上で<i class="key">ESC</i>を押すと
+<strong>ノーマルモード</strong>に入って
+<i class="key">H</i>、<i class="key">J</i>、<i class="key">K</i>、<i class="key">L</i>で左下上右に動ける様になったり
+コピーしたり貼り付けたり、ビジュアルモードが使えたりするようになります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170905_vimemu_120_90.jpg" width="120" height="90" alt="20170905_vimemu_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/">Vim以外でVimする: Mac+Karabiner-Elements編</a></div></li></ul>
+
+<h2 id="モードインジケーターの実装">モードインジケーターの実装</h2>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/KE-complex_modifications/issues/6">Visual Indicator of Mode · Issue #6 · rcmdnk/KE-complex_modifications</a></p>
+</blockquote>
+
+<p>前から自分でもやりたいな、とは思ってたんですが、
+Issueでもらったのでやってみました。</p>
+
+<p>実装したのは</p>
+
+<ul>
+  <li><i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>でモード変更時に通知センターを使って通知を出すようにする(もう一回押すと停止する)</li>
+  <li><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>を使ってメニューバーに状態を表示する</li>
+</ul>
+
+<p>の二種類です。</p>
+
+<h2 id="通知">通知</h2>
+
+<p>Vim emulationに</p>
+
+<pre><code>Vim emulation: Enable the display notification when the mode is changed: toggle by Ctrl-Cmd-Shift-v
+</code></pre>
+
+<p>という項目を加わえたので、これをEnableすると使えるようになります。</p>
+
+<p>ただ、他の項目も中で変更があるので、すでにVim emulationを使ってた人は、一旦設定を外し、一覧表の方からも削除して新しいものを入れ直す必要があります。</p>
+
+<p>有効にして、<i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>
+を押すと、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_notification.jpg" alt="20200730_notification.jpg" class="pic" /></p>
+
+<p>こんな感じでモードが変更されるたびに通知が出ます。</p>
+
+<p>実装としては、変更するキーを押した際に</p>
+
+<pre><code>{
+  shell_command: "osascript -e 'display notification \"Normal Mode\" with title \"vim_emu\"'"}]
+}
+</code></pre>
+
+<p>といった感じのシェルコマンドも送るようにして、これによって通知を出しています。</p>
+
+<p>ただ、通知の表示時間はmacOS自体の設定で決まっいて、</p>
+
+<pre><code>$ defaults write com.apple.notificationcenterui bannerTime -int 1 &amp;&amp; killall NotificationCenter
+</code></pre>
+
+<p>とかすると1秒にしたり出来ますが、他の通知も同様になってしまいます。</p>
+
+<p>まあ面倒なことをしようとすれば、毎回現在の設定を取ってきて、一時的に変更して、通知出した後に戻す、とか出来なくも無いわけですが。</p>
+
+<p>もう一つ問題があって、これを有効、無効化出来るようにしてるわけですが、
+これ実はある値が1の時はこれ、0の時はこれ、という2つの別の設定を入れていて、
+設定ファイルが膨大になってしまっています。</p>
+
+<p>なので入れてみたものの、もしかしたらそのうち外すかも。。。</p>
+
+<h2 id="メニューバー">メニューバー</h2>
+
+<p>メニューバーにどうやって表示しようか、と思ったんですが、
+やったことは別のアプリを作って、Karabiner-Elementsの状態を監視して表示する、というもの。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_vem.png" alt="20200730_vem.png" class="pic" /></p>
+
+<p><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>というアプリをrumpsを使って作りました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151116_rumps_test_120_90.jpg" width="120" height="90" alt="20151116_rumps_test_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/">rumpsを使ってPythonで簡単にMacのメニューバーアプリを作る</a></div></li></ul>
+
+<p>Vim emulationではKarabiner-Elementsの中で変数を覚えておける機能を使ってモードの変更を行っていますが、
+それらの値は以下のファイルに記録されています。</p>
+
+<pre><code>/Library/Application Support/org.pqrs/tmp/karabiner_grabber_manipulator_environment.json
+</code></pre>
+
+<blockquote>
+  <p><a href="https://github.com/pqrs-org/Karabiner-Elements/issues/2278">Request for a –get-variables option for cli · Issue #2278 · pqrs-org/Karabiner-Elements</a></p>
+</blockquote>
+
+<p>なので、後はアプリ側でこれを定期的に見に行くようにすれば良いだけ。</p>
+
+<p>rumpsを使えばそういったメニューバーアプリは簡単に作れます。</p>
+
+<p>なのでこれに関してはVim emulationの方は何も変更せず、アプリを入れるだけで使えるようになります。</p>
+
+<p>起動すると、Vim emulationが有効になっていてモードを変えたりしていれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsert.jpg" alt="20200730_menubarinsert.jpg" class="pic" /></p>
+
+<p>こんな感じで現在のモードがメニューバーに表示されます。</p>
+
+<p>ノーマルモードになれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarnormal.jpg" alt="20200730_menubarnormal.jpg" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<p>デフォルトは色付きアイコンですが、グレースケールな方が良ければ、
+オプションで設定できて、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsertgray.jpg" alt="20200730_menubarinsertgray.jpg" class="pic" /></p>
+
+<p>こんな感じで全部がグレースケールなアイコンになります。</p>
+
+<p>rumpsで定期的に実行できる最小単位が1秒なので、変更した後、メニューバーの表示が変わるまでちょっとタイムラグがあります。</p>
+
+<p>ちょっと使ってみた感じでは1秒ごとにチェックしてもシステムに負荷をかけることはないです。</p>
+
+<p>最初はVim emulation側でモード変更時に信号を送って積極的に変更するようなものを考えていたんですが、
+rumpsで簡単に作れてしまったのと、Vim emulation側に手を加えなくてもよいということで
+まずはこれで。</p>
+
+<p>実際作ってみた感じ、このVEMは思った以上にいい感じに出来たと思ってます。</p>
+
+<p>もう1つ欲しい機能としてはVim emulationが有効でないアプリの上に来たときに
+Disabled表示にしたい、というものがあるのですが、</p>
+
+<h2 id="windowsでは">Windowsでは</h2>
+
+<p>Windowsでは
+<a href="https://www.autohotkey.com/">AutoHotkey</a>を使って同じようなものを作っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>最近一番スターがあるレポジトリになってきました。</p>
+
+<p>こちらでは結構前にタスクトレイアイコンとして状態を表示できるようにしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/">AutoHotkeyでのメニューの追加</a></div></li></ul>
+
+<p>AutoHotkey自体がポップアップメッセージを出したりも出来るので、インジケーター的なものもあります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[macOS Catalina 10.15.6 (19G73)にアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2020/07/17/computer-mac/"/>
+    <updated>2020-07-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/07/17/computer-mac</id>
+    <content type="html"><![CDATA[<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macos-catalina-10156-19g73" id="markdown-toc-macos-catalina-10156-19g73">macOS Catalina 10.15.6 (19G73)</a></li>
+  <li><a href="#アップデート時間" id="markdown-toc-アップデート時間">アップデート時間</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macos-catalina-10156-19g73">macOS Catalina 10.15.6 (19G73)</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20200717_mac.jpg" alt="20200528.jpg" class="pic" /></p>
+
+<p>この前の10.15.5から2ヶ月ほど。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/05/28/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200528_mac_120_90.png" width="120" height="90" alt="20200528_mac_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/05/28/computer-mac/">macOS Catalina 10.15.5 (19F96)にアップデート</a></div></li></ul>
+
+<p>相変わらず日本語版の方は翻訳が遅いようですが、英語版の方で macOS Catalina のアップデートの新機能の詳細を見ることができます。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/en-us/HT210642">What’s new in the updates for macOS Catalina - Apple Support</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/HT210642">macOS Catalina のアップデートの新機能 - Apple サポート</a></p>
+</blockquote>
+
+<p>今回はそれほど気になるアップデートはありませんでしたが、</p>
+
+<ul>
+  <li>バッテリー駆動時間を向上させるためにHDR対応のMacノートブックでビデオストリーミングを最適化する新しいオプションを追加</li>
+  <li>ソフトウェア・アップデートのインストール後にコンピュータ名が変更される場合がある問題を修正</li>
+  <li>特定のUSBマウスおよびUSBトラックパッドとの接続が失われる場合がある問題を解決</li>
+</ul>
+
+<p>ということで、機能的にはビデオストリーミング時にバッテリー利用を最適化出来るオプションが出来た、というのとバグ修正といった感じです。</p>
+
+<p>英語版のアップデートを見るとApple Newsの話がありますが、macOSを日本語表示にしてたらこの話はアップデート時に出て無くて、アメリカの特定地域だけの話でしょうか?
+(そもそもApple Newsを使ったこと無いのでよくわかりませんが。。。)</p>
+
+<h2 id="アップデート時間">アップデート時間</h2>
+
+<p>今回もサイズは3GBほどでアップデートに30分ほどかかりました。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MacでHypwerSwitchが突然聞かなくなる問題の対処法]]></title>
+    <link href="https://rcmdnk.com/blog/2020/07/02/computer-mac/"/>
+    <updated>2020-07-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/07/02/computer-mac</id>
+    <content type="html"><![CDATA[<p>Macの<i class="key">Cmd</i>-<i class="key">Tab</i>のデフォルトの動作はアプリケーションの一覧が出てきて
+その中から選択する、という動作です。</p>
+
+<p>さらに<i class="key">Cmd</i>-<i class="key">`</i>を使うとアプリケーション内でのウィンドウを使うと、そのアプリケーション内のウィンドウ一覧が出てきて選択することが出来ます。</p>
+
+<p>一方、Windowsで同じ様な動作を行う<i class="key">Alt</i>-<i class="key">Tab</i>は、最初から立ち上がっているウィンドウ全てから選択する、というもの。</p>
+
+<p>Windowsを先に使っていた事もあって一括で選択したい、ということでMacでも代替ツールを探してた所
+<a href="https://bahoom.com/hyperswitch">HyperSwitch</a>を見つけずっと使っています。これを入れるとWindowsの<i class="key">Alt</i>-<i class="key">Tab</i>的な感覚ですべてのウィンドウ選択が出来る様になります。</p>
+
+<p>ただ、このHyperSwitchがたまに動作しなくなることが前々からあって、今回調べてみた所原因はわかった感じでした。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#hyperswitch" id="markdown-toc-hyperswitch">HyperSwitch</a></li>
+  <li><a href="#発生する問題" id="markdown-toc-発生する問題">発生する問題</a></li>
+  <li><a href="#問題の原因" id="markdown-toc-問題の原因">問題の原因</a></li>
+  <li><a href="#解決法" id="markdown-toc-解決法">解決法</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="hyperswitch">HyperSwitch</h2>
+
+<p>Windowsの<i class="key">Alt</i>-<i class="key">Tab</i>動作を実現するアプリ。</p>
+
+<p>常駐型で、<i class="key">Cmd</i>-<i class="key">Tab</i>などをショートカットキーで登録すると
+<i class="key">Cmd</i>-<i class="key">Tab</i>でWindowsの様なすべてのウィンドウからの選択が出来るようになります。</p>
+
+<p>表示も、Macデフォルトの選択だとアプリのアイコンが出てきますが、
+HyperSwitchだと各ウィンドウ現在の状態が表示されるのでよりわかりやすくなります。(特にWindowsユーザーにとっては。)</p>
+
+<p>また、アプリ内の選択も出来る様になっています。
+Macの機能でも<i class="key">Cmd</i>-<i class="key">`</i>というショートカットがあって、これを一回押すと次のウィンドウへ、また次へ、と巡回することは出来るのですが、
+HypwerSwitchだとウィンドウ一覧を表示してWindowsの<i class="key">Alt</i>-<i class="key">Tab</i>的な感覚で選べます。</p>
+
+<p>これらを<i class="key">Cmd</i>-<i class="key">Tab</i>、<i class="key">Cmd</i>-<i class="key">`</i>として登録してMacのデフォルト機能を上書きしておくとかなり快適。</p>
+
+<p>上書きするのが嫌なら<i class="key">Cmd</i>の代わりに<i class="key">Opt</i>か<i class="key">Ctrl</i>に。</p>
+
+<p>私自身は<i class="key">Cmd</i>の部分に<i class="key">Ctrl</i>を持ってきてるので
+HyperSwitchで<i class="key">Ctrl</i>-<i class="key">Tab</i>に設定しています。
+(キーボードの位置的には<i class="key">Cmd</i>-<i class="key">Tab</i>。)</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B002VILLIO?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B002VILLIO&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61miKKT5aUL._SS90_CR0,0,120,90_.jpg" alt="ザムスト(ZAMST) 親指 サポーター サムガード バレー バスケ M~Lサイズ 左右兼用 ブラック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/10/computer-windows-mac-bash/">親指Controlのすすめ</a></div></li></ul>
+
+<p>WindowsではAutoHotkeyで<i class="key">Ctrl</i>-<i class="key">Tab</i>に<i class="key">Alt</i>-<i class="key">Tab</i>を割り当ててその逆もやってたりします。</p>
+
+<h2 id="発生する問題">発生する問題</h2>
+
+<p>たまに起こる問題として、<i class="key">Ctrl</i>-<i class="key">Tab</i>がたまにうんともすんとも言わなくなる、というもの。</p>
+
+<p>アクティビティモニタをみても動いているし、HyperSwitchをアプリ一覧から実行してみると、立ち上がったというより普通に動いている状態で設定画面が出てくる、という感じ。</p>
+
+<p>この状態でHypwerSwitchをアクティビティモニタから強制終了して(直接killする方法が無い…)
+再度立ち上げてみても問題は解決しません。</p>
+
+<p>アプリを再インストールとかしてもだめ。</p>
+
+<p>唯一解決するのが一度Mac自体を再起動する、という方法でした。</p>
+
+<p>アプリ自体の再起動でだめなのでアプリ自体がおかしくなった、というよりは他の何かと干渉してる感じです。</p>
+
+<p>これまで一ヶ月に一度とか、ほんとにたまーに起こっているだけだったので、問題が起こったらしばらくトラックパッドでのウィンドウ切り替えで我慢して、期を見て再起動、とかしてました。</p>
+
+<h2 id="問題の原因">問題の原因</h2>
+
+<p>この問題の原因はSecure Inputという機能が他のアプリケーションによって有効になっていることでした。</p>
+
+<blockquote>
+  <p><a href="https://apple.stackexchange.com/questions/162822/hyperswitch-alttab-broken">macos - HyperSwitch alt+tab broken? - Ask Different</a></p>
+</blockquote>
+
+<p>Secure Inputという機能はパスワード入力の様な時に、アプリケーションがその入力を直接把握することを出来なくするようにする機能だそうです。</p>
+
+<blockquote>
+  <p><a href="https://smilesoftware.com/textexpander/secureinput/?#Google%20Chrome">TextExpander and Secure Input  Smile</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://wiki.keyboardmaestro.com/assistance/Secure_Input_Problem">assistance:Secure Input Problem [Keyboard Maestro Wiki]</a></p>
+</blockquote>
+
+<p>安全のための機能ですが、これがたまに必要がなくなった後にもアプリが有効にしたままにしていて
+他の操作の妨げになってしまうことがあるようです。</p>
+
+<p>上にもあるようにHyperSwitchだけでなくいろいろなアプリでこの機能が原因でトラブルが起こる模様。</p>
+
+<h2 id="解決法">解決法</h2>
+
+<p>もしHyperSwitchが動作しない、と気づいたら、ターミナルなどで、</p>
+
+<pre><code>$ ioreg -l -w 0 | grep SecureInput
+  |   "IOConsoleUsers" = ({"kCGSSessionOnConsoleKey"=Yes,"kSCSecuritySessionID"=12345,"kCGSSessionSecureInputPID"=678,"kCGSSessionSystemSafeBoot"=No,"kCGSSessionIDKey"=789,"kCGSSessionUserNameKey"="user","kCGSessionLoginDoneKey"=Yes,"kCGSSessionGroupIDKey"=20,"kCGSessionLongUserNameKey"="user name","kCGSSessionAuditIDKey"=12345,"kCGSSessionLoginwindowSafeLogin"=No,"kCGSSessionUserIDKey"=501})
+        |   "IOConsoleUsers" = ({"kCGSSessionOnConsoleKey"=Yes,"kSCSecuritySessionID"=12345,"kCGSSessionSecureInputPID"=678,"kCGSSessionSystemSafeBoot"=No,"kCGSSessionIDKey"=789,"kCGSSessionUserNameKey"="user","kCGSessionLoginDoneKey"=Yes,"kCGSSessionGroupIDKey"=20,"kCGSessionLongUserNameKey"="user name","kCGSSessionAuditIDKey"=12345,"kCGSSessionLoginwindowSafeLogin"=No,"kCGSSessionUserIDKey"=501})
+</code></pre>
+
+<p>というコマンドを打って見ると上の様に何かしら出てくるはずです。</p>
+
+<p>この結果の中の<code>kCGSSessionSecureInputPID"=678</code>とある部分の数字がこの部分のことを実行しているアプリのPIDなので、</p>
+
+<pre><code>$ ps -p 678
+PID TTY           TIME CMD
+678 ??         0:12.34 /System/Library/CoreServices/loginwindow.app/Contents/MacOS/loginwindow console
+</code></pre>
+
+<p>の様に<code>ps</code>で何がこれを使っているか見てみます。</p>
+
+<p>出てきたアプリケーションがすぐに落としても大丈夫なものであればそのアプリケーションを終了するか
+そのままPIDを</p>
+
+<pre><code>$ kill -kill 678
+</code></pre>
+
+<p>とかすると解決する時もあります。ただ、アプリによっては出てきたPIDをkillしても他のプロセスに引き継がれてうまく動作しないこともあるみたいです。</p>
+
+<p>さらに、上の場合には
+<code>loginwindow console</code>ですが、これが出た場合は非常に厄介で、これはログイン画面で使われるプロセスで、
+ログイン画面でのパスワード入力のためのSecure Inputが残っている状態です。</p>
+
+<p>で、このプロセスをkillすると強制ログアウトされます。</p>
+
+<p>なので普通に再起動するのと余り大差がない状態。</p>
+
+<blockquote>
+  <p><a href="https://merikan.com/2019/05/troubleshooting-hyperswitch/">Troubleshooting Hyperswitch-Merikan Blog</a></p>
+</blockquote>
+
+<p>によると一旦画面ロックしてログイン画面に戻って再ログインすれば治る、ということもあるみたいですが、
+私の環境で同じ様に<code>loginwindow console</code>が問題だった場合にはうまくいきませんでした。</p>
+
+<p>この場合には再起動するしかありません。</p>
+
+<p>もう一つ面倒なプロセスとして
+VPNを利用するためのアプリ、GlobalProtectを起動して接続すると
+Secure Inputが使われ続ける、というもの。</p>
+
+<blockquote>
+  <p><a href="https://live.paloaltonetworks.com/t5/general-topics/globalprotect-vpn-client-mac-osx-secure-input/td-p/321721#">Live Community - GlobalProtect VPN Client Mac OSX Secure Input - Live Community - 321721</a></p>
+</blockquote>
+
+<p>これをkillすればもちろんVPNから出てしまうので、昨今の状況下でリモートワークも多い中、
+GlobalProtectとかを使ってるところも多いかと思いますが、そんな状況下だとどうしようもない、といった所。</p>
+
+<p>上のポストは最近の話で、なんとかしよう、といった雰囲気になっていますし、
+恐らく最近良く使われてそういうケースも多くなって問題視されてより解決する方向へ力を入れてくれるんじゃないか、との期待も。</p>
+
+<p>結構な確率でなるので、最初はVPN使う上で常時使う様にしてるのかな、と思ったりもしたんですが、
+何度か使ってると接続中でもSecure Inputを使ってないこともあり、
+どうやら一番最初にログインするためにパスワードを聞く所で有効にして、
+その後上手く処理出来ないことがある模様。恐らくバグっぽい。</p>
+
+<p>なので接続してすぐに試してみて、HyperSwitchが動作しない場合は上の様に調べてみて、
+Global Protectが問題なら一度プロセスKillして再度接続してみる、
+ということをしてみると問題なく動作することもあります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>原因はMacのSecure Inputという機能だと言うことはわかりましたが、
+逆に結構面倒な状態に陥ってることもある、ということもわかりました。</p>
+
+<p>場合によっては再起動が必要です。</p>
+
+<p>多分Secure Inputを掴み続けてるのはどれもバグ的なもので、
+実際他のアプリでも問題が起こっていて、
+修正される可能性はあるんだとは思いますが。</p>
+
+<p>状況によっては仕方ないのでオリジナルの<i class="key">Cmd</i>-<i class="key">Tab</i>とかを使って乗り切るしか無いのかな、面倒だけど。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[macOS Catalina 10.15.5 (19F96)にアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2020/05/28/computer-mac/"/>
+    <updated>2020-05-28T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/05/28/computer-mac</id>
+    <content type="html"><![CDATA[<p>5月27日に提供が開始されたmacOSのマイナーアップデート10.15.5をインストールしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macos-catalina-10155-19f96" id="markdown-toc-macos-catalina-10155-19f96">macOS Catalina 10.15.5 (19F96)</a></li>
+  <li><a href="#アップデート時間" id="markdown-toc-アップデート時間">アップデート時間</a></li>
+  <li><a href="#バッテリーの状態管理について" id="markdown-toc-バッテリーの状態管理について">バッテリーの状態管理について</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macos-catalina-10155-19f96">macOS Catalina 10.15.5 (19F96)</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20200528_mac.png" alt="20200528.jpg" class="pic" /></p>
+
+<p>この前の10.15.4から2ヶ月ほど。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/03/25/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200335_mac_120_90.jpg" width="120" height="90" alt="20200335_mac_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/03/25/computer-mac/">macOS Catalina 10.15.4 (19E266)にアップデート</a></div></li></ul>
+
+<p>まだ日本語版の方は翻訳ができてないみたいですが、英語版の方で macOS Catalina のアップデートの新機能の詳細を見ることができます。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/en-us/HT210642">What’s new in the updates for macOS Catalina - Apple Support</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/HT210642">macOS Catalina のアップデートの新機能 - Apple サポート</a></p>
+</blockquote>
+
+<p>今回の大きな変更は<strong>バッテリーの状態管理</strong>、という機能が入ったことです。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/HT211094">Mac ノートブックのバッテリーの状態管理について - Apple サポート</a></p>
+</blockquote>
+
+<p><strong>システム環境設定</strong><i class="fa fa-arrow-right"></i><strong>省エネルギー</strong>に行くと
+下に<strong>バッテリーの状態</strong>というボタンがついていて、そこをクリックすると
+<strong>バッテリーの状態管理</strong>を有効にするか無効にするかのチェックボックス出てきます。</p>
+
+<p>今回のアップデートでデフォルトで有効になっています。</p>
+
+<p>それ以外には<strong>FaceTimeの“自動的に目立たせる”設</strong>ということで、現在の
+リモートワークを意識したもの?</p>
+
+<p>と<strong>Pro Display XDRの補正の微調整</strong>。</p>
+
+<p>後はバグ修正など。</p>
+
+<blockquote>
+  <p>ログイン画面でパスワードを入力できないことがある問題に対処</p>
+</blockquote>
+
+<p>というのがあったんですが、これって問題が起きたらどうしてたんでしょうか…?(再起動したらなんとかなってた?)</p>
+
+<h2 id="アップデート時間">アップデート時間</h2>
+
+<p>今回もサイズは3GBほどでアップデートに30分ほどかかりました。</p>
+
+<h2 id="バッテリーの状態管理について">バッテリーの状態管理について</h2>
+
+<p>バッテリーの状態管理を有効にすると、
+普段のバッテリー利用状況やバッテリーの状態を見て
+バッテリーの最大充電量を変更します。</p>
+
+<p>あまりバッテリーを使わない時にはフル充電しないことで
+バッテリーの寿命を長く出来る様にする、という機能。</p>
+
+<p>逆に言うとこの機能が有効だとバッテリーがフル充電状態にならないので
+バッテリー駆動時間が短くなります。</p>
+
+<p>恐らく頻繁に電源を外してバッテリーで使う様な状態だと
+常にフル充電するようになってあまり変わらないかもしれません。</p>
+
+<p>一方、たまにバッテリーで使う、という状態で、バッテリーで使うときは
+長いことバッテリーのママ、という使い方だと
+今までよりも早くバッテリーが尽きてしまう、と感じる事もあるかも。</p>
+
+<p>こういった機能はWindowsのノートPCとかで
+充電を常に80%くらいまでに抑える、とかそういったものがありましたが、
+バッテリー駆動時間が短くなるので結局辞めた覚えがあります。</p>
+
+<p>バッテリーの消耗を考えれば、ということはあるんですが、
+その効果が見えるのはかなり先だし、どの程度の効果があるのか、というのが
+分からない、というのが大きいです。</p>
+
+<p>今までだと数ヶ月で劣化するのが2年位は維持できる、とかならやる意味はあると思うんですが。</p>
+
+<p>多分そこまで大きなものではなく、結局1年位立つと持たなくなったな、と感じてしまうのでは、と。</p>
+
+<p>ただ、Appleが満を持して?導入してデフォルトでも有効にしていることから、
+AIとかでかなり賢くやってくれて導入時の駆動時間の短縮を気にならない程度にしつつ
+大幅に寿命を長くする、ということを可能にしているかもしれません。</p>
+
+<p>なので新品のMacを買ったら、そもそもバッテリー駆動時間が長いので
+多少短くなっても気にならないでしょうし、有効にしておいた方が良いかな、と。</p>
+
+<p>一方、既に劣化してるバッテリーに関してはあまり効果がないかもしれないので
+無効にした方が良いかもにしつつ
+大幅に寿命を長くする、ということを可能にしているかもしれません。</p>
+
+<p>なので新品のMacを買ったら、そもそもバッテリー駆動時間が長いので
+多少短くなっても気にならないでしょうし、有効にしておいた方が良いかな、と。</p>
+
+<p>一方、既に劣化してるバッテリーに関してはあまり効果がないかもしれないので
+無効にした方が良いかも。劣化してるとそもそもあまり容量の減少を入れないかもしれないので、
+有効にしてみてあまり使い勝手が変わらないようなら有効にしておいても良いかもしれません。</p>
+
+<p>ということで、せっかくなのでとりあえず有効にしてみて、
+余りに今までと比べてバッテリー利用時間が短くなったな、と思ったら無効にする、
+という感じで良いかな、と思ってます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[macOS Catalina 10.15.4 (19E266)にアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2020/03/25/computer-mac/"/>
+    <updated>2020-03-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/03/25/computer-mac</id>
+    <content type="html"><![CDATA[<p>3月24日に提供が開始されたmacOSのマイナーアップデート10.15.4をインストールしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macos-catalina-10154-19e266" id="markdown-toc-macos-catalina-10154-19e266">macOS Catalina 10.15.4 (19E266)</a></li>
+  <li><a href="#アップデート時間" id="markdown-toc-アップデート時間">アップデート時間</a></li>
+  <li><a href="#ヘッドポインタ" id="markdown-toc-ヘッドポインタ">ヘッドポインタ</a></li>
+  <li><a href="#その他気づいたこと" id="markdown-toc-その他気づいたこと">その他気づいたこと</a>    <ul>
+      <li><a href="#レガシーシステム機能拡張" id="markdown-toc-レガシーシステム機能拡張">レガシーシステム機能拡張</a></li>
+      <li><a href="#cronジョブの出力がメールに送られるようになった" id="markdown-toc-cronジョブの出力がメールに送られるようになった">cronジョブの出力がメールに送られるようになった?</a></li>
+      <li><a href="#場所が変更された項目" id="markdown-toc-場所が変更された項目">場所が変更された項目</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macos-catalina-10154-19e266">macOS Catalina 10.15.4 (19E266)</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20200335_mac.jpg" alt="20200335_mac.jpg" class="pic" /></p>
+
+<p>この前の10.15.3から2ヶ月ほど。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/01/31/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200131_mac_120_90.jpg" width="120" height="90" alt="20200131_mac_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/01/31/computer-mac/">macOS Catalina 10.15.3 (19D76)にアップデート</a></div></li></ul>
+
+<p>まだ日本語版の方は翻訳ができてないみたいですが、英語版の方で
+macOS Catalina のアップデートの新機能の詳細を見ることができます。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/en-us/HT210642">What’s new in the updates for macOS Catalina - Apple Support</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/HT210642">macOS Catalina のアップデートの新機能 - Apple サポート</a></p>
+</blockquote>
+
+<p>今回は結構いろいろなアップデートがあって、ユーザーから見ても目新しいものもあります。</p>
+
+<ul>
+  <li>Finder
+    <ul>
+      <li>iCloud DriveがFinderから共有できる</li>
+      <li>アクセスコントロールが細かく出来る</li>
+    </ul>
+  </li>
+  <li>スクリーンタイム
+    <ul>
+      <li>子供用に通話などをする相手を制限したり出来る</li>
+      <li>子供用にミュージックビデオの再生を制御出来る</li>
+    </ul>
+  </li>
+  <li>Music
+    <ul>
+      <li>歌詞を曲に合わせた表示が出来る</li>
+      <li>歌詞をクリックすることで好きな位置にジャンプすることが出来る</li>
+    </ul>
+  </li>
+  <li>Safari
+    <ul>
+      <li>Chromeで保存されているパスワードをiCloudキーチェーンに取り組むことが出来る(そしてSafariからも使える様になる)</li>
+      <li>タブの複製やカレントタブより右を全部閉じる、などが出来る</li>
+      <li>NetflixのHDR再生に対応(対応端末のみ)</li>
+    </ul>
+  </li>
+  <li>App Store with Apple Arcade
+    <ul>
+      <li>Universal Purchaseが有効になり、一つ買うだけでMacやiPhoneなど全ての端末で使える</li>
+    </ul>
+  </li>
+  <li>Pro Display XDR
+    <ul>
+      <li>状況に応じてリファレンスモードをカスタマイズできる</li>
+    </ul>
+  </li>
+  <li>アクセシビリティー
+    <ul>
+      <li>頭の動きでカーソルを動かせるヘッドポインタが利用できる</li>
+    </ul>
+  </li>
+  <li>その他バグ修正や改善など</li>
+</ul>
+
+<p>と言った感じ。
+iCloudやSafariはほとんど使わないのと、
+Musicも音楽流してくれれば良い、というので個人的には上の方は特に自分に影響ない感じです。</p>
+
+<p>ただ、SafariでChromeのパスワードを使えるのはありがたいかも。
+(OSレベルでサポートしてくれる、ということでセキュリティ的にも下手なサードパーティーアプリ使うよりは安心ですし。)</p>
+
+<p>あと、最後のアクセシビリティーのチョロっと書いてあるやつが面白そうだな、と。</p>
+
+<h2 id="アップデート時間">アップデート時間</h2>
+
+<p>今回はサイズが3GBでダウンロードは数分。</p>
+
+<p>内容から結構大きいかと思いましたがその辺は前回と余り変わらず。
+(表に出る内容が大きいだけ、ということか、それともアップデートするための仕組み的な物が大きいのか?)</p>
+
+<p>インストールには毎度のことながら30分位かかったので時間に余裕を見て。</p>
+
+<h2 id="ヘッドポインタ">ヘッドポインタ</h2>
+
+<p>アップデート後、<strong>システム環境設定</strong><i class="fa fa-arrow-right"></i><strong>アクセシビリティ</strong>に行き、
+<strong>ポインタコントロール</strong>を選択すると、
+<strong>マウスとトラックパッド</strong>と代替コントロール方法**というタブがあります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200325_accessbility.jpg" alt="20200325_accessbility.jpg" class="pic" /></p>
+
+<p>ここに<strong>ヘッドポインタを有効にする</strong>という項目が追加されています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200325_headpointer.jpg" alt="20200325_headpointer.jpg" class="pic" /></p>
+
+<ul>
+  <li>ポインタの移動
+    <ul>
+      <li><strong>画面の端に顔を向けたとき</strong>、<strong>頭の動きに連動</strong>(初期値)から選択。</li>
+    </ul>
+  </li>
+  <li>ポインタの速さ
+    <ul>
+      <li>初期値 50%。</li>
+    </ul>
+  </li>
+  <li>端までの距離
+    <ul>
+      <li><strong>画面の端に顔を向けたとき</strong>を選択したときに使うもの。初期値 0%。</li>
+    </ul>
+  </li>
+  <li>スイッチを使ってヘッドポインタを一時停止または再開
+    <ul>
+      <li>初期状態ではチェックが入ってない。</li>
+      <li>初期に設定されているのは<i class="key">F10</i>。スイッチにはキーボードだけでなくマウスやトラックパッドでのクリックなども選べます。<strong>再割当て</strong>を押すと入力待ちになるので割り当てたいスイッチを押します。ただ、キーボードは一部のキー(ファンクションキーや<i class="key">ESC</i>など)しか割り当てられないようです。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>ちょっと有効にしてみたところ、<strong>頭の動きに連動</strong>
+の方だと顔を動かすとカーソルがスイスイ動いて面白かったです。</p>
+
+<p><strong>画面の端に顔を向けたとき</strong>の方だと端までの距離とかの調整もしてみましたが
+なかなか思い通りに動きませんでした。(左上の方に張り付いたり、右に行きっぱなしになってしまったり。)</p>
+
+<p>また、<strong>ポインタコントロール</strong>に<strong>代替ポインタアクションを有効にする</strong>という項目もありますが、
+こちらでもオプションで顔の表情で操作をする設定が出来るようになっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200325_pointeraction.jpg" alt="20200325_pointeraction.jpg" class="pic" /></p>
+
+<p>使える表情は</p>
+
+<ul>
+  <li>微笑む</li>
+  <li>口を開ける</li>
+  <li>眉を上げる</li>
+  <li>舌を出す</li>
+</ul>
+
+<p>で、これらを</p>
+
+<ul>
+  <li>左クリック</li>
+  <li>右クリック</li>
+  <li>ダブルクリック</li>
+  <li>ドラック&amp;ドロップ</li>
+</ul>
+
+<p>に割り当てられます。</p>
+
+<p>つまり、</p>
+
+<p><strong>ヘッドポインタを有効にする</strong>と<strong>代替ポインタアクションを有効にする</strong>
+を使えばマウス操作が一通りできてしまう、ということ。</p>
+
+<p>ちょっとやってみたところ、最初、表情を変えようとすると顔が動いて
+カーソルが動いてしまったりしてなかなか難しい感じがしましたが、
+慣れてくると結構面白いように使えるようにはなりました。</p>
+
+<p>あと、眉を上げる、という操作が最初のうち全然動かなくて困りましたが、
+ちょっと大げさにやることでなんとなく動くコツを掴みました。</p>
+
+<p>微笑む、とかは口角を引くような形にすると簡単に動きました。</p>
+
+<p>下を出したままドラック&amp;ドロップする、とかは結構面白い。</p>
+
+<p>あとは慣れや設定の調整によると思いますが、
+マウスの移動精度や、右に行き過ぎたときに左に大きく傾けないと動ききらない、とか、
+そういった点が上手く出来るようになると割と実用的かも。と。
+(そういう点で、慣れてくると<strong>ヘッドポインタを有効にする</strong>のが良いのかな、と思ったり。のが良いのかな、と思ったり。のが良いのかな、と思ったり。のが良いのかな、と思ったり。)</p>
+
+<p>これを常時使うか、と言われるとまあ多分使わないです。
+ただ、実際手が使えない様な状態だとしたら割と実用的に使えるかも、と思うくらいではあります。</p>
+
+<p>カメラを使ったギミックだと、随分昔にShould I Sleepというアプリを入れていて、
+カメラに顔が写っている間はスリープしない、とかいう設定が出来るものでした。</p>
+
+<p><a href="https://rcmdnk.com/blog/2014/05/19/computer-mac/#should-i-sleep/">/blog/2014/05/19/computer-mac/#should-i-sleep/</a></p>
+
+<p>いつの間にか使えなくなってなくなってしまいましたが、そういったアプリを見つけられないままでいて、
+Apple的な制限でできないのか、ただ需要がないのか?</p>
+
+<p>今回Macがオリジナルで顔認識を使う様になったので、
+そういったスリープ制限機能みたいなのもつけてくれるとすごくうれしい。
+(今回こういうのが入って今後色々と展開されていく、と期待したい。)</p>
+
+<h2 id="その他気づいたこと">その他気づいたこと</h2>
+
+<h3 id="レガシーシステム機能拡張">レガシーシステム機能拡張</h3>
+
+<p>インストールしているアプリのうちいくつかが
+<strong>レガシーシステム機能拡張</strong>という表示で
+将来のmacOSバージョンに対応していない拡張機能を使っている、という警告が出ました。</p>
+
+<ul>
+  <li>Fumihiko Takayamaさんは<a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>(最近HPが新しくなったらしい)の作者ですね。</li>
+  <li>Joshua Wiseさんのアプリは<a href="https://joshuawise.com/horndis">HoRNDIS</a>というAndroidからMacへのUSBテザリングするために必要なものです。今はiPhoneメインで、そもそもテザリングが必要な場面も最近殆どないわけですが、Homebrewで引き続き入ってるもの。(とりあえず今はなくても良い)</li>
+  <li>Silicon Laboratories Incは<a href="https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers">VCPドライバ</a>(<strong>/Library/Extensions/SiLabsUSBDriver.kext</strong>)で、ちょっとなんのために入れたか覚えてません。Homebrewでも<strong>homebrew/cask-drivers/silicon-labs-vcp-driver</strong>という名前でCaskがありますが、これは使ってなかったので何らかのときに手動で入れた(もしくは他のアプリのインストール時に入った?)もの。Raspberry Piとかその辺を触っているとき?</li>
+</ul>
+
+<p>これらの警告は
+一番最初にOSを起動したときだけに表示されて、その後はOSを再起動しても表示されなくなりました。</p>
+
+<p>警告文にもあるように、これらに関して、今すぐ使えなくなる、というわけではないみたいで実際に使えています。</p>
+
+<p>とりあえずはちょっと様子見、程度で良いかと。</p>
+
+<h3 id="cronジョブの出力がメールに送られるようになった">cronジョブの出力がメールに送られるようになった?</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2020/03/26 </strong></p>
+
+  <p>ちょっと前に
+<strong>macOSでcronジョブの出力がメールに送られない</strong>という事に気づきました。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07PPMSB5M?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07PPMSB5M&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71IQiviMzWL._SS90_CR0,0,120,90_.jpg" alt="最新モデル Apple MacBook Pro (13インチPro, Touch Bar, 1.4GHzクアッドコアIntel Core i5, 8GB RAM, 256GB) - スペースグレイ" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/01/25/computer-mac/">macOSでcronジョブの出力がメールに送られない</a></div></li></ul>
+
+  <p>結構長い間送られてきてなかったみたいで、どの段階で変わったのかも正直分かってません。</p>
+
+  <p>上の記事の中で、直接メールを送る様なコマンドを使えば送れる、ということでそうするか、と書いてますが、
+実際にはそのような事はしてませんでした。</p>
+
+  <p>昨日のアップデート後、色々管理しているスクリプトが失敗していて、そのメールが送られる様になりました。
+(ちゃんとこの辺動いている事を確認してないのもいけないことなんですが。。。失敗する状態になってたのでこれに気づけたということはある。。。)</p>
+
+  <p>ちょっとテストジョブみたいのを流してみましたが、前回やったときにはだめだったものが
+今回はちゃんと送られてきています。</p>
+
+  <p>バグフィックスの欄にも書かれてないし、
+セキュリティ的な変更があったようにも見えないんですが、なんなのか。</p>
+
+  <p>送れる様になったところを見ると、なんらかのバグだったという感じなんですが。</p>
+
+  <p>結構大きな影響があると思うんですが、話を探してもほとんど出てこないので(でも一応出力できなくなった、という話はいくつか見受けられた)、
+何か特殊な状態でしか起こらない状態なのでしょうか？
+(新しいMac買ったら試してみよう、とかだれかに試してもらおう、とか思ってましたが治ってしまった。。。)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="場所が変更された項目">場所が変更された項目</h3>
+
+<p>いつも通り、前回と同じ</p>
+
+<ul>
+  <li>構成/private/etc/postfix/main.cf.system_default</li>
+  <li>構成/private/etc/syslog.conf.system_default</li>
+</ul>
+
+<p>が入ってる状態でデスクトップにショートカットができてました。削除。</p>
+]]></content>
+  </entry>
+  
+</feed>

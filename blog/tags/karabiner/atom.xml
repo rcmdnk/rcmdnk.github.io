@@ -1,0 +1,1349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Karabiner | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/karabiner/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-13T00:24:10+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Vim emulation using Karabiner-Elements (on macOS)でメニューバーに状態表示させたり通知でお知らせしたり]]></title>
+    <link href="https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim/"/>
+    <updated>2020-07-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/07/29/computer-mac-karabiner-vim</id>
+    <content type="html"><![CDATA[<p>macOS上のVim以外の部分でVimな動作をKarabiner-Elementsを使って
+再現しようとして作ったVim emulationに関して、
+これまで今どういう状態にあるか、はパット見わからない状態でした。</p>
+
+<p>そこで、メニューバーに状態を表示したり変更時に通知を出したりできるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim-emulation-using-karabiner-elements" id="markdown-toc-vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</a></li>
+  <li><a href="#モードインジケーターの実装" id="markdown-toc-モードインジケーターの実装">モードインジケーターの実装</a></li>
+  <li><a href="#通知" id="markdown-toc-通知">通知</a></li>
+  <li><a href="#メニューバー" id="markdown-toc-メニューバー">メニューバー</a></li>
+  <li><a href="#windowsでは" id="markdown-toc-windowsでは">Windowsでは</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim-emulation-using-karabiner-elements">Vim emulation using Karabiner-Elements</h2>
+
+<p><a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>
+は言わずとしれたmacOS上でキーマップを自在に出来るツールです。</p>
+
+<p>色々な設定も公開されています。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">karabiner-elements-complex_modifications</a></p>
+</blockquote>
+
+<p>これとは別に個人的に公開してるのが以下のもの。</p>
+
+<blockquote>
+  <p><a href="https://ke-complex-modifications.pqrs.org/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<div class="github-widget" data-repo="rcmdnk/KE-complex_modifications"></div>
+
+<p>この中にVim emulationがあります。</p>
+
+<p>本家の方にもViモードとかありますが、より色々なことができるようになっています。
+(上の方のに入れようかと思ってたんですが、スクリプトをあまりに変更しすぎて統一するのが大変そうだったのでできてない。。。)</p>
+
+<p>Vim emulationを有効にするとではメモ帳などの上で<i class="key">ESC</i>を押すと
+<strong>ノーマルモード</strong>に入って
+<i class="key">H</i>、<i class="key">J</i>、<i class="key">K</i>、<i class="key">L</i>で左下上右に動ける様になったり
+コピーしたり貼り付けたり、ビジュアルモードが使えたりするようになります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170905_vimemu_120_90.jpg" width="120" height="90" alt="20170905_vimemu_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/">Vim以外でVimする: Mac+Karabiner-Elements編</a></div></li></ul>
+
+<h2 id="モードインジケーターの実装">モードインジケーターの実装</h2>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/KE-complex_modifications/issues/6">Visual Indicator of Mode · Issue #6 · rcmdnk/KE-complex_modifications</a></p>
+</blockquote>
+
+<p>前から自分でもやりたいな、とは思ってたんですが、
+Issueでもらったのでやってみました。</p>
+
+<p>実装したのは</p>
+
+<ul>
+  <li><i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>でモード変更時に通知センターを使って通知を出すようにする(もう一回押すと停止する)</li>
+  <li><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>を使ってメニューバーに状態を表示する</li>
+</ul>
+
+<p>の二種類です。</p>
+
+<h2 id="通知">通知</h2>
+
+<p>Vim emulationに</p>
+
+<pre><code>Vim emulation: Enable the display notification when the mode is changed: toggle by Ctrl-Cmd-Shift-v
+</code></pre>
+
+<p>という項目を加わえたので、これをEnableすると使えるようになります。</p>
+
+<p>ただ、他の項目も中で変更があるので、すでにVim emulationを使ってた人は、一旦設定を外し、一覧表の方からも削除して新しいものを入れ直す必要があります。</p>
+
+<p>有効にして、<i class="key">⌃</i>-<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">V</i>
+を押すと、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_notification.jpg" alt="20200730_notification.jpg" class="pic" /></p>
+
+<p>こんな感じでモードが変更されるたびに通知が出ます。</p>
+
+<p>実装としては、変更するキーを押した際に</p>
+
+<pre><code>{
+  shell_command: "osascript -e 'display notification \"Normal Mode\" with title \"vim_emu\"'"}]
+}
+</code></pre>
+
+<p>といった感じのシェルコマンドも送るようにして、これによって通知を出しています。</p>
+
+<p>ただ、通知の表示時間はmacOS自体の設定で決まっいて、</p>
+
+<pre><code>$ defaults write com.apple.notificationcenterui bannerTime -int 1 &amp;&amp; killall NotificationCenter
+</code></pre>
+
+<p>とかすると1秒にしたり出来ますが、他の通知も同様になってしまいます。</p>
+
+<p>まあ面倒なことをしようとすれば、毎回現在の設定を取ってきて、一時的に変更して、通知出した後に戻す、とか出来なくも無いわけですが。</p>
+
+<p>もう一つ問題があって、これを有効、無効化出来るようにしてるわけですが、
+これ実はある値が1の時はこれ、0の時はこれ、という2つの別の設定を入れていて、
+設定ファイルが膨大になってしまっています。</p>
+
+<p>なので入れてみたものの、もしかしたらそのうち外すかも。。。</p>
+
+<h2 id="メニューバー">メニューバー</h2>
+
+<p>メニューバーにどうやって表示しようか、と思ったんですが、
+やったことは別のアプリを作って、Karabiner-Elementsの状態を監視して表示する、というもの。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_vem.png" alt="20200730_vem.png" class="pic" /></p>
+
+<p><a href="https://github.com/rcmdnk/VEM">rcmdnk/VEM</a>というアプリをrumpsを使って作りました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20151116_rumps_test_120_90.jpg" width="120" height="90" alt="20151116_rumps_test_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/16/computer-mac-python/">rumpsを使ってPythonで簡単にMacのメニューバーアプリを作る</a></div></li></ul>
+
+<p>Vim emulationではKarabiner-Elementsの中で変数を覚えておける機能を使ってモードの変更を行っていますが、
+それらの値は以下のファイルに記録されています。</p>
+
+<pre><code>/Library/Application Support/org.pqrs/tmp/karabiner_grabber_manipulator_environment.json
+</code></pre>
+
+<blockquote>
+  <p><a href="https://github.com/pqrs-org/Karabiner-Elements/issues/2278">Request for a –get-variables option for cli · Issue #2278 · pqrs-org/Karabiner-Elements</a></p>
+</blockquote>
+
+<p>なので、後はアプリ側でこれを定期的に見に行くようにすれば良いだけ。</p>
+
+<p>rumpsを使えばそういったメニューバーアプリは簡単に作れます。</p>
+
+<p>なのでこれに関してはVim emulationの方は何も変更せず、アプリを入れるだけで使えるようになります。</p>
+
+<p>起動すると、Vim emulationが有効になっていてモードを変えたりしていれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsert.jpg" alt="20200730_menubarinsert.jpg" class="pic" /></p>
+
+<p>こんな感じで現在のモードがメニューバーに表示されます。</p>
+
+<p>ノーマルモードになれば、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarnormal.jpg" alt="20200730_menubarnormal.jpg" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<p>デフォルトは色付きアイコンですが、グレースケールな方が良ければ、
+オプションで設定できて、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200730_menubarinsertgray.jpg" alt="20200730_menubarinsertgray.jpg" class="pic" /></p>
+
+<p>こんな感じで全部がグレースケールなアイコンになります。</p>
+
+<p>rumpsで定期的に実行できる最小単位が1秒なので、変更した後、メニューバーの表示が変わるまでちょっとタイムラグがあります。</p>
+
+<p>ちょっと使ってみた感じでは1秒ごとにチェックしてもシステムに負荷をかけることはないです。</p>
+
+<p>最初はVim emulation側でモード変更時に信号を送って積極的に変更するようなものを考えていたんですが、
+rumpsで簡単に作れてしまったのと、Vim emulation側に手を加えなくてもよいということで
+まずはこれで。</p>
+
+<p>実際作ってみた感じ、このVEMは思った以上にいい感じに出来たと思ってます。</p>
+
+<p>もう1つ欲しい機能としてはVim emulationが有効でないアプリの上に来たときに
+Disabled表示にしたい、というものがあるのですが、</p>
+
+<h2 id="windowsでは">Windowsでは</h2>
+
+<p>Windowsでは
+<a href="https://www.autohotkey.com/">AutoHotkey</a>を使って同じようなものを作っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>最近一番スターがあるレポジトリになってきました。</p>
+
+<p>こちらでは結構前にタスクトレイアイコンとして状態を表示できるようにしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/06/computer-windows-autohotkey/">AutoHotkeyでのメニューの追加</a></div></li></ul>
+
+<p>AutoHotkey自体がポップアップメッセージを出したりも出来るので、インジケーター的なものもあります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[macOS 10.14.6の追加アップデートを適用したところKarabiner-Elementが動かなくなった]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/05/computer-mac-karabiner/"/>
+    <updated>2019-09-05T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/05/computer-mac-karabiner</id>
+    <content type="html"><![CDATA[<p>macOS 10.14.6の追加アップデートが来ていたので入れたところ
+Karabinera-Elementが動かなくなってしまいました。</p>
+
+<p>この減少は結構起こってるみたいですが
+その対策について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macos-mojave-10146の追加アップデート" id="markdown-toc-macos-mojave-10146の追加アップデート">macOS Mojave 10.14.6の追加アップデート</a></li>
+  <li><a href="#アップデート後karabiner-elementが動かなくなった" id="markdown-toc-アップデート後karabiner-elementが動かなくなった">アップデート後Karabiner-Elementが動かなくなった</a></li>
+  <li><a href="#修正方法" id="markdown-toc-修正方法">修正方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macos-mojave-10146の追加アップデート">macOS Mojave 10.14.6の追加アップデート</h2>
+
+<p>8/26日に出ていたセキュリティに関する追加アップデートの
+通知が出ていたので適用しました。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/HT201222">Apple セキュリティアップデート - Apple サポート</a></p>
+</blockquote>
+
+<h2 id="アップデート後karabiner-elementが動かなくなった">アップデート後Karabiner-Elementが動かなくなった</h2>
+
+<p>Karabiner-Elementのバージョンは12.6.0。</p>
+
+<p>同じような事が起こってる人が結構いるみたいでした。</p>
+
+<blockquote>
+  <p><a href="https://blog.kyanny.me/entry/2019/08/07/155340">macOS Mojave 10.14.6 (18G87) にアップデートしたら Karabiner-Elements が効かなくなった - @kyanny’s blog</a></p>
+</blockquote>
+
+<p>この人の場合はベータ版にしたら直った、ということなので同様に環境設定の<strong>Misc</strong>から<strong>Check for beta updates</strong>
+でベータ版を入れたら確かに治りました。</p>
+
+<p>ただ、10.14.6自体はすでにインストール済で追加のアップデートをしただけです。
+また、10.14.6が出た当初はKarabinerは12.5.Xとかだったのそれに対して問題があった、という感じで
+12.6系では直ってそうな感じ。</p>
+
+<p>ということでもうちょっと調べてみましたが、どうやら単にKarabinerを再起動するだけでも直ったかも、ということでそれも載せておきます。</p>
+
+<h2 id="修正方法">修正方法</h2>
+
+<p>Karabiner-Elementsを終了させて再び立ち上げるだけです。</p>
+
+<p>ただ、単に終了させるだけだとプロセスが残っていることがあるので
+以下のような手順で<code>kill</code>コマンドでプロセスを終了させる必要があります。</p>
+
+<ul>
+  <li>環境設定の<strong>Misc</strong>から<strong>Quit Karabiner-Elements</strong>でKarabinerを終了させる</li>
+  <li><code>pgrep karabiner | xargs sudo kill -9</code>を実行し完全にプロセスを止める</li>
+  <li>Start Karabiner</li>
+</ul>
+
+<blockquote>
+  <p><a href="https://github.com/tekezo/Karabiner-Elements/issues/1930#issuecomment-517684365">Manual re-install required after OS update · Issue #1930 · tekezo/Karabiner-Elements</a></p>
+</blockquote>
+
+<p>おそらくベータ版にしたら直った、というのは単にアップデートのスクリプトの中で
+強制的に全てのKarabinerのプロセスを一旦終了させるようになっていたので
+擬似的に上記の事柄をやっていたため、という感じです。</p>
+
+<p>同様にMac自体の再起動でもKarabinerの完全な再起動になるので直る可能性が高いです。</p>
+
+<p>今回ベータ版にアップデートする前はとりあえず一回<strong>終了</strong>させて再度立ち上げる、ということまではやりましたが
+上手く行きませんでした。
+単にMacを再起動させれば動いたかもしれません。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Karabiner-Elementsに長押し操作やマウスキー機能が追加されていた]]></title>
+    <link href="https://rcmdnk.com/blog/2018/02/17/computer-karabiner/"/>
+    <updated>2018-02-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/02/17/computer-karabiner</id>
+    <content type="html"><![CDATA[<p>macOS SierraになってからKarabinerに取って代わったKarabiner-Elementsですが
+色々と進化していてKarabinerで出来ていた様な事は大体出来るようになっているみたいです。</p>
+
+<p>むしろ色々と出来ることが多くなってる様子。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#マニュアル" id="markdown-toc-マニュアル">マニュアル</a></li>
+  <li><a href="#to_if_held_down" id="markdown-toc-to_if_held_down">to_if_held_down</a></li>
+  <li><a href="#mouse_key" id="markdown-toc-mouse_key">mouse_key</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="マニュアル">マニュアル</h2>
+
+<p>最初使い始めた頃はマニュアル的なものも無かったので
+Exampleを見たりソースコードを直接見たりして調べてましたが
+現在は結構充実したマニュアルが存在します。</p>
+
+<blockquote>
+  <p><a href="https://pqrs.org/osx/karabiner/json.html">karabiner.json Reference Manual - Karabiner - Software for macOS</a></p>
+</blockquote>
+
+<p>どの様なキーが使えるか一通り載っています。</p>
+
+<p>また、いくつか例も載っているので大体のことは
+ここを見れば出来る様になると思います。</p>
+
+<h2 id="to_if_held_down">to_if_held_down</h2>
+
+<p>12月30日リリースの11.5.0で入った様ですが、
+通常の<code>to</code>の代わりに
+<code>to_if_held_down</code>という
+キーを使うとキーを一定時間押していた場合に
+別のキーを送れる様になります。
+<code>to_if_alone</code>の値を指定するとすぐに離した場合はこちらが送られます。</p>
+
+<p>これを使って以下の様な設定をしています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span>    <span class="p">{</span>
+</span><span class="line">      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;For HHKB ((Shift-)Esc to grave accent (tilde))&quot;</span><span class="p">,</span>
+</span><span class="line">      <span class="nt">&quot;manipulators&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;optional&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;any&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;basic.to_if_alone_timeout_milliseconds&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;basic.to_if_held_down_threshold_milliseconds&quot;</span><span class="p">:</span> <span class="mi">250</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to_if_alone&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;grave_accent_and_tilde&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">],</span>
+</span><span class="line">          <span class="nt">&quot;to_if_held_down&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">],</span>
+</span><span class="line">          <span class="nt">&quot;conditions&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;device_if&quot;</span><span class="p">,</span>
+</span><span class="line">              <span class="nt">&quot;identifiers&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="p">{</span>
+</span><span class="line">                  <span class="nt">&quot;vendor_id&quot;</span><span class="p">:</span> <span class="mi">2131</span>
+</span><span class="line">                <span class="p">}</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">]</span>
+</span><span class="line">    <span class="p">}</span><span class="err">,</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>HHKBでは<i class="key">TAB</i>の上に<i class="key">ESC</i>があります。
+通常のキーボードではここに<i class="key">`</i>があるので
+ちょっと癖が強いです。</p>
+
+<p>そこで、この設定によりHHKBの場合は<i class="key">ESC</i>を押してすぐ話す場合には
+<code>`</code>、長押しした場合には<code>ESC</code>が送られる様にしてあります。</p>
+
+<p>途中にある<code>parameters</code>によって250ms以上押せば<code>ESC</code>が送られる設定になっています。</p>
+
+<p>この設定をしていますが、<code>ESC</code>は<i class="key">⌃</i>-<i class="key">[</i>でも送れる様に
+設定してあって通常はこっちを使います(Vim like)。</p>
+
+<h2 id="mouse_key">mouse_key</h2>
+
+<p>mouse_keyというものがもうちょっと前に実装されていて、
+これによってマウスカーソルを動かしたり
+スクロールをキーに割り当てたりすることが可能になります。</p>
+
+<p>これまで、同じことをAppleScriptを使って動作させ、
+これを<code>shell_command</code>で呼ぶようにしていましたが、
+これだとキーを押し続けた時にリピートして動いてくれませんでした。</p>
+
+<p>今回、<code>mouse_key</code>を試してみた所押しっぱなしにすると
+カーソルが動き続ける様になったので嬉しいところ。</p>
+
+<p>以下の様な感じで<i class="key">⌃</i>-<i class="key">⇧</i>-<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で左下上右にカーソルを動かせる様にしています。</p>
+
+<p>ついでに<i class="key">⌃</i>-<i class="key">⇧</i>-<i class="key">N</i>/<i class="key">M</i>/<i class="key">P</i>で
+左クリック/中クリック/右クリックが出来る様になっています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+<span class="line-number">98</span>
+<span class="line-number">99</span>
+<span class="line-number">100</span>
+<span class="line-number">101</span>
+<span class="line-number">102</span>
+<span class="line-number">103</span>
+<span class="line-number">104</span>
+<span class="line-number">105</span>
+<span class="line-number">106</span>
+<span class="line-number">107</span>
+<span class="line-number">108</span>
+<span class="line-number">109</span>
+<span class="line-number">110</span>
+<span class="line-number">111</span>
+<span class="line-number">112</span>
+<span class="line-number">113</span>
+<span class="line-number">114</span>
+<span class="line-number">115</span>
+<span class="line-number">116</span>
+<span class="line-number">117</span>
+<span class="line-number">118</span>
+<span class="line-number">119</span>
+<span class="line-number">120</span>
+<span class="line-number">121</span>
+<span class="line-number">122</span>
+<span class="line-number">123</span>
+<span class="line-number">124</span>
+<span class="line-number">125</span>
+<span class="line-number">126</span>
+<span class="line-number">127</span>
+<span class="line-number">128</span>
+<span class="line-number">129</span>
+<span class="line-number">130</span>
+<span class="line-number">131</span>
+<span class="line-number">132</span>
+<span class="line-number">133</span>
+<span class="line-number">134</span>
+<span class="line-number">135</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span>    <span class="p">{</span>
+</span><span class="line">      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Mouse cursor move using Karabiner&#39;s functions&quot;</span><span class="p">,</span>
+</span><span class="line">      <span class="nt">&quot;extra_descriptions&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="s2">&quot;Mouse move using Karabiner&#39;s functions&quot;</span>
+</span><span class="line">      <span class="p">],</span>
+</span><span class="line">      <span class="nt">&quot;manipulators&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mouse_key&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">                <span class="nt">&quot;x&quot;</span><span class="p">:</span> <span class="mi">-1536</span>
+</span><span class="line">              <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;j&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mouse_key&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">                <span class="nt">&quot;y&quot;</span><span class="p">:</span> <span class="mi">1536</span>
+</span><span class="line">              <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mouse_key&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">                <span class="nt">&quot;y&quot;</span><span class="p">:</span> <span class="mi">-1536</span>
+</span><span class="line">              <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;l&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mouse_key&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">                <span class="nt">&quot;x&quot;</span><span class="p">:</span> <span class="mi">1536</span>
+</span><span class="line">              <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;pointing_button&quot;</span><span class="p">:</span> <span class="s2">&quot;button1&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;pointing_button&quot;</span><span class="p">:</span> <span class="s2">&quot;button3&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">            <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">                <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line">                <span class="s2">&quot;shift&quot;</span>
+</span><span class="line">              <span class="p">]</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">},</span>
+</span><span class="line">          <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;pointing_button&quot;</span><span class="p">:</span> <span class="s2">&quot;button2&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">]</span>
+</span><span class="line">    <span class="p">}</span><span class="err">,</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>上の設定とかは下のページの<code>Personal Settings</code>から取ってこれます。</p>
+
+<blockquote>
+  <p><a href="https://rcmdnk.com/KE-complex_modifications/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<p>実際には
+<a href="https://github.com/pqrs-org/KE-complex_modifications">KE-complex_modifications</a>
+をForkしてerb形式で書いて作っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/08/30/computer-mac-karabiner/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170830_vimode_120_90.jpg" width="120" height="90" alt="20170830_vimode_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/08/30/computer-mac-karabiner/">KE-complex_modificationsを使ってKarabiner-Elementsの定義を色々作って公開する</a></div></li></ul>
+
+<p>Karabinerでも作ってたVim emulationも同じページにあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170905_vimemu_120_90.jpg" width="120" height="90" alt="20170905_vimemu_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/">Vim以外でVimする: Mac+Karabiner-Elements編</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Karabiner-Elementsで日本語入力状態を把握してキー設定出来る様になった]]></title>
+    <link href="https://rcmdnk.com/blog/2017/10/30/computer-mac-karabiner/"/>
+    <updated>2017-10-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/10/30/computer-mac-karabiner</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4774149934?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4774149934&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51DjOK-jLoL._SS200_.jpg" alt="日本語入力を支える技術　～変わり続けるコンピュータと言葉の世界 (WEB+DB PRESS plus)" /></a>
+</div>
+
+<p>Macのキー設定アプリの
+<a href="https://github.com/tekezo/Karabiner-Elements">Karabiner-Elements</a>
+でIMEの状態を見て日本語入力状態かどうか等を判断して
+キー設定を出来る様になった様です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#input_source_ifunless" id="markdown-toc-input_source_ifunless">input_source_if/unless</a></li>
+  <li><a href="#vimでnormalモード切り替え時にimeをoffにする" id="markdown-toc-vimでnormalモード切り替え時にimeをoffにする">VimでNormalモード切り替え時にIMEをOFFにする</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="input_source_ifunless">input_source_if/unless</h2>
+
+<p>現在はまだベータ版のみですが、<code>input_source</code>も加わりました。
+以前Karabinerで出来た様にIMEの状態等を見て判断することも可能になりました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/tekezo/Karabiner-Elements/blob/master/NEWS.md">Karabiner-Elements/NEWS.md</a></p>
+</blockquote>
+
+<p>ベータ版はKarabiner-Elementsの環境設定で<strong>Misc</strong>タブに行って
+<code>Check for beta updates</code>を行うとインストールすることが出来ます。</p>
+
+<p>現在のベータ版は11.1.11になります。</p>
+
+<p>新しくシステムにアクセスする部分があるためか、アップデート後起動する時に
+セキュリティーに関して聞かれ、システム環境設定の<strong>セキュリティーとプライバシー</strong>の<strong>一般</strong>タブで許可を行う必要があります。起動時のウィザードで開かれるのが
+<strong>プライバシー</strong>タブなのでちょっと戸惑いましたが<strong>一般</strong>タブで許可することが出来ます。</p>
+
+<p>定義としてはこんな感じで行います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="s2">&quot;conditions&quot;</span><span class="err">:</span> <span class="p">[</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input_source_if&quot;</span><span class="p">,</span>
+</span><span class="line">    <span class="nt">&quot;input_sources&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">      <span class="p">{</span>
+</span><span class="line">        <span class="nt">&quot;input_source_id&quot;</span><span class="p">:</span> <span class="s2">&quot;^com\\.apple\\.keylayout\\.US$&quot;</span>
+</span><span class="line">      <span class="p">},</span>
+</span><span class="line">      <span class="p">{</span>
+</span><span class="line">        <span class="nt">&quot;input_mode_id&quot;</span><span class="p">:</span> <span class="s2">&quot;^com\\.apple\\.inputmethod\\.Japanese\\.FullWidthRoman&quot;</span>
+</span><span class="line">      <span class="p">},</span>
+</span><span class="line">      <span class="p">{</span>
+</span><span class="line">        <span class="nt">&quot;language&quot;</span><span class="p">:</span> <span class="s2">&quot;^en$&quot;</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">    <span class="p">]</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>もし、IMEの状態で日本語入力モードになっている時、を指定したい時は</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="p">{</span>
+</span><span class="line">  <span class="nt">&quot;language&quot;</span><span class="p">:</span> <span class="s2">&quot;ja&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を使えばOK。
+これらの指定は指定文字列を含む場合、といった感じで指定されるらしく、
+<code>^</code>、<code>$</code>は正規表現で文頭、文末なので上の<code>^en$</code>では<code>en</code>を含む様な文字列は除き<code>en</code>のみの場合のみに適用されます。
+<code>ja</code>でもそうした方が確実ですが、通常英語以外とは一緒に使わないでしょうし、
+<code>ja</code>を含む他のものも多分無いので大概の場合<code>ja</code>だけで大丈夫。</p>
+
+<p>今の状態がどの様なものか、というのはKarabiner-EventViewerで
+<strong>Variables</strong>のタブで<code>input_source_identifiers</code>としてチェックできます。</p>
+
+<pre><code>"input_source_identifiers": {
+  "input_mode_id": "com.apple.inputmethod.Roman",
+  "input_source_id": "com.google.inputmethod.Japanese.Roman",
+  "language": "en"
+},
+</code></pre>
+
+<p>とか(Google日本語入力英数)</p>
+
+<pre><code>"input_source_identifiers": {
+  "input_mode_id": "com.apple.inputmethod.Japanese",
+  "input_source_id": "com.google.inputmethod.Japanese.base",
+  "language": "ja"
+},
+</code></pre>
+
+<p>とか(Google日本語入力ひらがな)</p>
+
+<pre><code>"input_source_identifiers": {
+  "input_mode_id": "com.apple.inputmethod.Japanese",
+  "input_source_id": "com.apple.inputmethod.Kotoeri.Japanese",
+  "language": "ja"
+},
+</code></pre>
+
+<p>とか(Apple日本語入力ひらがな)。</p>
+
+<p>AppleのIMEは<strong>ことえり</strong>という名前を出さなくなりましたが中の識別子としては<code>Kotoeri</code>な様です。</p>
+
+<blockquote>
+  <p><a href="https://github.com/pqrs-org/KE-complex_modifications/blob/master/docs/json/example_input_source.json">KE-complex_modifications/example_input_source.json</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/tekezo/Karabiner-Elements/blob/master/tests/src/manipulator_conditions/json/input_source.json">Karabiner-Elements/input_source.json</a></p>
+</blockquote>
+
+<p>また、IMEの状態を買えるために英数入力にするだけなら<code>"key_code": "japanese_eisuu"</code>を使えば
+変更が出来ますが、
+それ以外に色々やりたいときなど、<code>select_input_source</code>という入力が使える様になっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/pqrs-org/KE-complex_modifications/blob/master/docs/json/example_select_input_source.json">KE-complex_modifications/example_select_input_source.json</a></p>
+</blockquote>
+
+<h2 id="vimでnormalモード切り替え時にimeをoffにする">VimでNormalモード切り替え時にIMEをOFFにする</h2>
+
+<p>これによってVimでのIME OFFの設定が以前Karabinerでやっていたのと同じ様に出来るようになりました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/08/31/computer-mac-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170831_escime_120_90.jpg" width="120" height="90" alt="20170831_escime_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/08/31/computer-mac-vim/">VimでNormalモード切り替え時にIMEをOFFにする、をMacでKarabiner-Elementsを使って実現する</a></div></li></ul>
+
+<p>以前はどの状態でも<i class="key">ESC</i>を押した際、
+<i class="key">EISU</i>、<i class="key">ESC</i>、<i class="key">ESC</i>を実行する様にしていました。</p>
+
+<p><i class="key">EISU</i>自体は英数入力の状態であれば何もしないのでそれほど問題のない設定です。</p>
+
+<p><i class="key">ESC</i>を二回してるのは変換中とかに押した時に中途半端に英数状態に戻してInsertモードに残るのを避けたいため。</p>
+
+<p>ここを一回にしておけば通常の<i class="key">ESC</i>と全く同じなので問題なのですが、
+二回にしようとするとちょっと問題が出ます。</p>
+
+<p>問題になるのはGNU screenでのコピーモード。
+コピーモードには<i class="key">Prefix</i>+<i class="key">ESC</i>で入りますが、
+コピーモード中に<i class="key">ESC</i>を押すとコピーモードを終了します。</p>
+
+<p>つまり二回押すと始まった瞬間に終わります。</p>
+
+<p>これを避けるために<strong>.screenrc</strong>に</p>
+
+<pre><code>bindkey -m ^[ eval ''
+</code></pre>
+
+<p>と、コピーモード時に<i class="key">ESC</i>は何もしないような設定を入れてました。</p>
+
+<p>これでもそれ程困ってませんでしたが、せっかく<code>input_source_if</code>が出来たのでそれを使って作り直しました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="p">{</span>
+</span><span class="line">  <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;ESC sends EISU ESC ESC when language is ja&quot;</span><span class="p">,</span>
+</span><span class="line">  <span class="nt">&quot;manipulators&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">    <span class="p">{</span>
+</span><span class="line">      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">      <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">        <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">      <span class="p">},</span>
+</span><span class="line">      <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;japanese_eisuu&quot;</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">],</span>
+</span><span class="line">      <span class="nt">&quot;conditions&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input_source_if&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;input_sources&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;language&quot;</span><span class="p">:</span> <span class="s2">&quot;ja&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">]</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">]</span>
+</span><span class="line"><span class="p">}</span><span class="err">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Control-[ sends EISU ESC ESC when language is ja&quot;</span><span class="p">,</span>
+</span><span class="line">  <span class="nt">&quot;manipulators&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">    <span class="p">{</span>
+</span><span class="line">      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line">      <span class="nt">&quot;from&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">        <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;open_bracket&quot;</span><span class="p">,</span>
+</span><span class="line">        <span class="nt">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;mandatory&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="s2">&quot;control&quot;</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">},</span>
+</span><span class="line">      <span class="nt">&quot;to&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;japanese_eisuu&quot;</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">        <span class="p">},</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;key_code&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">],</span>
+</span><span class="line">      <span class="nt">&quot;conditions&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">          <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input_source_if&quot;</span><span class="p">,</span>
+</span><span class="line">          <span class="nt">&quot;input_sources&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class="line">            <span class="p">{</span>
+</span><span class="line">              <span class="nt">&quot;language&quot;</span><span class="p">:</span> <span class="s2">&quot;ja&quot;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">          <span class="p">]</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">      <span class="p">]</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">]</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><i class="key">ESC</i>と<i class="key">⌃</i>-<i class="key">[</i>について設定。</p>
+
+<p>この設定は以下のページからもインポートできます。</p>
+
+<p><a href="https://rcmdnk.com/KE-complex_modifications/">/KE-complex_modifications/</a></p>
+
+<p>ただし、このページにある<code>ESC sends EISU ESC ESC when language is ja</code>とかは
+ターミナルやVim上だけで有効になるようになっています。</p>
+
+<p>これはVim emulationとの競合を避けるためですが、まあ他の場所では必要ないと思うので。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170905_vimemu_120_90.jpg" width="120" height="90" alt="20170905_vimemu_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/05/computer-mac-karabiner-vim/">Vim以外でVimする: Mac+Karabiner-Elements編</a></div></li></ul>
+
+<p>ちなみにオフィシャルKarabiner-Elements complex_modificationsにも
+<i class="key">EISU</i>、<i class="key">ESC</i>だけを送る設定があります。</p>
+
+<blockquote>
+  <p><a href="https://pqrs.org/osx/karabiner/complex_modifications/#International">Karabiner-Elements complex_modifications rules</a></p>
+</blockquote>
+
+<div class="postscript">
+  <p><strong>追記: 2017/11/06 </strong></p>
+
+  <p>OSアップデートで10.13.1になり、それが原因かどうか定かではありませんが、
+アップデートの再起動後、
+<i class="key">Ctrl</i>-<i class="key">[</i>でVimのノーマルモードに戻る際に何か変だな、と思ったら日本語入力のままになっていて
+調べてみた所
+<code>input_source_identifiers</code>がIMEの切り替えをしても変更されなくなってました。</p>
+
+  <p>普段はGoogle日本語入力だけの<strong>ひらがな</strong>と<strong>英数</strong>を使っています。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/05/23/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140523_mac_ime_1_120_90.jpg" width="120" height="90" alt="20140523_mac_ime_1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/23/computer-mac/">Macで入力ソースにいつの間にかU.S.が入ってきて消せない時の対処法</a></div></li></ul>
+
+  <p>Karabiner-Elementsをアップデートして再起動したりOSを再起動しても上手くいきませんでしたが、
+通常Google日本語入力だけの<strong>ひらがな</strong>と<strong>英数</strong>を使っている所、
+一度キーボードの環境設定からAppleの<strong>日本語</strong>(ことえり)を追加して切り替えたりしてみたところ
+<code>input_source_identifiers</code>が変更される様になり、
+<strong>日本語</strong>を削除しても変更がちゃんと反映される様になりました。</p>
+
+  <p>何かしら特殊な条件が重なっただけかもしれませんが、
+<code>input_source_if</code>などの設定が上手く動かない、という場合には
+Karabiner-EventViewerでチェックして、
+もし<code>input_source_identifiers</code>が動かない様であれば
+他の言語を入力ソースに追加していじってみるときちんと動き出す可能性があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mac Finder/Safari/プレビュー等でタブ間移動するショートカットを変更する]]></title>
+    <link href="https://rcmdnk.com/blog/2017/10/10/computer-mac-karabiner/"/>
+    <updated>2017-10-10T13:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/10/10/computer-mac-karabiner</id>
+    <content type="html"><![CDATA[<p>MacのFinder等にはタブ機能が付いていますが、
+その移動ショートカットキーが
+ちょっと他の設定と競合したりして使いづらかったので
+調整した話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macのアプリケーションのタブ間移動キー" id="markdown-toc-macのアプリケーションのタブ間移動キー">Macのアプリケーションのタブ間移動キー</a></li>
+  <li><a href="#firefoxgoogle-chromeのタブ移動キー" id="markdown-toc-firefoxgoogle-chromeのタブ移動キー">Firefox/Google Chromeのタブ移動キー</a></li>
+  <li><a href="#タブ移動キーをkarabiner-elementsで設定する" id="markdown-toc-タブ移動キーをkarabiner-elementsで設定する">タブ移動キーをKarabiner-Elementsで設定する</a></li>
+  <li><a href="#タブ移動キーを環境設定から設定する" id="markdown-toc-タブ移動キーを環境設定から設定する">タブ移動キーを環境設定から設定する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macのアプリケーションのタブ間移動キー">Macのアプリケーションのタブ間移動キー</h2>
+
+<p>Mac純正のアプリケーションであるFinderやSafari、またプレビューなども
+最近はタブ機能を持っています。</p>
+
+<p>複数のタブを開いた時に、次(右)のタブに移動したり前(左)のタブに移動するショートカットキーは</p>
+
+<ul>
+  <li>次のタブを表示 (Select Next Tab)     : <i class="key">⌃</i>-<i class="key">TAB</i>または<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">]</i></li>
+  <li>前のタブを表示 (Select Previous Tab) : <i class="key">⌃</i>-<i class="key">⇧</i>-<i class="key">TAB</i>または<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">[</i></li>
+</ul>
+
+<p>となっています。</p>
+
+<p>Finderとかを出してメニューバーの<strong>ウィンドウ</strong>を開くと上のショートカットのうち前者の<i class="key">TAB</i>を使ったものだけが
+表示されていますが後者も使えます。</p>
+
+<blockquote>
+  <p><a href="https://support.apple.com/ja-jp/guide/safari/cpsh003">キーボードおよびその他のショートカット - Apple サポート</a></p>
+</blockquote>
+
+<p>Finderなどでも最近では積極的にタブを使うようになったのでその辺のショートカットキーもちゃんと整理したい、というのが今回の話です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/04/07/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170407_dock_120_90.jpg" width="120" height="90" alt="20170407_dock_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/04/07/computer-mac/">Macでフォルダを常に新しいタブで開く: DockやSpotlight、またコマンドライのopenコマンドからも</a></div></li></ul>
+
+<h2 id="firefoxgoogle-chromeのタブ移動キー">Firefox/Google Chromeのタブ移動キー</h2>
+
+<ul>
+  <li>次のタブを表示 (Select Next Tab)     : <i class="key">⌃</i>-<i class="key">TAB</i>または<i class="key">⌃</i>-<i class="key DOWN">PAGE</i>または<i class="key">⌘</i>-<i class="key">⌥</i>-<i class="key">⇢</i>または<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">]</i></li>
+  <li>前のタブを表示 (Select Previous Tab) : <i class="key">⌃</i>-<i class="key">⇧</i>-<i class="key">TAB</i>または<i class="key">⌃</i>-<i class="key UP">PAGE</i>または<i class="key">⌘</i>-<i class="key">⌥</i>-<i class="key">⇠</i>または<i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">[</i></li>
+</ul>
+
+<p>Firefoxではメニューにタブ移動の項目はありませんが、
+それぞれの前3つについてはFirefoxのヘルプに載っています。</p>
+
+<blockquote>
+  <p><a href="https://support.mozilla.org/ja/kb/keyboard-shortcuts-perform-firefox-tasks-quickly">Firefox のキーボードショートカット  Firefox ヘルプ</a></p>
+</blockquote>
+
+<p>最後のMacのアプリと同様の方法は載っていませんが
+少なくとも手元のmacOS High Sierraでは同様にタブの切り替えが出来るのを確認しました。</p>
+
+<p>またGoogle Chromeはメニューに<i class="key">⌘</i>-<i class="key">⌥</i>-Xのものが載っていて
+ヘルプにもそれしか載っていませんが
+上の全てで移動できるのを確認しました。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/chrome/answer/157179?hl=ja">Chrome のキーボード ショートカット - Google Chrome ヘルプ</a></p>
+</blockquote>
+
+<p>逆にこれらの方法の中で上のMacの方に無いショートカットキーを持ってSafariなどで移動することが出来ないのも確認しています。</p>
+
+<h2 id="タブ移動キーをkarabiner-elementsで設定する">タブ移動キーをKarabiner-Elementsで設定する</h2>
+
+<p>基本的にはMacのアプリで出来る移動方法ならどのアプリでも移動できる、と考えて良いと思います。</p>
+
+<p>また、Windowsなどでも、一般的なのは<i class="key">⌃</i>-(<i class="key">⇧</i>-)<i class="key">TAB</i>かな、と思います。</p>
+
+<p>なのでそうしたいのですが、HyperSwitchというアプリ切り替えアプリを使っていて、
+これを<i class="key">⌃</i>-<i class="key">TAB</i>にあてているため使えません。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/03/17/computer-mac-iterm2/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/MacApp/thumbnail/iTerm2_120_90.png" width="120" height="90" alt="iTerm2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/03/17/computer-mac-iterm2/">MacでiTerm2上でHyperSwitch等が使えない問題が治っていたのでターミナルからiTerm2へ出戻りした</a></div></li></ul>
+
+<p>そもそも何故これにアプリ切り替えをあてているかというと、
+<i class="key">⌘</i>と<i class="key">⌃</i>を入れ替えてるため、
+所謂一般的なWindowsの<i class="key">Alt</i>-<i class="key">TAB</i>的な押し方が
+<i class="key">⌃</i>-<i class="key">TAB</i>
+になるためです。</p>
+
+<p>Windowsの方でもキー切り替えを行ってるのでアプリの切り替えは <i class="key">Ctrl</i>-<i class="key">TAB</i>に当てなおしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0984333924?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0984333924&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/413lC0hqeYL._SS90_CR0,0,120,90_.jpg" alt="Control Alt Delete Leadership (英語)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/06/14/computer-windows-mac-bash/">Alt(Cmd)とControlの交換</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B002VILLIO?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B002VILLIO&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61miKKT5aUL._SS90_CR0,0,120,90_.jpg" alt="ザムスト(ZAMST) 親指 サポーター サムガード バレー バスケ M~Lサイズ 左右兼用 ブラック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/10/computer-windows-mac-bash/">親指Controlのすすめ</a></div></li></ul>
+
+<p>逆にタブの切替に使う<i class="key">⌃</i>-<i class="key">TAB</i>にあたる配置に
+<i class="key">⌘</i>-<i class="key">TAB</i>
+が来てるわけですが
+(もちろん<i class="key Lock">Caps</i>があるキーボードでは<i class="key">⌘</i>は<i class="key Lock">Caps</i>の位置に修正)、
+このキーを単に<i class="key">⌃</i>-<i class="key">TAB</i>に割り当てる、
+みたいなことをするとHyperSwitchが起動してしまうだけになります。</p>
+
+<p>ただ嬉しいことにタブ移動に関するキーはMacのアプリでももう一つあるので</p>
+
+<ul>
+  <li><i class="key">⌘</i>-<i class="key">TAB</i> to <i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">]</i></li>
+  <li><i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">TAB</i> to <i class="key">⌘</i>-<i class="key">⇧</i>-<i class="key">[</i></li>
+</ul>
+
+<p>の置き換えをしてあげれば良いことになります。</p>
+
+<p>Karabiner-Elementsであれば</p>
+
+<pre><code>{
+  "description": "Cmd-(Shift-)Tab to Cmd-Opt-Right(Left) (Select Next(Previous) Tab), 次(前)のタブを表示)",
+  "manipulators": [
+    {
+      "type": "basic",
+      "from": &lt;%= from("tab", ["command"]) %&gt;,
+      "to": &lt;%= to([["close_bracket", ["command", "shift"]]]) %&gt;
+    },
+    {
+      "type": "basic",
+      "from": &lt;%= from("tab", ["command", "shift"]) %&gt;,
+      "to": &lt;%= to([["open_bracket", ["command", "shift"]]]) %&gt;
+    }
+  ]
+},
+</code></pre>
+
+<p>こんな感じで書けます。</p>
+
+<p><a href="https://rcmdnk.com/KE-complex_modifications/">Karabiner-Elements complex_modifications rules by rcmdnk</a>
+へ行って、<strong>Personal rules (@rcmdnk)をImportして
+**Cmd-(Shift-)Tab to Cmd-Opt-Right(Left) (Select Next(Previous) Tab), 次(前)のタブを表示)</strong>を
+Enableすることでもこの設定を入れることが出来ます。</p>
+
+<h2 id="タブ移動キーを環境設定から設定する">タブ移動キーを環境設定から設定する</h2>
+
+<p>Karabiner-Elementsを使わなくてもこれだけであれば
+Macの環境設定からも設定できます。</p>
+
+<p><strong>環境設定</strong><i class="fa fa-arrow-right"></i>
+<strong>キーボード</strong><i class="fa fa-arrow-right"></i>
+<strong>ショートカット</strong>へ行き
+<strong>アプリケーション</strong>の欄で</p>
+
+<ul>
+  <li>次のタブを表示</li>
+  <li>前のタブを表示</li>
+  <li>Select Next Tab</li>
+  <li>Select Previous Tab</li>
+</ul>
+
+<p>というメニュータイトルでそれぞれにキーボードショートカットを
+決めてあげれば使えます。
+全てのアプリケーションで共通にしたり、特定のアプリケーションに対して決める事もできます。</p>
+
+<p>日本語のメニューのものには日本語で、英語メニューのものには英語で。
+全体でするならとりあえず両方設定。</p>
+
+<p>ここで設定するとFinderなどのウィンドウメニューにあるショートカットキーも変更されます。</p>
+
+<p>元々のFinerのメニューでは</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171010_finderbefore.jpg" alt="finder before" class="pic" /></p>
+
+<p>こんな感じですが、環境設定から</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171010_preferences.jpg" alt="preferences" class="pic" /></p>
+
+<p>こんな感じのショートカットキーを追加してやると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20171010_finderafter.jpg" alt="finder after" class="pic" /></p>
+
+<p>こんな感じでウィンドウメニューも変更されます。</p>
+]]></content>
+  </entry>
+  
+</feed>
