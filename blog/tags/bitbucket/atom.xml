@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Bitbucket | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/bitbucket/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-14T00:23:49+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub pages + Octopressの導入]]></title>
+    <link href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"/>
+    <updated>2013-03-07T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/03/07/setup-octopress</id>
+    <content type="html"><![CDATA[<p>GitHubを使って色々管理をし始めた今日このごろ、
+GitHubでは<a href="http://pages.github.com/">GitHub Pages</a>とページが
+簡単に作れるということを知って、
+さらにしばらく調べていたら<a href="http://octopress.org/">Octopress</a>と
+言うツールを使ってブログをGitHub Pages上でブログを作る、
+と言うのが面白そうだったのでいっその事ブログも作って見ることにしました。</p>
+
+<p>ということでまずは、導入メモ。
+今回はMacとWindowsで作業を行ったのでそれらのメモです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#githubでの設定" id="markdown-toc-githubでの設定">GitHubでの設定</a></li>
+  <li><a href="#rubyのインストール" id="markdown-toc-rubyのインストール">rubyのインストール</a>    <ul>
+      <li><a href="#macの場合-rvmを使う" id="markdown-toc-macの場合-rvmを使う">Macの場合 (rvmを使う)</a></li>
+      <li><a href="#windowsでの設定" id="markdown-toc-windowsでの設定">Windowsでの設定</a></li>
+    </ul>
+  </li>
+  <li><a href="#octopressのインストール" id="markdown-toc-octopressのインストール">Octopressのインストール</a></li>
+  <li><a href="#記事やページを作る" id="markdown-toc-記事やページを作る">記事やページを作る</a></li>
+  <li><a href="#githubとoctopressを繋げて記事を公開する" id="markdown-toc-githubとoctopressを繋げて記事を公開する">GitHubとOctopressを繋げて記事を公開する</a></li>
+  <li><a href="#下書きをdeployしないようにする" id="markdown-toc-下書きをdeployしないようにする">下書きをdeployしないようにする</a></li>
+  <li><a href="#sourceの管理" id="markdown-toc-sourceの管理">sourceの管理</a></li>
+  <li><a href="#管理のまとめ" id="markdown-toc-管理のまとめ">管理のまとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="githubでの設定">GitHubでの設定</h2>
+<p><a href="https://github.com/">GitHub</a>のアカウントを作ります。
+gitの導入なり、ssh-keyの登録なりは色々な所で紹介されているので省略。</p>
+
+<p>アカウントが作成できたら、<a href="https://github.com/new">Create a new repo</a>へ行き、
+“username.github.com”というGitHub page用のレポジトリを作ります。</p>
+
+<div class="postscript">
+  <p><strong>追記</strong></p>
+
+  <p>今はGitHub Pagesのドメインが変わって、<code>username.github.com</code>ではなく、<code>username.github.io</code>が割り当てられるので、
+リポジトリも<code>username.github.io</code>にすべきです。
+Rakefileの中に、</p>
+
+  <pre><code>branch = (repo_url.match(/\/[\w-]+\.github\.io/).nil?) ? 'gh-pages' : 'master'
+</code></pre>
+
+  <p>という箇所がありますが、この箇所が<code>github\.io/</code>となっていれば<code>io</code>レポジトリにしておかないと
+実際に公開するのに少し手間が必要です。
+(masterの代わりにgh-pagesというブランチにpushしてしまいます。
+<code>gh-pages</code>というのはGitHubで特別なブランチで、このブランチにあるものを
+GitHub Pagesの元、<code>username.github.io/&lt;repository&gt;</code>で公開できます。
+USER.github.comはさらに特殊なレポジトリで、そこのmasterにあるファイルを
+<code>username.github.io/</code>で公開します。)</p>
+
+  <p>もし、古いOctopressでここが<code>github\.com/</code>の場合、
+ここを<code>io</code>に直すか、<code>username.github.com</code>のレポジトリを使う必要があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2014/07/09</strong></p>
+
+  <p>最新のOctopressではRakefileの中でioだけじゃなく、comの場合もチェックして
+<code>master</code>を使うようになってます。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="rubyのインストール">rubyのインストール</h2>
+
+<h3 id="macの場合-rvmを使う">Macの場合 (rvmを使う)</h3>
+<p>現在使っているMacは2011年に買ったLionなのですが、
+入っているrubyは1.8.7で、octopressには1.9.3以上が必要なので
+新しいものを<a href="https://rvm.io/">rvm</a>を使って入れます。</p>
+
+<p>rvmのインストールで、<code>... bash -s stable --ruby</code>とするとrubyも同時にインストール
+出来るのですが、自分の環境だと</p>
+
+<pre><code>There is no checksum for 'http://production.cf.rubygems.org/rubygems/rubygems-2.0.2.tgz' or 'rubygems-2.0.2.tgz', it's not possible to validate it.
+If you wish to continue with unverified download add '--verify-downloads 1' after the command.
+
+There has been an error while trying to fetch the source.
+Halting the installation.
+</code></pre>
+
+<p>と言うメッセージが出たので、別途入れることにしました。
+現時点でrubyの最新版が2.0.0、これと同時にインストールされるrubygemが2.0.2で、
+どうもこれが悪さしてるみたいです。
+2.0.0でメッセージにあるように<code>--veryfy-downloads 1</code>をつけてもrubygemの
+インストールで失敗している様なので1.9.3をインストールすることにしました。</p>
+
+<pre><code>$ # rvm installl, ref: https://rvm.io/
+$ \curl -L https://get.rvm.io|bash -s stable
+$ # ruby install, also rubygems-1.8.25 (at this time) will be installed
+$ rvm install 1.9.3
+</code></pre>
+
+<p>この時点ではPATH等が上記のコマンドによって自動的に設定されますが、
+今後も<code>$HOME/.rvm</code>以下のrubyを使うように、bashを使っている場合は<code>.bash_profile</code>
+(または<code>.bashrc</code>を<code>.bash_profile</code>から読み込む様にしてある場合は<code>.bashrc</code>)に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> -s <span class="nv">$HOME</span>/.rvm/scripts/rvm <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="nb">source</span> <span class="nv">$HOME</span>/.rvm/scripts/rvm
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>を加えておきます。</p>
+
+<h3 id="windowsでの設定">Windowsでの設定</h3>
+<p>今回は<a href="http://www.cygwin.com/">Cygwin</a>を使って環境を作りました。
+インストール時にはOctopress用に最低限</p>
+
+<ul>
+  <li>Devel:git</li>
+  <li>Ruby:全部</li>
+</ul>
+
+<p>はインストールします。
+gitをCUIで積極的に使う場合は</p>
+
+<ul>
+  <li>Utils:<a href="http://jonas.nitro.dk/tig/">tig</a> (gitのCUIブラウザー)</li>
+</ul>
+
+<p>もインストールしておくと良いと思います。</p>
+
+<p>Cygwinでsetup.exeでインストールされるrubyは現時点で1.9.3なのでそのまま使えます。
+現時点で使っている物は</p>
+
+<ul>
+  <li>Cygwin 1.7.17</li>
+  <li>ruby 1.9.3p385</li>
+  <li>git version 1.7.9</li>
+  <li>tig version 1.1</li>
+</ul>
+
+<p>です。</p>
+
+<p>CygwinはRubyのためで、この他にもWindowsにインストールする方法としては</p>
+
+<ul>
+  <li><a href="http://rubyinstaller.org/downloads/">RubyInstaller</a>:
+rubyを使えるコマンドプロンプトがインストールされる。</li>
+  <li><a href="https://github.com/scottmuc/yari">yari</a>: Yet Another Ruby Installer、rvm
+などにinspireされたツールということらしいが、コマンドプロンプトからrubyをインストール出来る。(<a href="http://blog.zerosharp.com/setting-up-octopress-on-windows-again/">参考ページ</a>)</li>
+  <li>これらの場合には別途<a href="http://git-scm.com/downloads">Git</a>または<a href="http://windows.github.com/">GitHub Client</a>も必要。
+また、</li>
+  <li><a href="http://www.mingw.org/">MinGW</a>: Cygwinからフォークして出来たUnix環境を作るソフト。</li>
+</ul>
+
+<p>といったものもあります。</p>
+
+<p>CygwinでOctopressをインストールする時、下にある
+<code>bundle install</code>で<code>posix-spawn</code>をインストールする時に
+上手く行かないのでこれだけ先に別にインストールしておきます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2014/11/12</strong></p>
+
+  <p>現時点で<code>posix-spawn</code>のバージョンは0.3.9で、これは
+Windowsで<code>bundle install</code>で問題なくインストールできます。
+なので、下記のコマンドはやらなくても大丈夫です。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<pre><code>$ # for cygwin only
+$ cd ~/tmp # anywhere tmporally space
+$ gem install rake-compiler
+$ git clone git://github.com/rtomayko/posix-spawn.git
+$ cd posix-spawn
+$ vi lib/posix/spawn/version.rb
+$ # change     VERSION = '0.3.7' to     VERSION = '0.3.6'
+$ rake gem
+$ #gem install pkg/posix-spawn-0.3.6
+$ #gem install pkg/posix-spawn-0.3.7.gem
+$ gem install pkg/posix-spawn-0.3.6.gem
+</code></pre>
+
+<div class="postscript">
+  <p><strong>追記: 2013/11/07</strong></p>
+
+  <p>posix-spawnが0.3.7になってたのと、installのところで<code>.gem</code>が抜けてたのを
+訂正。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2013/11/31</strong></p>
+
+  <p>インストールしただけでキチンと使ってなかったので色々ダメなままだった。。。</p>
+
+  <p>デフォルトGemfileのままだと、<code>posix-spawn-0.3.6</code>
+が呼ばれますが、GitHubのレポジトリの最新版は上に書いた様に0.3.7です。</p>
+
+  <p>これはWindows用のBugfixみたいです。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rtomayko/posix-spawn/pull/38">Version bump to 0.3.7 for Windows backtick fix</a></p>
+  </blockquote>
+
+  <p>もし、0.3.7をインストールした場合、Gemfileに</p>
+
+  <pre><code>"posix-spawn", "~&gt; 0.3.7"
+</code></pre>
+
+  <p>を書き加えて最初に必ず<code>bundle update</code>をする必要があります。</p>
+
+  <p>ただ、Macと共有のGemfileを使いたい場合、
+RubyGemsに登録されてるものがまだ0.3.6なので
+0.3.7にしてしまうとMacにも直接インストールしなくてはいけなくなります。</p>
+
+  <blockquote>
+    <p><a href="http://rubygems.org/gems/posix-spawn">posix-spawn RubyGems.org</a></p>
+  </blockquote>
+
+  <p>で、ちょっとやってみたところ、最初からつまづきました。</p>
+
+  <pre><code>$ rake gem
+rake aborted!
+cannot load such file -- rake/extensiontask
+./posix-spawn/Rakefile:17:in `&lt;top (required)&gt;'
+(See full trace by running task with --trace)
+</code></pre>
+
+  <p>ちょっと面倒なのと、出来ればRubyGemsの定義だけでやりたいし、
+上の0.3.7への変更は特にWindowsだけのためっぽいので
+(だからRubyGemsもアップデートされてない？)
+Macでは0.3.6でやりたい。</p>
+
+  <p>ので、ちょっと無理矢理ですが、Gemfileなどはそのままにして、
+Windowsでインストールする時に無理やりVersionを0.3.6と認識させます。</p>
+
+  <p>上のインストールのところにあるように、Version情報は
+<code>lib/posix/spawn/version.rb</code>にあるので、これを書き換え、後は
+同じ様に0.3.6としてインストール。</p>
+
+  <p>これで、Windowsの場合とMacの場合で同じく<code>posix-spawn-0.3.6</code>で使えます。</p>
+
+  <p>GitHubレポジトリにある古いのを無理やり持ってきても良いかもしれませんが、
+Windowsに関するBugfixで入れておいた方が良いので新しいものを使った方が
+良いと思います。</p>
+
+  <p>一つくらいのパッケージならこのような無理やりな変更も許されるだろう、、、ということで。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>もし<code>rake gem</code>の所でエラーが出るようなら、もう一度、Cygwinのsetup.exeで
+Ruby等が全て最新になっているか確認してみてください。
+全てUpdateしなおすと上手く行くこともあります。
+それでも上手くいかない場合は個別に上手く行くバージョンを調べて
+インストールしたりする必要があるかもしれません。</p>
+
+<h2 id="octopressのインストール">Octopressのインストール</h2>
+<p>Octopressをcloneしてきてインストールします。</p>
+
+<pre><code>$ cd /path/to/octopress/install/dir
+$ git clone git://github.com/imathis/octopress.git octopress
+$ cd octopress
+</code></pre>
+
+<p><a href="http://octopress.org/docs/setup/">公式のsetupページ</a>にもあるように、
+rvmを使っている場合はcdした時に、octopress内の.rvmrcをtrustするか聞かれるので
+yesとします。</p>
+
+<pre><code>$ gem intall bundler
+$ bundle install
+$ rake install
+</code></pre>
+
+<p>もしここで、<code>rake aborted!</code>と出たら、(rakeのバージョン云々のメッセージとともに)</p>
+
+<pre><code>$ bundle update
+</code></pre>
+
+<p>を一度実行してからもう一度<code>rake install</code>すればインストール出来るとおもいます。</p>
+
+<p>ここまで出来たら、試しに<code>rake preview</code>とコマンドを打ってみると</p>
+
+<pre><code>$ rake preview
+Starting to watch source with Jekyll and Compass. Starting Rack on port 4000
+....
+</code></pre>
+
+<p>と始まるので、ブラウザで<a href="http://localhost:4000/">http://localhost:4000/</a>
+を開いてみます。
+そうすると”My Octopress Blog”と言ったタイトルのブログページが見れると思います。</p>
+
+<p><code>rake preview</code>コマンドはHTMLにコンバートする<code>rake generate</code>コマンドも
+同時に行うので、
+いきなりpreviewコマンドを叩いてもちゃんとそれまで編集した物が反映されています。
+さらにsourceを監視している様で、previewしながら記事を編集すると
+即座にページを作成してくれるのでブラウザを再読み込みすると直ぐに
+ローカルで編集したものがチェック出来ます。</p>
+
+<h2 id="記事やページを作る">記事やページを作る</h2>
+<p>新しいブログ記事を作るには</p>
+
+<pre><code>$ rake new_post["test post"]
+</code></pre>
+
+<p>とすると<code>source/_posts/YYYY-mm-DD-test-post.markdown</code>と言うファイルができるので
+それをMarkdown形式で編集します。</p>
+
+<p>新たなページを作るには</p>
+
+<pre><code>$ rake new_page["test-page"]
+</code></pre>
+
+<p>とすると<code>source/test-page/index.markdown</code>と言うファイルができるので、これも
+Markdown形式で編集します。
+ページの方はBlog上に直接リンクが貼られないので必要ならばリンクを
+どこかに書いておく必要があります
+(<a href="https://rcmdnk.com/blog/2013/03/10/pages/">Octopressのページの作成</a>)。</p>
+
+<p><code>rake preview</code>してみるとtest postと言うタイトルの記事がpostされているのが分かります。
+さらに、<a href="http://localhost:4000/test-page">http://localhost:4000/test-page</a>
+にアクセスしてみると、
+Test Pageと言うタイトルのページが表れるはずです。</p>
+
+<p>preview中に記事を編集しても即座にブラウザをリロードすれば反映されるので
+常に確認しながら書くことも可能です。</p>
+
+<p>ちなみに、最初に<code>new_post</code>などに使うタイトルがファイル名に使われるので、
+ここでは日本語は使えない様です。
+タイトル自体は出来たファイルの<a href="https://github.com/mojombo/jekyll/wiki/YAML-Front-Matter">YAML Front Matterブロック</a>(ファイル上部の<code>---</code>で囲まれた部分)
+にある<code>title</code>の値を編集すれば日本語に出来ます。</p>
+
+<p>日本語の記事に関しては、utf-8にエンコードされてないと文字化けします。</p>
+
+<h2 id="githubとoctopressを繋げて記事を公開する">GitHubとOctopressを繋げて記事を公開する</h2>
+
+<pre><code>$ rake setup_github_pages
+</code></pre>
+
+<p>とコマンドを打ってレポジトリ
+(<code>git@github.com:username/username.github.com</code>)を入力すればOK。</p>
+
+<p>この作業で作業ブランチが<strong>master</strong>から<strong>source</strong>に変わります。
+ただし、Projectページ(username.github.com以外の通常レポジトリを指定した場合)
+は<strong>master</strong>のままとどまるので下に各sourceの管理、のところとかで
+ブランチ名に注意する必要があります。</p>
+
+<div class="postscript">
+  <p><strong>追記</strong></p>
+
+  <p>同上。
+<code>git@github.com:username/username.github.io</code>を入力。</p>
+
+  <hr class="dotted-border" />
+
+  <p>次にブログを実際に作ってGitHubへpushします。</p>
+
+  <pre><code>$ rake generate # convert to html
+$ rake deploy   # publish (push to GitHub)
+</code></pre>
+
+  <p>これで暫く経ってから<code>username.github.com</code>(<code>username.github.io</code>)にアクセスすると
+ブログが出来ていのが確認出来るはずです。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記</strong></p>
+
+  <p>もし、ブログが見えない場合、GitHubの<code>username.github.io</code>等のレポジトリを
+調べて見てください。上に書いたように、<code>master</code>にpushする代わりに、
+<code>gh-pages</code>にpushされてる可能性があります。
+その場合、Rakefileを上の様に確認し、<code>_deploy</code>を削除して再度
+設定しなおして見てください。
+GitHub上の<code>username.github.io</code>の<code>gh-pages</code>ブランチは消してしまっても構いません。
+(一番最初ならレポジトリ毎消して再度作りなおしても構いません。)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>この2つのコマンドは</p>
+
+<pre><code>$ rake gen_deploy
+</code></pre>
+
+<p>で一気に行う事も可能です。
+ただし、<code>gen_deploy</code>は<code>generate</code>が失敗した場合でも<code>deploy</code>を実行するので、
+<code>generate</code>失敗時な形で投稿されてしまうことがあります。
+さらに、下にある<code>published</code>のステートメントは最後の方に判断されるらしく、
+例えば後で投稿しようと思っている下書きが他にあって、
+今書いているものを投稿しようとしてその時に<code>gen_deploy</code>すると、
+中途半端な今の記事と後で投稿する予定の下書きの方も送られてしまうことがあるので
+ちょっとした変更とか以外は一回ちゃんと<code>generate</code>した方がよいです。</p>
+
+<p>previewで見ながら編集していた場合には既にページが出来ているので<code>rake deploy</code>
+するだけでもOKです。
+ただし、preview中に大きな編集(テーマを変えたり)するとたまにgenerate
+が上手く行かなくなってページがおかしくなるので、そいういった場合は
+別途<code>rage generate</code>してやればちゃんとページが作成されます。</p>
+
+<h2 id="下書きをdeployしないようにする">下書きをdeployしないようにする</h2>
+<p>一部下書きがあって完成してない状態でも、他の部分だけを公開したい時も
+あると思いますが、その場合は</p>
+
+<pre><code>published: false
+</code></pre>
+
+<p>をYAMLブロックに加えるとそのファイルはpreviewでは見れますが、deployされません。</p>
+
+<h2 id="sourceの管理">sourceの管理</h2>
+<p><a href="http://octopress.org/docs/deploying/github/">Octopressのインストラクション</a>
+だとsouceにあるMarkdown形式のファイルもGitHubで管理する様になっていますが、
+無料版だと元のファイルそのものが公開になってしまいますし、
+下書きの段階でもバックアップしておこうと思うと
+公開されてしまいます。
+さらにgitの管理の面でも面倒が起こったりするとのことなので
+(<a href="http://tokkonopapa.github.com/blog/2011/12/30/octopress-on-github-and-bitbucket/">Octopressのインストールから運用管理まで</a>にとても詳しく書いてあります)
+他の人を真似てsourceは<a href="https://bitbucket.org">Bitbucket</a>の方で管理します。
+BitbucketはGitHubと同じような要領でssh keyの登録やレポジトリの作成が出来ますが、
+無料で非公開のレポジトリを作ることが出来ます。</p>
+
+<p>Bitbucketの方で、<code>username.github.com</code>
+(管理しやすいようにGitHubのページと同じ名前のレポジトリにしましたが、何でもOKです)
+をprivate repository (Create a new repositoryのページで
+<code>This is a private repository</code>にチェックを入れておく)として作ります。</p>
+
+<p>Butbucketのリモートレポジトリを登録します。</p>
+
+<pre><code>$ git remote add bitbucket git@bitbucket.org:username/username.github.com.git
+$ git push -u bitbucket source
+</code></pre>
+
+<p>これで何か書いたら</p>
+
+<pre><code>$ git add .
+$ git commit -m "comment"
+$ git push
+</code></pre>
+
+<p>でBitbucketの方に記事のバックアップがとれます。</p>
+
+<p>Bitbucketをあまりちゃんと使ってなかってんですが、
+Bitbucketだとdiffがside-by-sideでも見れますね。
+GitHubもそのうち出来るようになってもらいたい…</p>
+
+<h2 id="管理のまとめ">管理のまとめ</h2>
+
+<ul>
+  <li>
+    <p>記事を書くには</p>
+
+    <pre><code>  $ rake new_post["title"]
+</code></pre>
+
+    <p>でファイル(source/_posts/YYYY-mm-DD-test-post.markdown)を作成して、それを編集する。</p>
+  </li>
+  <li>
+    <p>ブログのポストとは別にページが作りたい場合は</p>
+
+    <pre><code>  $ rake new_page["title"]
+</code></pre>
+
+    <p>で新たなページを作り、source/title/index.markdownとして出来たファイルを編集
+  したりしてページを作る。</p>
+  </li>
+  <li>
+    <p>書いたらプレビューしてみる</p>
+
+    <pre><code>  $ rake preview
+</code></pre>
+
+    <p>を走らせて、<a href="http://localhost:4000/">http://localhost:4000/</a>をブラウザで開く。
+  途中で変更しすぎておかしくなったら一度generateする。</p>
+
+    <pre><code>  $ rake generate
+</code></pre>
+  </li>
+  <li>
+    <p>記事の元のファイルをバックアップしたいときはBitbucketに送る</p>
+
+    <pre><code>  $ git add . # or files what you want to backup
+  $ git commit -m "comment"
+  $ git push
+</code></pre>
+  </li>
+  <li>
+    <p>出来たらGitHubに送って公開する</p>
+
+    <pre><code>  $ git generate
+  $ git deploy
+</code></pre>
+
+    <p>または</p>
+
+    <pre><code>  $ git gen_deploy
+</code></pre>
+  </li>
+  <li>
+    <p>暫く使ってると色々キャッシュが溜まってくるので</p>
+
+    <pre><code>  $ rake clean
+</code></pre>
+
+    <p>をすると</p>
+
+    <pre><code>  $ rm -rf .pygments-cache/** .gist-cache/** .sass-cache/** source/stylesheets/screen.css
+</code></pre>
+  </li>
+</ul>
+
+<p>をしてくれます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/10/04</strong></p>
+
+  <p>どうもデフォルトのままだと上手くclean出来てないようでちょっと
+Rakefileを変更する必要があります。</p>
+
+  <blockquote>
+    <p>Ref: <a href="http://rcmdnk.github.io/blog/2013/10/04/blog-octopress/#rake+cleanの+不具合?">rake+cleanの+不具合?</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<ul>
+  <li>
+    <p>gitの話ですが、暫く使っているとgitの管理ファイル(.git内)もどんどん肥大化していってしまうので、 気が向いたら</p>
+
+    <pre><code>  $ git gc
+</code></pre>
+
+    <p>を行うと不要なファイルを削除したり最適化を行なってくれます。</p>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2016/12/12 </strong></p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20161212_githubpageserr_120_90.jpg" width="120" height="90" alt="20161212_githubpageserr_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/12/12/blog-github-octopress-jekyll/">GitHub Pagesの仕様がアップデート: Jekyll/Octopressなどで直接ビルド後のサイトを送ってる場合にちょっと注意</a></div></li></ul>
+  <p>j</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+</feed>

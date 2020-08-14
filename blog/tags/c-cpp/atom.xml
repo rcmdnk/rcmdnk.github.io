@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: C-CPP | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/c-cpp/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-14T00:23:49+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[エンディアンについて(インテル VS モトローラ的な)]]></title>
+    <link href="https://rcmdnk.com/blog/2015/05/06/computer-c-cpp-bash/"/>
+    <updated>2015-05-06T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/05/06/computer-c-cpp-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00MCXLBNI?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00MCXLBNI&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ckqEjqe%2BL._SS200_.jpg" alt="Amazon.co.jp： My Little Big Endian: Otto Lugger: デジタルミュージック" /></a>
+</div>
+
+<p>コンピューター上で複数バイトを使うデータを記憶する時に
+どのような順序で置いておくか、と言う配置の方法をエンディアン(endianness、バイト順)と言います。</p>
+
+<p>普段プログラムをするときなんかは殆ど気にすることはありませんが、
+この配置方法は場合によって違うことがあり、バイト単位で自分で色々
+データを管理するような時にはきちんと配慮する必要があります。</p>
+
+<p>とは言っても殆ど気にする時は無いんですが、
+久々にちょっと気になって
+チェックする方法とか
+についてちょっと見なおしたのでその辺のメモ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#ビッグエンディアンとリトルエンディアン" id="markdown-toc-ビッグエンディアンとリトルエンディアン">ビッグエンディアンとリトルエンディアン</a></li>
+  <li><a href="#チェック方法" id="markdown-toc-チェック方法">チェック方法</a>    <ul>
+      <li><a href="#cを使ったチェック方法" id="markdown-toc-cを使ったチェック方法">C++を使ったチェック方法</a></li>
+      <li><a href="#コマンドラインでodを使った方法" id="markdown-toc-コマンドラインでodを使った方法">コマンドラインでodを使った方法</a></li>
+      <li><a href="#python" id="markdown-toc-python">Python</a></li>
+      <li><a href="#ruby" id="markdown-toc-ruby">Ruby</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="ビッグエンディアンとリトルエンディアン">ビッグエンディアンとリトルエンディアン</h2>
+
+<p>プログラムを動かすときに、データは1バイト単位(=8ビット)で
+記憶されていきます。</p>
+
+<p>それぞれにアドレスが割り振られて、このアドレスに使える数の制限が
+32bit(2^32bit ~ 4GB)マシンとか64bit(2^64bit ~ 16EB)マシンとかで変わってきます。</p>
+
+<p>2バイト以上のデータを保存する時に、どのような順序で記憶していくか、
+という方法を示すのがエンディアンになります
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>主にビッグエンディアンとリトルエンディアンの二種類があって、
+ビッグエンディアンの方はデータの上の方から準に詰めていくのに対し、
+リトルエンディアンは下の方から順に詰めていきます。</p>
+
+<pre><code>12 34 56 78
+</code></pre>
+
+<p>みたいな4バイトのデータの固まり(16進法で8桁、2桁ごとが1バイト)が有る時に、
+一番最初のメモリに入るのが
+<code>12</code>なのか<code>78</code>なのか、と言う感じ。</p>
+
+<p>インテルのCPUはリトルエンディアンで、
+一方モトローラのはビッグエンディアンで、
+しばしばIntel v.s. Motorola的な対応の見せ方を見ることもあります
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>今は普通のパソコンはMacですらインテルのCPUが殆どなので
+大概のものはリトルエンディアンになってます。</p>
+
+<p>ちょっと前までMacで使われてたPowerPCは
+両方使えるバイエンディアンというものでしたが、
+普通にMacで使う際にはビッグエンディアンとして動いていました。</p>
+
+<p>なので、昔はWindowsマシンはリトルエンディアンで
+Macはビッグエンディアン、みたいな感じもあって、
+Macの特徴、的な所でちょちょっとしたデモンストレーションをやって
+データがその順通りに表示される、的な事をやって見せてもらったりしたことがあったな、と。</p>
+
+<h2 id="チェック方法">チェック方法</h2>
+
+<h3 id="cを使ったチェック方法">C++を使ったチェック方法</h3>
+
+<figure class="code"><figcaption><span>endiancheck1.cxx </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mh">0x12345678</span><span class="p">;</span>
+</span><span class="line">  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">i</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span><span class="p">;</span>
+</span><span class="line">  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">endlma</span>
+</span><span class="line">  <span class="k">return</span> <span class="mi">0</span> <span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのC++のコードを用意します。</p>
+
+<p>ここで<code>int</code>型は4バイトだとします。
+4バイトなので16進数で8桁の数を最初に入れてあります。</p>
+
+<p>これを1バイトの<code>unsigned char</code>に1バイトずつ入れた形です。</p>
+
+<p>これを実行すると、ビッグエンディアンな環境では</p>
+
+<pre><code>$ ./endiancheck1
+ 12 34 56 78
+</code></pre>
+
+<p>と表示され、リトルエンディアンな環境では</p>
+
+<pre><code>$ ./endiancheck1
+ 78 56 34 12
+</code></pre>
+
+<p>となるはずです。</p>
+
+<p>もうちょっと色々なサイズとかを見てみようと思うとこんな感じ。</p>
+
+<figure class="code"><figcaption><span>endiancheck2.cxx </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="k">union</span> <span class="p">{</span>
+</span><span class="line">    <span class="kt">long</span> <span class="n">b8</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">int</span> <span class="n">b4</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span><span class="line">    <span class="kt">short</span> <span class="n">b2</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+</span><span class="line">    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">b1</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
+</span><span class="line">  <span class="p">}</span> <span class="n">bytes</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">  <span class="n">bytes</span><span class="p">.</span><span class="n">b8</span> <span class="o">=</span> <span class="mh">0x123456789abcdef0</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;8 bytes: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="n">bytes</span><span class="p">.</span><span class="n">b8</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;4 bytes: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">bytes</span><span class="p">.</span><span class="n">b4</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">bytes</span><span class="p">.</span><span class="n">b4</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;2 bytes:&quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">bytes</span><span class="p">.</span><span class="n">b2</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;1 byte :&quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bytes</span><span class="p">.</span><span class="n">b1</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span><span class="line">  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="k">return</span> <span class="mi">0</span> <span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを実行するとビッグエンディアンな環境では</p>
+
+<pre><code>$ ./endiancheck2
+8 bytes: 123456789abcdef0
+4 bytes: 12345678 9abcdef0
+2 bytes: 1234 5678 9abc def0
+1 byte : 12 34 56 78 9a bc de f0
+</code></pre>
+
+<p>と表示され、リトルエンディアンな環境では</p>
+
+<pre><code>$ ./endiancheck2
+8 bytes: 123456789abcdef0
+4 bytes: 9abcdef0 12345678
+2 bytes: def0 9abc 5678 1234
+1 byte : f0 de bc 9a 78 56 34 12
+</code></pre>
+
+<p>となります。</p>
+
+<p>コードについてちょっと補足しておくと:</p>
+
+<ul>
+  <li>union(共用体)はメンバが全て同じメモリを共有する構造。
+一番大きなメンバの文だけメモリが確保される。
+上の例では全て8バイトなので全てが同じ4バイト分のメモリを共有してる。
+    <ul>
+      <li>なので最初に<code>b8</code>に値を入れた時点で他のメンバもこの値を参照する。</li>
+    </ul>
+  </li>
+  <li><code>std::hex</code>を<code>std::cout</code>に与えることで、以降数値を16進法で表示するようになる。</li>
+  <li><code>unsigned char</code>型はそのまま<code>cout</code>すると対応するアスキーコードを表示しようとするので
+ここでは<code>int</code>にキャスト。<code>printf</code>を使って数値としてフォーマットを指定する時は
+キャストせずにそのままでも数値として表示できる。</li>
+  <li><code>char</code>だけ<code>unsigned</code>が必要。これは<code>char</code>をcastする際、
+<code>char</code>型だと1ビット分が符号に使われるため、<code>0x80</code>以上の数値を
+<code>int</code>とかに変換しようとすると、上から借りてくる形になってしまって、
+<code>0xffffff80</code>になってしまうため。</li>
+</ul>
+
+<p>図にするとこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20150506_bigendian.jpg" alt="bigendian" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20150506_littleendian.jpg" alt="littleendian" class="pic" /></p>
+
+<p>一番左がメモリ上のアドレスの小さい位置になります。</p>
+
+<h3 id="コマンドラインでodを使った方法">コマンドラインでodを使った方法</h3>
+
+<p><code>od</code>コマンドは入力を指定された形で出力してくれるコマンドで、
+文字列を文字コードに変換したり出来ます。</p>
+
+<p>これを使って</p>
+
+<pre><code>$ echo -n "12345" | od -t x
+</code></pre>
+
+<p>というコマンドを打ってみます。
+<code>od -t x</code>で16進法で入力の格文字を表示します。</p>
+
+<p>それぞれの文字コードは16進法で</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">文字</th>
+      <th style="text-align: center">コード</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">31</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">32</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">33</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">34</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">35</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>となってます<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<p>実行してみるとビッグエンディアンな環境では</p>
+
+<pre><code>$ echo -n "12345" | od -t x
+0000000 31323334 35000000
+0000005
+</code></pre>
+
+<p>と表示され、リトルエンディアンな環境では</p>
+
+<pre><code>$ echo -n "12345" | od -t x
+0000000 34333231 00000035
+0000005
+</code></pre>
+
+<p>一番左の数字はそれぞれの行の先頭が何バイト目か、というのを示している数値です。
+2行目が5になってるのは一行目に5つの文字列が含まれてるためです
+<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p><code>od</code>ではデフォルトで4バイト毎に区切られて表示される様になっているので、
+上の様に8桁の数字毎に書かれていますが、
+これを元の数値の文字列に直せばそれぞれ、</p>
+
+<pre><code>1234 5
+</code></pre>
+
+<p>と</p>
+
+<pre><code>4321 5
+</code></pre>
+
+<p>となってる事になります。</p>
+
+<p>ここでもリトルエンディアンな環境では逆さになってることが確認できます。</p>
+
+<h3 id="python">Python</h3>
+
+<p>Pythonには<code>sys</code>モジュールの中にある<code>byteorder</code>という変数に
+エンディアンがどちらか、の情報が入る様になっています
+<sup id="fninref:5"><a href="#fnin:5" rel="footnote">5</a></sup>。</p>
+
+<p>ビッグエンディアンなら</p>
+
+<pre><code>$ python
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; print sys.byteorder
+big
+&gt;&gt;&gt;
+</code></pre>
+
+<p>リトルエンディアンなら</p>
+
+<pre><code>$ python
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; print sys.byteorder
+little
+&gt;&gt;&gt;
+</code></pre>
+
+<p>と表示してくれます。</p>
+
+<h3 id="ruby">Ruby</h3>
+
+<p>Rubyには配列を1つのバイナリデータにしたり、
+1つのバイナリデータを決まったバイト数毎の配列に変換したりする、
+<code>pack</code>、<code>unpack</code>というメソッドがあります
+<sup id="fninref:6"><a href="#fnin:6" rel="footnote">6</a></sup>。</p>
+
+<p>これを使うと、
+ビッグエンディアンでは</p>
+
+<pre><code>$ irb
+irb(main):001:0&gt; [1,2].pack("s2")
+=&gt; "\x00\x01\x00\x02"
+irb(main):002:0&gt;
+</code></pre>
+
+<p>リトルエンディアンでは</p>
+
+<pre><code>$ irb
+irb(main):001:0&gt; [1,2].pack("s2")
+=&gt; "\x01\x00\x02\x00"
+irb(main):002:0&gt;
+</code></pre>
+
+<p>となります。</p>
+
+<p><code>pack</code>での引数は<code>s2</code>となってますが、
+この<code>s</code>は<code>short</code>型の大きさとして(ここでは2バイト)配列を結合する、
+ということを意味します。
+その後の数字はいくつ分を結合するか、を意味していて、この場合は
+配列の中身の個数分2個を繋げる、と言う意味です。
+(全部であれば数字の代わりに<code>*</code>を使っても同じ。)</p>
+
+<p>それぞれ2バイトの大きさとして見るため、<code>0x1</code>を2バイトに置く時に、
+<code>0x0001</code>をどう置くか、と言う部分で両者で違ってきます。
+リトルエンディアンの方では上下のバイト分が1と2の時それぞれで逆転して
+配置されています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[c: c言語をスクリプト感覚で実行出来る様にするコマンド]]></title>
+    <link href="https://rcmdnk.com/blog/2015/03/15/computer-c-cpp/"/>
+    <updated>2015-03-15T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/03/15/computer-c-cpp</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00HRN7VK0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00HRN7VK0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51-RR1ZYgYL._SS200_.jpg" alt="プログラムはなぜ動くのか 第2版　　知っておきたいプログラムの基礎知識" /></a>
+</div>
+
+<p>PythonやRubyなんかはShebangをファイルの先頭に書いておくと、
+ファイルの実行権限を持っていれば内容をその言語のものとして読み取って実行してくれます。</p>
+
+<p>これと同じような事をしてくれるコマンドが
+<a href="https://github.com/ryanmjacobs/c">c</a>です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#c" id="markdown-toc-c">c</a></li>
+  <li><a href="#shebangを使って実行" id="markdown-toc-shebangを使って実行">Shebangを使って実行</a></li>
+  <li><a href="#コマンドとしてファイルを引数として渡して実行" id="markdown-toc-コマンドとしてファイルを引数として渡して実行">コマンドとしてファイルを引数として渡して実行</a></li>
+  <li><a href="#その他出来るコト" id="markdown-toc-その他出来るコト">その他出来るコト</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="c">c</h2>
+
+<div class="github-widget" data-repo="ryanmjacobs/c"></div>
+
+<p><code>c</code>はファイルの中身を見ると結構単純なシェルスクリプトです。
+中で<code>cc</code>を使ってコンパイルして実行する、を一気にやってくれるわけです。</p>
+
+<p>その際、実際の実行ファイルなんかは
+一時ディレクトリ($C_CACHE_PATH or $TMPDIR or /tmp)
+に作られるのでまるでスクリプトを実行してる様な感じで
+コマンドが実行されます。</p>
+
+<p>使うには上のレポジトリから<code>c</code>スクリプトを取ってきて適当な<code>PATH</code>の通った
+ディレクトリにインストールします。</p>
+
+<h2 id="shebangを使って実行">Shebangを使って実行</h2>
+
+<p>後はShebangを使ってスクリプトっぽく書きたい場合には</p>
+
+<figure class="code"><figcaption><span>hello.c </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="c"><span class="line"><span></span><span class="cp">#!/usr/bin/env c</span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Hello World!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じでShebangに</p>
+
+<pre><code>#!/usr/bin/env c
+</code></pre>
+
+<p>を書いて(<code>env</code>使わずに<code>c</code>への直パスでも良いですが)、
+その後に普通のCのコードを書いていくだけです。</p>
+
+<p>このファイルを実行可能にして実行してみると</p>
+
+<pre><code>$ chmod 755 hello.c
+$ ./hello.c
+Hello World!
+</code></pre>
+
+<p>こんな感じでスクリプト感覚で実行できます。
+勿論、ちょっと書き換えて実行することも可能。</p>
+
+<p>C++を使いたいときは、ファイルの拡張子を<code>cc</code>、<code>c++</code>、<code>cpp</code>、<code>cxx</code>の
+いずれかにします。</p>
+
+<figure class="code"><figcaption><span>hello.cxx </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#!/usr/bin/env c</span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World!&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなのを作ると</p>
+
+<pre><code>$ chmod 755 hello.cxx
+$ ./hello.cxx
+Hello World!
+</code></pre>
+
+<p>また引数を取ることも出来、</p>
+
+<figure class="code"><figcaption><span>argtest.c </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="c"><span class="line"><span></span><span class="cp">#!/usr/bin/env c</span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[]){</span>
+</span><span class="line">    <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span><span class="line">    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">argc</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;argv[%d] = %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなファイルを作れば</p>
+
+<pre><code>$ ./argtest.c arg1 arg2
+argv[0] = ./argtest.c
+argv[1] = arg1
+argv[2] = arg2
+</code></pre>
+
+<p>こんな風に引数が与えられます。</p>
+
+<h2 id="コマンドとしてファイルを引数として渡して実行">コマンドとしてファイルを引数として渡して実行</h2>
+
+<p>Pythonとか他の言語の様にファイルを引数として渡して実行することも出来ます。
+この場合はShebangの部分はあっても無くても良いので
+通常のC/CXXのファイルを実行することも出来ます(ただしmain関数を含む、
+実行に必要な全ファイルが必要)。</p>
+
+<pre><code>$ c hello.c
+Hello World!
+$ c hello.cxx
+Hello World!
+$ c argtest.c arg1 arg2
+argv[0] = ./argtest.c
+argv[1] = arg1
+argv[2] = arg2
+</code></pre>
+
+<p>標準入力から受け取ることも可能:</p>
+
+<pre><code>$ cat hello.c| c
+Hello World!
+</code></pre>
+
+<p>ただし、標準入力から与える場合にはファイルの判定のしようが無いので
+C++的な物は使えません。
+また、引数を与えるのもこちらだとちょっと無理です。
+(この辺はちょっとオプション加えたり工夫するだけでなんとかなりそう。)</p>
+
+<h2 id="その他出来るコト">その他出来るコト</h2>
+
+<ul>
+  <li>cコマンドに複数ファイルをまとめて渡すことも可能。</li>
+  <li>オプションも渡せる。</li>
+</ul>
+
+<p>例:</p>
+
+<pre><code>  $ c "main.c other.c -O3 -Wall -lncurses" arg1 arg2
+</code></pre>
+
+]]></content>
+  </entry>
+  
+</feed>

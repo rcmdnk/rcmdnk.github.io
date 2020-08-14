@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Prompt | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/prompt/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2020-08-14T00:23:49+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Macのターミナル.appでのPROMPT_COMMAND]]></title>
+    <link href="https://rcmdnk.com/blog/2013/05/01/computer-mac-bash-prompt/"/>
+    <updated>2013-05-01T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/05/01/computer-mac-bash-prompt</id>
+    <content type="html"><![CDATA[<p>Macでは普段iTerm2を使っているのですが、
+ふと、もともと入ってるターミナル.appを立ち上げた所、
+<code>PROMPT_COMMAND</code>がおかしくてエラーがでたので修正しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#bashrcでのprompt_commandの設定" id="markdown-toc-bashrcでのprompt_commandの設定"><code>.bashrc</code>での<code>PROMPT_COMMAND</code>の設定</a></li>
+  <li><a href="#ターミナルapp上でのprompt_command" id="markdown-toc-ターミナルapp上でのprompt_command">ターミナル.app上での<code>PROMPT_COMMAND</code></a></li>
+  <li><a href="#問題点" id="markdown-toc-問題点">問題点</a></li>
+  <li><a href="#bashrcの修正" id="markdown-toc-bashrcの修正"><code>.bashrc</code>の修正</a></li>
+  <li><a href="#その他" id="markdown-toc-その他">その他</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="bashrcでのprompt_commandの設定"><code>.bashrc</code>での<code>PROMPT_COMMAND</code>の設定</h2>
+<p>自分用の<code>.bashrc</code>内で、いくつか</p>
+
+<pre><code>PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}command"
+</code></pre>
+
+<p>という形で新しい<code>command</code>を<code>PROMPT_COMMAND</code>に追加しています
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>これは、<code>PROMPT_COMMAND</code>に何らかのコマンドがあれば、最後に<code>;</code>を加えて
+新しいコマンドを付け加える、というつもりで、
+前提として<code>PROMPT_COMMAND</code>の最後に<code>;</code>がついてないということがありました。</p>
+
+<h2 id="ターミナルapp上でのprompt_command">ターミナル.app上での<code>PROMPT_COMMAND</code></h2>
+<p>Macのターミナル.appには新しいウィンドウやタブを開くとき、
+現在作業中の所と同じディレクトリで開く事が出来るオプションがあります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130501_terminalsetting.jpg" title="" alt="" /></p>
+
+<p>このディレクトリの定義はエスケープシーケンスを使って保存していて、
+<code>/etc/.bashrc</code>を見ると</p>
+
+<figure class="code"><figcaption><span>/etc/bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># System-wide .bashrc file for interactive bash(1) shells.
+</span><span class="line">if [ -z "$PS1" ]; then
+</span><span class="line">   return
+</span><span class="line">fi
+</span><span class="line">
+</span><span class="line">PS1='\h:\W \u\$ '
+</span><span class="line"># Make bash check its window size after a process completes
+</span><span class="line">shopt -s checkwinsize
+</span><span class="line"># Tell the terminal about the working directory at each prompt.
+</span><span class="line">if [ "$TERM_PROGRAM" == "Apple_Terminal" ] &amp;&amp; [ -z "$INSIDE_EMACS" ]; then
+</span><span class="line">    update_terminal_cwd() {
+</span><span class="line">        # Identify the directory using a "file:" scheme URL,
+</span><span class="line">        # including the host name to disambiguate local vs.
+</span><span class="line">        # remote connections. Percent-escape spaces.
+</span><span class="line">    local SEARCH=' '
+</span><span class="line">    local REPLACE='%20'
+</span><span class="line">    local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
+</span><span class="line">    printf '\e]7;%s\a' "$PWD_URL"
+</span><span class="line">    }
+</span><span class="line">    PROMPT_COMMAND="update_terminal_cwd; $PROMPT_COMMAND"
+</span><span class="line">fi</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った様になっていて、<code>update_terminal_cwd</code>と言う関数内で
+<code>\e]7;~\a</code>にディレクトリ情報を送り、この情報をターミナル.appは使っている様です。
+この関数を<code>PROMPT_COMMAND</code>で呼んでいます。</p>
+
+<p>従って、上のターミナル.appの環境設定の一番下にもある注意の様に、もし<code>.bashrc</code>
+等で<code>PROMPT_COMMAND</code>を上書きしてこの設定を消してしまえば
+この環境設定で<code>同じ作業ディレクトリ</code>を選んでも機能しなくなります。</p>
+
+<p>この設定は<code>TERM_PROGRAM</code>が<code>Apple_Terminal</code>(ターミナル.app)
+の場合(かつemacs内でのshellで無い場合)
+のみに加わるのでiTerm等、他のターミナルアプリでは
+<code>/etc/bashrc</code>は<code>PS1</code>を設定するのみになります。</p>
+
+<h2 id="問題点">問題点</h2>
+
+<p>問題なのは</p>
+
+<pre><code>PROMPT_COMMAND="update_terminal_cwd; $PROMPT_COMMAND"
+</code></pre>
+
+<p>となっている部分で、この時点で<code>PROMPT_COMMAND</code>が定義されていないと、
+結果的に</p>
+
+<pre><code>PROMPT_COMMAND="update_terminal_cwd;"
+</code></pre>
+
+<p>と言う様に最後が<code>;</code>で終わる形になってしまいます。</p>
+
+<p>このまま上のある様に<code>;</code>をさらに付け加えてしまうと</p>
+
+<pre><code>-bash: syntax error near unexpected token `;'
+</code></pre>
+
+<p>の様なエラーが毎回コマンド打つ事に出て来るようになってしまいます。</p>
+
+<p>普段使ってるLinux(Redhat系)では<code>/etc/bashrc</code>内で</p>
+
+<pre><code>PROMPT_COMMAND='printf "\033]0;%s@%s:%s\007" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/~}"'
+</code></pre>
+
+<p>と言った様に最後が<code>;</code>で無い形で終わっているので
+両者で動かすためにちょっと修正が必要です。</p>
+
+<h2 id="bashrcの修正"><code>.bashrc</code>の修正</h2>
+<p><code>.bashrc</code>の先頭の方で次の様にしました。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">...
+</span><span class="line"># In Mac, it is already read.
+</span><span class="line">if [[ ! "$OSTYPE" =~ "darwin" ]];then
+</span><span class="line">  if [ -r /etc/bashrc ];then
+</span><span class="line">    source /etc/bashrc
+</span><span class="line">  fi
+</span><span class="line">fi
+</span><span class="line"># Remove the last ";" from PROMPT_COMMAND
+</span><span class="line">PROMPT_COMMAND=`echo ${PROMPT_COMMAND}|sed 's/;$//'`
+</span><span class="line">...
+</span><span class="line"># }}}</span></code></pre></td></tr></table></div></figure>
+
+<p><code>/etc/bashrc</code>を読み込んだ後に<code>PROMPT_COMMAND</code>の最後の<code>;</code>を取り除いています。</p>
+
+<p>また、<code>.bashrc</code>の最初で<code>/etc/bashrc</code>を読み込むのですが、
+Macの場合、新しいシェルの立ち上げ時に自動的に<code>/etc/bashrc</code>が
+読み込まれる様で、上にある<code>update_terminal_cwd</code>が2重に
+記述されていたので、
+Macの場合(<code>"$OSTYPE" =~ "darwin"</code>)では<code>.bashrc</code>内からは
+読み込まない様にもしました。</p>
+
+<p>あまりこの辺の情報を探しても見つからなかったのですし、
+<code>Macのターミナルの使い方</code>的な話でも普通に<code>/etc/bashrc</code>を
+呼ぶ様な<code>.bashrc</code>を紹介しているようなページしか
+見当たらなかったのですが、あまり気になる所ではないですかね…
+(ま、今回まで自分も気付かなかったわけだし…)</p>
+
+<h2 id="その他">その他</h2>
+<p>と、今回気付いた点のもう一つが、普段使っているLinuxの方では上にあるように
+<code>PROMPT_COMMAND</code>で
+ウィンドウのタイトル、アイコン名(<code>\033]0;~\007</code>)を変更するように
+<code>/etc/bashrc</code>内で設定している事です。</p>
+
+<p>そういえばそうだった、という感じで、昔見た覚えがありますが、
+最近これを<code>PS1</code>の変数内で行なっているので、2重に行なっていることになります。</p>
+
+<p><code>PS1</code>の方が後に実行されるので問題は無いのですが、ちょっと気持ち悪い。
+ただ、<code>PROMPT_COMMAND</code>にしても、後に付け加えれば2重になるので、
+以前、その様に設定してた時も同じと言えば同じです。</p>
+
+<p>基本的にはどこでも事前に設定されているコマンドが必要な事は
+殆ど無いので、いっその事<code>.bashrc</code>内で1回リセットしてしまっても
+良いのかもしれませんが、
+今回のターミナルの様に特殊に使ってる場合もあるということが分かったので、
+差し当たりそのままにしておきます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PS1とPROMPT_COMMAND, GNU screenでの活用も]]></title>
+    <link href="https://rcmdnk.com/blog/2013/03/21/prompt-command/"/>
+    <updated>2013-03-21T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/03/21/prompt-command</id>
+    <content type="html"><![CDATA[<p><a href="https://rcmdnk.com/blog/2013/03/18/prompt-screen">前回</a>プロンプトの事を書いたので、
+ついでに<code>PROMPT_COMMAND</code>の設定についてメモしておきます。
+GNU screenを起動させている時についても。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#prompt_command" id="markdown-toc-prompt_command">PROMPT_COMMAND</a></li>
+  <li><a href="#ps1-ps2-ps3-ps4" id="markdown-toc-ps1-ps2-ps3-ps4">PS1, PS2, PS3, PS4</a>    <ul>
+      <li><a href="#ps1" id="markdown-toc-ps1">PS1</a></li>
+      <li><a href="#ps2" id="markdown-toc-ps2">PS2</a></li>
+      <li><a href="#ps3" id="markdown-toc-ps3">PS3</a></li>
+      <li><a href="#ps4" id="markdown-toc-ps4">PS4</a></li>
+    </ul>
+  </li>
+  <li><a href="#ps1とprompt_commandの使い分け" id="markdown-toc-ps1とprompt_commandの使い分け">PS1とPROMPT_COMMANDの使い分け</a></li>
+  <li><a href="#プロンプトの表示" id="markdown-toc-プロンプトの表示">プロンプトの表示</a></li>
+  <li><a href="#ターミナルのタイトルバーの表示" id="markdown-toc-ターミナルのタイトルバーの表示">ターミナルのタイトルバーの表示</a></li>
+  <li><a href="#gnu-screen内での表示" id="markdown-toc-gnu-screen内での表示">GNU screen内での表示</a></li>
+  <li><a href="#おまけ" id="markdown-toc-おまけ">おまけ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="prompt_command">PROMPT_COMMAND</h2>
+<p><code>bash</code>には<code>PROMPT_COMMAND</code>と言うシェル変数があり、この値に指定したコマンドが
+各コマンド実行後に処理されます。</p>
+
+<pre><code>PROMPT_COMMAND='echo command finish'
+</code></pre>
+
+<p>としておけば、毎回コマンド実行後に<code>command finish</code>が表示されます。
+(<code>Enter</code>だけ押した場合にも。)</p>
+
+<h2 id="ps1-ps2-ps3-ps4">PS1, PS2, PS3, PS4</h2>
+
+<h3 id="ps1">PS1</h3>
+<p>さらに前回も使った<code>PS1</code>と言うシェル変数があり、この内容に書かれた物が
+プロンプトとして</p>
+
+<pre><code>[host:dir user]$
+</code></pre>
+
+<p>みたいな感じで表示されます。
+他にも<code>PS2</code>、<code>PS3</code>、<code>PS4</code>と言うシェル変数があります。</p>
+
+<h3 id="ps2">PS2</h3>
+<p>セカンダリプロンプトとして使用され、入力を要求される様なコマンドや、複数行に渡るコマンドなどを使うときに表れます。初期値は<code>&gt;</code>になってます。</p>
+
+<pre><code>[host:dir user]$ echo \
+&gt;   &lt;-- this word
+</code></pre>
+
+<h3 id="ps3">PS3</h3>
+<p><code>select</code>文を使った時に表示される文字です。初期値は空ですが<code>#? </code>
+と言う値が表示されます。</p>
+<div><script src="https://gist.github.com/5213200.js"></script>
+<noscript><pre><code>#!/bin/bash
+select command in &quot;Hello World&quot; &quot;calculate 1+1&quot; exit;do
+  if [ &quot;$command&quot; = &quot;exit&quot; ];then
+    exit
+  elif [ &quot;$command&quot; = &quot;Hello World&quot; ];then
+    echo $command
+  elif [ &quot;$command&quot; = &quot;calculate 1+1&quot; ];then
+    echo $((1+1))
+  fi
+done</code></pre></noscript></div>
+
+<p>こんな感じのスクリプトを実行した時に出てくる</p>
+
+<pre><code>(-_-) $ ./select_example.sh
+1) Hello World
+2) calculate 1+1
+3) exit
+#?  &lt;- this word
+</code></pre>
+
+<p>この<code>#? </code>部分です。</p>
+
+<h3 id="ps4">PS4</h3>
+<p>シェルスクリプトで<code>-x</code>オプションを使ったデバッグ時に出てくる文字です。
+初期値は<code>+ </code>。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="ch">#!/bin/bash -x</span>
+</span><span class="line"><span class="nb">echo</span> ok
+</span><span class="line">
+</span><span class="line">ech wrong
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span> ok
+</span></code></pre></td></tr></table></div></figure>
+<p>このような<code>-x</code>付きのデバッグ用スクリプトを実行した時の</p>
+
+<pre><code>+ echo ok
+ok
++ ech wrong
+./debug_test.sh: line 4: ech: command not found
++ echo ok
+ok
+</code></pre>
+
+<p>この各スクリプト行の前に出る<code>+ </code>の部分です。</p>
+
+<p>通常は<code>PS1</code>以外を変更することは無いと思います。</p>
+
+<h2 id="ps1とprompt_commandの使い分け">PS1とPROMPT_COMMANDの使い分け</h2>
+<p><code>PS1</code>は内容がプロンプトに表示されるだけなのに対して、
+<code>PROMPT_COMMAND</code>では実際に色々と実行コマンドを行うためのシェル変数です。
+<code>PROMPT_COMMAND</code>の方が<code>PS1</code>よりも先に実行されます。</p>
+
+<p><code>PS1</code>内でも”`“で囲ったり<code>$()</code>を使ったりすることでコマンドを実行できるので、
+表示文字が無い様な実行コマンドであれば
+PS1の中に入れることもできると思いますが、
+<code>PROMPT_COMMAND</code>に書いておいた方がすっきりするかと思います。</p>
+
+<p>逆に、<code>PROMPT_COMMAND</code>でも文字を表示させることができるのですが、
+下に書くエスケープシーケンスの問題があったり、その他にも
+一度書きだした後にバックスペースで消していくと消えてしまったりもするので
+なるべく<code>PROMPT_COMMAND</code>による表示はやめておくべきだと思います。</p>
+
+<p>さらに前回の顔文字の例だと、顔文字自体は適当なシェル変数にして<code>PROMPT_COMMAND</code>
+で決めて <code>PS1</code>に送る事は出来ると思うのですが、
+色指定のエスケープシーケンスを渡す事が上手くできなかったので
+直接全部<code>PS1</code>内に書いています。</p>
+
+<h2 id="プロンプトの表示">プロンプトの表示</h2>
+<p>前回もやったことですが</p>
+
+<pre><code>PS1="[\h \W]\$"
+</code></pre>
+
+<p>とすればプロンプトが<code>[host dirctory] $</code>の様になりますし、色を指定して</p>
+
+<pre><code>PS1="\[\e[31m\][\h \W]\[\e]m\]\$"
+</code></pre>
+
+<p>とすれば表示部分が赤くなります。
+色を変えるには<code>\e[</code>と<code>m</code>で囲った部分に数字を書きます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。
+色などについては
+どの数字がどのように表示されるかは
+<a href="https://github.com/rcmdnk/escape_sequence/blob/master/bin/escseqcheck">escseqcheck</a>
+このスクリプトを実行してみて下さい。
+こんな感じの表示がされると思います(MacのiTerm2での結果です)
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130321_escseqcheck.png" /></p>
+
+<p>さらに、この様な表示されない文字を表示上無視するために<code>\[</code>と<code>\]</code>
+で文字色指定の部分を囲ってやる必要があります。
+これをしなくても一見問題ないように見えますが、
+コマンドを消去したり、過去のコマンドを<code>C-p</code>で遡ったりするときに
+表示がおかしくなります。</p>
+
+<p><code>PROMPT_COMMAND</code>内で<code>printf</code>等で表示しょうとした場合、
+<code>\[</code>自体が表示されてしまい、色指定部分をちゃんと隠すことが出来ないので、
+表示させるものについては<code>PS1</code>内に指定するべきです。</p>
+
+<p>さらに、<code>PS1</code>の中では<code>\h</code>はホスト名など等、
+特殊なエスケープシーケンス
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>
+が使えるので<code>PS1</code>内で行ったほうが簡単です。</p>
+
+<h2 id="ターミナルのタイトルバーの表示">ターミナルのタイトルバーの表示</h2>
+<p>ターミナルのタイトルバーは<code>\e]2;</code>、<code>\a</code>で囲った部分に書いた文字を書き出すことで
+変更してあげることが出来ます。</p>
+
+<pre><code>printf "\e]2;Hello World!\a"
+</code></pre>
+
+<p>とすればターミナル上にタイトルバーがる場合はそこへの表示が<code>Hello World!</code>に
+変わると思います。ただ、これは<code>Xterm</code>仕様で、使っているターミナルによっては
+違うこともあるようなので気をつけて下さい。
+さらに、<code>\e]1;</code>を<code>\e]2;</code>の代わりに使うとアイコン名を変えられます。
+アイコン名はタスクバーやDockにしまった時にそのWindow名として表れる名前です。
+これらを一緒にしたければ<code>\e]0;</code>を使うことで同時に変えられます。</p>
+
+<p>これを直接<code>PROMPT_COMMAND</code>に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nv">PROMPT_COMMAND</span><span class="o">=</span><span class="s1">&#39;printf &quot;\e]0;%s@%s:%s\a&quot; &quot;${USER}&quot; &quot;${HOSTNAME%%.*}&quot; &quot;${PWD/#$HOME/~}&quot;&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書いても良いし、<code>PS1</code>に加えて</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nv">PS1</span><span class="o">=</span><span class="s2">&quot;\[\e]0;\u@\h\w\a\][\h \W]\$ &quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書いても同様の結果になります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">エスケープシーケンス</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code>\e]0;</code> ~ <code>\a</code></td>
+      <td style="text-align: left">タイトル名、アイコン名の変更</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code>\e]1;</code> ~ <code>\a</code></td>
+      <td style="text-align: left">アイコン名の変更</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code>\e]2;</code> ~ <code>\a</code></td>
+      <td style="text-align: left">タイトル名変更</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="gnu-screen内での表示">GNU screen内での表示</h2>
+<p>screenを立ち上げると、この辺りの話が少しややこしくなります。
+screen内のウィンドウから<code>\e]0;</code>を送ると、各ウィンドウの<code>hardstatus</code>に送られます。
+screenの設定で<code>caption</code>や<code>hardstatus</code>の表示設定で<code>%h</code>で表示される文字列です。</p>
+
+<p>さらにscreen内の各ウィンドウには<code>タイトル</code>もあり、これは<code>caption</code>設定などでは
+<code>%t</code>で設定されるものですが、これを設定するには
+<code>\ek</code>と<code>\e\134</code>で囲った物を<code>printf</code>します。
+ここで、<code>\134</code>は<code>\</code>と同義で、<code>PROMPT_COMMAND</code>内で
+<code>\e\\</code>と使う分には問題ないんですが<code>PS1</code>内で使おうとすると
+<code>\[</code>、<code>\]</code>との組み合わせのなかで何故か<code>]</code>が表示される様に残ってしまうので
+ここだけ8進法表示にしてあります。
+(PS1内では何かしら<code>\\</code>の後にエスケープシーケンスを使わなくてはいけないことに
+どうしてもなってしまうので、どうも<code>\\\</code>となってしまう部分が微妙におかしくなって
+しまいます。)</p>
+
+<p>さらに、ターミナルそのもののタイトルをscreen内から変更したいときは
+<code>\eP</code>と<code>\e\134</code>で囲った部分に上で書いたタイトルバー等のエスケープシーケンスを含んだ
+情報を入れた送ってあげます。つまり</p>
+
+<pre><code>printf "\eP\e]0;%s@%s:%s\a\e\134" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/~}"
+</code></pre>
+
+<p>の様にしてあげるとターミナルそのもののタイトルバーとアイコン名を変更して
+あげることが出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">エスケープシーケンス(screen内)</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code>\e]0;</code> ~ <code>\a</code></td>
+      <td style="text-align: left">ウィンドウのハードステータス</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code>\ek</code> ~ <code>\e\134</code></td>
+      <td style="text-align: left">ウィンドウのタイトル</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code>\eP</code> ~ <code>\e\134</code></td>
+      <td style="text-align: left">screen外へ情報を送る</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>現在のscreen起動時のprompt設定はこんな感じです。
+ターミナルの表示は変えずに、screenに入った場所のままになります。
+(新規ウィンドウを立ち上げる場所にあたるので
+たまに立ち上げた場所自体が気になるので)</p>
+<div><script src="https://gist.github.com/5216260.js"></script>
+<noscript><pre><code>if [[ &quot;$TERM&quot; =~ &quot;screen&quot; ]]; then
+  # &quot;\\&quot; doesn&#39;t work well, use \134 instead
+
+  # \ek ~ \e\134 : Screen&#39;s window title (`\t` in caption/hardstatus)
+  # \e]0; ~ \a   : Screen&#39;s hardstatus, instead of terminal&#39;s title bar (`\h` in caption/hardstatus)
+  # If you want to change terminal&#39;s title bar, use
+  # \eP\e]0; ~ \a\e\134 (\eP ~ \e\134 will send the words out)
+
+  PS1=&quot;\[\ek\W\e\134\e]0;\w\a\]\$(\
+    ret=\$?
+    rand=\$((RANDOM%36));\
+    if [ \$ret -eq 0 ];then\
+      if [ \$rand -lt 3 ];then
+        printf &#39;\[\e[m\](^_^)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -lt 5 ];then\
+        printf &#39;\[\e[m\](^_-)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -lt 6 ];then\
+        printf &#39;\[\e[m\](.^.)\[\e[m\] \$ &#39;;\
+      else\
+        printf &#39;\[\e[m\](-_-)\[\e[m\] \$ &#39;;\
+      fi;\
+    else\
+      if [ \$rand -lt 6 ];then\
+        printf &#39;\[\e[31m\](@o@)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -lt 12 ];then\
+        printf &#39;\[\e[31;1m\](&gt;_&lt;)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -lt 18 ];then\
+        printf &#39;\[\e[35m\](*_*)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -lt 24 ];then\
+        printf &#39;\[\e[34m\](T_T)\[\e[m\] \$ &#39;;\
+      elif [ \$rand -eq 30 ];then\
+        printf &#39;\[\e[34;1m\](/_T)\[\e[m\] \$ &#39;;\
+      else\
+        printf &#39;\[\e[31m\](&gt;_&lt;)\[\e[m\] \$ &#39;;\
+      fi\
+    fi;\
+    )&quot;
+fi</code></pre></noscript></div>
+
+<p>Gistの方はアップデートしないかもしれませんので、一応普段使っている<code>.bashrc</code>
+の場所も:<a href="https://github.com/rcmdnk/dotfiles/blob/master/.bashrc">.bashrc</a></p>
+
+<p>screenの方では次の様な設定にしてあります。</p>
+
+<pre><code>caption always '%?%F%{=d Wk}%:%{=d Kk}%?%?%P%{=d Bk}%:%?%2n %h%-0L&gt;%=%?%P *** copy/paste mode ***%:%?%-0='
+hardstatus alwayslastline "%{= Kk}%-w%40L&gt;%{= Wk}%n %t%{-}%+w"
+</code></pre>
+
+<p>上記の設定の意味や、他の設定も含めたファイルはこちら
+<a href="https://github.com/rcmdnk/dotfiles/blob/master/.screenrc">.screenrc</a>.</p>
+
+<h2 id="おまけ">おまけ</h2>
+<p><code>$HOME</code>に置いておくと、さよならしてくれます。</p>
+
+<div><script src="https://gist.github.com/5223123.js"></script>
+<noscript><pre><code># .bash_logout
+echo &quot;(-_-)/~ bye!&quot;</code></pre></noscript></div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[プロンプトの戯れ]]></title>
+    <link href="https://rcmdnk.com/blog/2013/03/18/prompt-screen/"/>
+    <updated>2013-03-18T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/03/18/prompt-screen</id>
+    <content type="html"><![CDATA[<p>最近色々<code>.bashrc</code>だとか整理している時に、プロンプトの表示を変更しようと思い、
+結局何が必要なのか考えたのですが、
+普通、ディレクトリ名やユーザー名、ホスト名などを入れていると思いますが、
+普段は<a href="http://www.gnu.org/software/screen/">GNU screen</a>を使っていて、
+常に各領域にディレクトリパスも表示させてるので、プロンプトに情報を表示
+させとく必要が特に無いわけです。
+そこで、プロンプト表示でちょっと遊んでみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまでのプロンプト" id="markdown-toc-これまでのプロンプト">これまでのプロンプト</a></li>
+  <li><a href="#顔文字にしてみる" id="markdown-toc-顔文字にしてみる">顔文字にしてみる</a></li>
+  <li><a href="#ランダムに顔を変えてみる" id="markdown-toc-ランダムに顔を変えてみる">ランダムに顔を変えてみる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまでのプロンプト">これまでのプロンプト</h2>
+<p>ここでは<code>bash</code>での話です。
+プロンプトは<code>PS1</code>というシェル変数を変更してやることで表示を変えてやることが出来ます。</p>
+
+<p>手元の環境だと、デフォルトでは<code>/etc/bashrc</code>内で次のように設定されています。</p>
+
+<pre><code># System-wide .bashrc file for interactive bash(1) shells.
+if [ -z "$PS1" ]; then
+   return
+fi
+
+PS1='\h:\W \u\$ '
+</code></pre>
+
+<p><code>\h</code>がホスト名、<code>\W</code>がカレントディレクトリ、<code>\u</code>でユーザー名です(他のオプションは<code>man bash</code>)。
+従って、ホームディレクトリで操作していると</p>
+
+<pre><code>hostname:~ username$
+</code></pre>
+
+<p>の様な表示になるはずです。</p>
+
+<p>これまで自分の設定では<code>PS1="[\h \W]\$ "</code>と<code>.bashrc</code>で指定してました。</p>
+
+<pre><code>[hostname ~]$ 
+</code></pre>
+
+<p>的な感じでした。</p>
+
+<h2 id="顔文字にしてみる">顔文字にしてみる</h2>
+<p>単純に変更するだけなら</p>
+
+<pre><code>hostname:~ user$ PS1='(-_-) \$ '
+(-_-) $
+(-_-) $
+</code></pre>
+
+<p>こんなかんじで、以後ずっと<code>(-_-)</code>になります。</p>
+
+<p>これだけだと味気ないので直前のコマンドが実行がエラー(0以外)を吐いたときは
+違う表示をさせてやりたいと思います。</p>
+
+<pre><code>(-_-) $ PS1="\$(\
+&gt;   ret=\$?
+&gt;   if [ \$ret -eq 0 ];then\
+&gt;     printf '\[\e[m\](^_^)\[\e[m\] \$ ';\
+&gt;   else\
+&gt;     printf '\[\e[31m\](@o@)\[\e[m\] \$ ';\
+&gt;   fi;\
+&gt;   )"
+(^_^) $ echo
+
+(^_^) $ eeeeee
+bash: eeeeee: command not found
+(@o@) $
+(@o@) $ echo
+
+(^_^) $
+(^_^) $
+</code></pre>
+
+<p><code>$()</code>を使って<code>PS1</code>の設定の中にコマンドを持ち込んでいます。
+<code>$?</code>で直前のコマンドの返り値を見て、<code>0</code>なら<code>(^_^)</code>、それ以外なら<code>(@o@)</code>
+を赤で表示させています。</p>
+
+<p>何も入力しないで<code>Enter</code>した場合は前の状態が残るので直前と同じ顔が出ます。</p>
+
+<p>顔文字の両側にある<code>\[e[31m]</code>などが色を変更している部分です。
+後ろの<code>\[\e[m\]</code>の部分は設定をリセットしています。
+書く数字でどのように表示されるかは
+<a href="https://github.com/rcmdnk/escape_sequence/blob/master/bin/escseqcheck">escseqcheck.sh</a>
+というスクリプトもあるので参考にしてみて下さい。
+(ちょっとした自分用の説明もファイル内に書いてあります。)</p>
+
+<h2 id="ランダムに顔を変えてみる">ランダムに顔を変えてみる</h2>
+<p>上記の前コマンドの返り値に加えて、乱数で条件分岐させてやることで
+毎回違った顔を楽しめるようにしてみます。</p>
+
+<div><script src="https://gist.github.com/5198842.js"></script>
+<noscript><pre><code>PS1=&quot;\$(\
+  ret=\$?
+  rand=\$((RANDOM%36));\
+  if [ \$ret -eq 0 ];then\
+    if [ \$rand -lt 3 ];then
+      printf &#39;\[\e[m\](^_^)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -lt 5 ];then\
+      printf &#39;\[\e[m\](^_-)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -lt 6 ];then\
+      printf &#39;\[\e[m\](.^.)\[\e[m\] \$ &#39;;\
+    else\
+      printf &#39;\[\e[m\](-_-)\[\e[m\] \$ &#39;;\
+    fi;\
+  else\
+    if [ \$rand -lt 6 ];then\
+      printf &#39;\[\e[31m\](@o@)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -lt 12 ];then\
+      printf &#39;\[\e[31;1m\](&gt;_&lt;)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -lt 18 ];then\
+      printf &#39;\[\e[35m\](*_*)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -lt 24 ];then\
+      printf &#39;\[\e[34m\](T_T)\[\e[m\] \$ &#39;;\
+    elif [ \$rand -eq 30 ];then\
+      printf &#39;\[\e[34;1m\](/_T)\[\e[m\] \$ &#39;;\
+    else\
+      printf &#39;\[\e[31m\](&gt;_&lt;)\[\e[m\] \$ &#39;;\
+    fi\
+  fi;\
+  )&quot;
+</code></pre></noscript></div>
+
+<p>こんな感じの設定で毎回違った顔が楽しめるようになります。
+<code>$RANDOM</code>は参照するたびに0-32767までのランダムな整数を返します。
+<code>bash</code>では一番簡単な乱数の取得だと思うので、今回はこれを使いました。
+後は、36パターンの状態を作りだして、適当な割合で
+各顔文字に割り当てているだけです。</p>
+
+<p>こんな感じになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20130318_prompt.gif" title="" alt="" /></p>
+
+<blockquote>
+  <p>Ref.: <a href="http://maketecheasier.com/8-useful-and-interesting-bash-prompts/2009/09/04">8 Useful and Interesting Bash Prompts</a></p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+</feed>

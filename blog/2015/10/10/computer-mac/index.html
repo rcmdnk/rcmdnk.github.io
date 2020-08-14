@@ -1,0 +1,1611 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく">
+  <meta name="description" content="Homebrewを使うにあたって問題があったり、
+XtraFinderやTotalFinder等の一部アプリが使えなくなったり、
+と影響が結構大きいEl Capitanの新しいSIPというセキュリティシステムですが、
+ちょっと色々いじりながら調べたことなどのまとめ。">
+  
+  <meta property="og:title" content="OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Homebrewを使うにあたって問題があったり、
+XtraFinderやTotalFinder等の一部アプリが使えなくなったり、
+と影響が結構大きいEl Capitanの新しいSIPというセキュリティシステムですが、
+ちょっと色々いじりながら調べたことなどのまとめ。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2015/10/10/computer-mac/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://images-na.ssl-images-amazon.com/images/I/510n9cnBIrL._SS200_.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2015/10/10/computer-mac/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,googleplus_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRN6WBX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2015/10/10/computer-mac/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2015-10-10T00:00:00+00:00'><span class='time'>10 Oct 2015</span></time></span>
+    <span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2015-10-13T00:00:00+00:00'><span class='date'>13 Oct 2015</span></time></span>
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/mac/"><span>Mac</span></a>
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2015/10/10/computer-mac/" itemprop="url">OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+<a href="http://rcmdnk.github.io/en/blog/2016/05/17/computer-mac/"><i class="fa fa-language"></i> A bit more detail about SIP (System Integrity Protection) of OS X 10.11 El Capitan</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2015/10/10/computer-mac/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/" data-count="135">135</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F&url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/" data-count="5">5</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&title=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Share on Google+"
+    target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCount"  data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2015/10/10/computer-mac/&amp;t=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/" data-count="6">6</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&title=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B016AZMAIS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B016AZMAIS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img itemprop="image" src="https://images-na.ssl-images-amazon.com/images/I/510n9cnBIrL._SS200_.jpg" alt="The Complete Beginners Guide to Mac OS X El Capitan: (For MacBook, MacBook Air, MacBook Pro, iMac, Mac Pro, and Mac Mini) (English Edition)" /></a>
+</div>
+
+<p><a href="/blog/tags/homebrew/">Homebrew</a>を使うにあたって問題があったり、
+XtraFinderやTotalFinder等の一部アプリが使えなくなったり、
+と影響が結構大きいEl Capitanの新しいSIPというセキュリティシステムですが、
+ちょっと色々いじりながら調べたことなどのまとめ。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#system-integrity-protection-sip" id="markdown-toc-system-integrity-protection-sip">System Integrity Protection (SIP)</a></li>
+  <li><a href="#保護されているファイルやディレクトリ" id="markdown-toc-保護されているファイルやディレクトリ">保護されているファイルやディレクトリ</a></li>
+  <li><a href="#sipの無効化" id="markdown-toc-sipの無効化">SIPの無効化</a></li>
+  <li><a href="#sipの無効化に関してnvram云々" id="markdown-toc-sipの無効化に関してnvram云々">SIPの無効化に関してNVRAM云々</a></li>
+  <li><a href="#usrlocalbinが勝手にroot所有になる" id="markdown-toc-usrlocalbinが勝手にroot所有になる"><strong>/usr/local/bin</strong>が勝手にroot所有になる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="system-integrity-protection-sip">System Integrity Protection (SIP)</h2>
+
+<p>System Integrity Protection (SIP)はOS X El Capitanで導入された
+新しいセキュリティシステムです。</p>
+
+<p>rootlessと呼ぶこともあります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>基本的な機能としては、
+システムの重要な部分に関して、
+root権限ですら変更できないような
+領域を作ることによりよりシステムを安全にする、と言ったものです。</p>
+
+<p>また、重要なシステムプロセスの変更も出来ないように保護されます。</p>
+
+<p><img src="/images/post/20151010_osxsecuritylayers.png" alt="esxsecuritylayers" class="pic" /></p>
+
+<p>上の絵はOS X El Capitanのセキュリティレイヤーの概念図です。</p>
+
+<ul>
+  <li>Gatekeeper</li>
+</ul>
+
+<p>まず、一番外側はGatekeeper
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+によって
+デベロッパ IDの確認出来ないアプリ等のインストールを弾きます。</p>
+
+<ul>
+  <li>Sandbox</li>
+</ul>
+
+<p>確認されたアプリはサンドボックス化された状態で起動され
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>、
+Mac内のデータや他のアプリから分離され悪意のあるアクセスを防ぎます。</p>
+
+<ul>
+  <li>POSIX</li>
+</ul>
+
+<p>さらにOS XはUnix的なPOSIXによるアクセス制限を採用していて、
+ユーザーごとにアクセス出来るファイルやディレクトリを制限しています。</p>
+
+<p>基本、root権限は全ての領域を読み書きすることが出来ます。</p>
+
+<ul>
+  <li>Keychain</li>
+</ul>
+
+<p>一番内側にはキーチェインがありますが、
+キーチェインは特別なデータベースです。
+ここにはパスワードなどの情報が入っていますが、
+暗号化されて強力に守られています。
+root権限からも保護されています。</p>
+
+<p>こんな感じなのですが、Yosemiteまでにあった問題
+(というかUnix全般的な問題)として、
+<strong>POSIX</strong>の部分で権限を得られればキーチェイン以外一通り
+システムを見たり変更したり出来てしまうことがありました
+<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p>これを解決するため、全権を持つrootユーザーであっても
+一部ファイル、ディレクトリは操作出来ないようにする、という機構が
+新たに導入されました。
+(絵の中で<strong>Keychain</strong>領域で浮島になってるところがそのイメージ。)</p>
+
+<p>これによって、ユーザーが間違ってアプリに対して色々と許可してしまったとしても
+確実に守られる領域が出来ます。</p>
+
+<p>ただし、逆にプロテクトがきつくなり、
+今まで使えてたアプリ等が使えなくなる、と言う状況も起きています。</p>
+
+<h2 id="保護されているファイルやディレクトリ">保護されているファイルやディレクトリ</h2>
+
+<p>保護されているファイルやディレクトリは</p>
+
+<pre><code>/System/Library/Sandbox/rootless.conf
+</code></pre>
+
+<p>にリストしてあります。</p>
+
+<pre><code>$ cat /System/Library/Sandbox/rootless.conf
+                /Applications/App Store.app
+                /Applications/Automator.app
+                /Applications/Calculator.app
+                /Applications/Calendar.app
+                /Applications/Chess.app
+                /Applications/Contacts.app
+                /Applications/Dashboard.app
+                /Applications/Dictionary.app
+                /Applications/DVD Player.app
+                /Applications/FaceTime.app
+                /Applications/Font Book.app
+                /Applications/Game Center.app
+                /Applications/Image Capture.app
+                /Applications/Launchpad.app
+                /Applications/Mail.app
+                /Applications/Maps.app
+                /Applications/Messages.app
+                /Applications/Mission Control.app
+                /Applications/Notes.app
+                /Applications/Photo Booth.app
+                /Applications/Photos.app
+                /Applications/Preview.app
+                /Applications/QuickTime Player.app
+                /Applications/Reminders.app
+                /Applications/Safari.app
+                /Applications/Stickies.app
+                /Applications/System Preferences.app
+                /Applications/TextEdit.app
+                /Applications/Time Machine.app
+                /Applications/Utilities/Activity Monitor.app
+                /Applications/Utilities/AirPort Utility.app
+                /Applications/Utilities/Audio MIDI Setup.app
+                /Applications/Utilities/Bluetooth File Exchange.app
+                /Applications/Utilities/Boot Camp Assistant.app
+                /Applications/Utilities/ColorSync Utility.app
+                /Applications/Utilities/Console.app
+                /Applications/Utilities/Digital Color Meter.app
+                /Applications/Utilities/Disk Utility.app
+                /Applications/Utilities/Feedback Assistant.app
+                /Applications/Utilities/Grab.app
+                /Applications/Utilities/Grapher.app
+                /Applications/Utilities/Keychain Access.app
+                /Applications/Utilities/Migration Assistant.app
+                /Applications/Utilities/Script Editor.app
+                /Applications/Utilities/System Information.app
+                /Applications/Utilities/Terminal.app
+                /Applications/Utilities/VoiceOver Utility.app
+                /Library/Preferences/SystemConfiguration/com.apple.Boot.plist
+                /System
+*               /System/Library/Caches
+booter          /System/Library/CoreServices
+*               /System/Library/CoreServices/Photo Library Migration Utility.app
+                /System/Library/CoreServices/RawCamera.bundle
+*               /System/Library/Extensions
+                /System/Library/Extensions/*
+UpdateSettings  /System/Library/LaunchDaemons/com.apple.UpdateSettings.plist
+*               /System/Library/Speech
+*               /System/Library/User Template
+                /bin
+dyld            /private/var/db/dyld
+                /sbin
+                /usr
+*               /usr/libexec/cups
+*               /usr/local
+*               /usr/share/man
+# symlinks
+                /etc
+                /tmp
+                /var
+</code></pre>
+
+<p>こんな感じ。
+よく言われる<strong>/System</strong>、<strong>/usr</strong>、<strong>/bin</strong>、<strong>/sbin</strong>等が含まれているのが分かります。</p>
+
+<p>また、元から入ってるアプリケーションも含まれていることが分かります。
+(なのでこれらのアプリのアイコンを変更することは出来ません
+<sup id="fninref:5"><a href="#fnin:5" rel="footnote">5</a></sup>。
+)</p>
+
+<p>ここで<code>*</code>で始まる行は、逆にSIPで保護されてるディレクトリ内であっても
+管理者権限で変更できるディレクトリの指定になります。</p>
+
+<p>従って、<strong>/usr</strong>以下はSIPの保護により管理者権限でも変更できませんが、
+<strong>/usr/local</strong>以下であれば変更は可能です。</p>
+
+<h2 id="sipの無効化">SIPの無効化</h2>
+
+<p>これにより<a href="/blog/tags/homebrew/">Homebrew</a>等、<strong>/usr/local</strong>以下を使うものも使えるのですが、
+ただ、このディレクトリが最初に無いと(Macデフォルトでは存在しない)
+<strong>/usr</strong>以下にディレクトリを作ることは出来ないので
+結局<strong>/usr/lolcal</strong>を作成できません。</p>
+
+<p>また、元から入っているアプリケーションも大体このリストに載っていて、
+中身が保護されているのでアイコンの変更すら出来ません。</p>
+
+<p>これらを変更するためには一度SIPを切る必要があります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2015/10/04/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20151004_liteiconsipdisabled_120_90.jpg" width="120" height="90" alt="20151004_liteiconsipdisabled_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2015/10/04/computer-mac/">Mac OS X 10.11 El Capitanでシステムアイコン等を変更する</a></div></li></ul>
+
+<p>方法としては個々にあるように、一度<i class="key">⌘</i>-<i class="key">R</i>を押しながら
+再起動してリカバリーモードで起動し、
+リカバリーモード内で
+SIPを切り、通常再起動して<strong>/usr/local</strong>を作ったり
+アイコンを変更する必要があります。</p>
+
+<p>リカバリーモードでの変更方法としては、
+起動するとメニューバーに<strong>ユーティリティ</strong>という項目があり、
+ここから<strong>ターミナル</strong>を立ち上げられるので立ち上げ、
+コマンドラインで</p>
+
+<pre><code>-bash-3.2 # csrutil disable
+Successfully disabled System Integrity Protection. Please restart the machine for the changes to take effect.
+-bash-3.2 #
+</code></pre>
+
+<p>とすればOK。</p>
+
+<p>これで再起動して普通に立ち上げればSIPは切れています。</p>
+
+<p>確認するには、ターミナル.appを立ち上げ<code>csrutil status</code>を実行します。</p>
+
+<pre><code>$ csrutil status
+System Integrity Protection status: enabled (Custom Configuration).
+
+Configuration:
+        Apple Internal: disabled
+        Kext Signing: enabled
+        Filesystem Protections: disabled
+        Debugging Restrictions: disabled
+        DTrace Restrictions: disabled
+        NVRAM Protections: disabled
+
+This is an unsupported configuration, likely to break in the future and leave your machine in an unknown state.
+$
+</code></pre>
+
+<p><code>csrutil</code>で<code>status</code>サブコマンドだけは通常起動時にも使える様になっています<sup id="fninref:6"><a href="#fnin:6" rel="footnote">6</a></sup>。</p>
+
+<p>ここで、</p>
+
+<pre><code>System Integrity Protection status: enabled (Custom Configuration).
+</code></pre>
+
+<p>と、<code>enabled</code>にはなっていますがカスタムされた状態となっていて、
+実際、下のリストは全て<code>disabled</code>になっています。</p>
+
+<p>ここで、SIPも実はいくつかのものにわかれている事が分かります。</p>
+
+<p>上のアイコンの変更や<strong>/usr/local</strong>の作成などはその時だけSIPが無効であれば良いので、
+上の様に一度無効化して通常起動して作業を行い、
+終わったら再びリカバリーモードに入り、</p>
+
+<pre><code>-bash-3.2 # csrutil enable
+Successfully enabled System Integrity Protection. Please restart the machine for the changes to take effect.
+-bash-3.2 #
+</code></pre>
+
+<p>として、再起動します。</p>
+
+<p>これで</p>
+
+<pre><code>$ csrutil status
+System Integrity Protection status: enabled.
+$
+</code></pre>
+
+<p>とだけ出る様になっていればSIPは完全に有効になっています。</p>
+
+<p>一方で、SIPが有効だと使えないアプリなども出てきています。
+<a href="/blog/2015/10/05/computer-mac/">XtraFinder</a>や
+TotalFinder等のFinderの拡張系アプリなんかは
+SIPが有効だと全く使えません。</p>
+
+<p>El Capitanへの対応が出来ていない、というわけではなく、
+SIPを無効にすれば使えます。</p>
+
+<p>この時、上で見たようにSIPはいくつかの機能にわかれているので、
+必要なものだけを無効化し、他を有効にしたままにしてなるべく
+保護を強化することも出来ます。</p>
+
+<p>XtraFinder等に関しては、<code>csrutil disable</code>の代わりに</p>
+
+<pre><code>-bash-3.2 # csrutil enable --without debug
+csrutil: requesting an unsupported configuration. This is likely break in the future and leave your machine in an unknown state.
+Successfully enabled System Integrity Protection. Please restart the machine for the changes to take effect.
+-bash-3.2 #
+</code></pre>
+
+<p>とコマンドを打ちます。</p>
+
+<p><code>enable</code>にしますが、<code>--without debug</code>という引数を使って
+<code>debug</code>に関するものだけを無効化します
+<sup id="fninref:7"><a href="#fnin:7" rel="footnote">7</a></sup>。
+(元々全てが<code>enabled</code>な状態からでもこのコマンドで一部だけ無効化出来ます。)</p>
+
+<p>これで再起動して通常起動後に調べてみると</p>
+
+<pre><code>$ csrutil status
+System Integrity Protection status: enabled (Custom Configuration).
+
+Configuration:
+        Apple Internal: disabled
+        Kext Signing: enabled
+        Filesystem Protections: enabled
+        Debugging Restrictions: disabled
+        DTrace Restrictions: enabled
+        NVRAM Protections: enabled
+
+This is an unsupported configuration, likely to break in the future and leave your machine in an unknown state.
+$
+</code></pre>
+
+<p>こんな感じで<strong>Apple Internal</strong>と<strong>Debugging Restrictions</strong>だけが
+無効で、他のものは有効になったままです。</p>
+
+<p><strong>Filesystem Protections</strong>が有効なので
+<strong>/usr</strong>以下にディレクトリを作ったりすることはroot権限でも出来ません。</p>
+
+<p>この状態でXtraFinderやTotalFinderは使えるので、
+どうしてもそれらのアプリを使いたい場合は
+この様に、最低限切る必要があるものだけを切って
+他は有効にしておくのが良さそうです。</p>
+
+<p>また、<a href="/blog/tags/homebrew/">Homebrew</a>で<strong>/usr/local</strong>を作るのに一時的でもSIPを切るのは怖い、
+と言った場合には</p>
+
+<pre><code>-bash-3.2 # csrutil enable --without fs
+</code></pre>
+
+<p>で、
+<strong>Filesystem Protections</strong>だけを一時的に切って他を有効にしたまま
+作業をする、ということも出来ます。</p>
+
+<h2 id="sipの無効化に関してnvram云々">SIPの無効化に関してNVRAM云々</h2>
+
+<p>SIPを無効化することに関して、
+リカバリーモードに入らず、
+再起動前にコマンドで設定を変更しておくだけで次回起動から
+SIPを無効化出来る、見たいのがあったのですが</p>
+
+<blockquote>
+  <p><a href="https://www.cryptomonkeys.com/2015/07/osx-rootless-boot-args/">Rootless and boot-args · Cryptomonkeys Consulting</a></p>
+</blockquote>
+
+<p>これを見ると、</p>
+
+<pre><code>$ sudo nvram boot-args="rootless=0"
+</code></pre>
+
+<p>をしてから再起動するとSIPが無効化する、ということでしたが、何も変更されませんでした。</p>
+
+<p>また、</p>
+
+<pre><code>$ sudo nvram boot-args="-x"
+</code></pre>
+
+<p>をすると再起動時にセーフモードに入る、ということですが、
+これもダメ。
+というか、これをやったら再起動時に通常起動っぽくなった挙句、
+パスワード入力後に10分位かかってログイン出来るようなちょっとおかしな状態になりました。
+(その後、再起動してみると治った様ですが。。。)</p>
+
+<p>NVRAMは所定の設定情報が記憶されて小容量メモリですが<sup id="fninref:8"><a href="#fnin:8" rel="footnote">8</a></sup>、
+上のSIPの<code>csrutil status</code>の結果をもう一度見てみると、<strong>NVRAM Protections</strong>があるので、
+これもSIPで守られていて変更できないようになっていることが分かります。</p>
+
+<p>なのでSIPが有効な状態からではこの方法ではいきなり無効にすることは出来ません。
+(<code>-x</code>が何故おかしな事になったのか分かりませんが、保護されてる物と下手な干渉があったのかもしれません、取り敢えず注意です。。。)</p>
+
+<p>さらに、下のような記事を見つけました。</p>
+
+<blockquote>
+  <p><a href="http://www.idelta.info/archives/sip-rootless-internal-in-el-capitan/">SIP/Rootless Internal in El Capitan  Delta’s Lair</a></p>
+</blockquote>
+
+<p><code>csrutil</code>によって何が変更されるか、について記述されていますが、
+変更されるのはNVRAMに含まれる起動プロパティのデータで、
+この中にSIPに関する情報が埋まっていてこれを変更している、とのこと。</p>
+
+<p><code>--without debug</code>等とすると一部のビットだけを変更したりする、と。</p>
+
+<p>ただ、これによると、<code>"rootless=0"</code>の様なやり方はEl Capitanでは
+排除されていてそもそも使えない、とのこと。</p>
+
+<p>この辺り、El Capitanのベータ版の時には、SIPを
+GUIからオフに出来るような機能もあったみたいで、
+色々と変更されたうえで正式リリースとなっているので
+特にシステムに影響が大きい部分なので慎重に何が正しいか情報を見る必要があります。</p>
+
+<h2 id="usrlocalbinが勝手にroot所有になる"><strong>/usr/local/bin</strong>が勝手にroot所有になる</h2>
+
+<p><a href="/blog/tags/homebrew/">Homebrew</a>を使っているので
+<strong>/usr/local/bin</strong>にコマンドなどをインストールしているのですが、
+新しいパッケージをインストールしようとした所、
+<strong>Permission deined</strong>なエラーが出ました。</p>
+
+<p>調べてみると、<strong>/usr/local/bin</strong>と<strong>/usr/local/share</strong>が
+rootのものになっていました。</p>
+
+<pre><code>$ ls -l /usr/local/
+total 80
+-rw-r--r--    1 user  admin   3161 May 12 XX:XX CODEOFCONDUCT.md
+-rw-r--r--    1 user  admin   1103 Oct 27 XX:XX CONTRIBUTING.md
+drwxr-xr-x  118 user  admin   4012 Oct  6 XX:XX Cellar
+drwxr-xr-x    3 user  admin    102 Jul 25 XX:XX Frameworks
+-rw-r--r--    1 user  admin   1241 Mar  4  2015 LICENSE.txt
+drwxr-xr-x   14 user  admin    476 Oct  2 XX:XX Library
+-rw-r--r--    1 user  admin   2134 Sep  8 XX:XX README.md
+-rw-r--r--    1 user  admin  23801 May 14 XX:XX SUPPORTERS.md
+drwxr-xr-x  503 root  wheel  17102 Oct  9 XX:XX bin
+drwxr-xr-x   23 user  admin    782 Oct  5 XX:XX etc
+drwxr-xr-x    9 user  admin    306 Oct  2 XX:XX gems
+drwxr-xr-x   96 user  admin   3264 Oct  7 XX:XX include
+drwxr-xr-x  408 user  admin  13872 Oct  7 XX:XX lib
+drwxr-xr-x  118 user  admin   4012 Oct  7 XX:XX opt
+drwxr-xr-x   55 root  wheel   1870 Oct  6 XX:XX share
+drwxr-xr-x    5 user  admin    170 Aug  2 XX:XX texlive
+drwxr-xr-x    5 user  admin    170 Aug  8 XX:XX var
+$
+</code></pre>
+
+<p>他のディレクトリに関してはEl Capitanにアップデート後、</p>
+
+<pre><code>$ sudo chown -R $(whoami):admin /usr/local
+</code></pre>
+
+<p>をしているので全て現在のユーザー(<code>user</code>)のものになっていますし、
+これを実行後、たしかに全てが変更されてたのを確認していますし、
+実際にいくつかパッケージをインストールしました。</p>
+
+<p>仕方ないので取り敢えず、</p>
+
+<pre><code>$ sudo chown -R user:admin /usr/local/bin
+$ sudo chown -R user:admin /usr/local/share
+</code></pre>
+
+<p>として自分のものにしなおし、暫く経ってから見てみると、
+また<code>root</code>のものに変更されていました。</p>
+
+<p>また変更して、今度は暫くの間、何度か確認してみると、
+1,2時間の間はそのままだったので大丈夫か、と思いきや、また数時間後に<code>root</code>のものになっていました。。。</p>
+
+<p>この時、SIPを上に書いた様にXtraFinderのために一部を無効化していたので、
+もしかしたらそのせいかも、と思いSIPを完全有効化してやってみたところ、
+やはり数時間で<code>root</code>のものに変更されました。。。</p>
+
+<p>この現象を探ってみると、あまりこれに影響されている、と言う人が居ないのですが、</p>
+
+<blockquote>
+  <p><a href="http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/">How to Disable System Integrity Protection (rootless) in OS X El Capitan</a></p>
+</blockquote>
+
+<p>これのコメント欄を見ると</p>
+
+<blockquote><p>The permissions on /usr/local/bin and /usr/local/share keep reverting to root:wheel on each reboot, and thus brew upgrades will fail until I change it back to $(whoami):admin.</p><p>Are there permanent solutions to this other than disabling SIP or running sudo chown -R $(whoami):admin /usr/local after every reboot?</p><footer><strong>How to Disable System Integrity Protection (rootless) in OS X El Capitan</strong> <cite><a href="http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/">osxdaily.com/2015/10/05/&hellip;</a></cite></footer></blockquote>
+
+<p>と言ってる人もいるので、確かに起こる人は居るようです。</p>
+
+<p>ただ、Homebrewを使ってれば必ずぶち当たる問題なので、
+それにしては問題だ、と言ってる人が余りに居ないので
+何かアプリか特殊な環境でのみ起こることなのかもしれませんが。。。</p>
+
+<p>取り敢えず、どのタイミングで変わるか調べるために、
+cron jobで5分に1度、ディレクトリをチェックして変更されてたら
+教える様にしておいた所、
+大体4時間位経つと変更されてる感じでした。</p>
+
+<p>ただ、決まった時間というわけでも無さそうで、
+何か定期的に走るプロセスによって、というわけでも無さそう。</p>
+
+<p><code>sudo</code>で変更すると<strong>/var/log/system.log</strong>にログが残りますが、
+この辺りには何も無いので、やはりシステム内部のプロセスが変更してる感じではあるのですが。</p>
+
+<p>これらのディレクトリの所有者が変わってしまうと
+Homebrewのインストールが失敗する上、
+<code>brew upgrade</code>でパッケージを更新しようとしても失敗するため、
+これを自動で行ってたりすると失敗してしまってホント面倒です。</p>
+
+<p>ですが、色々見ても根本的な解決策が見つからなかったので、取り敢えず</p>
+
+<pre><code># Update authorities of /usr/local/bin and share, as it seems ownerships of them automatically changed to root.
+*/5 * * * * if ls -l /usr/local/|grep root|grep -q root;then (ls -l /usr/local;/usr/sbin/chown -R user:admin /usr/local/bin/;/usr/sbin/chown -R user:admin /usr/local/share;fi
+</code></pre>
+
+<p>というcron jobを<code>sudo crontab -e</code>で開いた
+rootのcron jobとして登録して走らせておくことにしました。</p>
+
+<p>これだとユーザー<code>root</code>としてコマンドを行うので
+<code>sudo</code>は必要ないですが<code>whoami</code>は<code>root</code>になるのできちんとユーザー名(ここでは<code>user</code>)を指定してください。</p>
+
+<p>差し当たり5分に1度の割合で監視しています。</p>
+
+<p>ちょっと不格好な感じもしますが、
+Homebrewのインストールに関することだけであれば
+これで十分ですし、
+5分に一度みるだけなら負担も全くかからないので
+しばらくはこれで対処しようと思います。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2015/10/13</strong></p>
+
+  <p>原因はアンチウィルスソフトのSophosでした。
+Sophosをアンインストールすればこの現象は消えます。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2015/10/13/computer-mac/"><img class="small-thumbnail-img" src="/images/MacApp/thumbnail/Sophos_120_90.png" width="120" height="90" alt="Sophos_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2015/10/13/computer-mac/">Macで/usr/local/binの所有者が勝手に変わる問題について</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<div class="footnotes"><ol><li id='fnin:1'><p><a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">System Integrity Protection - Wikipedia, the free encyclopedia</a> <a href="#fninref:1" rel="reference">↩</a></p>
+</li><li id='fnin:2'><p><a href="https://support.apple.com/ja-jp/HT202491">OS X：Gatekeeper について - Apple サポート</a> <a href="#fninref:2" rel="reference">↩</a></p>
+</li><li id='fnin:3'><p><a href="http://www.apple.com/jp/osx/what-is/security/">OS X - セキュリティ - Apple（日本）</a> <a href="#fninref:3" rel="reference">↩</a></p>
+</li><li id='fnin:4'><p><a href="https://derflounder.wordpress.com/2015/10/01/system-integrity-protection-adding-another-layer-to-apples-security-model/">System Integrity Protection – Adding another layer to Apple’s security mode  Der Flounder</a> <a href="#fninref:4" rel="reference">↩</a></p>
+</li><li id='fnin:5'>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2015/10/04/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20151004_liteiconsipdisabled_120_90.jpg" width="120" height="90" alt="20151004_liteiconsipdisabled_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2015/10/04/computer-mac/">Mac OS X 10.11 El Capitanでシステムアイコン等を変更する</a></div></li></ul>
+
+<p><a href="#fninref:5" rel="reference">↩</a></p>
+</li><li id='fnin:6'>
+<p>他のサブコマンドを通常起動時にやろうとすると、</p>
+
+<pre><code>$ csrutil  enable
+csrutil: failed to modify system integrity configuration. This tool needs to be executed from the Recovery OS.
+</code></pre>
+
+<p>と、リカバリーモードで使いなさい、と言われます。</p>
+
+<p><a href="#fninref:6" rel="reference">↩</a></p>
+</li><li id='fnin:7'><p><a href="https://www.reddit.com/r/osx/comments/3hv3kk/update_on_rootless_the_configuration_mechanism/">Update on ‘Rootless’: The Configuration Mechanism has Changed : osx</a> <a href="#fninref:7" rel="reference">↩</a></p>
+</li><li id='fnin:8'><p><a href="https://support.apple.com/ja-jp/HT204063">Mac の NVRAM をリセットする方法 - Apple サポート</a> <a href="#fninref:8" rel="reference">↩</a></p>
+</li></ol></div>
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished' class='entry-date' datetime='2015-10-10T00:00:00+00:00'><span class='date'>10 Oct 2015</span></time></span><span class="date-wrapper">Last update<time itemprop='dateModified' class='updated' datetime='2015-10-13T00:00:00+00:00'><span class='date'>13 Oct 2015</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/mac/'><span>Mac</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2015/10/10/computer-mac/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F&url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&title=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Share on Google+"
+    target="_blank"><p class="googleplus_custom"><span class="googleplusBig"  data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">Google+でシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2015/10/10/computer-mac/&amp;t=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2015/10/10/computer-mac/&title=OS+X+10.11+El+Capitan%E3%81%AESystem+Integrity+Protection%28SIP%29+%28rootless%29%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%A1%E3%82%87%E3%81%A3%E3%81%A8%E8%A9%B3%E3%81%97%E3%81%8F"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2015/10/10/computer-mac/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2015/10/09/computer-github-mac/" title="Previous Post: 'git push'で'key_load_public: invalid format'">&laquo; 'git push'で'key_load_public: invalid format'</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2015/10/11/computer-firefox-chrome/" title="Next Post: パスワード管理サービスのLastPassがLogMeInに吸収された件">パスワード管理サービスのLastPassがLogMeInに吸収された件 &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/gp/redirect.html?ie=UTF8&location=http%3A%2F%2Fwww.amazon.co.jp%2Fgp%2Fregistry%2Fwishlist%2F%3Fie%3DUTF8%26type&tag=rcmdnk0c-22&linkCode=ur2&camp=247&creative=1211"></a>
+
+
+
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B0899SR52S' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51joaz95UyL._SS90_CR0,0,120,90_.jpg' alt='Vimが好きになる本 (技術の泉シリーズ（NextPublishing）)'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/11/computer-vim/">Vim (Neovim)起動時にPythonの仮想環境を準備する</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/1533103852' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51XYnJFLlKL._SS90_CR0,0,120,90_.jpg' alt='Remote Desktop Services Windows Server 2012 R2: Design, Deployment and Management (Rds Pocket Consultant)'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/10/computer-windows-github/">GitHub Actions使うWindows環境にリモートデスクトップアクセスする</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2020/08/09/computer-windows-github/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20200809_win_120_90.jpg" width="120" height="90" alt="20200809_win_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/09/computer-windows-github/">AppVeyorで何故か失敗しているのをリモートデスクトップで入って確かめる</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2020/07/29/computer-mac-karabiner-vim/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20200730_menubarnormal_120_90.jpg" width="120" height="90" alt="20200730_menubarnormal_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2020/07/29/computer-mac-karabiner-vim/">Vim emulation using Karabiner-Elements (on macOS)でメニューバーに状態表示させたり通知でお知らせしたり</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2020 (42)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2020/08/'>AUG (4)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (97)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (5)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (72)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (2)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (152)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (13)</a></li><li><a href='/blog/2016/09/'>SEP (14)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (187)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (13)</a></li><li><a href='/blog/2015/10/'>OCT (18)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (32)</a></li><li><a href='/blog/2015/05/'>MAY (22)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (135)</a></li><li><a href='/blog/categories/computer/'>Computer (876)</a></li><li><a href='/blog/categories/life/'>Life (40)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.41095890410959%'>AeroFS(2)</a> <a href='/blog/tags/amazon/' style='font-size: 100.20547945205479%'>Amazon(1)</a> <a href='/blog/tags/analytics/' style='font-size: 100.61643835616438%'>Analytics(3)</a> <a href='/blog/tags/android/' style='font-size: 103.6986301369863%'>Android(18)</a> <a href='/blog/tags/applescript/' style='font-size: 103.28767123287672%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.41095890410959%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 104.10958904109589%'>AutoHotkey(20)</a> <a href='/blog/tags/bash/' style='font-size: 120.75342465753425%'>Bash(101)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.20547945205479%'>Bitbucket(1)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.82191780821918%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.61643835616438%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.0958904109589%'>Brew-file(54)</a> <a href='/blog/tags/bsd/' style='font-size: 101.64383561643835%'>BSD(8)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.41095890410959%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.82191780821918%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.52054794520548%'>Chrome(22)</a> <a href='/blog/tags/colinux/' style='font-size: 100.41095890410959%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 101.02739726027397%'>CSS(5)</a> <a href='/blog/tags/cygwin/' style='font-size: 106.36986301369863%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.20547945205479%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.41095890410959%'>Desktop(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 102.05479452054794%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.61643835616438%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 101.02739726027397%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.26027397260275%'>Evernote(11)</a> <a href='/blog/tags/feedly/' style='font-size: 100.20547945205479%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 112.12328767123287%'>Firefox(59)</a> <a href='/blog/tags/geektool/' style='font-size: 100.61643835616438%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.20547945205479%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 101.84931506849315%'>git(9)</a> <a href='/blog/tags/git/' style='font-size: 106.36986301369863%'>Git(31)</a> <a href='/blog/tags/github/' style='font-size: 112.12328767123287%'>GitHub(59)</a> <a href='/blog/tags/github/' style='font-size: 100.20547945205479%'>Github(1)</a> <a href='/blog/tags/gmail/' style='font-size: 103.28767123287672%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.43835616438356%'>GNU(7)</a> <a href='/blog/tags/go/' style='font-size: 100.61643835616438%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 101.43835616438356%'>Google(7)</a> <a href='/blog/tags/gpu/' style='font-size: 100.20547945205479%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 101.02739726027397%'>HHKB(5)</a> <a href='/blog/tags/homebrew/' style='font-size: 117.67123287671232%'>Homebrew(86)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.46575342465754%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.82191780821918%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.41095890410959%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 103.28767123287672%'>IoT(16)</a> <a href='/blog/tags/iphone/' style='font-size: 102.46575342465754%'>iPhone(12)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.82191780821918%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.41095890410959%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.34246575342466%'>JavaScript(26)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.61643835616438%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.82191780821918%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.93150684931507%'>Karabiner(24)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.20547945205479%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.64383561643835%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.20547945205479%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.20547945205479%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.15068493150685%'>Linux(64)</a> <a href='/blog/tags/liquid/' style='font-size: 100.41095890410959%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.61643835616438%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(292)</a> <a href='/blog/tags/markdown/' style='font-size: 102.46575342465754%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.84931506849315%'>Music(9)</a> <a href='/blog/tags/network/' style='font-size: 105.75342465753425%'>Network(28)</a> <a href='/blog/tags/octopress/' style='font-size: 124.65753424657534%'>Octopress(120)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.41095890410959%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.61643835616438%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.82191780821918%'>Pocket(4)</a> <a href='/blog/tags/powershell/' style='font-size: 101.64383561643835%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 101.84931506849315%'>PR(9)</a> <a href='/blog/tags/prompt/' style='font-size: 100.61643835616438%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.87671232876713%'>PuTTY(14)</a> <a href='/blog/tags/python/' style='font-size: 106.98630136986301%'>Python(34)</a> <a href='/blog/tags/qi/' style='font-size: 101.02739726027397%'>Qi(5)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.20547945205479%'>Rakuten(1)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 101.23287671232876%'>RaspberryPi(6)</a> <a href='/blog/tags/ruby/' style='font-size: 102.87671232876713%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 107.8082191780822%'>screen(38)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.87671232876713%'>sentaku(14)</a> <a href='/blog/tags/shopping/' style='font-size: 105.54794520547945%'>Shopping(27)</a> <a href='/blog/tags/slack/' style='font-size: 100.20547945205479%'>Slack(1)</a> <a href='/blog/tags/svn/' style='font-size: 100.41095890410959%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 101.02739726027397%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.41095890410959%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.43835616438356%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.87671232876713%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 101.02739726027397%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.82191780821918%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 118.69863013698631%'>Vim(91)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.9041095890411%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.23287671232876%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.23287671232876%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.41095890410959%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 127.73972602739727%'>Windows(135)</a> <a href='/blog/tags/word/' style='font-size: 100.20547945205479%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.43835616438356%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.47945205479452%'>Zsh(51)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/02/01/compouter-chrome/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180201_chrome_120_90.png" width="120" height="90" alt="20180201_chrome_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/02/01/compouter-chrome/">Google Chrome上でマウスカーソルが消えてしまう場合の対処法</a><br><span class="views">1868 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2017/03/03/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20170303_key_120_90.jpg" width="120" height="90" alt="20170303_key_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2017/03/03/computer-windows/">ノートPCのキーボードのボタン一つだけが壊れた時の対処法</a><br><span class="views">1026 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/05/16/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180516_macdic_120_90.jpg" width="120" height="90" alt="20180516_macdic_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/05/16/computer-mac/">Macで勝手に英文先頭が大文字になったり二重ハイフンが大きなハイフンになったりするのを止める</a><br><span class="views">967 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2016/11/27/computer-android/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20161127_android_120_90.jpg" width="120" height="90" alt="20161127_android_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2016/11/27/computer-android/">Androidで、プロセス「system」は応答していません、が出てまともに起動出来ないときの対処法</a><br><span class="views">851 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4534054890' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/518QWm86x9L._SS90_CR0,0,120,90_.jpg' alt='「数字」が読めると本当に儲かるんですか?'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2018/09/05/computer-bash-zsh/">シェルスクリプトで数字かどうか判断する方法(exprだけじゃない)</a><br><span class="views">762 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://b.st-hatena.com/images/append.gif' alt='append'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2020 - rcmdnk -
+    <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<script>
+  window.GoogleAnalyticsObject = 'ga';
+  if (!('ga' in window)){
+    ga = function(){
+      ga.q.push(arguments);
+    };
+  }
+  ga.l = (new Date()).getTime();
+  ga.q = [['create', 'UA-39086461-1', 'auto'], ['send', 'pageview'], ['require', 'linkid', 'linkid.js']];
+</script>
+<script src="//www.google-analytics.com/analytics.js" async defer></script>
+
+
+<script>(function(w,d,s,l,i){
+           w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+         })(window,document,'script','dataLayer','GTM-MRN6WBX');</script>
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2015/10/10/computer-mac/';
+  var disqus_url = 'https://rcmdnk.com/blog/2015/10/10/computer-mac/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+
+
+
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery//jquery.min.js" defer></script>
+  <![endif]-->
+  
+
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" defer></script>
+  <!--<![endif]-->
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/mac/",
+        "name": "Mac"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>
