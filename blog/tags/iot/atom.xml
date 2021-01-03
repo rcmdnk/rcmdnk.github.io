@@ -1,0 +1,1823 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: IoT | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/iot/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-01-03T00:43:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Piで測定した温度湿度気圧をGoogle Spreadsheetsに記録する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google/"/>
+    <updated>2020-10-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS200_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div>
+
+<p>Google Spreadsheetsに色々とりあえずでもいいから保存していこう、ということで
+Raspberry PiでBME280を使って測定している温度、湿度、気圧の値を
+保存するようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-pi--bme280" id="markdown-toc-raspberry-pi--bme280">Raspberry Pi &amp; BME280</a></li>
+  <li><a href="#blynk" id="markdown-toc-blynk">Blynk</a></li>
+  <li><a href="#記録方法" id="markdown-toc-記録方法">記録方法</a></li>
+  <li><a href="#google-spreadsheets-api" id="markdown-toc-google-spreadsheets-api">Google Spreadsheets API</a></li>
+  <li><a href="#書き込みスクリプト" id="markdown-toc-書き込みスクリプト">書き込みスクリプト</a></li>
+  <li><a href="#raspberry-piで定期実行" id="markdown-toc-raspberry-piで定期実行">Raspberry Piで定期実行</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-pi--bme280">Raspberry Pi &amp; BME280</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS200_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>BME280は温度、湿度、気圧を測定できるセンサーで、
+Raspberry Piとかに接続して測定するときによく使われるものです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>ここにあるようにこれまでは
+Blynkというスマホからコンピューターへ命令を送ったり
+コンピューターから情報を取得したりするアプリを使っていました。</p>
+
+<h2 id="blynk">Blynk</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<p><img src="https://rcmdnk.com/images/post/2020-10-13-computer-raspberrypi-iot-google.md" alt="2020-10-13-computer-raspberrypi-iot-google.md" class="pic" /></p>
+
+<p>こんな感じで簡単にグラフ表示が出来る。</p>
+
+<p>とりあえずこれで満足してたんですが、
+BlynkではBlynkのサーバーに情報をアップロードして、
+それをスマホから見ている感じ。</p>
+
+<p>Raspberry Pi側で1分置きに計測して送っていますが、
+Blynkアプリ上だと1年分まで見れます。</p>
+
+<p>Blynkの情報はスマホからExportしたり、
+<a href="https://blynkapi.docs.apiary.io/#reference/0/pin-history-data/get-all-history-data-for-specific-pin">API</a>
+を使って履歴を取ってこれたりします。</p>
+
+<p>なので1年分は取ってこれるのかな、と思ったら
+どうやら1週間分しか取得することは出来ないようです。</p>
+
+<blockquote>
+  <p><a href="https://community.blynk.cc/t/only-getting-a-week-of-history-when-retrieving-csv/21836">Only getting a week of history when retrieving CSV - Need Help With My Project - Blynk Community</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://community.blynk.cc/t/pin-history-data-http-restful-api/26055">Pin history data - HTTP RESTful API - Need Help With My Project - Blynk Community</a></p>
+</blockquote>
+
+<p>2年以上前の話で、改善するよ、とか、1ヶ月までは伸ばすつもりだよ、とか
+答えてますが現時点でも1週間なので多分変わらないでしょう。
+(APIでもアプリからExportしても同じ。)</p>
+
+<p>ということで、見えてるのに過去の情報は取れない、という状態。</p>
+
+<p>やはりせっかくなので記録として残したいのでSpreadsheetsに書いておきたい、と思った次第です。</p>
+
+<h2 id="記録方法">記録方法</h2>
+
+<p>方法としては、</p>
+
+<ol>
+  <li>Blynkサーバーにある情報を1日1回位取得して新しい分だけSpreadsheetsにアップデートで加える</li>
+  <li>Raspberry Piから直接Google SpreadsheetsのAPIを使って書き込む</li>
+</ol>
+
+<p>が考えられます。</p>
+
+<p>1の方法に関しては、Blynkが
+<a href="https://blynkapi.docs.apiary.io/#reference/0/pin-history-data/get-all-history-data-for-specific-pin">API</a>
+を提供してくれてるので、
+<a href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/">NatureRemoの情報を記録</a>
+したのと同じ様なことをGoogle Apps Scriptでやればいいだけ。</p>
+
+<p>ただ、今後Blynkを使い続けるかわからないのと、
+Blynkの無料枠で使おうと思うと、上の様なチャートは結構無料枠内を埋めてしまい、
+他のボタンとかが作りづらい、というので将来的に別のボタンに変更するかも、
+という点から2の直接書き込む方法にしました。</p>
+
+<p>計測などにちょっと無駄な重複が出ますが、
+ちょっと見た感じではRaspberry Pi Zeroでも全然負荷になってないようなので
+別々にしておきます。</p>
+
+<p>BlynkがC++なプログラムでGoogleのAPIのパッケージとかがC++用とかなくてちょっと面倒だった、というのもあります。</p>
+
+<p>1を使うと1週間分は遡れますが、まあそれくらい別にいいか、と。
+(手で入れても良かったのですが面倒だったのでしなかった。)</p>
+
+<h2 id="google-spreadsheets-api">Google Spreadsheets API</h2>
+
+<p>Pythonを使ったスクリプトを作成します。</p>
+
+<blockquote>
+  <p><a href="https://developers.google.com/sheets/api/quickstart/python">Python Quickstart Sheets API Google Developers</a></p>
+</blockquote>
+
+<p>Google公式のSpreadsheetsのAPIですが、
+Python用の
+<a href="https://github.com/googleapis/google-api-python-client">google-api-python-client</a>
+というパッケージを
+直接使おうと思うとPythonとかでも結構Spreadsheetsだけのためでも
+書く量が多くなってしまいます。</p>
+
+<p>ちょっと探したところ、
+<a href="https://gspread.readthedocs.io/en/latest/index.html">gspread</a>
+というのがシンプルに書けて使い勝手がよさそうだったので使ってみました。</p>
+
+<div class="github-widget" data-repo="burnash"></div>
+
+<p>gspreadではサービスアカウントを使った認証も可能で、
+自動で動かすのはそちらの方が便利なのでサービスアカウントを使います。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">For Bots: Using Service Account</a></p>
+</blockquote>
+
+<p>Sheetに書き込むだけなら簡単に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="kn">import</span> <span class="nn">gspread</span>
+</span><span class="line"><span class="n">gc</span> <span class="o">=</span> <span class="n">gspread</span><span class="o">.</span><span class="n">service_account</span><span class="p">()</span>
+</span><span class="line"><span class="n">wks</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;Where is the money Lebowski?&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sheet1</span>
+</span><span class="line"><span class="n">wks</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>だけで書けてしまいます。</p>
+
+<h2 id="書き込みスクリプト">書き込みスクリプト</h2>
+
+<p>こんな感じのスクリプトを作ります。</p>
+
+<p>Spreadsheets書き込み部分は
+<a href="https://gspread.readthedocs.io/en/latest/user-guide.html">gspreadのドキュメント</a>
+参照。</p>
+
+<p>Spreadsheetsに関しては先に作成しておいて、ID
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+を取得しておいて<code>SHEET_KEY</code>に設定します。</p>
+
+<p>また、<code>Living</code>という名前のシートを作っておきます。</p>
+
+<p>このあたりは<code>gspread</code>からAPI経由で作成することも出来ますが、
+今回はその辺は省いて直接作っておくようにしています。</p>
+
+<p>BME280に関しては
+製造元のSwitch ScienceがPythonの例(<a href="https://github.com/SWITCHSCIENCE/BME280/blob/master/Python27/bme280_sample.py">BME280/bme280_sample.py</a>)
+を公開してくれているのでそれを参考にして作っています。
+(ほぼコピペ。)</p>
+
+<figure class="code"><figcaption><span>bme280.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+<span class="line-number">98</span>
+<span class="line-number">99</span>
+<span class="line-number">100</span>
+<span class="line-number">101</span>
+<span class="line-number">102</span>
+<span class="line-number">103</span>
+<span class="line-number">104</span>
+<span class="line-number">105</span>
+<span class="line-number">106</span>
+<span class="line-number">107</span>
+<span class="line-number">108</span>
+<span class="line-number">109</span>
+<span class="line-number">110</span>
+<span class="line-number">111</span>
+<span class="line-number">112</span>
+<span class="line-number">113</span>
+<span class="line-number">114</span>
+<span class="line-number">115</span>
+<span class="line-number">116</span>
+<span class="line-number">117</span>
+<span class="line-number">118</span>
+<span class="line-number">119</span>
+<span class="line-number">120</span>
+<span class="line-number">121</span>
+<span class="line-number">122</span>
+<span class="line-number">123</span>
+<span class="line-number">124</span>
+<span class="line-number">125</span>
+<span class="line-number">126</span>
+<span class="line-number">127</span>
+<span class="line-number">128</span>
+<span class="line-number">129</span>
+<span class="line-number">130</span>
+<span class="line-number">131</span>
+<span class="line-number">132</span>
+<span class="line-number">133</span>
+<span class="line-number">134</span>
+<span class="line-number">135</span>
+<span class="line-number">136</span>
+<span class="line-number">137</span>
+<span class="line-number">138</span>
+<span class="line-number">139</span>
+<span class="line-number">140</span>
+<span class="line-number">141</span>
+<span class="line-number">142</span>
+<span class="line-number">143</span>
+<span class="line-number">144</span>
+<span class="line-number">145</span>
+<span class="line-number">146</span>
+<span class="line-number">147</span>
+<span class="line-number">148</span>
+<span class="line-number">149</span>
+<span class="line-number">150</span>
+<span class="line-number">151</span>
+<span class="line-number">152</span>
+<span class="line-number">153</span>
+<span class="line-number">154</span>
+<span class="line-number">155</span>
+<span class="line-number">156</span>
+<span class="line-number">157</span>
+<span class="line-number">158</span>
+<span class="line-number">159</span>
+<span class="line-number">160</span>
+<span class="line-number">161</span>
+<span class="line-number">162</span>
+<span class="line-number">163</span>
+<span class="line-number">164</span>
+<span class="line-number">165</span>
+<span class="line-number">166</span>
+<span class="line-number">167</span>
+<span class="line-number">168</span>
+<span class="line-number">169</span>
+<span class="line-number">170</span>
+<span class="line-number">171</span>
+<span class="line-number">172</span>
+<span class="line-number">173</span>
+<span class="line-number">174</span>
+<span class="line-number">175</span>
+<span class="line-number">176</span>
+<span class="line-number">177</span>
+<span class="line-number">178</span>
+<span class="line-number">179</span>
+<span class="line-number">180</span>
+<span class="line-number">181</span>
+<span class="line-number">182</span>
+<span class="line-number">183</span>
+<span class="line-number">184</span>
+<span class="line-number">185</span>
+<span class="line-number">186</span>
+<span class="line-number">187</span>
+<span class="line-number">188</span>
+<span class="line-number">189</span>
+<span class="line-number">190</span>
+<span class="line-number">191</span>
+<span class="line-number">192</span>
+<span class="line-number">193</span>
+<span class="line-number">194</span>
+<span class="line-number">195</span>
+<span class="line-number">196</span>
+<span class="line-number">197</span>
+<span class="line-number">198</span>
+<span class="line-number">199</span>
+<span class="line-number">200</span>
+<span class="line-number">201</span>
+<span class="line-number">202</span>
+<span class="line-number">203</span>
+<span class="line-number">204</span>
+<span class="line-number">205</span>
+<span class="line-number">206</span>
+<span class="line-number">207</span>
+<span class="line-number">208</span>
+<span class="line-number">209</span>
+<span class="line-number">210</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">os</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">smbus2</span> <span class="kn">import</span> <span class="n">SMBus</span>
+</span><span class="line">
+</span><span class="line"><span class="n">SHEET_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;SHEET_KEY&gt;&quot;</span>
+</span><span class="line"><span class="n">CREDENTIALS</span> <span class="o">=</span> <span class="s2">&quot;~/.config/gspread/credentials.json&quot;</span>
+</span><span class="line"><span class="n">WORKSHEET_NAME</span> <span class="o">=</span> <span class="s2">&quot;Living&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">SpreadSheets</span><span class="p">():</span>
+</span><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sheet_key</span><span class="p">,</span> <span class="n">worksheet_name</span><span class="p">,</span> <span class="n">credentials</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">sheet_key</span> <span class="o">=</span> <span class="n">sheet_key</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">worksheet_name</span> <span class="o">=</span> <span class="n">worksheet_name</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="kn">import</span> <span class="nn">gspread</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">gspread</span><span class="o">.</span><span class="n">service_account</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_sheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">gc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">gc</span><span class="o">.</span><span class="n">open_by_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sheet_key</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_worksheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">sh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sheet</span><span class="p">()</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">sh</span><span class="o">.</span><span class="n">worksheet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">worksheet_name</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">bme280</span> <span class="o">=</span> <span class="n">BME280</span><span class="p">()</span>
+</span><span class="line">        <span class="n">data</span> <span class="o">=</span> <span class="n">bme280</span><span class="o">.</span><span class="n">read_data</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">worksheet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_worksheet</span><span class="p">()</span>
+</span><span class="line">        <span class="n">worksheet</span><span class="o">.</span><span class="n">append_row</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">BME280</span><span class="p">():</span>
+</span><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus_number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="mh">0x76</span><span class="p">,</span> <span class="n">my_timedelta</span><span class="o">=</span><span class="mi">9</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus_number</span> <span class="o">=</span> <span class="n">bus_number</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span> <span class="o">=</span> <span class="n">i2c_address</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">my_timedelta</span> <span class="o">=</span> <span class="n">my_timedelta</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="n">SMBus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus_number</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="mf">20.00</span> <span class="o">*</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">write_reg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg_address</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">write_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">reg_address</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_calib_param</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">calib</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0x88</span><span class="p">,</span> <span class="mh">0x88</span><span class="o">+</span><span class="mi">24</span><span class="p">):</span>
+</span><span class="line">            <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">        <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="mh">0xA1</span><span class="p">))</span>
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0xE1</span><span class="p">,</span> <span class="mh">0xE1</span><span class="o">+</span><span class="mi">7</span><span class="p">):</span>
+</span><span class="line">            <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">10</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">12</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">14</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">16</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">18</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">20</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">23</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">22</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">24</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">25</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">27</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="mh">0x0F</span> <span class="o">&amp;</span> <span class="n">calib</span><span class="p">[</span><span class="mi">29</span><span class="p">]))</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">30</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">29</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">))</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">31</span><span class="p">])</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">print_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">now</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pres</span><span class="p">,</span> <span class="n">hum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_data</span><span class="p">()</span>
+</span><span class="line">        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;datetime : {now}&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;temperature : {temp:.2f} degree&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;pressure    : {pres:.2f} hPa&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;humidity    : {hum:.2f} %&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">get_calib_param</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">my_timedelta</span><span class="p">))</span>
+</span><span class="line">                           <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+</span><span class="line">        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0xF7</span><span class="p">,</span> <span class="mh">0xF7</span><span class="o">+</span><span class="mi">8</span><span class="p">):</span>
+</span><span class="line">            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">        <span class="n">pres_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span>
+</span><span class="line">        <span class="n">temp_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span>
+</span><span class="line">        <span class="n">hum_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_t</span><span class="p">(</span><span class="n">temp_raw</span><span class="p">)</span>
+</span><span class="line">        <span class="n">pres</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_p</span><span class="p">(</span><span class="n">pres_raw</span><span class="p">)</span>
+</span><span class="line">        <span class="n">hum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_h</span><span class="p">(</span><span class="n">hum_raw</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">now</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pres</span><span class="p">,</span> <span class="n">hum</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_t</span><span class="p">):</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">16384.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">131072.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">8192.0</span><span class="p">)</span>\
+</span><span class="line">            <span class="o">*</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">131072.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">8192.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span>
+</span><span class="line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">/</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_p</span><span class="p">):</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-</span> <span class="mf">64000.0</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(((</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2048</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span> <span class="o">+</span> <span class="p">((</span><span class="n">v1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">v2</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mf">65536.0</span><span class="p">)</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(((</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">8192</span><span class="p">))</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
+</span><span class="line">              <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">v1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">262144</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">((</span><span class="mi">32768</span> <span class="o">+</span> <span class="n">v1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">32768</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">if</span> <span class="n">v1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class="line">            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1048576</span> <span class="o">-</span> <span class="n">adc_p</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">v2</span> <span class="o">/</span> <span class="mi">4096</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3125</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">pressure</span> <span class="o">&lt;</span> <span class="mh">0x80000000</span><span class="p">:</span>
+</span><span class="line">            <span class="n">pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">v1</span>
+</span><span class="line">        <span class="k">else</span><span class="p">:</span>
+</span><span class="line">            <span class="n">pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">v1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">*</span> <span class="p">(((</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">8.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">8.0</span><span class="p">))</span>
+</span><span class="line">                               <span class="o">/</span> <span class="mf">8192.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">4096</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">((</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span> <span class="o">/</span> <span class="mf">8192.0</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="n">pressure</span> <span class="o">+</span> <span class="p">((</span><span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span> <span class="o">/</span> <span class="mf">16.0</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">pressure</span> <span class="o">/</span> <span class="mi">100</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_h</span><span class="p">):</span>
+</span><span class="line">        <span class="n">var_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">-</span> <span class="mf">76800.0</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">var_h</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_h</span> <span class="o">-</span> <span class="p">(</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mf">64.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">/</span><span class="mf">16384.0</span> <span class="o">*</span> <span class="n">var_h</span>
+</span><span class="line">            <span class="p">))</span> <span class="o">*</span> <span class="p">(</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">65536.0</span> <span class="o">*</span> <span class="p">(</span>
+</span><span class="line">                    <span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">/</span> <span class="mf">67108864.0</span> <span class="o">*</span> <span class="n">var_h</span>
+</span><span class="line">                    <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">67108864.0</span> <span class="o">*</span> <span class="n">var_h</span><span class="p">)))</span>
+</span><span class="line">        <span class="k">else</span><span class="p">:</span>
+</span><span class="line">            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class="line">        <span class="n">var_h</span> <span class="o">=</span> <span class="n">var_h</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">var_h</span> <span class="o">/</span> <span class="mf">524288.0</span><span class="p">)</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">var_h</span> <span class="o">&gt;</span> <span class="mf">100.0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="mf">100.0</span>
+</span><span class="line">        <span class="k">elif</span> <span class="n">var_h</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">var_h</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="c1"># reset default t_fine</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="mf">20.00</span> <span class="o">*</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">osrs_t</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Temperature oversampling x 1</span>
+</span><span class="line">        <span class="n">osrs_p</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Pressure oversampling x 1</span>
+</span><span class="line">        <span class="n">osrs_h</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Humidity oversampling x 1</span>
+</span><span class="line">        <span class="n">mode</span> <span class="o">=</span> <span class="mi">3</span>                        <span class="c1"># Normal mode</span>
+</span><span class="line">        <span class="n">t_sb</span> <span class="o">=</span> <span class="mi">5</span>                        <span class="c1"># Tstandby 1000ms</span>
+</span><span class="line">        <span class="n">is_filter</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="c1"># Filter off</span>
+</span><span class="line">        <span class="n">spi3w_en</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># 3-wire SPI Disable</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">ctrl_meas_reg</span> <span class="o">=</span> <span class="p">(</span><span class="n">osrs_t</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">osrs_p</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="n">mode</span>
+</span><span class="line">        <span class="n">config_reg</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_sb</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">is_filter</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="n">spi3w_en</span>
+</span><span class="line">        <span class="n">ctrl_hum_reg</span> <span class="o">=</span> <span class="n">osrs_h</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF2</span><span class="p">,</span> <span class="n">ctrl_hum_reg</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF4</span><span class="p">,</span> <span class="n">ctrl_meas_reg</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF5</span><span class="p">,</span> <span class="n">config_reg</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">argv</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+</span><span class="line">        <span class="n">argv</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class="line">        <span class="n">bme280</span> <span class="o">=</span> <span class="n">BME280</span><span class="p">()</span>
+</span><span class="line">        <span class="n">bme280</span><span class="o">.</span><span class="n">print_data</span><span class="p">()</span>
+</span><span class="line">    <span class="k">else</span><span class="p">:</span>
+</span><span class="line">        <span class="n">sh</span> <span class="o">=</span> <span class="n">SpreadSheets</span><span class="p">(</span><span class="n">sheet_key</span><span class="o">=</span><span class="n">SHEET_KEY</span><span class="p">,</span>
+</span><span class="line">                          <span class="n">worksheet_name</span><span class="o">=</span><span class="n">WORKSHEET_NAME</span><span class="p">,</span>
+</span><span class="line">                          <span class="n">credentials</span><span class="o">=</span><span class="n">CREDENTIALS</span><span class="p">)</span>
+</span><span class="line">        <span class="n">sh</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="k">try</span><span class="p">:</span>
+</span><span class="line">        <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span class="line">    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+</span><span class="line">        <span class="k">pass</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h2 id="raspberry-piで定期実行">Raspberry Piで定期実行</h2>
+
+<p>systemdを使った定期実行を設定します。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000J5OFW0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000J5OFW0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81TNSEQjz5L._SS90_CR0,0,120,90_.jpg" alt="【正規品】TIME TIMER タイムタイマー 19cm 60分 TTA1-W 時間管理" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux/">systemdでcronジョブの代わりの設定をする</a></div></li></ul>
+
+<p>上にある<strong>bme280.py</strong>をRaspberry Piの<strong>/home/pi/scripts/bme280.py</strong>に置いて、
+以下の様な2つのsystemd用ファイルを用意し、
+<strong>/etc/systemd/system/</strong>に設置します。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/bme280.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> BME280 logging
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Service<span class="o">]</span>
+</span><span class="line"><span class="nv">Type</span> <span class="o">=</span> oneshot
+</span><span class="line"><span class="nv">ExecStart</span> <span class="o">=</span> /home/pi/scripts/bme280.py
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/bme280.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> BME280 logging timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span> <span class="o">=</span> *-*-* *:*:00
+</span><span class="line"><span class="nv">AccuracySec</span> <span class="o">=</span> 1s
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>1分毎に計測して記録する設定。</p>
+
+<p>設置後、</p>
+
+<pre><code>$ cmd sudo systemctl enable bme280.timer
+$ cmd sudo systemctl restart bme280.timer
+</code></pre>
+
+<p>として有効にしてタイマーを開始させれば計測し、Spreadsheetsに記録していってくれます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[NatureRemo APIとGASを使って温度や家電の状態をGoogle Spreadsheetsに保存する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/"/>
+    <updated>2020-10-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/09/computer-iot-google</id>
+    <content type="html"><![CDATA[<p>色々Google Spreadsheetsに保存して使いたい、ということで
+NatureRemoのAPIを使って色々と情報をSpreadsheetsに入れてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#natureremo-api" id="markdown-toc-natureremo-api">NatureRemo API</a></li>
+  <li><a href="#natureremo-gas" id="markdown-toc-natureremo-gas">NatureRemo-gas</a></li>
+  <li><a href="#湿度照度人感センサーの値を取得する" id="markdown-toc-湿度照度人感センサーの値を取得する">湿度、照度、人感センサーの値を取得する</a></li>
+  <li><a href="#取得頻度" id="markdown-toc-取得頻度">取得頻度</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="natureremo-api">NatureRemo API</h2>
+
+<p>NatureRemoはいろいろな家電のリモコンをひとまとめにしてスマホなどから
+操作できるようにしてくれるスマートリモコンですが、
+かなりオープンな感じでAPIを提供してくれています。</p>
+
+<blockquote>
+  <p><a href="https://developer.nature.global/">Nature Inc</a></p>
+</blockquote>
+
+<p>これによってNatureRemoで計測している温度や
+各家電にいつどの様な命令を送ったか、
+またAPIを通じてリモコン操作を行うことも可能です。</p>
+
+<p>今回はそれをGoogle Apps Scriptから叩いて
+温度情報とリビングのエアコンと照明の情報を取ってみることにしました。</p>
+
+<h2 id="natureremo-gas">NatureRemo-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/NatureRemo-gas"></div>
+
+<p>こんな感じのプロジェクトを作りました。</p>
+
+<p>Google Apps ScriptでのAPIの扱い方や
+Spreadsheetsの連携などは以下を参照。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201006_withingsapi_120_90.jpg" width="120" height="90" alt="20201006_withingsapi_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/08/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201008_sheet_120_90.jpg" width="120" height="90" alt="20201008_sheet_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/08/computer-iot-google/">時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む</a></div></li></ul>
+
+<p>Google Spreadsheetsからスクリプトエディタを使って作った
+Google Apps Scriptのプロジェクトに、
+このレポジトリにある、<strong>NatureRemo.gs</strong>、<strong>utils.gs</strong>、<strong>params.gs</strong>を
+コピーしてプロジェクトに追加。</p>
+
+<p>NatureRemoの<a href="https://home.nature.global/home">Access Tokens</a>
+のページでアクセストークンを取得して、</p>
+
+<pre><code>var ACCESS_TOKEN = '&lt;YOUR_ACCESS_TOKEN&gt;;
+</code></pre>
+
+<p>の様な形で<strong>secrets.gs</strong>というファイルを別途作り保存。</p>
+
+<p>これで<a href="https://github.com/rcmdnk/NatureRemo-gas/blob/main/NatureRemo.gs">NatureRemo.gs</a>の中の<code>fillNatureRemo</code>関数を実行すると、NatureRemoの情報がこんな感じで取れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20201009_natureremo.jpg" alt="20201009_natureremo.jpg" class="pic" /></p>
+
+<p>取得しているのは</p>
+
+<ul>
+  <li>NatureRemoが測定した温度</li>
+  <li><code>エアコン</code>と登録されているエアコンの状態</li>
+  <li><code>照明</code>と登録されているライトの状態</li>
+</ul>
+
+<p>です。</p>
+
+<p>使っているのがNatureRemo miniなので測定値は温度しかありません。
+<a href="https://swagger.nature.global/#/default/get_1_devices">GET: devices</a>
+を使っていますが、これで返ってくるのは最新の測定値です。</p>
+
+<p>ただ、NatureRemoではどのタイミングで測定を行っているか、
+値のアップデートを行っているか、よくわからないのですが、
+返ってくる値の中の<code>updated_at</code>を見ると
+数時間同じ時間になったままで値も同じままだったりします。
+他の測定機器を見るとその間数度変化があっても感知せずに、
+特に28度、みたいなきっかりの値が長かったりします。
+ただ、1度単位でしか測れないわけではなく、27.4度、みたいな小数な数字を返すこともあります。</p>
+
+<p>なので結構大雑把な測定値、という感じになっています。</p>
+
+<p>また、機器情報に関しては他にも色々使っていますが、エアコンと照明の状態を記録してみることにしました。</p>
+
+<p><code>エアコン</code>、<code>照明</code>は自分でつけた家電のニックネーム(ただ、これらを最初に登録するとつけられるデフォルトの名前のままですが)なので、
+もし違う名前の場合、
+<a href="https://github.com/rcmdnk/NatureRemo-gas/blob/main/params.gs">params.gs</a>
+の中の<code>NICKNAME_XXX</code>を変更する必要があります。</p>
+
+<p><a href="https://swagger.nature.global/#/default/get_1_appliances">GET: appliances</a>
+を使って各機器の状態を取ってきていますが、</p>
+
+<ul>
+  <li>エアコンの設定温度</li>
+  <li>エアコンのモード(冷房か、暖房か、など)</li>
+  <li>エアコンの最後に押されたボタン</li>
+  <li>エアコンの状態(0: off, 1: on)
+    <ul>
+      <li>エアコンの場合、最後に押されたボタンが<code>power-off</code>だと止まっている状態。それ以外は付いている状態。<code>power-on</code>は記録されるときもあるが、途中で記録されなくなる。</li>
+      <li>これを使って押されたボタンが<code>power-off</code>ならエアコンが止まっている状態、それ以外なら付いている状態、と記録。</li>
+      <li>ここは経験的に見ただけで、もしかすると間違っているかもしれない</li>
+    </ul>
+  </li>
+  <li>照明の明るさ
+    <ul>
+      <li>一応記録しているがonでもoffでも、明るさ変えても100しか返ってこない。。。</li>
+    </ul>
+  </li>
+  <li>照明の状態(on/off)</li>
+  <li>照明の最後に押されたボタン</li>
+  <li>照明の状態(0: off, 1: on)
+    <ul>
+      <li>照明の場合はon/offがはっきり返ってくるのでそれをそのまま利用</li>
+    </ul>
+  </li>
+</ul>
+
+<p>を記録しています。
+ただし、これらは今使っている家電で返ってくるもので、
+メーカーによっては違う値が返ってくるかもしれません。</p>
+
+<p>そのあたりは実際に自分の使っているもので試して見る必要があるかもしれません。</p>
+
+<h2 id="湿度照度人感センサーの値を取得する">湿度、照度、人感センサーの値を取得する</h2>
+
+<p>今使っているのがNatureRemo miniなので温度しか測定値が無いのですが、
+他の情報も測定できる機器であれば
+<a href="https://github.com/rcmdnk/NatureRemo-gas/blob/main/NatureRemo.gs">NatureRemo.gs</a>
+の中の<code>devices()</code>関数の中で、</p>
+
+<pre><code>return {'columns': ['Temperature', 'Humidity', 'Illuminance', 'Motion'],
+        'data': [events.te.val, events.hu.val, events.il.val, events.mo.val]};
+</code></pre>
+
+<p>の様に他の値も記録するようにしてあげればOK。</p>
+
+<p>ただし、Spreadsheetsを一度作ってから変更すると列がずれてしまうので
+変更する際にはシートの作り直しから。</p>
+
+<h2 id="取得頻度">取得頻度</h2>
+
+<p>今はまだテストも兼ねて毎分状態を取得しています。
+トリガーとして、時間主導型で<code>分ベースタイマー</code>を使い1分おき、でやっています。</p>
+
+<p>これだけ頻繁にやると、1日の中で結構(数回~数十回)エラーが起きてます。</p>
+
+<p><code>サーバー エラーが発生しました。しばらくしてからもう一度試してください。</code>
+といったエラーが主で、頻繁にやりすぎて前の実行が終わってない状態で始まってしまったために
+出てしまっているのか、ちょっとまだ詳細はよくわかってませんが、
+まあエラーが起きてもその後取れれば特に気にしないという感じで今のところは見ています。</p>
+
+<p>ただ、上にも書いたように、そもそもNatureRemoのサーバーで
+状態がそれほど頻繁にアップデートされているわけではありません。</p>
+
+<p>温度測定もそうですが、各機器の状態も、そもそもそれほど頻繁に変わるものではないし、
+毎分記録をつける必要があるのか、という感じ。</p>
+
+<p>単純に10分に1度、とかにするとちょっと変化が激しいときには詳細さが足りないな、と思うので
+なるべく1分くらいの詳細さはほしいとは思う。</p>
+
+<p>後は、<code>updated_at</code>の値を見て、変わったときにだけ記録するか。</p>
+
+<p>単純な情報取得としてはその様に変わったときだけを記録しておくのが正しいわけですが、
+Spreadsheetsに入力して、あとでグラフ化しよう、とか思うと、
+全部の状態を一度に取ってきて、毎分の状態、として記録されているとやりやすかったりします。</p>
+
+<p>まあグラフ化するときにもう位置段階処理するものを挟めばよいわけですが、
+Spreadsheetsを使って簡単に、と思うとなかなか面倒なので考えもの。</p>
+
+<p>このあたりはまた考えていきたいところではあります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/08/computer-iot-google/"/>
+    <updated>2020-10-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/08/computer-iot-google</id>
+    <content type="html"><![CDATA[<p><a href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">前回</a>
+省いたGoogle Apps Script(GAS)でAPIなどを使って時系列データを取ってきた際、
+それをSpreadsheetsに埋め込む方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#google-apps-scriptのプロジェクト" id="markdown-toc-google-apps-scriptのプロジェクト">Google Apps Scriptのプロジェクト</a></li>
+  <li><a href="#sheetの取得" id="markdown-toc-sheetの取得">Sheetの取得</a></li>
+  <li><a href="#sheetへの入力" id="markdown-toc-sheetへの入力">Sheetへの入力</a></li>
+  <li><a href="#日時について" id="markdown-toc-日時について">日時について</a></li>
+  <li><a href="#gasjavascriptでのdate" id="markdown-toc-gasjavascriptでのdate">GAS(JavaScript)でのDate</a></li>
+  <li><a href="#spreadsheetsでの日時情報" id="markdown-toc-spreadsheetsでの日時情報">Spreadsheetsでの日時情報</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="google-apps-scriptのプロジェクト">Google Apps Scriptのプロジェクト</h2>
+
+<blockquote>
+  <p><a href="https://script.google.com/home">自分のプロジェクト - Apps Script</a></p>
+</blockquote>
+
+<p>を見ると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20201008_gas.jpg" alt="20201008_gas.jpg" class="pic" /></p>
+
+<p>こんな感じで作ったGASのプロジェクトを見れますが、
+青に矢印のものとSpreadsheetsの色をしたものが見えます。</p>
+
+<p><a href="https://script.google.com/home">自分のプロジェクト</a>
+ページで<strong>新しいプロジェクト</strong>を作成すれば
+青に矢印な通常のプロジェクトになり、
+このプロジェクトはGoogle Driveのルートディレクトリに保存されます。</p>
+
+<p>緑のSpreadsheetsの様なアイコンのものはSpreadsheetsのメニューの
+<strong>ツール</strong><i class="fa fa-arrow-right"></i><strong>スクリプトエディタ</strong>から開き
+作成したプロジェクトになります。
+この場合はプロジェクトファイルは作成されず、
+Spreadsheetsの中で管理されている状態になります。</p>
+
+<p>ただし、上にもあるようにGoogle Apps Scriptのページに行くと
+見ることが出来て直接開くことも出来ます。</p>
+
+<p>ちょっと注意が必要な点として、
+Spreadsheetsなどから<strong>スクリプトエディタ</strong>
+で開いた際、
+Spreadsheets側のタブを閉じるとスクリプトエディタの方も閉じられてしまいます。
+編集中に保存してない状態だと内容が失われることもあるので思わず閉じてしまわないように。</p>
+
+<p>Spreadsheetsから作ったプロジェクトでも
+Google Apps Scriptのページから開いた際にはSpreadsheetsがもともと開かれてないので
+そういったことは起こりません。</p>
+
+<p>Spreadsheetsから作る利点としては、
+GASからSpreadsheetsにアクセスしようとする際にIDなどを使わずに直接
+アクセスできる点です。</p>
+
+<p>Spreadsheetsを読んだり入力したりする際には
+Spreadsheetsの
+<strong>ツール</strong><i class="fa fa-arrow-right"></i><strong>スクリプトエディタ</strong>から
+プロジェクトを開いて作った方が良いです。</p>
+
+<h2 id="sheetの取得">Sheetの取得</h2>
+
+<p>Spreadsheets自体は先に作ってあることが前提です。</p>
+
+<blockquote>
+  <p><a href="https://developers.google.com/apps-script/reference/spreadsheet">Spreadsheet Service Apps Script Google Developers</a></p>
+</blockquote>
+
+<p>ここにある関数を使っていきます。</p>
+
+<p>まずはSpreadsheetsの中にあるSheetを取得する関数に関して。
+もし存在しなければ作成します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">var</span> <span class="nx">TIME_ZONE</span> <span class="o">=</span> <span class="s1">&#39;Asia/Tokyo&#39;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">getSheet</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">,</span> <span class="nx">cols</span><span class="o">=</span><span class="p">[],</span> <span class="nx">formatA</span><span class="o">=</span><span class="s1">&#39;yyyy/MM/dd HH:mm:ss&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">ss</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActive</span><span class="p">();</span>
+</span><span class="line">  <span class="nx">ss</span><span class="p">.</span><span class="nx">setSpreadsheetTimeZone</span><span class="p">(</span><span class="nx">TIME_ZONE</span><span class="p">);</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">getSheetByName</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">sheet</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">insertSheet</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">);</span>
+</span><span class="line">    <span class="c1">// remain 1 additional row, to frozen first row</span>
+</span><span class="line">    <span class="c1">// (need additional rows to fix rows)</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">deleteRows</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getMaxRows</span><span class="p">()</span><span class="o">-</span><span class="mi">2</span><span class="p">);</span>
+</span><span class="line">    <span class="kd">var</span> <span class="nx">nCols</span> <span class="o">=</span> <span class="nx">cols</span> <span class="o">?</span> <span class="nx">cols</span><span class="p">.</span><span class="nx">length</span><span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">deleteColumns</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getMaxColumns</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span><span class="line">    <span class="nx">cols</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">      <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">i</span><span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="nx">setValue</span><span class="p">(</span><span class="nx">c</span><span class="p">);</span>
+</span><span class="line">    <span class="p">});</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;A:A&#39;</span><span class="p">).</span><span class="nx">setNumberFormat</span><span class="p">(</span><span class="nx">formatA</span><span class="p">);</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">setFrozenRows</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">return</span> <span class="nx">sheet</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じでできるのがこんな感じのもの。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20201008_sheet.jpg" alt="20201008_sheet.jpg" class="pic" /></p>
+
+<p>1行目に項目名が入って、さらに固定行にしてスクロール時にも見える様にします。
+Aの列が日時の列。</p>
+
+<p><code>getSheet</code>関数には<code>シートの名前</code>、<code>項目名(column名)の配列</code>、<code>日付のフォーマット</code>を渡します。</p>
+
+<p>まず、</p>
+
+<pre><code>var ss = SpreadsheetApp.getActive();
+</code></pre>
+
+<p>でSpreadsheetsを取ってきていますが、Spreadsheetsと紐付いたGASプロジェクトでは
+この様に簡単にSpreadsheetsを取得できます。</p>
+
+<p>もし、Spreadsheetsと紐付いてない場合や、他のSpreadsheetsを使いたい場合は、</p>
+
+<pre><code>var ss = SpreadsheetApp.openById('&lt;Id&gt;');
+</code></pre>
+
+<p>と、<code>SpreadsheetApp</code>の<code>OpenById</code>という関数を使います。
+ここで使うIdはSpreadsheetsのURLの</p>
+
+<pre><code>https://docs.google.com/spreadsheets/d/&lt;Id&gt;/edit#gid=0
+</code></pre>
+
+<p>の様な感じで<code>&lt;Id&gt;</code>の所にある文字列になります。</p>
+
+<p>取得後、すぐに<code>setSpreadsheetTimeZone</code>でSpreadsheetsのタイムゾーンを設定しています。
+<code>TIMEZONE</code>という変数をは他でも使う可能性があるので適当な場所で宣言しておきます。</p>
+
+<p>これはなぜか新規に作ったSpreadsheetsのタイムゾーンがParisになっていて、
+GASとやり取りしたりSpreadsheetsをほかのサービスから使うときに日時データがおかしくなってしまうため。
+このデフォルト値を変更する方法がいまだに分からず、
+作ったSpreadsheetsのタイムゾーンは全て初期値でParisになっています。。。</p>
+
+<p>その後で<code>getSheetByName</code>でシート名を指定してシートを取得します。
+無い場合には作成します。</p>
+
+<ul>
+  <li><code>insertSheet</code>で作成</li>
+  <li>作成時にCellがある程度確保されてしまうので<code>deleteRows</code>で最小限に行を削除(無理にやらなくても良い場合も多いかもしれない)
+    <ul>
+      <li>この後で1行目を固定するが、その際に固定行以外に行が無いとエラーが出るので2行残す。1行目から<code>シートの全行-2</code>行削除する、の意味。</li>
+    </ul>
+  </li>
+  <li>同様に<code>deleteColumns</code>で一旦1列目以外を全て削除。</li>
+  <li><code>setValue</code>で1行目に項目名を記入。</li>
+  <li><code>setNumberFormat</code>でA列の日時フォーマットを指定。</li>
+  <li><code>setFrozenRows</code>で1行目を固定。</li>
+</ul>
+
+<p>という感じ。</p>
+
+<h2 id="sheetへの入力">Sheetへの入力</h2>
+
+<p>実際にSheetへ入力する際には以下の様な関数を使います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span> <span class="nx">fillValues</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">,</span> <span class="nx">columns</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">formatA</span><span class="o">=</span><span class="s1">&#39;yyyy/MM/dd HH:mm:ss&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">getSheet</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">,</span> <span class="nx">columns</span><span class="p">,</span> <span class="nx">formatA</span><span class="p">);</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">datetimes</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;A:A&#39;</span><span class="p">).</span><span class="nx">getDisplayValues</span><span class="p">().</span><span class="nx">flat</span><span class="p">();</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">data_new</span> <span class="o">=</span> <span class="p">[];</span>
+</span><span class="line">  <span class="nx">data</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">d</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">if</span> <span class="p">(</span><span class="nx">datetimes</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="nx">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="k">return</span><span class="p">;</span>
+</span><span class="line">    <span class="nx">data_new</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">d</span><span class="p">);</span>
+</span><span class="line">  <span class="p">});</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="nx">data_new</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="nx">sheet</span><span class="p">.</span><span class="nx">getLastRow</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class="line">        <span class="nx">data_new</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">columns</span><span class="p">.</span><span class="nx">length</span><span class="p">).</span><span class="nx">setValues</span><span class="p">(</span><span class="nx">data_new</span><span class="p">);</span>
+</span><span class="line">    <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getLastRow</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getLastColumn</span><span class="p">()).</span><span class="nx">sort</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これに対して、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span> <span class="nx">run</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">sheetName</span> <span class="o">=</span> <span class="s1">&#39;MyInfo&#39;</span><span class="p">;</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;Weight (kg)&#39;</span><span class="p">,</span> <span class="s1">&#39;Fat Ratio (%)&#39;</span><span class="p">];</span>
+</span><span class="line">  <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;2020/10/06 07:31:12&#39;</span><span class="p">,</span> <span class="s1">&#39;123&#39;</span><span class="p">,</span> <span class="s1">&#39;50&#39;</span><span class="p">],</span>
+</span><span class="line">              <span class="p">[</span><span class="s1">&#39;2020/10/08 08:01:01&#39;</span><span class="p">,</span> <span class="s1">&#39;125&#39;</span><span class="p">,</span> <span class="s1">&#39;52&#39;</span><span class="p">],</span>
+</span><span class="line">              <span class="p">[</span><span class="s1">&#39;2020/10/08 07:41:01&#39;</span><span class="p">,</span> <span class="s1">&#39;125&#39;</span><span class="p">,</span> <span class="s1">&#39;55&#39;</span><span class="p">]];</span>
+</span><span class="line">  <span class="nx">fillValues</span><span class="p">(</span><span class="nx">sheetName</span><span class="p">,</span> <span class="nx">columns</span><span class="p">,</span> <span class="nx">data</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで使います。</p>
+
+<p>1列目は必ず日時になってる必要があります。
+(<code>formatA</code>次第では別のものでも構わないですが。)</p>
+
+<p>まず、<code>getSheet</code>を使ってSheetを取得して、
+さらにA列にある日時の情報を取ってきます。</p>
+
+<p>このとき、</p>
+
+<pre><code>var datetimes = sheet.getRange('A:A').getDisplayValues().flat();
+</code></pre>
+
+<p>で取ってきてますが、<code>getDisplayValues()</code>の代わりに<code>getValues()</code>という関数もあります。</p>
+
+<p><code>getValues()</code>を使うとSpreadsheets上に保存された情報をもとに、数字や日時の様な
+オブジェクトとして値を取得します。</p>
+
+<p>一方、<code>getDisplayValues()</code>は表示されているママの文字列。つまり、指定した表示形式に依存します。</p>
+
+<p>そして、<code>data</code>の中の各項目の1つ目の時刻情報を見て、取ってきた日時の中にないものだけ新しいデータとして入力していきます。
+ここでは日時を文字列としての比較をしています。</p>
+
+<p>ついでに最後の所で日時でソートしています。</p>
+
+<p>こんな風にすることで、時系列データを取得できるAPIから
+一定期間のデータを取得して、足りない分だけSpreadsheetsへ入力、ということができるようになります。</p>
+
+<h2 id="日時について">日時について</h2>
+
+<p>日時情報をとってくる場合、<code>getValues()</code>で取得するとDate型で保持されるので、
+それと比較しようと思うとDate型になるわけですが、
+これには標準時間基準で比べることになるため、
+SpreadsheetsとApps Scriptの両方のタイムゾーンが合ってないと
+うまくいかなくなります。</p>
+
+<p>この辺は、先に両方のタイムゾーンをきちんと合わせておく、
+SpreadsheetsやGAS自身のタイムゾーンを関数で取得して比較し合うように時差を正す、
+という方法も考えられますが、結構面倒です。</p>
+
+<blockquote>
+  <p><a href="https://developers.google.com/apps-script/reference/base/session#getScriptTimeZone()">getScriptTimeZone()</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet#getspreadsheettimezone">getSpreadsheetTimeZone()</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet#setspreadsheettimezonetimezone">setSpreadsheetTimeZone()</a></p>
+</blockquote>
+
+<p>Script自体のタイムゾーンを取ってくることは可能ですが、セットする方法は手動でメニューからやるしかない?</p>
+
+<p>手動で変更する場合、
+Spreadsheetsのタイムゾーンは<strong>ファイル</strong><i class="fa fa-arrow-right"></i><strong>Googleスプレッドシート設定</strong>から確認、変更が出来ます。</p>
+
+<p>GASのタイムゾーンは<strong>ファイル</strong><i class="fa fa-arrow-right"></i><strong>プロジェクトのプロパティ</strong>から確認、変更が出来ますが、なぜかこちらは初期状態で東京が選ばれてます。
+(Gooleの設定的に日本の設定になってるはずなのでこっちが正しいとは思いますが。)</p>
+
+<p>上の<code>getSheet()</code>でSpreadsheets側のタイムゾーンは決めていますが、
+GAS側は決めてないため、手動でやるのを忘れるとおかしくなってしまいます。</p>
+
+<p>タイムゾーンを知ることはできるので、それ使って補正しても良いですが色々面倒。</p>
+
+<p>そこで<code>getDisplayValues()</code>という、表示状態そのままで取ってくる方法を使っています。</p>
+
+<p>この際、見た目のママ、なので表示形式が重要になってきます。</p>
+
+<p>Spreadsheetsの日時のデフォルトの表示形式が</p>
+
+<pre><code>yyyy/MM/dd H:mm:ss'
+</code></pre>
+
+<p>つまり、時間のみ0埋めしないでほかはする、というものになっています(私の環境では)。</p>
+
+<p>これに合わせてGASでも日時を調整すれば良いのですが、
+見た目的に全部0埋めしてあったほうが見やすいのでSpreadsheetsでもそうして、
+GAS側で日時を文字列にする際にも同じ形式にして比較しています。</p>
+
+<p>逆に入力するときは文字列として日時を入力するため、
+GASのタイムゾーンは関係なく、
+Spreadsheetsに表示される日時はGASで入れる文字列そのものです。</p>
+
+<p>このときに入力する文字列が
+<code>yyyy/MM/dd HH:mm:ss</code>と時間を0埋めするものであっても、
+Spreadsheetsの表示形式が0埋めしないものなら0埋め無しで表示されますし、
+情報としてもDate型として保存されるので0埋めしてあったかどうかは関係なくなります。</p>
+
+<p>したがって表示形式を指定するのは結構重要な部分になっています。</p>
+
+<h2 id="gasjavascriptでのdate">GAS(JavaScript)でのDate</h2>
+
+<p>もともとAPIで取得するような日時情報はUNIX時間で渡されることが多いです。
+単純な数字で済むし、確実なので。</p>
+
+<p>UNIX時間はUTCでの1970年1月1日(UNIXエポック)からの秒数になります。</p>
+
+<p>一方、GAS、というかJavaScriptのDateオブジェクトは
+UNIXエポックからの<strong>ミリ秒</strong>を保存していて、
+<code>Date.now()</code>で取れる値やコンストラクタに渡す引数としてはミリ秒なUNIX時間にしなくてはいけません。</p>
+
+<blockquote>
+  <p><a href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date">Date - JavaScript MDN</a></p>
+</blockquote>
+
+<p>ちょっとその辺のことに注意して、
+以下の様な関数を使って取ってきたUNIX時間を文字列に変更してSpreadsheetsに入力しています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">var</span> <span class="nx">TIME_ZONE</span> <span class="o">=</span> <span class="s1">&#39;Asia/Tokyo&#39;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">getDate</span><span class="p">(</span><span class="nx">unixtime</span><span class="o">=</span><span class="kc">null</span><span class="p">,</span> <span class="nx">timezone</span><span class="o">=</span><span class="kc">null</span><span class="p">,</span> <span class="nx">format</span><span class="o">=</span><span class="s1">&#39;yyyy/MM/dd HH:mm:ss&#39;</span><span class="p">){</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">timezone</span><span class="p">)</span> <span class="nx">timezone</span> <span class="o">=</span> <span class="nx">TIME_ZONE</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">unixtime</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">return</span> <span class="nx">Utilities</span><span class="p">.</span><span class="nx">formatDate</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(),</span> <span class="nx">timezone</span><span class="p">,</span> <span class="nx">format</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">return</span> <span class="nx">Utilities</span><span class="p">.</span><span class="nx">formatDate</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">unixtime</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">),</span> <span class="nx">timezone</span><span class="p">,</span> <span class="nx">format</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h2 id="spreadsheetsでの日時情報">Spreadsheetsでの日時情報</h2>
+
+<p>Spreadsheetsでは日時の足し引きができたりします。
+また、表示形式で数字にすることも出来ます。</p>
+
+<p>このとき、どの様な数字になるかというと、
+1900年1月1日から何日目か、という数字になります。</p>
+
+<p>2020年10月8日なら44112。
+時刻が入っている場合はその24時間を1とした場合の割合、
+つまり12:00なら0.5、15:30とかなら0.65です。</p>
+
+<p>この様に日時は全て数字(シリアル値)で管理されてるので足し引きも簡単に行える、というわけ。</p>
+
+<p>これはもともとMicrosoftのExcelの仕様を引き継いでいるものです。</p>
+
+<blockquote>
+  <p><a href="https://docs.microsoft.com/ja-jp/office/troubleshoot/excel/1900-and-1904-date-system">1900と1904の日付システムの相違点  Microsoft Docs</a></p>
+</blockquote>
+
+<p>1900年がうるう年でないという特殊な年でそれを回避するために
+1904年からの計算もあるようです。</p>
+
+<p>1900年から、というのはこれを考えてた頃には1900年代分位あれば十分だし、
+2000年はまだ先だし、
+1900年から二桁だけの年を使うというのは昔のコンピューターの資源上何かと
+便利だったのでそうしてたんだと思います。</p>
+
+<p>ちなみに、Google Spreadsheetsだと1900年以前の日時もちゃんと認識して、
+数字に直すとマイナスの値になります。</p>
+
+<p>一方、Excel (バージョン2009)のものは<code>1800/01/01</code>とかを入力すると数字には変換できず、
+また、マイナスの数字も日付には変換出来ませんでした。
+(Spreadsheetsの方がこの辺賢いみたいです。もっと新しいのならもしかしたらできるようになってるかもしれませんが。)</p>
+
+<p>最初、GASから入力する際、UNIX時間のまま入れるのが何かと便利かな、とも思ったのですが、
+Spreadsheets側だとその数字は日時には直接変換できず、
+適当な計算を自分でしてあげなくてはいけないので面倒だな、というのと、
+単にシートを自分で見た際にわかりやすいほうが良かろう、ということで
+日時に直した状態で入力するようにしました。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"/>
+    <updated>2020-10-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/06/computer-iot-google</id>
+    <content type="html"><![CDATA[<p>Withingsの体重計や睡眠計測のSleepを使ってますが、
+Withingsではそういった情報をクラウドで保存していて、
+APIを使ってアクセスできる様になっています。</p>
+
+<p>自分で情報を扱える所に置くことができれば色々とできることもあるだろう、ということで
+Google Apps Script(GAS)を使ってGoogle Spreadsheetsに情報を保存できるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#withings" id="markdown-toc-withings">Withings</a></li>
+  <li><a href="#withings-api" id="markdown-toc-withings-api">Withings API</a></li>
+  <li><a href="#oauth-20認証の準備" id="markdown-toc-oauth-20認証の準備">OAuth 2.0認証の準備</a></li>
+  <li><a href="#ブラウザとターミナルを使って取得してみる" id="markdown-toc-ブラウザとターミナルを使って取得してみる">ブラウザとターミナルを使って取得してみる</a></li>
+  <li><a href="#google-apps-scriptで取得する" id="markdown-toc-google-apps-scriptで取得する">Google Apps Scriptで取得する</a></li>
+  <li><a href="#取得した値をgoogle-spreadsheetsに保存する" id="markdown-toc-取得した値をgoogle-spreadsheetsに保存する">取得した値をGoogle Spreadsheetsに保存する</a></li>
+  <li><a href="#pythonで取得" id="markdown-toc-pythonで取得">Pythonで取得</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="withings">Withings</h2>
+
+<p>Withingsは体重計や睡眠計、スマートウォッチなどの健康関連製品を作っていますが、
+これらはIoT化されていてインターネットに繋いであれば情報はWithingsのサーバー上に保存されます。</p>
+
+<p>通常はそれをアプリを通して見れるようになっています。</p>
+
+<p>PCからでも<a href="https://healthmate.withings.com/20947576/timeline">マイページ</a>
+からグラフなどを見ることが出来ます。</p>
+
+<p>また、このマイページを通じてWithingsではない体重計で測った以前の体重などをアップロードしたり、
+今までWithingsの機器での計測をCSV形式でダウンロードすることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B4TRQ3G?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B4TRQ3G&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71FI0z8gdzL._SS90_CR0,0,120,90_.jpg" alt="Withings Body Cardio フランス生まれのスマート体重計 ブラック Wi-Fi/Bluetooth対応 心臓の健康チェック&amp;体組成計 【日本正規代理店品】 WBS04-BLACK-ALL-ASIA" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/03/08/life-shopping/">ワイヤレスリンク対応体重計: Withings Body Cardio (Wi-Fi)への移行</a></div></li></ul>
+
+<p>他のサービスだとデータが特定のアプリやウェブサイトからしか見れなかったり
+データがダウンロードできなかったりして、
+さらにはサービス自体が終わってしまうとどうしようもなくなったりする場合もあります。</p>
+
+<p>今の所体重計関連でデータに自由にアクセスできるクラウドサービスを持っているのは
+Withingsだけだと思います(少なくとも日本から利用できるものに関しては。)</p>
+
+<h2 id="withings-api">Withings API</h2>
+
+<p>そんなわけで、単にデータを取り出したいだけであればマイページから行えば良いのですが、
+せっかくのIoTなので色々と他と連携させたり自分でデータを直接弄ったりしてみたくなります。</p>
+
+<p>そんなときにはAPI。</p>
+
+<blockquote>
+  <p><a href="https://developer.withings.com/oauth2/">Withings API</a></p>
+</blockquote>
+
+<p>他のIoT製品もそうですが、色々やっていくと自分で直接データに触りたくなってくることもあるので、
+今後選ぶ際にはAPIの充実してるかどうか、というのも重要だな、と思う今日このごろ。</p>
+
+<p>WithingsのAPIは体重などの計測情報を取ってくることに加え、
+データを入力することも出来たりユーザー管理も出来たりと
+恐らくアプリやウェブで操作できる一通りのことができる様です。</p>
+
+<p>なので、
+意味があるかどうかは置いておいて、
+自作でWithingsのアプリ的なものを作ることも可能だと思います。</p>
+
+<h2 id="oauth-20認証の準備">OAuth 2.0認証の準備</h2>
+
+<p>Withings APIはOAuth 2.0の認証を使って利用できます。</p>
+
+<p>まず、Withingsのアカウントが必要なので
+作ってない場合にはアカウントを作成:</p>
+
+<blockquote>
+  <p><a href="https://account.withings.com/connectionuser/account_create">アカウントの作成</a></p>
+</blockquote>
+
+<p>その次に、Withings API partnerとして登録する必要があります。</p>
+
+<blockquote>
+  <p><a href="https://account.withings.com/partner/add_oauth2">Withings API partner</a></p>
+</blockquote>
+
+<p>上記のページで、</p>
+
+<ul>
+  <li>Description: 適当な説明</li>
+  <li>メールアドレス: 適当なメールアドレス</li>
+  <li>会社: 個人利用になりますが必須なので適当にGitHubのアカウントでも</li>
+  <li>コールバックURI: きちんとしたものが決まってなければとりあえず<code>https://localhost</code>で</li>
+  <li>Environment: <code>dev</code>。他の値でも良いけど後で使うURLで<code>state</code>の値に設定するもの。</li>
+</ul>
+
+<p>な感じで登録すると</p>
+
+<ul>
+  <li>クライアントID</li>
+  <li>コンシューマーシークレット</li>
+</ul>
+
+<p>を取得することが出来ます。
+他に複製のしようがないので、現状一つのアカウントで作れるアプリは一つだけっぽいです
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h2 id="ブラウザとターミナルを使って取得してみる">ブラウザとターミナルを使って取得してみる</h2>
+
+<p>まずは簡単にブラウザとターミナルを使ってWithingsの情報を取得してみます。</p>
+
+<p>まず、認証を行い認証コードを取得します。</p>
+
+<pre><code>https://account.withings.com/oauth2_user/authorize2?response_type=code&amp;client_id=&lt;クライアントID&gt;&amp;scope=&lt;scope&gt;&amp;redirect_uri=&lt;コールバックURI&gt;&amp;state=&lt;Environment&gt;
+</code></pre>
+
+<p>上のURLで<code>&lt;クライアントID&gt;</code>を上で取得したもの、<code>&lt;コールバックURI&gt;</code>、<code>&lt;Enviroment&gt;</code>のところを自分で設定したものに変更します。</p>
+
+<p>また、<code>&lt;scope&gt;</code>に関しては<a href="https://developer.withings.com/oauth2/#section/Overview/Withings-API-list">Withings API list</a>から必要なものを。
+体重計とかの情報は<code>user.metrics</code>、SleepやWatchの情報は<code>user.activity</code>とかです。複数の場合は<code>,</code>で並べて<code>scope=user.metrics,user.activity</code>の様な感じに。</p>
+
+<pre><code>https://account.withings.com/oauth2_user/authorize2?response_type=code&amp;client_id=XXXXXXXXXXXXXXXXXXXXXXXXX&amp;scope=user.metrics,user.activity&amp;redirect_uri=https://localhost&amp;state=dev
+</code></pre>
+
+<p>みたいな感じ。</p>
+
+<p>これをブラウザで開くと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20201006_withingsapi.jpg" alt="20201006_withingsapi.jpg" class="pic" /></p>
+
+<p>こんなページに行くので許可してあげます。</p>
+
+<p>許可すると、上の場合だとコールバックURIをlocalhostにしてるので、ローカルホストでWebサーバーを立ててなければ接続拒否になりますが、その際、ブラウザのURLを見ると</p>
+
+<pre><code>https://localhost/?code=dcd53fb4a37a44aa24e16079935f28041067a5a8&amp;state=dev
+</code></pre>
+
+<p>みたいになっているはずです。この<code>code=</code>の後ろの文字列が認証コードになるのでこれをコピーします。</p>
+
+<p>次に、ターミナルから以下のcurlコマンドを実行します。</p>
+
+<pre><code>$ curl --data 'grant_type=authorization_code&amp;client_id=&lt;クライアントID&gt;&amp;client_secret=&lt;コンシューマーシークレット&gt;&amp;redirect_uri=&lt;コールバックURI&gt;&amp;code=&lt;認証コード&gt;' 'https://account.withings.com/oauth2/token'
+</code></pre>
+
+<p><code>&lt;クライアントID&gt;</code>、<code>&lt;コンシューマーシークレット&gt;</code>は先程取得したもの、<code>&lt;コールバックURI&gt;</code>は上で指定したもの、<code>&lt;認証コード&gt;</code>は今取得したもの、に書き換えます。</p>
+
+<p>ただし、この認証コードの有効期限はたったの30秒になっています。</p>
+
+<p>なので、先に上のコマンドをターミナル上で認証コードの部分以外書いておいて、
+ブラウザで取得後すぐに貼り付けて実行、みたいにする必要があります。</p>
+
+<p>時間が経ってしまうと、</p>
+
+<pre><code>{"errors":[{"message":"invalid_grant: Invalid Params"}]}
+</code></pre>
+
+<p>みたいなエラーがかえってきます。</p>
+
+<p>うまく行けば</p>
+
+<pre><code>{"access_token":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX","expires_in":10800,"token_type":"Bearer","scope":"user.metrics,user.activity","refresh_token":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX","userid":"XXXXXXXX"}
+</code></pre>
+
+<p>みたいな感じの内容が返ってきます。</p>
+
+<p>この<code>access_token</code>をメモしておきます。
+これを使って体重の計測値を取得したければ、</p>
+
+<pre><code>$ curl 'https://wbsapi.withings.net/measure?action=getmeas&amp;access_token=&lt;access_token&gt;&amp;meastype=1&amp;category=1&amp;startdate=1601478000&amp;enddate=1601823600'
+</code></pre>
+
+<p>などとします。</p>
+
+<p>ここでは
+<a href="https://developer.withings.com/oauth2/#tag/measure">MeasureのGetmeas</a>
+というAPIを使っています。</p>
+
+<p><code>&lt;access_token&gt;</code>のところを先程取得したものに変更すれば値が取得できるはずです。</p>
+
+<p><code>startdate</code>、<code>enddate</code>はUNIX時間表記ですが、上のものは2020/10/01 00:00:00から2020/10/05/ 00:00:00までになっています。</p>
+
+<p><code>meastype</code>で上のページにあるようにほしい値を取ってこれます。<code>1</code>は体重、<code>6</code>なら体脂肪率、みたいな。
+複数欲しい場合には、<code>meastype</code>の代わりに<code>meastypes=1,4,5</code>のように<code>meastypes</code>を使って必要なものを<code>,</code>でつないでわたします。</p>
+
+<p><code>category</code>は<code>1</code>なら実際の計測値、<code>2</code>ならユーザーが設定した目標値になります。
+多分体重くらいしかないはずです。</p>
+
+<p>コマンドがうまく行けば</p>
+
+<pre><code>{
+  "status": 0,
+  "body": {
+    "updatetime": XXXXXXXXXX,
+    "timezone": "Asia/Tokyo",
+    "measuregrps": [
+      {
+        "grpid": XXXXXXXXXX,
+        "attrib": 0,
+        "date": XXXXXXXXXX,
+        "created": XXXXXXXXXX,
+        "category": 1,
+        "deviceid": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "hash_deviceid": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "measures": [
+          {
+            "value": 12345,
+            "type": 1,
+            "unit": -3,
+            "algo": 3,
+            "fm": 133
+          }
+        ],
+        "comment": null
+      },
+      ...
+    ]
+  }
+}
+</code></pre>
+
+<p>みたいなJSON形式の情報が取得できます(実際には整形されてないので上のは<a href="https://stedolan.github.io/jq/">jq</a>コマンドで整形したもの。)</p>
+
+<p><code>body.measuregrps</code>という配列があって、その中に計測がありますが、
+重要なのはその中の<code>measures</code>で、
+体重を求めるには<code>value</code>と<code>unit</code>を使って、</p>
+
+<pre><code>value * 10^(unit)
+</code></pre>
+
+<p>の様な計算をします。</p>
+
+<p>つまり、上の場合は、<code>12345 * 10^(-3) = 12.345</code>が体重(kg)になります。</p>
+
+<p>他の体脂肪率とかもこんな感じで<code>value</code>と<code>unit</code>を組み合わせて値を算出します。</p>
+
+<p>ここの<code>type</code>はどの<code>meastype</code>か、を示しています(<code>1</code>なので体重)。</p>
+
+<p>それら以外に<code>algo</code>、<code>fm</code>、<code>fw</code>という値があったりなかったりしますが、これらは
+以前使われていたもので今はdeprecatedなものなので無視してください。</p>
+
+<h2 id="google-apps-scriptで取得する">Google Apps Scriptで取得する</h2>
+
+<p>上の様にコマンドラインベースでアプリを作ることも可能ですが、
+今回はGoogle Spreadsheetsに保存したいので、
+そうであればGoogle Apps Scriptでやるのが一番便利です。</p>
+
+<p>Google Apps Scriptには
+<a href="https://github.com/gsuitedevs/apps-script-oauth2">apps-script-oauth2</a>
+という
+OAuth 2.0用のライブラリが用意されているのでこれを使います。</p>
+
+<div class="github-widget" data-repo="gsuitedevs/apps-script-oauth2"></div>
+
+<p>適当な<a href="https://script.google.com/home">Google Apps Scriptのプロジェクトを作成</a>
+したら、<strong>リソース</strong><i class="fa fa-arrow-right"></i><strong>ライブラリ</strong>に行って、
+<code>Add a library</code>の欄に</p>
+
+<pre><code>1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF
+</code></pre>
+
+<p>を記入して追加。
+追加するとバージョンが未選択状態になってるので最新のものを選んで起きます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20201006_library.jpg" alt="20201006_library.jpg" class="pic" /></p>
+
+<p>ちなみにメニューの方は<strong>ライブラリ</strong>とカタカナになってますが、
+ポップアップの方は機械翻訳を直せてないのかライブラリが<strong>図書館</strong>と訳されています。。。</p>
+
+<p>これでOAuth 2.0の認証が色々と簡単にできます。</p>
+
+<p>上のレポジトリにも
+<a href="https://github.com/gsuitedevs/apps-script-oauth2/tree/master/samples">samples</a>
+がたくさんあって、GitHubやLINE、またGoogleのサービスに関する例もあります。</p>
+
+<p>残念ながらここにWithingsの例がないので、
+ここにある例に従ってsampleを作ってみました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas-example"></div>
+
+<p>ここにある<a href="https://github.com/rcmdnk/Withings-gas-example/blob/main/Withings.gs">Withings.gs</a>
+をコピペしてGoogle Apps Scriptのプロジェクト内のファイルに貼り付けて、
+<code>CLIENT_ID</code>と<code>CLIENT_SECRET</code>の値を設定してください。</p>
+
+<p>さらに、GASでWithings APIを使う際には
+<a href="https://account.withings.com/partner/add_oauth2">Withings API partner</a>
+のページで
+コールバックURIを</p>
+
+<pre><code>https://script.google.com/macros/d/&lt;SCRIPT_ID&gt;/usercallback
+</code></pre>
+
+<p>の様に設定し直す必要があります。
+この<code>SCRIPT_ID</code>はメニューの<strong>ファイル</strong><i class="fa fa-arrow-right"></i><strong>プロジェクトのプロパティ</strong>から取得することが出来ますし、プロジェクトを開いているURLにも<code>https://script.google.com/d/&lt;SCRIPT_ID&gt;/...</code>の様になっているのでそこからとっても良いです。</p>
+
+<p>コールバックURIの設定をして、CLIENT_ID/CLIENT_SECRETをスクリプトで設定したら、
+<code>run</code>関数を選んで実行します。</p>
+
+<p>そうすると一回目は認証のプロセスになります。</p>
+
+<p>認証が終わって、もう一度実行すると値が取得できるはずです。</p>
+
+<p>取得した値は<strong>表示</strong><i class="fa fa-arrow-right"></i><strong>ログ</strong>に出てきます。
+(ログが表示されるまでちょっと(数十秒から1,2分)かかります。)</p>
+
+<p>デフォルトでは<code>MEASTYPES</code>で1(体重)と6(体脂肪率)、<code>DAYS</code>で30を指定して過去一ヶ月分のデータを取得する様になっています。</p>
+
+<h2 id="取得した値をgoogle-spreadsheetsに保存する">取得した値をGoogle Spreadsheetsに保存する</h2>
+
+<p>上のライブラリを使って実際に運用しているものがこちら</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas"></div>
+
+<p>Sleepの情報も取ってくるようにしています。</p>
+
+<p>ただ、Sleepに関してはここで取得しているのは一晩の全体の概要だけです。
+実際には睡眠中、ノンレム睡眠になったりレム睡眠になった毎に期間を分けたを細かいデータがあるのですが、
+そこまでどう扱うか考えられてないので。</p>
+
+<p>で、Spreadsheetsに保存する際にも色々工夫があるのですが、長くなりそうなので別に書きたいと思います。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2020/10/08 </strong></p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/08/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201008_sheet_120_90.jpg" width="120" height="90" alt="20201008_sheet_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/08/computer-iot-google/">時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>このレポジトリのものは、
+<a href="https://script.google.com/home">Google Apps Script</a>
+のページから作った新規プロジェクトではなく、
+Google Spreadsheetsの<strong>ツール</strong><i class="fa fa-arrow-right"></i><strong>スクリプトエディタ</strong>から作成するプロジェクトを使います。
+それによってSpreadsheetsのIDとかを直接書く必要がなくなるので。</p>
+
+<p>このレポジトリのものも、Withings-gas-example同様にCLIENT_ID/SECRETを設定して、
+コールバックURIをこのプロジェクトのものに設定すれば簡単に使えると思います。</p>
+
+<p>このプロジェクトを作って<code>body</code>などの関数がちゃんと動くのを確認したら、<strong>編集</strong><i class="fa fa-arrow-right"></i><strong>現在のプロジェクトのトリガー</strong>
+へ行き<strong>トリガーを追加</strong>から新たな時間主導型のトリガーを追加します。</p>
+
+<ul>
+  <li>実行する関数を選択: <code>body</code> or <code>sleepSummary</code></li>
+  <li>デプロ時に実行: <code>Head</code>またはバージョンを作っててそれを指定したいならそれ</li>
+  <li>イベントソース: <code>時間主導型</code></li>
+  <li>時間ベースのトリガータイプ: <code>日付のタイマー</code></li>
+  <li>時刻を選択: <code>午前0時~1時</code></li>
+</ul>
+
+<p>の様な感じ。
+これで毎日Withings APIを確認してSpreadsheetsをアップデートします。</p>
+
+<p>取得してくる期間ですが、
+<a href="https://github.com/rcmdnk/Withings-gas/blob/main/params.gs">params.gs</a>
+の中でデフォルトで<code>body</code>も<code>sleepSummary</code>も10年間分取るようにしています
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>10年とすると基本的には最初から、ということを意図していて、
+全部を取得するようにしています。</p>
+
+<p>毎日アップデートするので、最初に一度全部同期したら、毎日の実行では1ヶ月だけ、とか
+短くしても良いんですが、
+体重測るのは1日多くて数回だし、10年分取ってきても大した量じゃないので
+1日1回するジョブであれば全部取ってきても問題ないだろう、ということでそのようにしています。</p>
+
+<h2 id="pythonで取得">Pythonで取得</h2>
+
+<p>Pythonを使ってAPIを使いたい場合には
+Withings公式がOAuth 2.0に関する使用例を作ってくれています。</p>
+
+<div class="github-widget" data-repo="withings-sas/api-oauth2-python"></div>
+
+<p>ユーザーが登録しているデバイス一覧を返すexampleがあるので、
+その辺を参考にして体重とかも取ってこれるかと。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[SwitchBotのスマートカーテンが売り出されている]]></title>
+    <link href="https://rcmdnk.com/blog/2020/09/28/life-iot/"/>
+    <updated>2020-09-28T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/09/28/life-iot</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08GM8XDVK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08GM8XDVK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/410-eN1X3AL._SS200_.jpg" alt="SwitchBot スイッチボット スマート家電リモコン スマートカーテン2個セット – Alexa グーグルホーム IFTTT イフト Siriに対応 (1 Hub Mini + 2 スマートカーテン)" /></a>
+</div>
+
+<p>一年くらい前にKickstarterで申し込んだSwitchBotのスマートカーテンは未だに届いてないんですが、
+そんな中日本のAmazonでも売り出されたようです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#switchbotのスマートカーテン" id="markdown-toc-switchbotのスマートカーテン">SwitchBotのスマートカーテン</a></li>
+  <li><a href="#その他のリモートカーテン" id="markdown-toc-その他のリモートカーテン">その他のリモートカーテン</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="switchbotのスマートカーテン">SwitchBotのスマートカーテン</h2>
+
+<p>SwitchBotはボタンを押す小型マシンで、
+それを作っているWonderlabsは
+色々とIoTマシンを売り出しています。</p>
+
+<p>SwitchBotも最初Kickstarterなどでクラウドファンディングしながら販売みたいなことをしてましたが、
+昨年スマートカーテンに関する募集がありました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B074C247VH?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B074C247VH&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61m07Zcf9PL._SS90_CR0,0,120,90_.jpg" alt="【全30種から選べる】 カーテン 4枚組(ドレープ2枚・レース2枚) 洗える 幅100cm×丈178cm 4枚組 ネイビー" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/10/18/life-iot/">SwitchBotの自動カーテン開閉マシン</a></div></li></ul>
+
+<p>カーテンの自動開閉もやりたいことの一つだったので申し込んでみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/10/24/life-iot/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20191024_switchbotcurtain_120_90.jpg" width="120" height="90" alt="20191024_switchbotcurtain_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/10/24/life-iot/">SwitchBotの自動カーテン開閉マシンを申し込んだ</a></div></li></ul>
+
+<p>これが昨年10月で1年位経つのですがまだ届いてません。。。
+ニュースレターとして、ほとんどのスロットはすでに送られたよ、というのも届いてるのですが、
+Kickstarterのページに行くとまだ何も連絡が来てない、という人も結構居るみたいです。</p>
+
+<p>恐らく、リモートカーテンの本体以外にアダプタも頼んでいて、それの用意が遅いのかな、という感じで、
+他の来てない、という人もそういった色々とオプションで頼んだ人かもしれません。</p>
+
+<p>で、そんな中、日本でも売り出した、という連絡が来て、確かにAmazonで売ってました。。。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08GM8XDVK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08GM8XDVK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/410-eN1X3AL._SS200_.jpg" alt="SwitchBot スイッチボット スマート家電リモコン スマートカーテン2個セット – Alexa グーグルホーム IFTTT イフト Siriに対応 (1 Hub Mini + 2 スマートカーテン)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08GM8XDVK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08GM8XDVK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SwitchBot スイッチボット スマート家電リモコン スマートカーテン2個セット – Alexa グーグルホーム IFTTT イフト Siriに対応 (1 Hub Mini + 2 スマートカーテン)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08GM8XDVK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08GM8XDVK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E3%82%B9%E3%82%A4%E3%83%83%E3%83%81%E3%83%9C%E3%83%83%E3%83%88+%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E5%AE%B6%E9%9B%BB%E3%83%AA%E3%83%A2%E3%82%B3%E3%83%B3+%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E3%82%AB%E3%83%BC%E3%83%86%E3%83%B3%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E3%82%B9%E3%82%A4%E3%83%83%E3%83%81%E3%83%9C%E3%83%83%E3%83%88+%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E5%AE%B6%E9%9B%BB%E3%83%AA%E3%83%A2%E3%82%B3%E3%83%B3+%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E3%82%AB%E3%83%BC%E3%83%86%E3%83%B3%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>多少安くは買えたというものの、Amazonでの販売より遅くなるのはちょっと。。。</p>
+
+<p>申し込んでいたアダプタとかは売ってないので、全部が全部売れるほど用意できてるわけではないと思うんですが、
+普通に売り出せるならまず本体だけでも先に送ってほしかった。。。</p>
+
+<p>Kickstarter以外にも色々と似た様なクラウドファンディンでも募集してたみたいですが、
+最初期に申し込んだ意味はあまりなかった感。</p>
+
+<p>コロナの影響で遅れてる、などとあって仕方ないかな、と思っては居たんですが、
+Amazonで売り出すよりあとになるのはちょっと残念。
+Amazonだと最短で翌日に届くとなってるし。。。</p>
+
+<h2 id="その他のリモートカーテン">その他のリモートカーテン</h2>
+
+<p>ということで未だ届いてないんですが、
+他に似たようなのがなかったのかというと
+そうではなくて日本でも売ってるものがありました。</p>
+
+<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B079MBX4BD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B079MBX4BD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51stMgf0tPL._SS200_.jpg" alt="めざましカーテン mornin’ plus(モーニンプラス) スマホ連動型カーテン自動開閉機 太陽の光でスッキリ目覚める 新機種 MN-C02 2018年度グッドデザイン賞受賞" /></a>
+</div>
+
+<p>このmornin plusはBluetoothでスマホと連携するのですが、
+以前はそれだけでAPIとかも公開されてなかったのでGoogle Homeとかから操作出来ませんでした。</p>
+
+<p>ただ、最近発売されたNature Remo 3が対応する様になったようです。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08BLSLWH4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08BLSLWH4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51i4v7G8wKL._SS200_.jpg" alt="Nature スマートリモコン Nature Remo 3 ネイチャーリモ Remo-1W3 Alexa/Google Home/IFTTT/Siri対応" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08BLSLWH4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08BLSLWH4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Nature スマートリモコン Nature Remo 3 ネイチャーリモ Remo-1W3 Alexa/Google Home/IFTTT/Siri対応</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08BLSLWH4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08BLSLWH4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FNature+Remo+3%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FNature+Remo+3%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>どちらも日本の企業なので手を組めた感じでしょうか。</p>
+
+<p>Nature Remo 3で操作できるのであればGoogle HomeやAmazon Alexaとかからも操作できます。</p>
+
+<p>それ以外だと直接レールを取り替える様なものが以前はありましたが、
+今見るとレール状を動く上の様なものが海外製でいくつか見受けられました。</p>
+
+<p>なのでSwitchBotも今更感があるし、値段も結構高い。</p>
+
+<p>今ならmornin plus + Nature Remo 3にするかな、と思ってしまう。。。</p>
+]]></content>
+  </entry>
+  
+</feed>
