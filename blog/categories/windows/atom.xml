@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Windows | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/windows/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-07-20T00:41:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkで簡単にアプリケーション上で有効に出来るようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2021/05/02/windows-autohotkey-vim/"/>
+    <updated>2021-05-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/05/02/windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>WindowsでAutoHotkeyを使ってVimライクな動作をどこでも実現する
+vim_ahkではこれまで有効にするアプリケーションを指定する方法を取っていましたが、
+簡単にすべてのアプリケーション上でも有効に出来るようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#これまでのアプリケーションの指定" id="markdown-toc-これまでのアプリケーションの指定">これまでのアプリケーションの指定</a></li>
+  <li><a href="#新しいオプション" id="markdown-toc-新しいオプション">新しいオプション</a></li>
+  <li><a href="#実装" id="markdown-toc-実装">実装</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyのスクリプトで、Windows上のどこでも
+<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で移動したり<i class="key">Y</i>/<i class="key">P</i>でコピペしたりするVimチックな動きを
+再現するためのスクリプトです。</p>
+
+<p>exeファイルを直接使えばAutoHotkeyがインストールされてない環境でも動きます。</p>
+
+<h2 id="これまでのアプリケーションの指定">これまでのアプリケーションの指定</h2>
+
+<p>これまでは設定メニューの<code>Application</code>欄に記入されたアプリケーションのみの上で
+有効になるようにしていました。</p>
+
+<p>これは、ターミナル上やVim上で有効になってしまうとそこでオリジナルのVimが使えなくなってしまったりするためです。</p>
+
+<p>後は基本的にはエディタ的な所での動作を想定してたので、Allow List的なもののが良いかな、と思ってそうしていました。</p>
+
+<h2 id="新しいオプション">新しいオプション</h2>
+
+<p>今回<code>Application list usage</code>というオプションを追加しました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210502_vimahksettings.png" alt="20210502_vimahksettings.png" class="pic" /></p>
+
+<p>スクリプト内では<code>VimAppList</code>という変数が該当します。</p>
+
+<p>これまでと同じ動作にするには<code>Allow List</code>を選びます(デフォルト設定)。</p>
+
+<p>これ以外に<code>All</code>、<code>Deny List</code>という選択肢があって、
+<code>All</code>を選択すれば<code>Application</code>のリストを無視してWindows内すべてのアプリケーション上で
+vim_ahkが有効になります。</p>
+
+<p>一方で<code>Deny List</code>を選択すれば<code>Application</code>のリストにあるもの以外で有効に出来ます。</p>
+
+<h2 id="実装">実装</h2>
+
+<p>AutoHotkeyのスクリプト内では通常</p>
+
+<pre><code>#If WinActive("ahk_group XXX")
+</code></pre>
+
+<p>みたいな感じで現在最前面にあるウィンドウが指定のウィンドウ(もしくはウィンドウグループ)かどうかを確かめ、該当する場合にキー設定を有効にする、みたなことをします。</p>
+
+<p>ここを</p>
+
+<pre><code>#If Vim.IsVimGroup()
+</code></pre>
+
+<p>みたいな感じで関数にして、</p>
+
+<pre><code>IsVimGroup(){
+  if(this.Conf["VimAppList"]["val"] == "Allow List"){
+    Return WinActive("ahk_group " . this.GroupName)
+  }else if(this.Conf["VimAppList"]["val"] == "Deny List"){
+    Return !WinActive("ahk_group " . this.GroupName)
+  }
+  Return True
+}
+</code></pre>
+
+<p>の様な感じで状況に応じて扱いを変えてやることでやっています。</p>
+]]></content>
+  </entry>
+  
+</feed>

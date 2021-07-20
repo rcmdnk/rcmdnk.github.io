@@ -1,0 +1,45 @@
+name: Octopress site check CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 2.x
+        architecture: x64
+    - name: linkchecker
+      run: |
+        pip install git+https://github.com/linkchecker/linkchecker.git@v9.4.0
+        linkchecker -o html --ignore-url=liberator://help/options --ignore-url=aaaaaaaaaaa --ignore-url=${my_site}/en/wrong --ignore-url=liberator://help/options https://rcmdnk.com  > linkchecker.html || :
+        git add linkchecker.html
+    - name: html5validator
+      run: |
+        sudo apt-get update && sudo apt-get install -y openjdk-8-jre
+        pip install html5validator
+        html5validator --root ./ 2>&1|grep -v linkchecker.html|grep -v htmlchecker.html|grep -v facebook_shares.html|grep -v googleffb17e830fb0d6d5.html|grep -v footnote|grep -v reference|grep -v csschecker.html|grep -v posts.html|grep -v posts_light.html > htmlchecker.html || :
+        git add htmlchecker.html
+    - name: commit
+      run: |
+        git config --local user.email "rcmdnk@gmail.com"
+        git config --local user.name "rcmdnk"
+        git commit -m "Added checkers [skip ci]"
+        git remote set-url --push origin git@github.com:rcmdnk/rcmdnk.github.io
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: linkchecker test
+      run: |
+        grep Result linkchecker.html |grep -v "ConnectionError"| grep -v "ConnectTimeout"|grep -v "Valid: 200 OK"|grep -v "Valid: filtered"|grep -v "503 Service Unavailable"|grep -v "unrecognized or has invalid syntax"

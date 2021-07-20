@@ -1,0 +1,1665 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Network | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/network/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-07-20T00:41:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[mitmproxyを使ってアプリの通信内容を確認する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/03/02/computer-windows-mac-network/"/>
+    <updated>2021-03-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/03/02/computer-windows-mac-network</id>
+    <content type="html"><![CDATA[<p>アプリなどが何ら化クラウドサーバーと交信して色々やってる部分を
+確認して別のところで操作出来るようにしてみるという話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mitmproxy" id="markdown-toc-mitmproxy">mitmproxy</a></li>
+  <li><a href="#windows-wslでの利用" id="markdown-toc-windows-wslでの利用">Windows WSLでの利用</a></li>
+  <li><a href="#macでの利用" id="markdown-toc-macでの利用">Macでの利用</a></li>
+  <li><a href="#iphoneからの接続" id="markdown-toc-iphoneからの接続">iPhoneからの接続</a></li>
+  <li><a href="#mitmproxyを使って通信内容を見てみる" id="markdown-toc-mitmproxyを使って通信内容を見てみる">mitmproxyを使って通信内容を見てみる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mitmproxy">mitmproxy</h2>
+
+<ul>
+  <li><a href="https://mitmproxy.org/">mitmproxy - an interactive HTTPS proxy</a></li>
+  <li><a href="https://docs.mitmproxy.org/stable/">mitmproxy doc: Introduction</a></li>
+</ul>
+
+<p>mitmproxyはプロキシサーバーをたてて、通信をそこを通すことで通信の内容を
+監視したり、パラメータを変更して通信を送ったりすることを実現してくれるツール。</p>
+
+<p>インストールは上記ページからインストーラーなりバイナリをダウンロードして使うか、
+Homebrewを使っているならMacでもWindows WSLでも</p>
+
+<pre><code>$ brew install mitmproxy
+</code></pre>
+
+<p>で入れられます。</p>
+
+<p>これで</p>
+
+<pre><code>$ mitmproxy
+</code></pre>
+
+<p>とすることでプロキシサーバーを立ち上げられます。デフォルトでは8080番ポートを使いますが、
+変更したい場合は</p>
+
+<pre><code>$ mitmproxy -p 10080
+</code></pre>
+
+<p>の様な感じでポートを指定します。</p>
+
+<h2 id="windows-wslでの利用">Windows WSLでの利用</h2>
+
+<p>WindowsのWSLから実行する場合は、WSLのポートとWindowsの外向けIPアドレスとを結びつける必要があります。</p>
+
+<p>詳しくは以下で。</p>
+
+<p><a href="https://rcmdnk.com/blog/2021/02/25/computer-windows-network/">/blog/2021/02/25/computer-windows-network/</a></p>
+
+<p>この方法の中で外部向けファイアウォールの設定も行うので外部から<code>WindowsのIPアドレス:8080</code>(ポートを変更している場合は8080を変更したもの)でアクセス出来るようになります。</p>
+
+<p>ファイアウォールに関する確認をしたい場合はWindows Defenderファイアウォールから。</p>
+
+<p><a href="https://rcmdnk.com/blog/2018/04/27/computer-windows-network/#%E3%83%9D%E3%83%BC%E3%83%88%E9%96%8B%E6%94%BE/">/blog/2018/04/27/computer-windows-network/#%E3%83%9D%E3%83%BC%E3%83%88%E9%96%8B%E6%94%BE/</a></p>
+
+<p>設定したらアクセスするためにIPアドレスを調べます。</p>
+
+<p><strong>設定</strong><i class="fa fa-arrow-right"></i><strong>ネットワークとインターネット</strong><i class="fa fa-arrow-right"></i><strong>状態</strong><i class="fa fa-arrow-right"></i><strong>プロパティ</strong></p>
+
+<p>で使っているネットワークのプロパティにいって、下の方にある<strong>IPv4アドレス</strong>の値を取得します。</p>
+
+<p>もしくはWSLの中からなら</p>
+
+<pre><code>$ ipconfig.exe
+</code></pre>
+
+<p>出でてくるネットワークのうち、
+イーサネットかWireless LANで使っているもののIPv4アドレスを取得。</p>
+
+<h2 id="macでの利用">Macでの利用</h2>
+
+<p><strong>システム環境設定</strong><i class="fa fa-arrow-right"></i><strong>セキュリティーとプライバシー</strong><i class="fa fa-arrow-right"></i><strong>ファイアウォール</strong>から必要なポートを開放したりしてください。</p>
+
+<p>IPアドレスは
+<strong>システム環境設定</strong><i class="fa fa-arrow-right"></i><strong>ネットワーク</strong>
+で使っているネットワークの<strong>詳細</strong>を表示させて、
+<strong>TCP/IP</strong>のタブにいって<strong>IPv4アドレス</strong>を取得。</p>
+
+<p>もしくはターミナルで</p>
+
+<pre><code>$ ifconfig
+...
+en0 flags=...
+   ...
+   inet 192.168.11.3 netmask ...
+</code></pre>
+
+<p>とかで使っているネットワークの<code>inet</code>の値を取得。</p>
+
+<h2 id="iphoneからの接続">iPhoneからの接続</h2>
+
+<p>まずは</p>
+
+<p>まず、MacなりWindows WSLなりで体制を整えて、<code>mitmproxy</code>を実行して待つ状態にしておきます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ mitmproxy
+</span><span class="line">Flows
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">[0/0]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じの表示になってるはずです。</p>
+
+<p>この状態でiPhoneから接続してみます。</p>
+
+<p>使っているWi-Fiの設定を開き、
+下の方に行くと<strong>プロキシを構成</strong>という項目があって<strong>オフ</strong>になっていると思います。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_wifi.jpg" alt="20210302_wifi.jpg" class="pic" /></p>
+
+<p>このここを開いて、<strong>手動</strong>を選択すると<strong>サーバ</strong>、<strong>ポート</strong>の入力が出来るようになるので、
+<strong>サーバ</strong>に上で取得したIPアドレスと、<strong>ポート</strong>に8080(別途指定してたらそれ)
+を入力して保存します。
+(<strong>認証</strong>の欄はオフのママ。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_proxy.jpg" alt="20210302_proxy.jpg" class="pic" /></p>
+
+<p>これで保存。</p>
+
+<p>この設定で一時的にiPhoneからネットワークに接続できない状態になっているので注意してください。</p>
+
+<p>ネットワークを有効にするために、プロキシサーバーに対する証明書をインストールする必要があります。</p>
+
+<p>上の設定後、Safariを開いて、<a href="http://mitm.it">http://mitm.it</a>を開きます。</p>
+
+<p>もしプロキシ設定がきちんとできてないと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_notpassing.jpg" alt="20210302_notpassing.jpg" class="pic" /></p>
+
+<pre><code>If you can see this, traffic is not passing through mitmproxy.
+Visit the Documentation
+</code></pre>
+
+<p>みたいなページが出てきます。(この状態だと普通にネットワーク接続は出来るがmitmproxyは通してない状態。)</p>
+
+<p>正しく設定されていると以下の様なページが出てきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_mitmit.jpg" alt="20210302_mitmit.jpg" class="pic" /></p>
+
+<p>もし、どちらのページも出てこず接続が出来ないような状況であれば
+mitmproxyを立ち上げているサーバーに接続できていない状態なので、
+サーバー側のファイアウォールやポートの設定などを再度調べてみてください。</p>
+
+<p>ここで、iOSの<strong>Get mitmproxy-ca-cert.pem</strong>をクリックすると、
+以下の様に<strong>このWebサイトは構成プロファイルをダウンロードしようとしています。
+許可しますか？</strong>
+という問いが出てくるので<strong>許可</strong>します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_download.jpg" alt="20210302_download.jpg" class="pic" /></p>
+
+<p>このとき、ブラウザがSafari以外のChromeとかだとこのダイアログが出ないので、
+必ずSafariで開く必要があります。</p>
+
+<p>ここでダウンロードが完了したら、<strong>設定</strong>を開きます。
+そうすると、Apple IDの情報の下に以下のような
+<strong>ファイルがダウンロードされました</strong>という項目が追加されています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_settings.jpg" alt="20210302_settings.jpg" class="pic" /></p>
+
+<p>そこをクリックするとダウンロードしたプロファイルのインストールページに行くのでインストールします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_install.jpg" alt="20210302_install.jpg" class="pic" /></p>
+
+<p>正しくインストールされたかどうかは<strong>設定</strong><i class="fa fa-arrow-right"></i><strong>一般</strong><i class="fa fa-arrow-right"></i><strong>プロファイル</strong>
+に行って<strong>mitmproxy</strong>があれば確認できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_profile.jpg" alt="20210302_profile.jpg" class="pic" /></p>
+
+<p>これで証明書はインストールされましたがまだ有効にはなってない状態です。</p>
+
+<p>有効にするために、<strong>設定</strong><i class="fa fa-arrow-right"></i><strong>情報</strong><i class="fa fa-arrow-right"></i><strong>証明書信頼設定</strong>(一番下)
+に行って、<strong>mitmproxy</strong>の欄があるはずなので、そのチェックを有効に変更します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210302_enable.jpg" alt="20210302_enable.jpg" class="pic" /></p>
+
+<p>このルート証明書を全面的に信頼する、の欄でチェックを有効に。</p>
+
+<p>これでmitmproxyを通した通信が出来るようになりました。</p>
+
+<h2 id="mitmproxyを使って通信内容を見てみる">mitmproxyを使って通信内容を見てみる</h2>
+
+<p>上の状態でブラウザでなにか見たり、なにか通信するアプリを使うと、
+mitmproxyを起動したターミナルに色々と通信内容が出てくると思います。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Flows
+</span><span class="line">&gt;&gt; GET https://lh3.googleusercontent.com/-DD1vxNl412w/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclA1zzNkcym…
+</span><span class="line">       ← 200 image/png 3.7k 167ms
+</span><span class="line">   GET https://lh4.googleusercontent.com/-LctrK_qMfHM/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucnl1ioWQwg-…
+</span><span class="line">       ← 200 image/png 2.46k 372ms
+</span><span class="line">   GET https://lh5.googleusercontent.com/-cFfiOvjaCq8/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclMRErLwKii…
+</span><span class="line">       ← 200 image/png 2.84k 172ms
+</span><span class="line">   POST https://update.googleapis.com/service/update2 HTTP/2.0
+</span><span class="line">        ← 200 text/xml 234b 145ms
+</span><span class="line">   POST https://oauthaccountmanager.googleapis.com/v1/issuetoken HTTP/2.0
+</span><span class="line">        ← 200 application/json 361b 139ms
+</span><span class="line">   POST https://oauthaccountmanager.googleapis.com/v1/issuetoken HTTP/2.0
+</span><span class="line">        ← 200 application/json 422b 147ms
+</span><span class="line">   POST https://oauthaccountmanager.googleapis.com/v1/issuetoken HTTP/2.0
+</span><span class="line">        ← 200 application/json 422b 137ms
+</span><span class="line">   POST https://oauthaccountmanager.googleapis.com/v1/issuetoken HTTP/2.0
+</span><span class="line">        ← 200 application/json 391b 162ms
+</span><span class="line">   GET https://clientservices.googleapis.com/chrome-variations/seed?osname=ios&amp;channel=stable&amp;…
+</span><span class="line">       ← 304 [no content] 243ms
+</span><span class="line">   POST https://oauthaccountmanager.googleapis.com/v1/issuetoken HTTP/2.0
+</span><span class="line">        ← 200 application/json 424b 105ms
+</span><span class="line">   POST https://accounts.google.com/ListAccounts?gpsia=1&amp;source=ChromiumBrowser&amp;json=standard …
+</span><span class="line">        ← 200 application/json 332b 95ms
+</span><span class="line">⇩  [1/166]                                                                                [*:8080]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>この画面での操作はVimライクなもので、</p>
+
+<ul>
+  <li><i class="key">j</i>: 上を選択</li>
+  <li><i class="key">k</i>: 下を選択</li>
+</ul>
+
+<p>また、選んだ状態で<i class="key">Enter</i>を押すと各通信の詳細を見ることが出来て、
+<code>Request</code>、<code>Response</code>、<code>Details</code>のタブを持ったページに飛びます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">2021-XX-XX XX:XX:XX POST https://clients4.google.com/chrome-sync/command/?client=Google+Chrome&amp;
+</span><span class="line">                         client_id=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX HTTP/2.0
+</span><span class="line">                         ← 200 application/vnd.google.octet-stream-compressible 475b 102ms
+</span><span class="line">             Request                         Response                          Detail
+</span><span class="line">content-length:    2396
+</span><span class="line">pragma:            no-cache
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>このページでもVimライクに</p>
+
+<ul>
+  <li><i class="key">h</i>: 左を選択</li>
+  <li><i class="key">l</i>: 右を選択</li>
+</ul>
+
+<p>このページからは<i class="key">q</i>を押すと元の一覧ページに戻ります。</p>
+
+<p>それぞれのページで<i class="key">?</i>を押すと
+ショートカットキーの一覧のヘルプを見ることも出来ます。</p>
+
+<p>よく使う便利な使い方としては、
+一覧ページで
+他に便利な使い方として、</p>
+
+<ul>
+  <li>一覧ページで<i class="key">Shift</i>-<i class="key">F</i>: 新しい通信があったとき一覧を常時更新する
+    <ul>
+      <li>デフォルトでは画面いっぱい表示されるとそこで停止する。<i class="key">j</i>とかで下に行くと新しいものが見れる。</li>
+    </ul>
+  </li>
+  <li>一覧ページで<i class="key">f</i>: 文字入力モードに入って、入力して<i class="key">Enter</i>を押すと入力した文字列でフィルターした通信のみを表示する。</li>
+  <li>一覧ページ、もしくは特定の通信を選んだページで<i class="key">:</i>でコマンドモードに入り、<code>: export.clip curl @focus</code>を実行。
+    <ul>
+      <li>選択中の通信を<code>curl</code>コマンドで再現するものをクリップボードに入れる。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>あたり。</p>
+
+<p>通信を見始めるといろいろな通信が出てきて溢れてしまいますが、
+必要な通信は通信先のドメイン名などに特定のものがあるはずなので、それでフィルター。</p>
+
+<p>興味がありそうな通信をそれぞれ見つつ、
+使いたい通信が合った場合、<code>: export.clip curl @focus</code>でコマンドを取得。</p>
+
+<p>コマンドラインにペーストして実際に通信が成功するか見てみる、といった具合。</p>
+
+<p>さらに下のページを使うと適当な言語で通信を再現することが出来るようになります。</p>
+
+<blockquote>
+  <p><a href="https://curl.trillworks.com/#python">Convert cURL command syntax to Python requests, Ansible URI, browser fetch, MATLAB, Node.js, R, PHP, Strest, Go, Dart, JSON, Elixir, and Rust code</a></p>
+</blockquote>
+
+<p>上のページの<code>curl command</code>部分に取得したcURLコマンドを入力して、
+欲しい言語を<strong>Language</strong>で選ぶとその言語で使える形で
+通信を再現してくれます。</p>
+
+<p>例えば、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">2021-XX-XX XX:XX:XX GET http://mitm.it/
+</span><span class="line">                        ← 200 OK text/html 16.72k 25ms
+</span><span class="line">             Request                         Response                          Detail
+</span><span class="line">Host:                       mitm.it
+</span><span class="line">Connection:                 keep-alive
+</span><span class="line">Proxy-Connection:           keep-alive
+</span><span class="line">Upgrade-Insecure-Requests:  1
+</span><span class="line">Accept:                     text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+</span><span class="line">User-Agent:                 Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X)
+</span><span class="line">                            AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77
+</span><span class="line">                            Mobile/15E148 Safari/604.1
+</span><span class="line">Referer:                    http://mitm.it/
+</span><span class="line">Accept-Language:            ja-jp
+</span><span class="line">Accept-Encoding:            gzip, deflate
+</span><span class="line">No request content                                                                        [m:auto]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな通信があった場合
+cURLコマンドを取得すると</p>
+
+<pre><code>curl -H 'Connection: keep-alive' -H 'Proxy-Connection: keep-alive' -H 'Upgrade-Insecure-Requests: 1' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1' -H 'Referer: http://mitm.it/' -H 'Accept-Language: ja-jp' --compressed http://mitm.it/
+</code></pre>
+
+<p>みたいなものになります。</p>
+
+<p>これを上のページで整形すると、例えばPythonなら</p>
+
+<figure class="code"><figcaption><span>mitm.py  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="kn">import</span> <span class="nn">requests</span>
+</span><span class="line">
+</span><span class="line"><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class="line">    <span class="s1">&#39;Connection&#39;</span><span class="p">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;Proxy-Connection&#39;</span><span class="p">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;Upgrade-Insecure-Requests&#39;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;Referer&#39;</span><span class="p">:</span> <span class="s1">&#39;http://mitm.it/&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="s1">&#39;Accept-Language&#39;</span><span class="p">:</span> <span class="s1">&#39;ja-jp&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;http://mitm.it/&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Node.js (fetch)なら</p>
+
+<figure class="code"><figcaption><span>mitm.js</span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">var</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;node-fetch&#39;</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line"><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;http://mitm.it/&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+</span><span class="line">        <span class="s1">&#39;Connection&#39;</span><span class="o">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;Proxy-Connection&#39;</span><span class="o">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;Upgrade-Insecure-Requests&#39;</span><span class="o">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;Accept&#39;</span><span class="o">:</span> <span class="s1">&#39;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;User-Agent&#39;</span><span class="o">:</span> <span class="s1">&#39;Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;Referer&#39;</span><span class="o">:</span> <span class="s1">&#39;http://mitm.it/&#39;</span><span class="p">,</span>
+</span><span class="line">        <span class="s1">&#39;Accept-Language&#39;</span><span class="o">:</span> <span class="s1">&#39;ja-jp&#39;</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Goなら</p>
+
+<figure class="code"><figcaption><span>mitm.go</span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+</pre></td><td class="code"><pre><code class="go"><span class="line"><span></span><span class="kn">package</span> <span class="nx">main</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="p">(</span>
+</span><span class="line">  <span class="s">&quot;fmt&quot;</span>
+</span><span class="line">  <span class="s">&quot;io/ioutil&quot;</span>
+</span><span class="line">  <span class="s">&quot;log&quot;</span>
+</span><span class="line">  <span class="s">&quot;net/http&quot;</span>
+</span><span class="line"><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">  <span class="nx">client</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Client</span><span class="p">{}</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">NewRequest</span><span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">,</span> <span class="s">&quot;http://mitm.it/&quot;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span><span class="line">  <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Connection&quot;</span><span class="p">,</span> <span class="s">&quot;keep-alive&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Proxy-Connection&quot;</span><span class="p">,</span> <span class="s">&quot;keep-alive&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Upgrade-Insecure-Requests&quot;</span><span class="p">,</span> <span class="s">&quot;1&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Accept&quot;</span><span class="p">,</span> <span class="s">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;User-Agent&quot;</span><span class="p">,</span> <span class="s">&quot;Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Referer&quot;</span><span class="p">,</span> <span class="s">&quot;http://mitm.it/&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;Accept-Language&quot;</span><span class="p">,</span> <span class="s">&quot;ja-jp&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="nx">resp</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">Do</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span>
+</span><span class="line">  <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="nx">bodyText</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ioutil</span><span class="p">.</span><span class="nx">ReadAll</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span><span class="line">  <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;%s\n&quot;</span><span class="p">,</span> <span class="nx">bodyText</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じ。</p>
+
+<p>これで簡単に好きな言語で通信を再現できるようになります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windows WSL2に外部から直接アクセスするための設定]]></title>
+    <link href="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/"/>
+    <updated>2021-03-01T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/03/01/computer-windows-network</id>
+    <content type="html"><![CDATA[<p>WindowsでLinuxなどを扱えるWSL2ですが、
+WSL1とは結構構成が変わっています。</p>
+
+<p>ネットワーク周りも変わっていて改めて設定を行ったのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#wsl1でのネットワーク設定" id="markdown-toc-wsl1でのネットワーク設定">WSL1でのネットワーク設定</a></li>
+  <li><a href="#wsl2でのネットワーク設定windows内" id="markdown-toc-wsl2でのネットワーク設定windows内">WSL2でのネットワーク設定(Windows内)</a></li>
+  <li><a href="#wsl2でのネットワーク設定windows外部から" id="markdown-toc-wsl2でのネットワーク設定windows外部から">WSL2でのネットワーク設定(Windows外部から)</a></li>
+  <li><a href="#windows起動時につなげる" id="markdown-toc-windows起動時につなげる">Windows起動時につなげる</a></li>
+  <li><a href="#wslの再起動" id="markdown-toc-wslの再起動">WSLの再起動</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="wsl1でのネットワーク設定">WSL1でのネットワーク設定</h2>
+
+<p>WSL1ではWindowsのネットワークをそのまま使う形で、
+例えばWSL内でsshサーバーを建てるとWindowsホストの22番ポートなどを
+直接使う形になっていました。</p>
+
+<p>Windows側でファイアウォールなどの設定を外部からアクセスできるようにすれば
+アクセスできる状態でした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/04/27/computer-windows-network/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180427_openssh_120_90.png" width="120" height="90" alt="20180427_openssh_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/04/27/computer-windows-network/">Windowsで公式ツールでSSHサーバーを立てる2つの方法</a></div></li></ul>
+
+<h2 id="wsl2でのネットワーク設定windows内">WSL2でのネットワーク設定(Windows内)</h2>
+
+<p>昨年リリースされたWSL2。
+より普通のLinuxぽい使い方が出来るようになりました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07F1PWZV6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07F1PWZV6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51prjN5W9KL._SS90_CR0,0,120,90_.jpg" alt="【WSLオフィシャル販売】Groundswell メンズ Tシャツ/Groundswell Mens Tee" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/06/02/computer-windows/">WSL2は場合によってはWSL1の10倍も速い!?</a></div></li></ul>
+
+<p>WSL2では立ち上がるUbuntuなどが仮想サーバーの様な
+振る舞いをするようになり、
+独自のIPアドレスを持っています。</p>
+
+<p>Windows内ではこのアドレスを知っていればアクセスできるわけですが、
+このIPアドレスが起動するたびに変わるため結構面倒。</p>
+
+<p>これを回避するために、WSL2へは<code>localhost</code>でアクセス出来る仕様があります。</p>
+
+<p>これはWSL2の開発途中で追加されたものですが、現在は
+デフォルトで有効になっています。</p>
+
+<p>WSL2ではWindowsの<strong>C:\Users&lt;ユーザー名&gt;</strong>に、
+<strong>.wslconfig</strong>という名前のファイルを作って設定を書いておくとWSLの起動時に有効になります。</p>
+
+<p>ここへ、</p>
+
+<figure class="code"><figcaption><span>.wslconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="text"><span class="line"><span></span>[wsl2]
+</span><span class="line">localhostForwarding=False
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておくとこれが無効になります。</p>
+
+<p>これを<code>True</code>にすると有効になる、という記事がありますが、
+これは当初この機能が導入された当時はデフォルト無効な状態で
+有効にする必要があったからで、今は以下にあるようにデフォルトがTrueで有効になっています。</p>
+
+<blockquote>
+  <p><a href="https://docs.microsoft.com/ja-jp/windows/wsl/wsl-config#configuration-options">Linux ディストリビューションの管理  Microsoft Docs</a></p>
+</blockquote>
+
+<p>この機能によってWSL2の中でhttpdサーバーをたてて、<code>http://localhost</code>とかに
+アクセスするとWSL2で動かしているhttpdサーバーにアクセス出来るようになっています。</p>
+
+<p>勿論、WSL2のIPアドレスを調べてそのアドレスを指定してもアクセスできます。</p>
+
+<pre><code>$ ip a
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: bond0: &lt;BROADCAST,MULTICAST,MASTER&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 2a:8f:ed:30:01:5b brd ff:ff:ff:ff:ff:ff
+3: dummy0: &lt;BROADCAST,NOARP&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether ee:62:ad:a6:3e:0a brd ff:ff:ff:ff:ff:ff
+4: sit0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/sit 0.0.0.0 brd 0.0.0.0
+5: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:15:5d:30:e9:41 brd ff:ff:ff:ff:ff:ff
+    inet 172.18.229.192/20 brd 172.18.239.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::215:5dff:fe30:e941/64 scope link
+       valid_lft forever preferred_lft forever
+</code></pre>
+
+<p>もしくは</p>
+
+<pre><code>$ ip r
+default via 172.18.224.1 dev eth0
+172.18.224.0/20 dev eth0 proto kernel scope link src 172.18.229.192
+</code></pre>
+
+<p>で<code>eth0</code>で見えている<code>172.18.229.192</code>がWSL2のアドレス。
+(172で始まるクラスBのプライベートアドレスが割り振られている。)</p>
+
+<p>これを使って<code>http://172.18.229.192</code>でアクセスできます。</p>
+
+<p>これであれば、<code>localhostForwarding=False</code>でもアクセスできます。</p>
+
+<p>ちなみに、WSL2の中でWindows自体のIPアドレスを知りたい場合は、
+Windows側のコマンドである
+<code>ipconfig.exe</code>(<code>/mnt/c/Windows/system32/ipconfig.exe</code>)
+が使えるのでこれを使うと</p>
+
+<pre><code>$ ipconfig.exe
+
+Windows IP 構成
+
+
+イーサネット アダプター vEthernet (WSL):
+
+   接続固有の DNS サフィックス . . . . .:
+   リンクローカル IPv6 アドレス. . . . .: fe80::b5af:1841:475a:8a27%50
+   IPv4 アドレス . . . . . . . . . . . .: 172.18.224.1
+   サブネット マスク . . . . . . . . . .: 255.255.240.0
+   デフォルト ゲートウェイ . . . . . . .:
+
+イーサネット アダプター イーサネット:
+   接続固有の DNS サフィックス . . . . .:
+   リンクローカル IPv6 アドレス. . . . .: fe80::2d90:1387:f61b:2f48%5
+   IPv4 アドレス . . . . . . . . . . . .: 192.168.11.2
+   サブネット マスク . . . . . . . . . .: 255.255.255.0
+   デフォルト ゲートウェイ . . . . . . .: 192.168.11.1
+
+Wireless LAN adapter ローカル エリア接続* 9:
+...
+</code></pre>
+
+<p>な感じでWindowsのIPアドレス(192.168.130.1)とは別にWSLがvEthernetとして認識されて仮想ネットワークが作られていることが分かります。</p>
+
+<h2 id="wsl2でのネットワーク設定windows外部から">WSL2でのネットワーク設定(Windows外部から)</h2>
+
+<p><code>localhostForwarding=True</code>の設定の時点で
+<code>localhost</code>でアクセスできる様になるのでWindowsのIPアドレスにも直結している様な感じもしますが
+実際にはそうはなっていません。</p>
+
+<p>Windows内からでも<code>http://192.168.11.2</code>としてもWSLで動かしているサーバーにはアクセス出来ない状態です。</p>
+
+<p>sshサーバーを立ててWSL内から<code>ssh 192.168.11.2</code>としてもアクセスできません。</p>
+
+<p>これはhttpdやsshで使っている80番や22番のポートが192.168.11.2とは結びついていないからです。</p>
+
+<p>この辺なんとなくアドレスとポートはまとめて1つで、
+アドレスの呼び方(<code>localhost:80</code>なのか<code>192.168.11.2:80</code>なのか)が違っても
+同じものと思っていましたが、
+実際にはこれらはすべて別のものとして管理されている、ということです。</p>
+
+<p><code>localhostForwarding=True</code>
+とすることで、WSL側の<code>localhost</code>とWindows側の<code>localhost</code>で
+ポートが統一される、という状態にはなっていますが、
+外部向けのWindowsのIPアドレスのポートには結びついてない状態です。</p>
+
+<p>これを結びつけるためにはWSLの外から作業をしてやる必要があります。</p>
+
+<p>具体的には以下のようなPowerShellのスクリプトを実行します。</p>
+
+<figure class="code"><figcaption><span>wsl_port.ps1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="ps1"><span class="line"><span></span><span class="k">if</span> <span class="p">(!(</span><span class="no">[Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]</span><span class="p">::</span><span class="n">GetCurrent</span><span class="p">()).</span><span class="n">IsInRole</span><span class="p">(</span><span class="s2">&quot;Administrators&quot;</span><span class="p">))</span> <span class="p">{</span> <span class="nb">Start-Process</span> <span class="n">powershell</span><span class="p">.</span><span class="n">exe</span> <span class="s2">&quot;-File </span><span class="se">`&quot;</span><span class="s2">$PSCommandPath</span><span class="se">`&quot;</span><span class="s2">&quot;</span> <span class="n">-Verb</span> <span class="n">RunAs</span><span class="p">;</span> <span class="n">exit</span> <span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">$ip</span> <span class="p">=</span> <span class="n">bash</span><span class="p">.</span><span class="n">exe</span> <span class="n">-c</span> <span class="s2">&quot;ip r |tail -n1|cut -d &#39; &#39; -f9&quot;</span>
+</span><span class="line"><span class="k">if</span><span class="p">(</span> <span class="p">!</span> <span class="nv">$ip</span> <span class="p">){</span>
+</span><span class="line">  <span class="n">echo</span> <span class="s2">&quot;The Script Exited, the ip address of WSL 2 cannot be found&quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="n">exit</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># All the ports you want to forward separated by comma</span>
+</span><span class="line"><span class="nv">$ports</span><span class="p">=@(</span><span class="n">22</span><span class="p">,</span><span class="n">3000</span><span class="p">,</span><span class="n">8080</span><span class="p">);</span>
+</span><span class="line"><span class="nv">$ports_a</span> <span class="p">=</span> <span class="nv">$ports</span> <span class="n">-join</span> <span class="s2">&quot;,&quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Remove Firewall Exception Rules</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;Remove-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; &quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Adding Exception Rules for inbound and outbound Rules</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;New-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; -Direction Outbound -LocalPort $ports_a -Action Allow -Protocol TCP&quot;</span><span class="p">;</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;New-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; -Direction Inbound -LocalPort $ports_a -Action Allow -Protocol TCP&quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="p">(</span> <span class="nv">$i</span> <span class="p">=</span> <span class="n">0</span><span class="p">;</span> <span class="nv">$i</span> <span class="o">-lt</span> <span class="nv">$ports</span><span class="p">.</span><span class="n">length</span><span class="p">;</span> <span class="nv">$i</span><span class="p">++</span> <span class="p">){</span>
+</span><span class="line">  <span class="nv">$port</span> <span class="p">=</span> <span class="nv">$ports</span><span class="p">[</span><span class="nv">$i</span><span class="p">];</span>
+</span><span class="line">  <span class="n">iex</span> <span class="s2">&quot;netsh interface portproxy add v4tov4 listenport=$port listenaddress=* connectport=$port connectaddress=$ip&quot;</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Show proxies</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;netsh interface portproxy show v4tov4&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>以下のものを参考にしてちょっとアップデートしたスクリプトです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/microsoft/WSL/issues/4150#issuecomment-504209723">[WSL 2] NIC Bridge mode 🖧 (Has TCP Workaround🔨) · Issue #4150 · microsoft/WSL</a></p>
+</blockquote>
+
+<p>WSL側のIPアドレスは変わるので固定では出来ず、毎回上の様に何らかの方法で取得する必要があります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2021/05/16 </strong></p>
+
+  <p>3行目のところで、
+Windowsが複数のネットワークインターフェースを持っている場合などは<code>tail -n1</code>だと別のものを選んでしまう可能性もあるので、
+状況によって</p>
+
+  <pre><code>bash -c "ip route |grep 'eth0 proto'|cut -d ' ' -f9"
+</code></pre>
+
+  <p>などインターフェースを指定するなどする必要があります。</p>
+
+  <p>(Thanks to jx @ comment)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><code>netsh interface portproxy add</code>というところでポートをつないでいます。
+古い接続がある場合に<code>delete</code>してから、という記述も見かけましたが、
+少なくとも手元の環境では<code>delete</code>しなくても新しい<code>add</code>をすれば上書きされていたので
+特に<code>delete</code>をする必要はありません。</p>
+
+<p>これを<strong>wsl_port.ps1</strong>とかで保存して実行すれば
+22, 3000, 8080番のポートをWSLとWindowsの外部向けIPアドレスとでつないでいます。
+(最初の行にあるのが管理者として実行するようにするおまじないなので、ファイルを右クリックで出てくるメニューで<strong>PowerShellで実行</strong>を実施すればOK。)</p>
+
+<p>また、同時にファイアウォールの設定もこれらのポートについて外すようにしています。</p>
+
+<p>これで、外部からも<code>http://192.168.11.2:8080</code>とかでWSLのサーバーにアクセスすることができます。
+(この例だとクラスCのプライベートアドレスなので同じプライベートネットワーク内にあるものからであれば、ですが。)</p>
+
+<p>Windowsの中からも自分の<code>http://192.168.11.2:8080</code>でWSLのサーバーにアクセス出来るようになります。</p>
+
+<h2 id="windows起動時につなげる">Windows起動時につなげる</h2>
+
+<p>外部からの接続を常時する必要がなければ必要な時に上のスクリプトを実行すれば良いわけですが、
+常時使いたい、という場合はタスクスケジューラーに仕込んで
+ログイン時に上のスクリプトを実行すると楽できます。</p>
+
+<p>Windowsの検索で<code>task</code>とかしてタスクスケジューラーを見つけて立ち上げます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210301_taskscheduler.jpg" alt="20210301_taskscheduler.jpg" class="pic" /></p>
+
+<p><strong>操作</strong><i class="fa fa-arrow-right"></i><strong>基本タスクの作成</strong>からタスクを作ります。</p>
+
+<ul>
+  <li>名前、説明: 適当に<code>wsl</code>など。</li>
+  <li>トリガー: ログオン時</li>
+  <li>操作: プログラムの開始
+    <ul>
+      <li>プログラム/スクリプト: <code>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</code>
+        <ul>
+          <li>PowerShellの実態へのパス。</li>
+        </ul>
+      </li>
+      <li>引数の追加: <code>-ExecutionPolicy RemoteSigned C:\Users\User\wsl_port.ps1</code>
+        <ul>
+          <li><code>-ExecutionPolicy RemoteSigned</code>を追加することで自作スクリプトの実行を許可。その後にスクリプトへのパスを追記。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>完了: <strong>[完了]をクリックしたときに、このタスクの[プロパティ]ダイアログを開く</strong>にチェックして<strong>完了</strong>を押す。</li>
+  <li>出てきたプロパティの<strong>全般</strong>タブにある<strong>最上位の特権で実行する</strong>にチェックして<strong>OK</strong>。</li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20210301_property.jpg" alt="20210301_property.jpg" class="pic" /></p>
+
+<p>これでログイン時にWSLの特定のポートをWindows側の外部IPアドレスにつなげることが出来ます。</p>
+
+<p>この方法だと起動中にWSLを再起動した場合にはIPアドレスが変更されるため、
+再びこのスクリプトを実行する必要があります。</p>
+
+<p>必要であれば、再起動コマンドを上のスクリプトに追加して
+再起動と同時にポートを繋げる作業をするスクリプトにしても良いかもしれません。</p>
+
+<h2 id="wslの再起動">WSLの再起動</h2>
+
+<p>WSLの再起動の話をしたのでそれについて少し。</p>
+
+<p>PowerShell(管理者権限)上で</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l -v
+  NAME                   STATE           VERSION
+* Ubuntu                 Running         2
+  docker-desktop         Stopped         2
+  docker-desktop-data    Stopped         2
+</code></pre>
+
+<p>みたいにすると今動いているディストリビューションが分かります。
+ここでは<code>Ubuntu</code>が動いています。</p>
+
+<p>ここで</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl --terminate Ubuntu
+</code></pre>
+
+<p>とすると、<code>Ubuntu</code>を停止しますが、即座に再起動を行います。</p>
+
+<p><code>--terminate</code>の代わりに<code>-t</code>でも可。</p>
+
+<p>これをスクリプトの先頭に書いて、少しスリープさせてポートを付けなおす様な
+ことをすれば良いとは思うのですが、
+使っているLinuxのディストリビューションが変わる可能性があり、そのたびに
+書き換えないといけません。</p>
+
+<p>現在は<code>Ubuntu</code>というバージョンなしの名前になっているので、Ubuntuを使い続けるのであれば
+そこま気にしなくても良いのですが、
+バージョン名のついている状態や、他のLinuxを使ったりする場合には使ってるものをちゃんと把握して
+やってもらいたいところ。</p>
+
+<p>そこで、<code>wsl -l -v</code>の出力を見て使っているものを把握することが考えられますが、
+この出力が現状、とくに日本語環境だとうまく使えない状態になっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/microsoft/WSL/issues/4607">wsl.exe outputting unicode to stdout · Issue #4607 · microsoft/WSL</a></p>
+</blockquote>
+
+<p>上のIssueにありますが、例えばPowerShell版grepの<code>Select-String</code>を使って</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l |Select-String Ubuntu
+</code></pre>
+
+<p>とかやっても何も出ません。</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l
+Linux 用 Windows サブシステム ディストリビューション:
+Ubuntu (既定)
+docker-desktop
+docker-desktop-data
+</code></pre>
+
+<p>とちゃんと出てそうなのに。</p>
+
+<p>試しに出力をパイプに渡して<code>more</code>とかで見てみると</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l |more
+L
+i
+n
+u
+x
+
+(u
+W
+i
+n
+d
+o
+w
+s
+
+ｵ0ﾖ0ｷ0ｹ0ﾆ0・
+ﾇ0｣0ｹ0ﾈ0・ﾓ0・・ｷ0・・:
+
+
+
+
+
+
+U
+b
+u
+n
+t
+u
+
+(
+稙喙)
+</code></pre>
+
+<p>こんな感じになっていて、日本語の文字化けもそうなんですが、
+そもそも各文字が1行ずつ出力されている状態なので、
+<code>Select-String</code>では捕まらない状態になっています。</p>
+
+<p>なので現状日本語環境で<code>wsl -l</code>などを使って使っているディストリビューションを確認して
+どうこうするのは出来ません。</p>
+
+<p>必要なら英語環境にしてしまう、とかですね。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[FreeBSDでのmosh-serverの問題が解決した模様]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/05/computer-network/"/>
+    <updated>2019-09-05T13:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/05/computer-network</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01BTW121I?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01BTW121I&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/616uf2JciHL._SS200_.jpg" alt="フードコンテナ 真空断熱 フードポット 0.3L ターコイズ mosh! (モッシュ!) DMFP300TU" /></a>
+</div>
+
+<p>7月末位からFreeBSDで起こっていたmosh-serverが使えないという問題ですが、
+アップデートがあったようで今は使える様になっています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mosh" id="markdown-toc-mosh">Mosh</a></li>
+  <li><a href="#今回起こった問題" id="markdown-toc-今回起こった問題">今回起こった問題</a></li>
+  <li><a href="#現状" id="markdown-toc-現状">現状</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mosh">Mosh</h2>
+
+<p>Mosh(the mobile shell)は
+sshの様にサーバーに接続し作業が出来、
+さらにネットワークが切れた状態になってもネットワークが復旧し次第
+再接続して同じ状態から作業が開始できる様になるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00I1M03OC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00I1M03OC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41P2fjXWPfL._SS90_CR0,0,120,90_.jpg" alt="MOSH (MOBILE SHELL): A New Era of Remote Access" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/30/computer-linux-mac/">Moshを使ってみる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01DC5TV22?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01DC5TV22&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61hpjIqMqbL._SS90_CR0,0,120,90_.jpg" alt="mosh!×STAR WARS (モッシュ×スターウォーズ) デザイン ボトル 0.35L パターン SWMB350PT" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/04/05/computer-network/">Moshでのアクセスの格闘(ルーター設定+Firewall(iptable)設定)</a></div></li></ul>
+
+<p>実際には、まずsshでサーバーに接続し、そこで<code>mosh-server</code>を立ち上げ、UDP経由で
+クライアント側から接続します。
+なのでsshの代わりになる、というわけではなく、sshによるアクセスが出来ることが前提になります。</p>
+
+<p>また、UDPポートをいくつか開放しておかないといけません。
+(デフォルトでは60000-61000を使います。)</p>
+
+<p>なので外部からのアクセスの制限が強い場合にはこの辺の準備をする必要がある場合があります。</p>
+
+<p>サーバー側では当然sshdのサービスは走っている必要はありますが、
+moshに関しては何も走らせておく必要はありません。
+<code>mosh-server</code>コマンドがインストールされてればOKです。
+ユーザーローカルのディレクトリにインストールしても使えるので
+サーバーの管理者権限がなくてもサーバーにインストールして使うことが出来ます。
+(ポート開放とかファイアウォールはやってもらわないと駄目ですが。)</p>
+
+<p>使い勝手としては</p>
+
+<pre><code>$ ssh user@example.com
+</code></pre>
+
+<p>とする代わりに</p>
+
+<pre><code>$ mosh user@example.com
+</code></pre>
+
+<p>とするだけなので完全にssh間隔で使えます。</p>
+
+<h2 id="今回起こった問題">今回起こった問題</h2>
+
+<p>問題については以下に書いてあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06W5HC2G3?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06W5HC2G3&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41ZG-A2RFoL._SS90_CR0,0,120,90_.jpg" alt="【セット買い】 mosh! (モッシュ! ) 水筒 真空断熱 スクリュー式 マグ ボトル 0.35L ブラウン + フードポット 0.3L ブラウン" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/24/compouter-network/">FreeBSDでmosh-serverが立ち上がらなくなった件</a></div></li></ul>
+
+<p>簡単に言うと<code>mosh-server</code>コマンドが立ち上がらなくなりmoshによる接続ができなくなった、という話。</p>
+
+<h2 id="現状">現状</h2>
+
+<p>自分でコンパイルとかしてなんとかしようと思って上手くいきませんでしたが、
+現在はアップデートによって最新版にすれば問題はおこならないようになっているみたいです。</p>
+
+<pre><code>$ uname -a
+FreeBSD xxx.xxx.xxx 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M: Fri Sep 28 14:10:47 JST 2018     root@xxx.xxx.xxx:/usr/obj/usr/src/sys/GENERIC  amd64
+$ pkg version -v|grep -e mosh -e protobuf
+mosh-1.3.2_11                      =   up-to-date with remote
+protobuf-3.9.1,1                   =   up-to-date with remote
+$ pkg info mosh
+mosh-1.3.2_11
+Name           : mosh
+Version        : 1.3.2_11
+Installed on   : Wed Aug 28 17:44:17 2019 JST
+Origin         : net/mosh
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : net
+Licenses       : GPLv3
+Maintainer     : zi@FreeBSD.org
+WWW            : https://mosh.org/
+Comment        : Mobile terminal that supports intermittent connectivity
+Shared Libs required:
+        libprotobuf.so.20
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 688KiB
+Description    :
+Remote terminal application that allows roaming, supports intermittent
+connectivity, and provides intelligent local echo and line editing of
+user keystrokes.
+
+
+Mosh is a replacement for SSH. It's more robust and responsive,
+especially over Wi-Fi, cellular, and long-distance links.
+
+
+WWW: https://mosh.org/
+$ pkg info protobuf
+protobuf-3.9.1,1
+Name           : protobuf
+Version        : 3.9.1,1
+Installed on   : Wed Aug 28 17:44:01 2019 JST
+Origin         : devel/protobuf
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : devel
+Licenses       : BSD3CLAUSE
+Maintainer     : sunpoet@FreeBSD.org
+WWW            : https://github.com/protocolbuffers/protobuf
+Comment        : Data interchange format library
+Shared Libs provided:
+        libprotobuf-lite.so.20
+        libprotoc.so.20
+        libprotobuf.so.20
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 22.4MiB
+Description    :
+Protocol Buffers are a way of encoding structured data in an efficient yet
+extensible format. Google uses Protocol Buffers for almost all of its internal
+RPC protocols and file formats.
+
+
+WWW: https://github.com/protocolbuffers/protobuf
+</code></pre>
+
+<p>見てみるとOS自体のアップデートはなくて、moshとprotobufの両方がアップデートされています。</p>
+
+<ul>
+  <li>OS: 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M</li>
+  <li>mosh: 1.3.2_9 <i class="fa fa-arrow-right"></i> 1.3.2_11</li>
+  <li>protobuf: 3.8.0.1 <i class="fa fa-arrow-right"></i> 3.9.1.1</li>
+</ul>
+
+<p>protobufのアップデートのおかげ?</p>
+
+<p>とりあえずこの環境では直ったみたいなので、もし同じようにFreeBSD環境でmosh-serverが上手く使えない場合は
+もし管理権限があれば
+<code>pkg upgrade</code>とかでパッケージを最新にすれば解決されるかと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[FreeBSDでmosh-serverが立ち上がらなくなった件]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/24/compouter-network/"/>
+    <updated>2019-08-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/24/compouter-network</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06W5HC2G3?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06W5HC2G3&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41ZG-A2RFoL._SS200_.jpg" alt="【セット買い】 mosh! (モッシュ! ) 水筒 真空断熱 スクリュー式 マグ ボトル 0.35L ブラウン + フードポット 0.3L ブラウン" /></a>
+</div>
+
+<p>普段、sshを使って作業する際、ノートPCだと切れてからいちいち再度つなぐのが面倒なので
+moshを使っています。</p>
+
+<p>あるサーバーに関してはFreeBSDのサーバーを踏み台としてmoshで接続して作業しているのですが、
+FreeBSD上でmoshが上手く動かなくなっている件について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mosh" id="markdown-toc-mosh">Mosh</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#なんとかしてみようとtry" id="markdown-toc-なんとかしてみようとtry">なんとかしてみようとtry</a></li>
+  <li><a href="#公式のアップデートコミット" id="markdown-toc-公式のアップデートコミット">公式のアップデートコミット</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mosh">Mosh</h2>
+
+<p>Mosh(the mobile shell)は
+sshの様にサーバーに接続し作業が出来、
+さらにネットワークが切れた状態になってもネットワークが復旧し次第
+再接続して同じ状態から作業が開始できる様になるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00I1M03OC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00I1M03OC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41P2fjXWPfL._SS90_CR0,0,120,90_.jpg" alt="MOSH (MOBILE SHELL): A New Era of Remote Access" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/30/computer-linux-mac/">Moshを使ってみる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01DC5TV22?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01DC5TV22&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61hpjIqMqbL._SS90_CR0,0,120,90_.jpg" alt="mosh!×STAR WARS (モッシュ×スターウォーズ) デザイン ボトル 0.35L パターン SWMB350PT" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/04/05/computer-network/">Moshでのアクセスの格闘(ルーター設定+Firewall(iptable)設定)</a></div></li></ul>
+
+<p>実際には、まずsshでサーバーに接続し、そこで<code>mosh-server</code>を立ち上げ、UDP経由で
+クライアント側から接続します。
+なのでsshの代わりになる、というわけではなく、sshによるアクセスが出来ることが前提になります。</p>
+
+<p>また、UDPポートをいくつか開放しておかないといけません。
+(デフォルトでは60000-61000を使います。)</p>
+
+<p>なので外部からのアクセスの制限が強い場合にはこの辺の準備をする必要がある場合があります。</p>
+
+<p>サーバー側では当然sshdのサービスは走っている必要はありますが、
+moshに関しては何も走らせておく必要はありません。
+<code>mosh-server</code>コマンドがインストールされてればOKです。
+ユーザーローカルのディレクトリにインストールしても使えるので
+サーバーの管理者権限がなくてもサーバーにインストールして使うことが出来ます。
+(ポート開放とかファイアウォールはやってもらわないと駄目ですが。)</p>
+
+<p>使い勝手としては</p>
+
+<pre><code>$ ssh user@example.com
+</code></pre>
+
+<p>とする代わりに</p>
+
+<pre><code>$ mosh user@example.com
+</code></pre>
+
+<p>とするだけなので完全にssh間隔で使えます。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>ある時、いつもどおりmoshで接続しようとしたら</p>
+
+<pre><code>[libprotobuf FATAL google/protobuf/generated_message_util.cc:809] CHECK failed: (scc-&gt;visit_status.load(std::memory_order_relaxed)) == (SCCInfoBase::kRunning):
+Abort trap (core dumped)
+</code></pre>
+
+<p>というエラーを出して接続できなくなっていました。</p>
+
+<p>普段、数日単位でつなげっぱなしにしてあるのでどのタイミングか分からなかったですが、7月中旬頃です。</p>
+
+<p>どうも<code>protobuf</code>関連でエラーが起こってる模様。</p>
+
+<p>このサーバーに普通にアクセスしてバージョンなどをチェックしてみると</p>
+
+<pre><code>$ uname -a
+FreeBSD xxx.xxx.xxx 11.2-STABLE FreeBSD 11.2-STABLE #33 r338991M: Fri Sep 28 14:10:47 JST 2018     root@xxx.xxx.xxx:/usr/obj/usr/src/sys/GENERIC  amd64
+$ pkg info mosh
+mosh-1.3.2_9
+Name           : mosh
+Version        : 1.3.2_9
+Installed on   : Fri Jul 12 12:25:34 2019 JST
+Origin         : net/mosh
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : net
+Licenses       : GPLv3
+Maintainer     : zi@FreeBSD.org
+WWW            : https://mosh.org/
+Comment        : Mobile terminal that supports intermittent connectivity
+Shared Libs required:
+        libprotobuf.so.19
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 688KiB
+Description    :
+Remote terminal application that allows roaming, supports intermittent
+connectivity, and provides intelligent local echo and line editing of
+user keystrokes.
+
+Mosh is a replacement for SSH. It's more robust and responsive,
+especially over Wi-Fi, cellular, and long-distance links.
+
+WWW: https://mosh.org/
+]$ pkg info protobuf
+protobuf-3.8.0,1
+Name           : protobuf
+Version        : 3.8.0,1
+Installed on   : Fri Jul 12 12:25:27 2019 JST
+Origin         : devel/protobuf
+Architecture   : FreeBSD:11:amd64
+Prefix         : /usr/local
+Categories     : devel
+Licenses       : BSD3CLAUSE
+Maintainer     : sunpoet@FreeBSD.org
+WWW            : https://github.com/protocolbuffers/protobuf
+Comment        : Data interchange format library
+Shared Libs provided:
+        libprotoc.so.19
+        libprotobuf.so.19
+        libprotobuf-lite.so.19
+Annotations    :
+        FreeBSD_version: 1102503
+        repo_type      : binary
+        repository     : poudriere
+Flat size      : 22.4MiB
+Description    :
+Protocol Buffers are a way of encoding structured data in an efficient yet
+extensible format. Google uses Protocol Buffers for almost all of its internal
+RPC protocols and file formats.
+
+WWW: https://github.com/protocolbuffers/protobuf
+</code></pre>
+
+<p>と言った感じで、両方とも7月12日に新しいバージョンがインストールされたようです。</p>
+
+<p>ちなみにこのサーバーは管理者じゃないので自分で勝手にどうこうはできません。</p>
+
+<p>ちょっと探してみるとFreeBSDのフォーラムにこれに関することがありました。</p>
+
+<blockquote>
+  <p><a href="https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=239038">239038 – net/mosh: Refuses connections due to protobuf error</a></p>
+</blockquote>
+
+<p>ちょうどconfirm this bugと言っているバージョンがこれと全く一緒でした。
+なので環境の問題というよりはmosh/protobufとFreeBSDの問題のようです。</p>
+
+<h2 id="なんとかしてみようとtry">なんとかしてみようとtry</h2>
+
+<p>moshが使えないと非常に面倒なのでなんとかしようとソースからコンパイルとかしてみました。
+(ユーザーディレクトリに入れてmoshで接続する時にそれを指定)</p>
+
+<p>まずはmosh 1.3.2の同じバージョンをコンパイルして実行してみましたが当然?同じエラーが出ました。
+1.3.0を入れてみても同じエラーでした。</p>
+
+<p>次にprotobufの方を入れてみよう、と。
+まず、より新しい3.9.0があったのでそれを試すと、</p>
+
+<pre><code>[user@server ~/tmp/protobuf-3.9.0]$ make
+make  all-recursive
+Making all in .
+Making all in src
+  CXX      google/protobuf/stubs/common.lo
+  google/protobuf/stubs/common.cc:48:2: error: #error "No suitable threading library available."
+   #error "No suitable threading library available."
+     ^~~~~
+     *** Error code 1
+
+
+Stop.
+make[2]: stopped in /home/user/tmp/protobuf-3.9.0/src
+*** Error code 1
+
+
+Stop.
+make[1]: stopped in /home/user/tmp/protobuf-3.9.0
+*** Error code 1
+
+
+Stop.
+make: stopped in /home/user/tmp/protobuf-3.9.0
+</code></pre>
+
+<p>なんかエラーが出る。3.8.0とかでも同じエラーが出ます。</p>
+
+<p><code>threading library</code>がない、と言っていますが、
+具体的には<code>pthread</code>が見つからないみたいです。</p>
+
+<p>ただ、サーバーに
+<strong>/usr/include/pthread.h</strong>や<strong>/usr/lib/libpthread.so</strong>などはあります。</p>
+
+<p>そもそもこんな状態なら<code>configure</code>した時点でエラーを吐いてほしいのですが、
+<code>configure</code>は成功し(ただし<code>checking whether pthreads work with -pthread... no</code>というログは確かに出ている)
+<code>make</code>で失敗します。</p>
+
+<p>configureファイルの中を見ていくとどうもライブラリを見つける部分に問題があるだけな感じがするので(ちゃんとは見てない)
+適当なところでチェックを通してしまうようにしてみます。
+(configure内の<code>ax_pthread_ok=no</code>と初期化してるところで<code>ax_pthread_ok=yes</code>にして見つからなくても見つかったようにするように)</p>
+
+<p>これでconfigureも通り、<code>make</code>も成功しました。
+(なので、やはり<code>pthread</code>はコンパイル時にちゃんと見えてるし使えている。。。)</p>
+
+<p>これを<strong>$HOME/usr/lib</strong>とかにインストールしてLD_LIBRARY_PATHとかの設定をして
+moshの方を再コンパイル。</p>
+
+<p>configureする時に</p>
+
+<pre><code>$ protobuf_CFLAGS="-L/usr/local/lib -lprotobuf " protobuf_LIBS="-L/usr/local/lib -lprotobuf " ./configure --prefix=$HOME/usr
+</code></pre>
+
+<p>これでmosh(1.3.2, 1.3.0ともに)を再コンパイルして試してみましたがやはり最初と同じエラーが出ます。</p>
+
+<p>protobuf-3.8.0でも同じ。protobuf-3.7.0も試してみましたがやはり同じ。</p>
+
+<p>protobufの更に古い2.6とかは
+最初に<code>autogen.sh</code>をする際に</p>
+
+<pre><code>[user@server ~/tmp/protobuf-2.6.0]$ ./autogen.sh
+Google Test not present.  Fetching gtest-1.5.0 from the web...
+tar: Error opening archive: Failed to open '/dev/sa0'
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1586  100  1586    0     0   1103      0  0:00:01  0:00:01 --:--:--  1104
+</code></pre>
+
+<p>とか出てしまい駄目。</p>
+
+<p>moshの古いa1.2.5だとconfigureで</p>
+
+<pre><code>configure: error: Package requirements (openssl) were not met:
+
+
+Package 'openssl', required by 'virtual:world', not found
+
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+
+Alternatively, you may set the environment variables OPENSSL_CFLAGS
+and OPENSSL_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+</code></pre>
+
+<p>みたいなのが出てしまいます。この辺はもう面倒になって真面目にチェックしてません。</p>
+
+<p>ここまで来て一旦諦め。</p>
+
+<p>そしてしばらくしてまた上のFreeBSDのフォーラムを見てみると結構アップデートがあって、</p>
+
+<blockquote>
+  <p>This only happens on FreeBSD 11.2 and 11.3, and the root cause is configure script of protobuf, but only exposed after protobuf 3.8 upgrade, in this protobuf commit:</p>
+</blockquote>
+
+<p>とあります。この環境は11.2なのでやはり起こる環境らしい。</p>
+
+<p>ただ、3.8にアップグレード後のみ、との話なので、
+上で3.7を入れて試したのになんで上手くいかないかは不明。
+これらを信じるとすると、コンパイル時にリンクが上手く行かずシステムのpthreadを使ってしまっている様な雰囲気。</p>
+
+<p>ただその後に書いてあるpatchは</p>
+
+<pre><code>--- configure~  2019-07-22 15:39:35.886057000 +0800
++++ configure   2019-07-22 15:40:41.618362000 +0800
+@@ -20122,7 +20122,7 @@
+        # ignore this macro, third-party headers might not.)
+
+        PTHREAD_CFLAGS="-pthread"
+-       PTHREAD_LIBS=
++       PTHREAD_LIBS="-pthread"
+
+        ax_pthread_ok=yes
+</code></pre>
+
+<p>こんなのがありますが、これは上にも書いた様にそもそもconfigureの段階でpthreadが見つからないとうまくいきません。</p>
+
+<p>多分何か上手くやってないところがあるだけだと思いますが、いまのところまだうまく行ってません。</p>
+
+<h2 id="公式のアップデートコミット">公式のアップデートコミット</h2>
+
+<p>これに関するアップデートが8月20日にFreeBSDのレポジトリにコミットされたようです。</p>
+
+<blockquote>
+  <p><a href="https://svnweb.freebsd.org/base?view=revision&amp;revision=351253">[base] Revision 351253</a></p>
+</blockquote>
+
+<p>これが実際に降りてくるのがいつになるかわかりませんが、FreeBSD側での対応で一応治るみたいです。</p>
+
+<p>ただ、それまでになんとかしたいのでまだ時々コンパイルを試しているのですが、まだ上手く行かず。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>moshは非常に便利なので普段から良くsshして作業している人は一度使ってみると
+手放せなくなると思います。
+(と言う割には皆あまり使ってくれない。。。)</p>
+
+<p>ノートPCで作業していて、ちょっと畳んで他に持っていって作業する際に
+即座に作業が開始できるのは一度やるとなくてはならないものになると思うのですが。</p>
+
+<p>今はちょっと上のサーバーで使えなくなっていて、ちょっと経由してでも他のところを踏み台にしたり
+色々してますが、早くなおってほしいところ。</p>
+
+<p>コンパイルのところもうちょっと真面目に見れば出来るはずのことではあるとは思いますが。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[多段sshでGitを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2018/11/16/computer-network-git/"/>
+    <updated>2018-11-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2018/11/16/computer-network-git</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873114403?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873114403&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51B2dc%2BsJGL._SS200_.jpg" alt="実用Git" /></a>
+</div>
+
+<p>外部から直接アクセスできないサーバーなどに
+踏み台サーバーを通して一発でsshを行う設定がありますが、
+Gitのsshを使ったアクセスについても同じようなことが出来ます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sshを使ったgitアクセス" id="markdown-toc-sshを使ったgitアクセス">sshを使ったGitアクセス</a></li>
+  <li><a href="#多段ssh" id="markdown-toc-多段ssh">多段ssh</a></li>
+  <li><a href="#ssh--wオプションは使えない" id="markdown-toc-ssh--wオプションは使えない"><code>ssh -W</code>オプションは使えない?</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sshを使ったgitアクセス">sshを使ったGitアクセス</h2>
+
+<p>Gitではコマンドラインからサーバーにいくつかの方法でアクセスすることが出来ますが、
+認証を要する接続では鍵認証を使ったsshの接続が一番良く使われています。</p>
+
+<p><strong>~/.ssh/git_rsa</strong>の様な鍵を用意しておいて、
+同時に作った<strong>git_rsa.pub</strong>をサーバー側に登録し
+以下の様な設定を<strong>~/.ssh/config</strong>に加えます。</p>
+
+<figure class="code"><figcaption><span>~/.ssh/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Host github.com
+</span><span class="line">  HostName github.com
+</span><span class="line">  User git
+</span><span class="line">  IdentityFile ~/.ssh/git_rsa
+</span></code></pre></td></tr></table></div></figure>
+
+<p>そうすると</p>
+
+<pre><code>$ ssh -T github.com
+Hi rcmdnk! You've successfully authenticated, but GitHub does not provide shell access.
+</code></pre>
+
+<p>の様にきちんと鍵で認証できることが確認でき、<code>git clone</code>などもsshプロトコルを通して
+行うことができる様になります。</p>
+
+<p>GitHubなどではユーザーはすべて<code>git</code>ですが、
+認証時に鍵を通じて各ユーザーを判断していることがわかります。</p>
+
+<h2 id="多段ssh">多段ssh</h2>
+
+<p>GitHubであれば通常どこからでもアクセスできますが、
+自前で立ち上げているGitサーバーで外部から直接アクセスできない様な所にある
+サーバーもあるかと思います。</p>
+
+<p>この様な場合に、外から<code>git clone</code>しようと思うと直接は出来ませんが、
+多段sshを使うことで操作できる様になります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873112877?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873112877&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41GJBSC36XL._SS90_CR0,0,120,90_.jpg" alt="実用SSH 第2版―セキュアシェル徹底活用ガイド" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/">多段ssh設定のまとめ</a></div></li></ul>
+
+<p>多段sshを行うためには、内部サーバーにアクセスでき、かつ外側にオープンになっている
+踏み台サーバーが必要になります。</p>
+
+<p>直接アクセスしようとすると</p>
+
+<pre><code>$ ssh -T git.example.com -p 7000
+ssh: connect to host git.exaple.com port 7000: Operation timed out
+ssh_exchange_identification: Connection closed by remote host
+</code></pre>
+
+<p>となって繋がれない。</p>
+
+<p>Gitのサーバーが<strong>git.exmaple.com</strong>、外からアクセスできる踏み台サーバーが<strong>login.exmaple.com</strong>だとすると
+以下の様な設定をすることで一発でアクセスできる様になります。</p>
+
+<figure class="code"><figcaption><span>~/.ssh/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Host login.example.com
+</span><span class="line">  HostName login.example.com
+</span><span class="line">  User user_at_login
+</span><span class="line">  IdentityFile ~/.ssh/login_rsa
+</span><span class="line">
+</span><span class="line">Host git.example.com
+</span><span class="line">  HostName git.example.com
+</span><span class="line">  User git
+</span><span class="line">  Port <span class="m">7000</span>
+</span><span class="line">  IdentityFile ~/.ssh/git_rsa
+</span><span class="line">  ProxyCommand ssh login.example.com -W %h:%p
+</span><span class="line">  <span class="c1">#ProxyCommand ssh login.example.com nc %h %p</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここで、<strong>login_rsa</strong>は<strong>login.example.com</strong>用の鍵、<strong>git_rsa</strong>は<strong>git.example.com</strong>用の鍵になります。
+この場合<strong>login.example.com</strong>には鍵を置いておく必要はありません。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2018/11/18 </strong></p>
+
+  <p>ここでは<code>ProxyCommand</code>として<code>-W</code>オプションを使って設定しています。
+このオプションはOpenSSHが5.4から有効ですが今はほとんど場合入っていると思います。</p>
+
+  <p>もし古いバージョンだったり、下に書くように<code>-W</code>が使えない状況の場合、
+コメントアウトしてある方の<code>nc</code>コマンドを使った設定が使えます。
+この場合、<code>nc</code>が踏み台用サーバーにインストールされている必要があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>これで</p>
+
+<pre><code>$ ssh -T git.example.com
+Welcome to GitLab, @rcmdnk!
+</code></pre>
+
+<p>みたいな感じでアクセスできる様になります(この表示はGitLabの場合)。</p>
+
+<p><code>git clone</code>/<code>git push</code>なども内部サーバーからやるのと同じ様にできる様になっているはずです。</p>
+
+<h2 id="ssh--wオプションは使えない"><code>ssh -W</code>オプションは使えない?</h2>
+
+<p>OpenSSHでは5.4から<code>-W</code>というオプションが出来て、これを使って</p>
+
+<pre><code>ProxyCommand ssh login.example.com -W %h:%p
+</code></pre>
+
+<p>と言った設定をすることで通常のsshでは多段接続できる様になっています。
+これにより踏み台サーバー側に<code>nc</code>がインストールされてなくても多段接続できます。</p>
+
+<p>ただ、この設定でGitサーバーにアクセスしようとしてみたところ</p>
+
+<pre><code>$ ssh -T git.exaple.com
+Stdio forwarding request failed: Session open refused by peer
+ssh_exchange_identification: Connection closed by remote host
+</code></pre>
+
+<p>の様な感じに失敗してしまいます。
+メッセージ的にはポート指定が間違ってる様な感じなのですが、
+ちょっと原因が分かりませんでした。
+もしかしたら試したサーバー特有のものかもしれませんが、とりあえず<code>nc</code>を使えばうまく行っているのでそれでOKとしています。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2018/11/18 </strong></p>
+
+  <p><code>-W</code>オプションが使えないのはGitサーバーだからではなく、
+踏み台サーバーの<strong>/etc/ssh/sshd_config</strong>の設定で</p>
+
+  <pre><code>AllowTcpForwarding=no
+</code></pre>
+
+  <p>が設定されていることが原因でした。
+実際、この踏み台サーバーを経由して通常の他のサーバーにログインしようと同じ現象が起きましたし、
+これを<code>yes</code>にしたらGitでもうまくいきました。</p>
+
+  <p>このサーバーではポートフォワードを許したくないのでこの設定を入れていたので、
+やはり<code>nc</code>を使った方法を行うことにします。</p>
+
+  <p>通常の多段sshを行う際にも踏み台サーバーでポートフォワーディングを許可していない場合には
+<code>-W</code>は使えいので<code>nc</code>を使った方法を行う必要があります。</p>
+
+  <p><code>-W</code>オプションも<code>nc</code>を使った方法も、<code>ProxyCommand</code>に書くと似たような設定になりますが、
+実際に行っていることはちょっと違って、</p>
+
+  <ul>
+    <li>ssh -W: 踏み台経由でポートフォワードを行い、そこにアクセスする</li>
+    <li>nc: 踏み台経由でncコマンドを実行して目的のサーバーにアクセスする</li>
+  </ul>
+
+  <p>という感じ。</p>
+
+  <p>最近のsshを使っていて踏み台サーバーがポートフォワードを許可しているのであれば
+<code>-W</code>を使ったほうが簡単です。</p>
+
+  <p>ポートフォワードが許可されてない場合、<code>nc</code>を使う必要がありますが、
+この場合には踏み台サーバー側に<code>nc</code>コマンドがインストールされている必要があります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Gitのサーバーに対しても多段sshを使ったアクセスが可能です。</p>
+
+<p>ただし、sshのオプションである<code>-W</code>をProxyCommandに設定するとうまくいかない場合があり、
+その場合は<code>nc</code>コマンドを指定することで通常のsshの様にアクセスすることができるようになります。</p>
+]]></content>
+  </entry>
+  
+</feed>

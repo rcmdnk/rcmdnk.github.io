@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-07-20T00:41:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでモードによってキャレットの太さを変える]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/20/computer-vim-autohotkey/"/>
+    <updated>2021-04-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/20/computer-vim-autohotkey</id>
+    <content type="html"><![CDATA[<p>Vimの機能で編集時にノーマルモードとインサートモードでキャレットの形を変更する機能があります。</p>
+
+<p>CLI版だとターミナルエミューレーターによって使えたり使えなかったりしますが、
+GUI版だとノーマルモードだと文字にかぶる様なインジケーターで
+インサートモードに入ると文字の間に入るようなのになったりアンダーバーになったり。</p>
+
+<p>それをvim_ahkでなんとかできないか、ということで入れてみたもの。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#キャレットサイズ" id="markdown-toc-キャレットサイズ">キャレットサイズ</a></li>
+  <li><a href="#windowsの設定" id="markdown-toc-windowsの設定">Windowsの設定</a></li>
+  <li><a href="#systemparameterinfoa" id="markdown-toc-systemparameterinfoa">SystemParameterInfoA</a></li>
+  <li><a href="#有効にする方法" id="markdown-toc-有効にする方法">有効にする方法</a></li>
+  <li><a href="#残っている問題" id="markdown-toc-残っている問題">残っている問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはWindows上でAutoHotkeyを使ってあらゆるアプリケーション上で
+Vimライクな操作を実現するためのスクリプトです。</p>
+
+<p>ノーマルモードやインサートモードといったモード変更をした上で
+<i class="key">J</i><i class="key">K</i>で上下に動いたりすることができます。</p>
+
+<h2 id="キャレットサイズ">キャレットサイズ</h2>
+
+<p>キャレットというかテキストカーソルというか。</p>
+
+<p>文字を書き込む時に書き込む位置に表示される四角形のインジケーター的なやつです。</p>
+
+<p>Vimではモードが変わった際に、それをわかりやすくするため、
+ノーマルモードでは位置の文字に被さるようなものになり、
+インサートモードでは文字の左側に細いものだったり、アンダーバーにしたりする機能があります。</p>
+
+<p>WindowsやMacのアプリ版だと恐らく最初から使えると思います。</p>
+
+<p>ターミナル上のVimだとターミナルエミュレーターとの兼ね合いもあるので
+その上で設定している人もいるかと。</p>
+
+<p>それをvim_ahkでも実現したいな、というもの。</p>
+
+<blockquote>
+</blockquote>
+
+<p>1年くらい前にIssueで出してくれたもので、確かに面白いな、と思ったもので
+どうにかできないかと調べてました。</p>
+
+<h2 id="windowsの設定">Windowsの設定</h2>
+
+<p>調べてると、
+Windows 10ではそもそもテキストカーソルを変更する設定が追加されてることに気づきました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_winsettings.jpg" alt="20210420_winsettings.jpg" class="pic" /></p>
+
+<p>この設定は上の設定画面で変更すると再起動とかしないでも即座に反映されます。</p>
+
+<p>なのでこいつの値をなんとか変更してやれば良いんじゃないかと。</p>
+
+<p>で、こいつを決めてるレジストリ値を見つけ出し、
+AutoHotkeyではレジストリを直接いじることも出来るので、
+モード変更時に変えてやればよいだろうということで、</p>
+
+<pre><code>RegWrite, REG_DWORD, HKEY_CURRENT_USER\Control Panel\Desktop, CaretWidth, 0xa
+</code></pre>
+
+<p>みたいなものを変更時にやってやれば良いんじゃないか、と。</p>
+
+<p><strong>HKEY_CURRENT_USER\Control Panel\Desktop</strong>の下にある<strong>CaretWidth</strong>というレジストリ値が、
+デフォルトでは0 (0x1)になっていて、これを10 (0xa)に変更する設定です。</p>
+
+<p>これをノーマルモードに入る時に実行して、インサートモードでは最後を0x1にしてあげれば
+できそう。</p>
+
+<p>ということでやってみたのですが、実際レジストリの値は変更されるものの、
+キャレットの太さは変わらず。</p>
+
+<p>太くした状態で再ログインとかすると太く反映されますが、また再ログインするまで
+変更は反映されません。</p>
+
+<p>Windowsの設定のところでは即座に変わっていて、これも実際レジストリ値の変更を行っているので、
+レジストリの値を反映した後に何らかそれを別の実際に使うところに反映するためのコマンドが必要な様です。</p>
+
+<h2 id="systemparameterinfoa">SystemParameterInfoA</h2>
+
+<p>直接レジストリの変更だけでは駄目だったようですが、
+<a href="https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfoa">SystemParametersInfoA function</a>
+というシステムワイドな設定変更をするものを見つけてくれた人がいました。</p>
+
+<p>これを使った設定変更も作ってくれた人がいて、
+これによってアプリ上でインサートモードからノーマルモードに移ると太いテキストカーソルに、
+インサートモードに移ると細いカーソルに戻す設定を実現しました。</p>
+
+<h2 id="有効にする方法">有効にする方法</h2>
+
+<p>vim_ahk v0.9.0以上のバージョンを入れると</p>
+
+<pre><code>Change to thick text caret when in normal mode
+</code></pre>
+
+<p>という設定項目がvim_ahkの設定の中に出てくるのでそれにチェックを入れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_vimahksettings.jpg" alt="20210420_vimahksettings.jpg" class="pic" /></p>
+
+<p>もしくはvim_ahkを他のスクリプトの中から呼んでいるならvim_ahkを読み込む前に
+<code>VimChangeCaretWidth</code>の値を<code>1</code>に設定してください。</p>
+
+<h2 id="残っている問題">残っている問題</h2>
+
+<p>とりあえずそれっぽいものが出来たのですが、まだちょっと実用化が難しい状態です。</p>
+
+<p>問題としては</p>
+
+<ul>
+  <li>特定のアプリ上でしか変更が反映されない
+    <ul>
+      <li>基本的にはWindowsネイティブなアプリのみが対象</li>
+      <li>Wordpad, Word, OneNoteなど</li>
+      <li>Evernoteなどに移ると常に元の太さのまま</li>
+    </ul>
+  </li>
+  <li>一部のアプリでは太くなった状態(ノーマルモード)で移るとキャレットは太い状態になっているが、インサートモードに移ってもカーソルが変わらない
+    <ul>
+      <li>Wordpadでノーマルモードに入り、そのままメモ帳に移るとキャレットが太い状態のまま維持される</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/65">Issues on VimChangeCaretWidth · Issue #65 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>実際にやってみた様子:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_vimahkcaret.gif" alt="20210420_vimahkcaret.gif" class="pic" /></p>
+
+<p>Wordpad上ではモードを切り替えるごとにキャレットの太さが変わっているのがわかります。</p>
+
+<p>ただ、太いママメモ帳に移るとモードを変えても太いままになります。</p>
+
+<p>一方で、Evernoteなどでは太い状態で移ってもEvernote上では元の細い状態が維持されます。</p>
+
+<p>このあたり、レジストリの変更とは少し状態が違うようで、
+まだうまく反映しきれてない部分があるみたいです。</p>
+
+<p>メモ帳などの上で設定は維持されるものの変更するための命令が効かないのもよくわからない点です。</p>
+
+<p>もし何かわかる方がいたら教えていただけるとありがたいです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Vieb: Electron製Vimライクな操作が出来るブラウザ]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/19/computer-vim/"/>
+    <updated>2021-04-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/19/computer-vim</id>
+    <content type="html"><![CDATA[<p>ViebというElectronで作られたVimライクな操作が出来るブラウザについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vieb" id="markdown-toc-vieb">Vieb</a></li>
+  <li><a href="#他のブラウザとの違い" id="markdown-toc-他のブラウザとの違い">他のブラウザとの違い</a></li>
+  <li><a href="#viebで出来ること" id="markdown-toc-viebで出来ること">Viebで出来ること</a></li>
+  <li><a href="#vimライクなブラウザ" id="markdown-toc-vimライクなブラウザ">Vimライクなブラウザ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vieb">Vieb</h2>
+
+<p><a href="https://vieb.dev/">Vieb - Vim bindings for the web by design</a></p>
+
+<div class="github-widget" data-repo="Jelmerro/Vieb"></div>
+
+<p>ViebはElectron製のブラウザで、操作がVim的なキーバインディングになっています。</p>
+
+<p>Windows、macOS、Linuxの環境で使うことができるマルチプラットフォームなアプリケーションです。</p>
+
+<p>ソースコードはGitHubで公開されていて、GPL3.0のライセンスが付けられているOSSです。</p>
+
+<h2 id="他のブラウザとの違い">他のブラウザとの違い</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20210419_vieb.png" alt="20210419_vieb.png" class="pic" /></p>
+
+<p>基本的な機能としては他の一般的なブラウザと同じだと思います。
+タブ機能なども備えています。
+アドレスバー的なものが上にあってそこにURLを書き込めばページに移動できます。</p>
+
+<p>一方で、一般的なブラウザを考えると、
+まずマウスで操作するためのボタンなどが上部に全くありません。</p>
+
+<p>操作は基本的にキーボードでVimライクに、ということで。</p>
+
+<p>なんとなくターミナル上のブラウザ<a href="https://ja.wikipedia.org/wiki/W3m">w3m</a>
+を思い出させる様な感じがしました。</p>
+
+<p>一応マウスでもスクロールやリンクをクリックしたりなど通常のブラウジング作業はできますし、
+右クリックで出てくるメニューで前のページに戻ったりタブを消したりすることができます。</p>
+
+<h2 id="viebで出来ること">Viebで出来ること</h2>
+
+<p>Viebで出来ることしては</p>
+
+<ul>
+  <li><i class="key">J</i>/<i class="key">K</i>で上下へスクロール</li>
+  <li>その他タブの作成、削除、ブラウザバックなどの基本操作をすべてキーボードで(かつVimライクに)</li>
+  <li>Windowの分割</li>
+  <li>Follow mode (Hit a Hint)</li>
+  <li>vimrcライクなviebrcでの設定管理</li>
+</ul>
+
+<p>などがあります。</p>
+
+<p>Windowの分割、に関しては拡張機能などで実現しているブラウザもありますが、
+Viebでは元から実装されていて、かつVimの様な間隔で分割を管理できる、移動が出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210419_split.png" alt="20210419_split.png" class="pic" /></p>
+
+<p>また、Vimライクな拡張機能でよくあるHit a Hint (<i class="key">F</i>などを押すとページ中のリンクに文字が割り当てられ、その文字キーを押すことでリンクに飛べるもの)的な機能が
+Follow modeとして実装されています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210419_followmode.png" alt="20210419_followmode.png" class="pic" /></p>
+
+<p>加えてこういった拡張機能で特に重要だと思うのが自分で自由にカスタマイズ出来る点で、
+Viebではvimrc的な文法で設定が出来る<strong>viebrc</strong>というファイルで設定が出来るようになっています。</p>
+
+<pre><code>set incsearch
+noremap &lt;C-h&gt; &lt;:history&gt;
+colorsehcheme default
+</code></pre>
+
+<p>の様に設定を<code>set</code>で指定したり<code>noremap</code>でキーバインディングを設定したりできます。</p>
+
+<p><strong>viebrc</strong>はOSによって</p>
+
+<ul>
+  <li>Linux: <strong>~/.config/Vieb/</strong></li>
+  <li>Windows: <em>*%APPDATA%\Vieb*</em></li>
+  <li>Mac: <strong>~/Library/Application Support/Vieb/</strong></li>
+</ul>
+
+<p>の様な場所がデフォルトの場所です。</p>
+
+<p>最初に<code>:mkviebrc full</code>とすると初期設定が上記の場所に<strong>viebrc</strong>として書き出されます。</p>
+
+<p>また、helpページからChromeやFirefoxのデフォルトキーバインディングに合わせる様な設定をダウンロードして使うこともできます。</p>
+
+<h2 id="vimライクなブラウザ">Vimライクなブラウザ</h2>
+
+<p>ブラウザでVimライクな操作感を実現してくれたものとして
+FirefoxのVimperatorというものがありました。</p>
+
+<p>ただ、この拡張機能はFirefoxのアップデートにより、拡張機能からいじれるブラウザの機能が制限されたため使えなくなりました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/6134432512?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=6134432512&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41pP9qkUQrL._SS90_CR0,0,120,90_.jpg" alt="Vimperator" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/15/computer-firefox/">Firefox Quantum 57リリース: Vimperatorは無事死亡</a></div></li></ul>
+
+<p>そこでcVimというChromeで使える拡張機能を使っていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07TN1HBTG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07TN1HBTG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xSDA7k3OL._SS90_CR0,0,120,90_.jpg" alt="HP 14インチ Chromebook HD タッチスクリーン ラップトップ PC (Intel Celeron N3350 最大2.4GHz、4GB RAM、32GB フラッシュメモリ、WiFi、HDカメラ、Bluetooth、最大10時間のバッテリー寿命、クロームOS、ブラック) (更新済み" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/06/11/computer-chrome-vim/">cVimがchromeウェブストアから消えた</a></div></li></ul>
+
+<p>が、この拡張機能はすでに開発者が開発を止めていて、現在は自分でソースコードからコンパイルして
+なんとか使える状態ですがこれもChromeのアップデートでいつ使えなくなるかわかりません。</p>
+
+<p>ブラウザのセキュリティ性を上げるために拡張機能で出来ることに対する制限が強くなっていくなかで
+こういったものはどんどん使えなくなっていくかもしれません。</p>
+
+<p>VimperatorやcVimの良いところはコマンドモードやサービモードがVimライクなところや、
+設定ファイルがvimrcの様な書き方ができ、色々とカスタマイズ出来るところでした。</p>
+
+<p>他にもキーバインドだけを変更出来る様な拡張機能はちょこちょこありますが、
+それであればAutoHotkeyやKarabiner-Elementで変更すれば十分であまり意味がありません。</p>
+
+<p>そういった中でブラウザとして元からそういった機能を全面的に押し出している
+Viebはかなり気になるブラウザ。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[tsd2gspread: 時系列データをGoogle Sheetsに書き込むPythonツール]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google/"/>
+    <updated>2021-04-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00KNRL068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00KNRL068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51EQHQnIMUL._SS200_.jpg" alt="現場ですぐ使える時系列データ分析～データサイエンティストのための基礎知識～" /></a>
+</div>
+
+<p>Raspberry Piから色々Google Sheetsに書き込むことが多くなってきたので、
+ちょっと機能をまとめたツール的なものをつくってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tsd2gspread" id="markdown-toc-tsd2gspread">tsd2gspread</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>    <ul>
+      <li><a href="#ツールとして使う" id="markdown-toc-ツールとして使う">ツールとして使う</a></li>
+      <li><a href="#親クラスとして使う" id="markdown-toc-親クラスとして使う">親クラスとして使う</a></li>
+    </ul>
+  </li>
+  <li><a href="#主なパラメーターなど" id="markdown-toc-主なパラメーターなど">主なパラメーターなど</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tsd2gspread">tsd2gspread</h2>
+
+<div class="github-widget" data-repo="rcmdnk/tsd2gspread"></div>
+
+<p>Pythonのツールで、pipで</p>
+
+<pre><code>$ pip install tsd2gspread
+</code></pre>
+
+<p>で入れられます。</p>
+
+<p>Google Sheetsに関しては、Pythonでは<a href="https://github.com/burnash/gspread">gspread</a>
+という便利なツールがあって、これを使うと簡単にGoogle SheetsのAPIを使えます。</p>
+
+<p>tsd2gspreadはこのgspreadを使って時系列データを書き込むのに特化したツールです。</p>
+
+<p>gspredをそのまま使っても良かったのですが、別のデータの書き込みに重複部分が増えてきたので
+まとめました。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<h3 id="ツールとして使う">ツールとして使う</h3>
+
+<p>まず、Google Sheets APIにアクセス出来るようサービスアカウントを作成してアカウント情報の入った
+jsonファイルを取得します。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">Authentication — gspread 3.7.0 documentation</a>.</p>
+</blockquote>
+
+<p>これを<strong>~/service_account.json</strong>などに置いておいて、
+以下の様なスクリプトを実行します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">tsd2gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">tsd2gspread</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make function to get data</span>
+</span><span class="line"><span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+</span><span class="line">    <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">    <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">    <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Set data getter</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">get_data</span> <span class="o">=</span> <span class="n">get_data</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで、
+<strong>MySheet</strong>という名前で以下の様な内容を持った
+ワークシート名が<strong>MyWork</strong>のSheetsが出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>datetime</th>
+      <th>foo</th>
+      <th>bar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2021-01-02 03:04:05</td>
+      <td>1</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>あとは<code>tg.write()</code>を実行するたびに、その実行時間と値が書き込まれていきます。</p>
+
+<p>実際に使う際には、この<code>get_data</code>関数を適時必要なものにして渡して、
+データを取得したいタイミングで<code>tg.write()</code>を実行すればOK。</p>
+
+<p>この例ではSheetsがない場合には作成して書き込みを行っていますが、
+その場合はサービスアカウントがオーナーとなってしまい、
+そのアカウントを作ったユーザー自体がアクセス権限を持ってない状態で作られるので、
+<code>share</code>で自分のアカウントを指定して自分がアクセスできるようにしてください。</p>
+
+<pre><code>sheet_name='MySheet',
+</code></pre>
+
+<p>の代わりに既存のSheetsのURLを<code>sheet_url</code>で指定したり
+Key(URLの中にあるランダムな文字列)を<code>sheet_key</code>で指定することも出来ます。</p>
+
+<p>この場合はSheets側で<strong>共有</strong>から、上で取得したサービスアカウントファイルの中にある
+<code>client_email</code>の値に対して編集権限で共有をしておく必要があります。</p>
+
+<p>指定の名前のSheetsがすでにあり、共有設定されていれば上のように名前で指定しても
+既存のファイルに書き込まれます。</p>
+
+<h3 id="親クラスとして使う">親クラスとして使う</h3>
+
+<p>Tsd2Gspreadというクラスがあるので、それを継承する形で使うことも出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">tsd2gspread</span> <span class="kn">import</span> <span class="n">Tsd2Gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Tsd2Gspread</span><span class="p">):</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">        <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">        <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>基本的に定義すべきな関数は<code>get_data</code>で、
+ここで書き込むべき変数を配列なりタプルなりで返す様にします。</p>
+
+<p>これでそのクラスのインスタンスを作って<code>write</code>してあげれば書き込めます。</p>
+
+<h2 id="主なパラメーターなど">主なパラメーターなど</h2>
+
+<p><code>tsd2gspread.get</code>なり<code>Tsd2gspread</code>に渡せるパラメーターについて。</p>
+
+<ul>
+  <li><code>sheet_name</code>, <code>sheet_url</code>, <code>sheet_key</code>: Sheetsを名前かURLかSheetsのKeyで指定できます。新たに作る場合には<code>sheet_name</code>のみが使えます。</li>
+  <li><code>columns</code>: 最初にSheetsを新たに作成する場合には<code>columns</code>に<code>,</code>で分けたカラム名を渡すことで
+カラム名を1行目に書き込むことが出来ます。</li>
+  <li><code>timedelta</code>: デフォルトではUTCの時間を書き込みます。これを日本時間に変更したい場合には<code>timedelta=9</code>などとしてUTCとの差を入れる必要があります。</li>
+</ul>
+
+<p>他にも色々とパラメーターはありますが、これらを<code>config_file</code>というパラメーターにファイルを渡すことでまとめて渡す事もできます。
+<code>config_file</code>の中身は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sheet_name=MySheet
+</span><span class="line">columns=foo,bar
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに<code>OPTION=VALUE</code>の様に書いておきます。</p>
+
+<p>その他詳細は<a href="https://github.com/rcmdnk/tsd2gspread">README</a>で。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シャープCOCORO AIRとGoogle Homeの連携]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/12/computer-iot-google/"/>
+    <updated>2021-04-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/12/computer-iot-google</id>
+    <content type="html"><![CDATA[<div class="app-img">
+  <a href="//itunes.apple.com/jp/app//Sharp?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple114/v4/48/5b/fc/485bfc18-a9b0-ca1a-54b6-dfca635275a1/AppIcon-0-0-1x_U007emarketing-0-0-0-3-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/200x200bb.jpg" alt="COCORO AIR" /></a>
+</div>
+
+<p>シャープの家電と連携するクラウドサービスCOCORO AIRが
+Google Homeと連携できる、ということを今更ながら気づいたのでちょっと連携してみた感想。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シャープの家電" id="markdown-toc-シャープの家電">シャープの家電</a></li>
+  <li><a href="#google-homeと連携" id="markdown-toc-google-homeと連携">Google Homeと連携</a></li>
+  <li><a href="#連携して使えること" id="markdown-toc-連携して使えること">連携して使えること</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シャープの家電">シャープの家電</h2>
+
+<p>ちょっと前にシャープの加湿空気清浄機を買いました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/25/life-iot-shopping/">加湿器調査: シャープの加湿空気清浄機KI-JS50購入(IoT)</a></div></li></ul>
+
+<p>この機器は
+<a href="https://cocoroplus.jp.sharp/air/">COCORO AIR</a>
+というシャープのクラウドサービスに対応していて、
+外出先からでも運転をON/OFFしたり運転状況を変えたりチェックしたり出来るものになっています。</p>
+
+<p>ただ、API的なものは存在せず、スマホ以外から自動で操作するようなことは出来ないな、と思っていました。</p>
+
+<p>そのあたりを何とかするため、以下の様なことを行ってスマホ以外からでも操作できるようにしてみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210303_switchon_120_90.jpg" width="120" height="90" alt="20210303_switchon_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/">シャープの加湿空気清浄機をアプリ外から操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/04/computer-iot-raspberrypi/">Raspberry Piからシャープの加湿空気清浄機を操作する</a></div></li></ul>
+
+<p>これでRaspberry Piから操作できるので、後はIFTTTなりなんなりを使って好きなように操作できるようになっています。</p>
+
+<h2 id="google-homeと連携">Google Homeと連携</h2>
+
+<p>上みたいなことをやりたい理由の1つとして、Google Homeとの連携がありました。</p>
+
+<p>が、今更気づいたこととして、COCORO AIRはGoogle Homeと直接連携することが可能でした。</p>
+
+<blockquote>
+  <p><a href="https://cocoroplus.jp.sharp/support/googleassistant/">Google アシスタント対応スピーカー  COCORO+（ココロプラス）  SHARP（シャープ）のスマート家電向けサービス</a></p>
+</blockquote>
+
+<ul>
+  <li>Google Home</li>
+  <li>Amazon Alexa</li>
+  <li>LINE Clova</li>
+</ul>
+
+<p>との連携が可能、とのこと。</p>
+
+<p>Google HomeのアプリでCOCORO AIRを探すとあって、連携が出来ます。</p>
+
+<p>実際には、今回Google Homeのアプリを立ち上げた際に、COCORO AIRとの連携をしませんか?
+的なポップアップが出てて連携した感じです。</p>
+
+<p>最近連携できるようになったのかな?とも思ったのですが、連携自体はCOCORO AIRが出来た頃?から?
+少なくとも2018年とかには出来ていた様です。</p>
+
+<h2 id="連携して使えること">連携して使えること</h2>
+
+<p>実際に連携してどのように使えるか使ってみました。</p>
+
+<p>今あるのは加湿空気清浄機KI-JS50ですが、
+COCORO AIRで登録してある名前(<code>JS50</code>としている)としてGoogle Homeに登録されていました。</p>
+
+<p>これに対して、</p>
+
+<ul>
+  <li>JS50を止めて</li>
+</ul>
+
+<p>というとすぐに止まりました。
+Raspberry Piを通して行うよりも速いです。</p>
+
+<p>これを実行すると、スマホに、<strong>外部サービスからの操作がありました</strong>という通知がCOCORO AIRからされるようにっっています。</p>
+
+<ul>
+  <li>JS50をつけて</li>
+</ul>
+
+<p>というと、一旦</p>
+
+<pre><code>JS50をスイッチオン、この操作を実行してもよろしいですか
+</code></pre>
+
+<p>と聞かれます。これに対して、<strong>はい</strong>と答えるとスイッチが点きました。</p>
+
+<p>ただ、この返答がなかなかちゃんと反応してくれなくて、2回聞かれることもよくあり、
+2回目に答えてもちゃんと反応してくれないことも。</p>
+
+<p>これ以外に、</p>
+
+<ul>
+  <li>JS50、おまかせにして</li>
+</ul>
+
+<p>とするとモードの変更もできました。</p>
+
+<p>ただ、他の、<strong>自動</strong>、や<strong>静音</strong>、<strong>強</strong>などは
+<code>ジドウ</code>、<code>セイオン</code>、<code>シズカニ</code>、<code>キョウ</code>、<code>ツヨク</code>、
+などしてもだめで、なぜか<code>スイッチオン、この操作を実行してもよろしいですか</code>
+が出たり出なかったり。</p>
+
+<p>加湿のON/OFFも出来るそうなんですが上手くいかず。</p>
+
+<p>スイッチオン、もなんか聞かれるし、手元にスマホがあるならアプリからやった方が
+ストレスなく変更できるな、というのが素直な感想でした。。。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Google HomeとCOCORO AIRが連携できることを見逃していましたが、
+COCORO AIRのトップページからはどう行ったらたどり着けるのかよくわからず、
+直接検索しないと分からないのでは、と(多分ちゃんと探せばあるのかなと思いますが、
+見つけられなかった。。。)</p>
+
+<p>使い勝手としては、止める分には割と良いんですが、
+つけるのに何故か一度聞かれる、という仕様。</p>
+
+<p>加えて(日本語が悪いのかもしれませんが)モード変更などがあまりうまく認識してくれません。</p>
+
+<p>Raspberry Piで直接スマホの信号を使うのに比べると、
+まず圧倒的に簡単、という点があり、反応速度も速い、という利点はありますが、
+消すこと以外にはちょっと使い勝手が悪い感じがしています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[LastPassからBitwarden乗り換え]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/05/computer-chrome/"/>
+    <updated>2021-04-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/05/computer-chrome</id>
+    <content type="html"><![CDATA[<div class="app-img">
+  <a href="//itunes.apple.com/jp/app/id1137397744?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple124/v4/6f/f2/23/6ff223eb-907f-6434-01d5-ae5f1af77244/AppIcons-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/200x200bb.jpg" alt="Bitwarden パスワードマネージャー" /></a>
+</div>
+
+<p>パスワードマネージャーとして長いことLastPassを使ってきましたが、
+無料ユーザーに関してデスクトップかモバイルかどちらかでしか使えない、という
+状態に変わったのでこれを機にちょっと調べてBitwardenというサービスに乗り換えました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#lastpass" id="markdown-toc-lastpass">LastPass</a></li>
+  <li><a href="#他のパスワードマネージャー" id="markdown-toc-他のパスワードマネージャー">他のパスワードマネージャー</a></li>
+  <li><a href="#bitwardenへの移行" id="markdown-toc-bitwardenへの移行">Bitwardenへの移行</a></li>
+  <li><a href="#bitwardenの使い勝手" id="markdown-toc-bitwardenの使い勝手">Bitwardenの使い勝手</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="lastpass">LastPass</h2>
+
+<p><a href="https://www.lastpass.com/">LastPass</a>
+は無料で使えるパスワードマネージャーとしては最も有名なサービスだと思います。</p>
+
+<p>長らく無料のパスワードマネージャーのトップにいた感じでしたが、
+2021年の3月16日から無料のユーザーはデスクトップ版かモバイル版のどちらかのみ
+を選んで使う、という形になりました。</p>
+
+<p>選択の変更は3回まで。</p>
+
+<p>両方で使いたい場合は$3/monthで使えます。</p>
+
+<p>そのくらい払ってもよいか、ということもあるのですが、せっかくなので他のものも
+調べてみることに。</p>
+
+<h2 id="他のパスワードマネージャー">他のパスワードマネージャー</h2>
+
+<p>LastPass以外で有名なものだと、
+<a href="https://1password.com/">1Password</a>があります。</p>
+
+<p>こちらは無料ユーザー枠はなく、$2.99/monthから使えます。</p>
+
+<p>なので値段的にはLastPassの有料版と同じくらい。</p>
+
+<p>LastPassも1Passwordもクラウドサービスでサービス側のサーバーにパスワードなどが保存されている状態です。</p>
+
+<p>そういった状態は嫌だ、という人は
+<a href="https://keepass.info/">KeePass</a>
+というソフトウェアを使ってる人もいるかと思います。</p>
+
+<p>KeePassはOSSで、保存する先は自分で管理する様になっています。
+これをクラウドストレージにすればマシン間で同期が出来る、というもの。
+クラウドストレージを使う場合はそれと比べてLastPassなどのクラウドサービスを使うのと
+どちらが安全か、というのは微妙なところですが、
+KeePassがOSSということでより透明性が高い、という点はあります。</p>
+
+<p>ただ、KeePassは完全に有志によりメンテされてる感じで、Android版とiPhone版で
+アプリの見た目が全く違ったり、結構取っ付きにくい点があります。</p>
+
+<p>そんな中、今回調べて初めて知ったのが
+<a href="https://bitwarden.com/open-source/">Bitwarden</a>。
+2016年に最初のリリースがあったようですが、
+その頃からほとんど調べたことが無かったので全く知りませんでしたが、
+今だと割と評判が高いようでした。</p>
+
+<p>BitwardenもOSSですが、クラウドサービスを提供していてLastPassの様な感じで使うことが出来ます。</p>
+
+<p>一方で自分でストレージを用意して使うことも出来ます。</p>
+
+<p>クラウドサービスも基本無料で使えて、
+$1/monthのプラン、
+$3.33/monthのプランなどがありますが、
+基本的な使い方をする限りは無料プランで十分なものになっています。</p>
+
+<blockquote>
+  <p><a href="https://bitwarden.com/pricing/">Pricing For You  Bitwarden</a></p>
+</blockquote>
+
+<p>これ以外だと<a href="https://www.dropbox.com/ja/individual/plans-comparison">Dropbox</a>
+が有料プランに入ると使えるパスワードマネージャーを提供していますが、
+残念ながらDropboxは使うのを辞めてました。</p>
+
+<p>そういったパスワードマネージャーを使わなくても、ChromeやFirefox自体が同期機能を持っていたり、
+iCloudでmacOS間で同期する、といったことも出来ます。</p>
+
+<p>そういったブラウザの機能なども年々かなり高機能でそれだけでも十分な感じも出てきていますが、
+ブラウザは変更する可能性もあり、
+細かなところでパスワードマネージャーでないと出来ないこともあり
+何かは使いたいと思っています。</p>
+
+<p>ということで、最終的にBitwardenへ移行することに。</p>
+
+<h2 id="bitwardenへの移行">Bitwardenへの移行</h2>
+
+<p>LastPassからBitwardenへの移行は思った以上に簡単でした。</p>
+
+<p>まず、
+<a href="https://bitwarden.com/open-source/">Bitwarden</a>
+のページに行ってアカウントを作ります。</p>
+
+<p>アカウントを作ったら二段階認証の設定をして、
+二段階認証用のリカバリーコードなども取得してちゃんと管理するようにしておいたほうが良いと思います。</p>
+
+<p>次に、LastPassのウェブページにログインして、
+<strong>Advanced Options</strong><i class="fa fa-arrow-right"></i><strong>Export</strong>を行うと
+CSV形式でブラウザにサイトとパスワード一覧が表示されます。
+(5000個くらいあった。)</p>
+
+<p>ページをダウンロードしようとするとHTML形式になるので、表示されたものを直接コピペしたほうが速いです。</p>
+
+<p>ここでコピーしておいて、Bitwardenのページで、
+<strong>ツール</strong><i class="fa fa-arrow-right"></i><strong>データをインポート</strong>
+へ行き、ファイル形式として<strong>LastPass(csv)</strong>を選び、
+<strong>またはインポートするファイルの中身をコピーして貼り付け</strong>の欄に
+コピーした内容をペーストしてインポートすればOK。</p>
+
+<p>パスワードのこれで移行は完了。</p>
+
+<p>後はブラウザなどでBitwardenの拡張機能を入れ、
+LastPassを削除します。</p>
+
+<p>モバイルでもBitwardenのアプリを入れてLastPassのアプリを削除。</p>
+
+<p>もうしばらくして全く問題がないようならLastPassの方をアカウントごと削除してしまおうと思っています。</p>
+
+<h2 id="bitwardenの使い勝手">Bitwardenの使い勝手</h2>
+
+<p>ちょっと使ってみた感じでは、Chrome上の拡張機能としてはLastPassと非常に似た
+使い勝手になっていて(おそらく真似てるんだと思いますが)
+長いことLastPassに慣れた身として全く違和感なく使えています。</p>
+
+<p>移行も簡単なので、LastPassの有料化でちょっと悩んでいる場合は
+Bitwardenに移ってみるのも良いかと思います。</p>
+]]></content>
+  </entry>
+  
+</feed>
