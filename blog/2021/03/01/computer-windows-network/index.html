@@ -1,0 +1,1530 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>Windows WSL2に外部から直接アクセスするための設定</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="Windows WSL2に外部から直接アクセスするための設定">
+  <meta name="description" content="WindowsでLinuxなどを扱えるWSL2ですが、
+WSL1とは結構構成が変わっています。 ネットワーク周りも変わっていて改めて設定を行ったのでそれについて。">
+  
+  <meta property="og:title" content="Windows WSL2に外部から直接アクセスするための設定">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="WindowsでLinuxなどを扱えるWSL2ですが、
+WSL1とは結構構成が変わっています。 ネットワーク周りも変わっていて改めて設定を行ったのでそれについて。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20210301_property.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,googleplus_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRN6WBX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2021-03-01T00:00:00+00:00'><span class='time'>01 Mar 2021</span></time></span>
+    <span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2021-05-16T00:00:00+00:00'><span class='date'>16 May 2021</span></time></span>
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/windows/"><span>Windows</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/network/"><span>Network</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2021/03/01/computer-windows-network/" itemprop="url">Windows WSL2に外部から直接アクセスするための設定</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2021/03/01/computer-windows-network/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/" data-count="10">10</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A&url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/" data-count="6">6</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&title=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Share on Google+"
+    target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCount"  data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&amp;t=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&title=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20210301_property_200_200.jpg" width="200" height="200" alt="20210301_property_200_200">
+      </div>
+      
+      <p>WindowsでLinuxなどを扱えるWSL2ですが、
+WSL1とは結構構成が変わっています。</p>
+
+<p>ネットワーク周りも変わっていて改めて設定を行ったのでそれについて。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#wsl1でのネットワーク設定" id="markdown-toc-wsl1でのネットワーク設定">WSL1でのネットワーク設定</a></li>
+  <li><a href="#wsl2でのネットワーク設定windows内" id="markdown-toc-wsl2でのネットワーク設定windows内">WSL2でのネットワーク設定(Windows内)</a></li>
+  <li><a href="#wsl2でのネットワーク設定windows外部から" id="markdown-toc-wsl2でのネットワーク設定windows外部から">WSL2でのネットワーク設定(Windows外部から)</a></li>
+  <li><a href="#windows起動時につなげる" id="markdown-toc-windows起動時につなげる">Windows起動時につなげる</a></li>
+  <li><a href="#wslの再起動" id="markdown-toc-wslの再起動">WSLの再起動</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="wsl1でのネットワーク設定">WSL1でのネットワーク設定</h2>
+
+<p>WSL1ではWindowsのネットワークをそのまま使う形で、
+例えばWSL内でsshサーバーを建てるとWindowsホストの22番ポートなどを
+直接使う形になっていました。</p>
+
+<p>Windows側でファイアウォールなどの設定を外部からアクセスできるようにすれば
+アクセスできる状態でした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2018/04/27/computer-windows-network/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180427_openssh_120_90.png" width="120" height="90" alt="20180427_openssh_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2018/04/27/computer-windows-network/">Windowsで公式ツールでSSHサーバーを立てる2つの方法</a></div></li></ul>
+
+<h2 id="wsl2でのネットワーク設定windows内">WSL2でのネットワーク設定(Windows内)</h2>
+
+<p>昨年リリースされたWSL2。
+より普通のLinuxぽい使い方が出来るようになりました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07F1PWZV6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07F1PWZV6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51prjN5W9KL._SS90_CR0,0,120,90_.jpg" alt="【WSLオフィシャル販売】Groundswell メンズ Tシャツ/Groundswell Mens Tee" /></a>
+</div></div><a class="click_box_link" href="/blog/2020/06/02/computer-windows/">WSL2は場合によってはWSL1の10倍も速い!?</a></div></li></ul>
+
+<p>WSL2では立ち上がるUbuntuなどが仮想サーバーの様な
+振る舞いをするようになり、
+独自のIPアドレスを持っています。</p>
+
+<p>Windows内ではこのアドレスを知っていればアクセスできるわけですが、
+このIPアドレスが起動するたびに変わるため結構面倒。</p>
+
+<p>これを回避するために、WSL2へは<code>localhost</code>でアクセス出来る仕様があります。</p>
+
+<p>これはWSL2の開発途中で追加されたものですが、現在は
+デフォルトで有効になっています。</p>
+
+<p>WSL2ではWindowsの
+<strong>C:\Users\&lt;ユーザー名&gt;\</strong>フォルダの中に
+<strong>.wslconfig</strong>
+という名前のファイルを作って設定を書いておくとWSLの起動時にこのファイルの中身を読みこんでその設定が有効になります。</p>
+
+<p>ここへ、</p>
+
+<figure class="code"><figcaption><span>.wslconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="text"><span class="line"><span></span>[wsl2]
+</span><span class="line">localhostForwarding=False
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておくとWSL2への<code>localhost</code>でアクセスが無効になります。</p>
+
+<p>これを<code>True</code>にすると有効になる、という記事がありますが、
+これは当初この機能が導入された当時はデフォルト無効な状態で
+有効にする必要があったからで、今は以下にあるようにデフォルトがTrueで有効になっています。</p>
+
+<blockquote>
+  <p><a href="https://docs.microsoft.com/ja-jp/windows/wsl/wsl-config#configuration-options">Linux ディストリビューションの管理  Microsoft Docs</a></p>
+</blockquote>
+
+<p>この機能によってWSL2の中でhttpdサーバーをたてて、<code>http://localhost</code>とかに
+アクセスするとWSL2で動かしているhttpdサーバーにアクセス出来るようになっています。</p>
+
+<p>勿論、WSL2のIPアドレスを調べてそのアドレスを指定してもアクセスできます。</p>
+
+<pre><code>$ ip a
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: bond0: &lt;BROADCAST,MULTICAST,MASTER&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 2a:8f:ed:30:01:5b brd ff:ff:ff:ff:ff:ff
+3: dummy0: &lt;BROADCAST,NOARP&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether ee:62:ad:a6:3e:0a brd ff:ff:ff:ff:ff:ff
+4: sit0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/sit 0.0.0.0 brd 0.0.0.0
+5: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:15:5d:30:e9:41 brd ff:ff:ff:ff:ff:ff
+    inet 172.18.229.192/20 brd 172.18.239.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::215:5dff:fe30:e941/64 scope link
+       valid_lft forever preferred_lft forever
+</code></pre>
+
+<p>もしくは</p>
+
+<pre><code>$ ip r
+default via 172.18.224.1 dev eth0
+172.18.224.0/20 dev eth0 proto kernel scope link src 172.18.229.192
+</code></pre>
+
+<p>で<code>eth0</code>で見えている<code>172.18.229.192</code>がWSL2のアドレス。
+(172で始まるクラスBのプライベートアドレスが割り振られている。)</p>
+
+<p>これを使って<code>http://172.18.229.192</code>でアクセスできます。</p>
+
+<p>これであれば、<code>localhostForwarding=False</code>でもアクセスできます。</p>
+
+<p>ちなみに、WSL2の中でWindows自体のIPアドレスを知りたい場合は、
+Windows側のコマンドである
+<code>ipconfig.exe</code>(<code>/mnt/c/Windows/system32/ipconfig.exe</code>)
+が使えるのでこれを使うと</p>
+
+<pre><code>$ ipconfig.exe
+
+Windows IP 構成
+
+
+イーサネット アダプター vEthernet (WSL):
+
+   接続固有の DNS サフィックス . . . . .:
+   リンクローカル IPv6 アドレス. . . . .: fe80::b5af:1841:475a:8a27%50
+   IPv4 アドレス . . . . . . . . . . . .: 172.18.224.1
+   サブネット マスク . . . . . . . . . .: 255.255.240.0
+   デフォルト ゲートウェイ . . . . . . .:
+
+イーサネット アダプター イーサネット:
+   接続固有の DNS サフィックス . . . . .:
+   リンクローカル IPv6 アドレス. . . . .: fe80::2d90:1387:f61b:2f48%5
+   IPv4 アドレス . . . . . . . . . . . .: 192.168.11.2
+   サブネット マスク . . . . . . . . . .: 255.255.255.0
+   デフォルト ゲートウェイ . . . . . . .: 192.168.11.1
+
+Wireless LAN adapter ローカル エリア接続* 9:
+...
+</code></pre>
+
+<p>な感じでWindowsのIPアドレス(192.168.130.1)とは別にWSLがvEthernetとして認識されて仮想ネットワークが作られていることが分かります。</p>
+
+<h2 id="wsl2でのネットワーク設定windows外部から">WSL2でのネットワーク設定(Windows外部から)</h2>
+
+<p><code>localhostForwarding=True</code>の設定の時点で
+<code>localhost</code>でアクセスできる様になるのでWindowsのIPアドレスにも直結している様な感じもしますが
+実際にはそうはなっていません。</p>
+
+<p>Windows内からでも<code>http://192.168.11.2</code>としてもWSLで動かしているサーバーにはアクセス出来ない状態です。</p>
+
+<p>sshサーバーを立ててWSL内から<code>ssh 192.168.11.2</code>としてもアクセスできません。</p>
+
+<p>これはhttpdやsshで使っている80番や22番のポートが192.168.11.2とは結びついていないからです。</p>
+
+<p>この辺なんとなくアドレスとポートはまとめて1つで、
+アドレスの呼び方(<code>localhost:80</code>なのか<code>192.168.11.2:80</code>なのか)が違っても
+同じものと思っていましたが、
+実際にはこれらはすべて別のものとして管理されている、ということです。</p>
+
+<p><code>localhostForwarding=True</code>
+とすることで、WSL側の<code>localhost</code>とWindows側の<code>localhost</code>で
+ポートが統一される、という状態にはなっていますが、
+外部向けのWindowsのIPアドレスのポートには結びついてない状態です。</p>
+
+<p>これを結びつけるためにはWSLの外から作業をしてやる必要があります。</p>
+
+<p>具体的には以下のようなPowerShellのスクリプトを実行します。</p>
+
+<figure class="code"><figcaption><span>wsl_port.ps1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="ps1"><span class="line"><span></span><span class="k">if</span> <span class="p">(!(</span><span class="no">[Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]</span><span class="p">::</span><span class="n">GetCurrent</span><span class="p">()).</span><span class="n">IsInRole</span><span class="p">(</span><span class="s2">&quot;Administrators&quot;</span><span class="p">))</span> <span class="p">{</span> <span class="nb">Start-Process</span> <span class="n">powershell</span><span class="p">.</span><span class="n">exe</span> <span class="s2">&quot;-File </span><span class="se">`&quot;</span><span class="s2">$PSCommandPath</span><span class="se">`&quot;</span><span class="s2">&quot;</span> <span class="n">-Verb</span> <span class="n">RunAs</span><span class="p">;</span> <span class="n">exit</span> <span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">$ip</span> <span class="p">=</span> <span class="n">bash</span><span class="p">.</span><span class="n">exe</span> <span class="n">-c</span> <span class="s2">&quot;ip r |tail -n1|cut -d &#39; &#39; -f9&quot;</span>
+</span><span class="line"><span class="k">if</span><span class="p">(</span> <span class="p">!</span> <span class="nv">$ip</span> <span class="p">){</span>
+</span><span class="line">  <span class="n">echo</span> <span class="s2">&quot;The Script Exited, the ip address of WSL 2 cannot be found&quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="n">exit</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># All the ports you want to forward separated by comma</span>
+</span><span class="line"><span class="nv">$ports</span><span class="p">=@(</span><span class="n">22</span><span class="p">,</span><span class="n">3000</span><span class="p">,</span><span class="n">8080</span><span class="p">);</span>
+</span><span class="line"><span class="nv">$ports_a</span> <span class="p">=</span> <span class="nv">$ports</span> <span class="n">-join</span> <span class="s2">&quot;,&quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Remove Firewall Exception Rules</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;Remove-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; &quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Adding Exception Rules for inbound and outbound Rules</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;New-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; -Direction Outbound -LocalPort $ports_a -Action Allow -Protocol TCP&quot;</span><span class="p">;</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;New-NetFireWallRule -DisplayName &#39;WSL 2 Firewall Unlock&#39; -Direction Inbound -LocalPort $ports_a -Action Allow -Protocol TCP&quot;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="p">(</span> <span class="nv">$i</span> <span class="p">=</span> <span class="n">0</span><span class="p">;</span> <span class="nv">$i</span> <span class="o">-lt</span> <span class="nv">$ports</span><span class="p">.</span><span class="n">length</span><span class="p">;</span> <span class="nv">$i</span><span class="p">++</span> <span class="p">){</span>
+</span><span class="line">  <span class="nv">$port</span> <span class="p">=</span> <span class="nv">$ports</span><span class="p">[</span><span class="nv">$i</span><span class="p">];</span>
+</span><span class="line">  <span class="n">iex</span> <span class="s2">&quot;netsh interface portproxy add v4tov4 listenport=$port listenaddress=* connectport=$port connectaddress=$ip&quot;</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c"># Show proxies</span>
+</span><span class="line"><span class="n">iex</span> <span class="s2">&quot;netsh interface portproxy show v4tov4&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>以下のものを参考にしてちょっとアップデートしたスクリプトです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/microsoft/WSL/issues/4150#issuecomment-504209723">[WSL 2] NIC Bridge mode 🖧 (Has TCP Workaround🔨) · Issue #4150 · microsoft/WSL</a></p>
+</blockquote>
+
+<p>WSL側のIPアドレスは変わるので固定では出来ず、毎回上の様に何らかの方法で取得する必要があります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2021/05/16 </strong></p>
+
+  <p>3行目のところで、
+Windowsが複数のネットワークインターフェースを持っている場合などは<code>tail -n1</code>だと別のものを選んでしまう可能性もあるので、
+状況によって</p>
+
+  <pre><code>bash -c "ip route |grep 'eth0 proto'|cut -d ' ' -f9"
+</code></pre>
+
+  <p>などインターフェースを指定するなどする必要があります。</p>
+
+  <p>(Thanks to jx @ comment)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><code>netsh interface portproxy add</code>というところでポートをつないでいます。
+古い接続がある場合に<code>delete</code>してから、という記述も見かけましたが、
+少なくとも手元の環境では<code>delete</code>しなくても新しい<code>add</code>をすれば上書きされていたので
+特に<code>delete</code>をする必要はありません。</p>
+
+<p>これを<strong>wsl_port.ps1</strong>とかで保存して実行すれば
+22, 3000, 8080番のポートをWSLとWindowsの外部向けIPアドレスとでつないでいます。
+(最初の行にあるのが管理者として実行するようにするおまじないなので、ファイルを右クリックで出てくるメニューで<strong>PowerShellで実行</strong>を実施すればOK。)</p>
+
+<p>また、同時にファイアウォールの設定もこれらのポートについて外すようにしています。</p>
+
+<p>これで、外部からも<code>http://192.168.11.2:8080</code>とかでWSLのサーバーにアクセスすることができます。
+(この例だとクラスCのプライベートアドレスなので同じプライベートネットワーク内にあるものからであれば、ですが。)</p>
+
+<p>Windowsの中からも自分の<code>http://192.168.11.2:8080</code>でWSLのサーバーにアクセス出来るようになります。</p>
+
+<h2 id="windows起動時につなげる">Windows起動時につなげる</h2>
+
+<p>外部からの接続を常時する必要がなければ必要な時に上のスクリプトを実行すれば良いわけですが、
+常時使いたい、という場合はタスクスケジューラーに仕込んで
+ログイン時に上のスクリプトを実行すると楽できます。</p>
+
+<p>Windowsの検索で<code>task</code>とかしてタスクスケジューラーを見つけて立ち上げます。</p>
+
+<p><img src="/images/post/20210301_taskscheduler.jpg" alt="20210301_taskscheduler.jpg" class="pic" /></p>
+
+<p><strong>操作</strong><i class="fa fa-arrow-right"></i><strong>基本タスクの作成</strong>からタスクを作ります。</p>
+
+<ul>
+  <li>名前、説明: 適当に<code>wsl</code>など。</li>
+  <li>トリガー: ログオン時</li>
+  <li>操作: プログラムの開始
+    <ul>
+      <li>プログラム/スクリプト: <code>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</code>
+        <ul>
+          <li>PowerShellの実態へのパス。</li>
+        </ul>
+      </li>
+      <li>引数の追加: <code>-ExecutionPolicy RemoteSigned C:\Users\User\wsl_port.ps1</code>
+        <ul>
+          <li><code>-ExecutionPolicy RemoteSigned</code>を追加することで自作スクリプトの実行を許可。その後にスクリプトへのパスを追記。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>完了: <strong>[完了]をクリックしたときに、このタスクの[プロパティ]ダイアログを開く</strong>にチェックして<strong>完了</strong>を押す。</li>
+  <li>出てきたプロパティの<strong>全般</strong>タブにある<strong>最上位の特権で実行する</strong>にチェックして<strong>OK</strong>。</li>
+</ul>
+
+<p><img src="/images/post/20210301_property.jpg" alt="20210301_property.jpg" class="pic" /></p>
+
+<p>これでログイン時にWSLの特定のポートをWindows側の外部IPアドレスにつなげることが出来ます。</p>
+
+<p>この方法だと起動中にWSLを再起動した場合にはIPアドレスが変更されるため、
+再びこのスクリプトを実行する必要があります。</p>
+
+<p>必要であれば、再起動コマンドを上のスクリプトに追加して
+再起動と同時にポートを繋げる作業をするスクリプトにしても良いかもしれません。</p>
+
+<h2 id="wslの再起動">WSLの再起動</h2>
+
+<p>WSLの再起動の話をしたのでそれについて少し。</p>
+
+<p>PowerShell(管理者権限)上で</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l -v
+  NAME                   STATE           VERSION
+* Ubuntu                 Running         2
+  docker-desktop         Stopped         2
+  docker-desktop-data    Stopped         2
+</code></pre>
+
+<p>みたいにすると今動いているディストリビューションが分かります。
+ここでは<code>Ubuntu</code>が動いています。</p>
+
+<p>ここで</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl --terminate Ubuntu
+</code></pre>
+
+<p>とすると、<code>Ubuntu</code>を停止しますが、即座に再起動を行います。</p>
+
+<p><code>--terminate</code>の代わりに<code>-t</code>でも可。</p>
+
+<p>これをスクリプトの先頭に書いて、少しスリープさせてポートを付けなおす様な
+ことをすれば良いとは思うのですが、
+使っているLinuxのディストリビューションが変わる可能性があり、そのたびに
+書き換えないといけません。</p>
+
+<p>現在は<code>Ubuntu</code>というバージョンなしの名前になっているので、Ubuntuを使い続けるのであれば
+そこま気にしなくても良いのですが、
+バージョン名のついている状態や、他のLinuxを使ったりする場合には使ってるものをちゃんと把握して
+やってもらいたいところ。</p>
+
+<p>そこで、<code>wsl -l -v</code>の出力を見て使っているものを把握することが考えられますが、
+この出力が現状、とくに日本語環境だとうまく使えない状態になっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/microsoft/WSL/issues/4607">wsl.exe outputting unicode to stdout · Issue #4607 · microsoft/WSL</a></p>
+</blockquote>
+
+<p>上のIssueにありますが、例えばPowerShell版grepの<code>Select-String</code>を使って</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l |Select-String Ubuntu
+</code></pre>
+
+<p>とかやっても何も出ません。</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l
+Linux 用 Windows サブシステム ディストリビューション:
+Ubuntu (既定)
+docker-desktop
+docker-desktop-data
+</code></pre>
+
+<p>とちゃんと出てそうなのに。</p>
+
+<p>試しに出力をパイプに渡して<code>more</code>とかで見てみると</p>
+
+<pre><code>PS C:\WINDOWS\system32&gt; wsl -l |more
+L
+i
+n
+u
+x
+
+(u
+W
+i
+n
+d
+o
+w
+s
+
+ｵ0ﾖ0ｷ0ｹ0ﾆ0・
+ﾇ0｣0ｹ0ﾈ0・ﾓ0・・ｷ0・・:
+
+
+
+
+
+
+U
+b
+u
+n
+t
+u
+
+(
+稙喙)
+</code></pre>
+
+<p>こんな感じになっていて、日本語の文字化けもそうなんですが、
+そもそも各文字が1行ずつ出力されている状態なので、
+<code>Select-String</code>では捕まらない状態になっています。</p>
+
+<p>なので現状日本語環境で<code>wsl -l</code>などを使って使っているディストリビューションを確認して
+どうこうするのは出来ません。</p>
+
+<p>必要なら英語環境にしてしまう、とかですね。</p>
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished' class='entry-date' datetime='2021-03-01T00:00:00+00:00'><span class='date'>01 Mar 2021</span></time></span><span class="date-wrapper">Last update<time itemprop='dateModified' class='updated' datetime='2021-05-16T00:00:00+00:00'><span class='date'>16 May 2021</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/network/'><span>Network</span></a>, <a class='tag' href='/blog/tags/windows/'><span>Windows</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2021/03/01/computer-windows-network/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A&url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&title=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Share on Google+"
+    target="_blank"><p class="googleplus_custom"><span class="googleplusBig"  data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">Google+でシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&amp;t=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2021/03/01/computer-windows-network/&title=Windows+WSL2%E3%81%AB%E5%A4%96%E9%83%A8%E3%81%8B%E3%82%89%E7%9B%B4%E6%8E%A5%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E8%A8%AD%E5%AE%9A"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2021/02/18/computer-iot-raspberrypi/" title="Previous Post: MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する">&laquo; MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2021/03/02/computer-windows-mac-network/" title="Next Post: mitmproxyを使ってアプリの通信内容を確認する">mitmproxyを使ってアプリの通信内容を確認する &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/gp/redirect.html?ie=UTF8&location=http%3A%2F%2Fwww.amazon.co.jp%2Fgp%2Fregistry%2Fwishlist%2FN9M4X3BSKHIH%3Fie%3DUTF8%26type&tag=rcmdnk0c-22&linkCode=ur2&camp=247&creative=1211">ほしいもの一覧</a>
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 168" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 199" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/12/15/computer-iot-shopping/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211215_oura1_120_90.jpg" width="120" height="90" alt="20211215_oura1_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/12/15/computer-iot-shopping/">Oura Ring Generation 3が届いた</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B09L4WDPLQ' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/512y2yMS8ZL._SS90_CR0,0,120,90_.jpg' alt='バッファロー 11ax/ac/n/a/g/b 無線LAN子機 USB3.0 内蔵アンテナタイプ WI-U3-1200AX2/N'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/12/08/computer-network/">Wi-Fi6アダプター WI-U3-1200AX2</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/14/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211114_hyper_120_90.jpg" width="120" height="90" alt="20211114_hyper_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/14/computer-windows/">WindowsのWSL用のターミナルとしてhyperを使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/08/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211108_wslsettings_120_90.jpg" width="120" height="90" alt="20211108_wslsettings_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/08/computer-windows/">Windowsターミナルの起動時の初期ディレクトリ設定</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/03/computer-github-python/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211103_readthedocs_120_90.jpg" width="120" height="90" alt="20211103_readthedocs_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/03/computer-github-python/">Read the Docsでビルドが失敗している件</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2021 (45)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2021/12/'>DEC (2)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (97)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (5)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (72)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (2)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (152)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (13)</a></li><li><a href='/blog/2016/09/'>SEP (14)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (187)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (13)</a></li><li><a href='/blog/2015/10/'>OCT (18)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (32)</a></li><li><a href='/blog/2015/05/'>MAY (22)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (135)</a></li><li><a href='/blog/categories/computer/'>Computer (932)</a></li><li><a href='/blog/categories/life/'>Life (45)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.39867109634551%'>AeroFS(2)</a> <a href='/blog/tags/amazon/' style='font-size: 100.19933554817275%'>Amazon(1)</a> <a href='/blog/tags/analytics/' style='font-size: 100.59800664451828%'>Analytics(3)</a> <a href='/blog/tags/android/' style='font-size: 103.58803986710963%'>Android(18)</a> <a href='/blog/tags/applescript/' style='font-size: 103.18936877076412%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.39867109634551%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 104.58471760797342%'>AutoHotkey(23)</a> <a href='/blog/tags/bash/' style='font-size: 120.1328903654485%'>Bash(101)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19933554817275%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.39867109634551%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.79734219269103%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.59800664451828%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 110.96345514950166%'>Brew-file(55)</a> <a href='/blog/tags/bsd/' style='font-size: 101.59468438538207%'>BSD(8)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.39867109634551%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.79734219269103%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.78405315614619%'>Chrome(24)</a> <a href='/blog/tags/colinux/' style='font-size: 100.39867109634551%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.99667774086379%'>CSS(5)</a> <a href='/blog/tags/cygwin/' style='font-size: 106.17940199335548%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19933554817275%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.39867109634551%'>Desktop(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.99335548172758%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.59800664451828%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.99667774086379%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.59136212624584%'>Evernote(13)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19933554817275%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.76079734219269%'>Firefox(59)</a> <a href='/blog/tags/geektool/' style='font-size: 100.59800664451828%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19933554817275%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 101.79401993355482%'>git(9)</a> <a href='/blog/tags/git/' style='font-size: 106.17940199335548%'>Git(31)</a> <a href='/blog/tags/github/' style='font-size: 113.15614617940199%'>GitHub(66)</a> <a href='/blog/tags/github/' style='font-size: 100.19933554817275%'>Github(1)</a> <a href='/blog/tags/gmail/' style='font-size: 103.18936877076412%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.3953488372093%'>GNU(7)</a> <a href='/blog/tags/go/' style='font-size: 100.59800664451828%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.18936877076412%'>Google(16)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19933554817275%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 101.19601328903654%'>HHKB(6)</a> <a href='/blog/tags/homebrew/' style='font-size: 117.94019933554817%'>Homebrew(90)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.39202657807309%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.79734219269103%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.39867109634551%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 107.37541528239203%'>IoT(37)</a> <a href='/blog/tags/iphone/' style='font-size: 102.59136212624584%'>iPhone(13)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.79734219269103%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.39867109634551%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.1827242524917%'>JavaScript(26)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.59800664451828%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.79734219269103%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.78405315614619%'>Karabiner(24)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19933554817275%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.59468438538207%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19933554817275%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19933554817275%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.35548172757476%'>Linux(67)</a> <a href='/blog/tags/liquid/' style='font-size: 100.39867109634551%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.59800664451828%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(301)</a> <a href='/blog/tags/markdown/' style='font-size: 102.39202657807309%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.79401993355482%'>Music(9)</a> <a href='/blog/tags/network/' style='font-size: 106.37873754152824%'>Network(32)</a> <a href='/blog/tags/octopress/' style='font-size: 124.31893687707641%'>Octopress(122)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.39867109634551%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.59800664451828%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.79734219269103%'>Pocket(4)</a> <a href='/blog/tags/powershell/' style='font-size: 101.59468438538207%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 101.79401993355482%'>PR(9)</a> <a href='/blog/tags/prompt/' style='font-size: 100.59800664451828%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.79069767441861%'>PuTTY(14)</a> <a href='/blog/tags/python/' style='font-size: 107.17607973421927%'>Python(36)</a> <a href='/blog/tags/qi/' style='font-size: 100.99667774086379%'>Qi(5)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.39867109634551%'>Rakuten(2)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 102.79069767441861%'>RaspberryPi(14)</a> <a href='/blog/tags/ruby/' style='font-size: 102.79069767441861%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 107.57475083056478%'>screen(38)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.79069767441861%'>sentaku(14)</a> <a href='/blog/tags/shopping/' style='font-size: 107.17607973421927%'>Shopping(36)</a> <a href='/blog/tags/slack/' style='font-size: 100.19933554817275%'>Slack(1)</a> <a href='/blog/tags/svn/' style='font-size: 100.39867109634551%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.99667774086379%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.39867109634551%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.3953488372093%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.79069767441861%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.99667774086379%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.79734219269103%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 119.53488372093022%'>Vim(98)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.7873754152824%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.19601328903654%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.19601328903654%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.39867109634551%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 128.90365448504983%'>Windows(145)</a> <a href='/blog/tags/word/' style='font-size: 100.19933554817275%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.3953488372093%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.16611295681064%'>Zsh(51)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2019/10/25/life-shopping-rakuten/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20191025_rakuten_120_90.jpg" width="120" height="90" alt="20191025_rakuten_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2019/10/25/life-shopping-rakuten/">楽天会員規約に基づき利用停止措置がとられています</a><br><span class="views">4305 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873100844' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/31NJeGekxTL._SS90_CR0,0,120,90_.jpg' alt='uuencodeされた本―EUC/tar.gz版'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2021/09/17/computer-windows/">Windowsネイティブな環境でのtar.gzファイルの解凍</a><br><span class="views">3908 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B07XF4XT9Q' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/61etlVTj08L._SS90_CR0,0,120,90_.jpg' alt='Oura Ring オーラリング Balance&nbsp;model US9 Black 【アプリ日本語対応！NextSims】'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2021/11/01/computer-iot-shopping/">Oura Ring Generation 3を購入(a free lifetime Oura membership)</a><br><span class="views">2718 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2021/03/01/computer-windows-network/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20210301_property_120_90.jpg" width="120" height="90" alt="20210301_property_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2021/03/01/computer-windows-network/">Windows WSL2に外部から直接アクセスするための設定</a><br><span class="views">2558 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">2250 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://b.st-hatena.com/images/append.gif' alt='append'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2021 - rcmdnk -
+    <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<script>
+  window.GoogleAnalyticsObject = 'ga';
+  if (!('ga' in window)){
+    ga = function(){
+      ga.q.push(arguments);
+    };
+  }
+  ga.l = (new Date()).getTime();
+  ga.q = [['create', 'UA-39086461-1', 'auto'], ['send', 'pageview'], ['require', 'linkid', 'linkid.js']];
+</script>
+<script src="//www.google-analytics.com/analytics.js" async defer></script>
+
+
+<script>(function(w,d,s,l,i){
+           w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+         })(window,document,'script','dataLayer','GTM-MRN6WBX');</script>
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2021/03/01/computer-windows-network/';
+  var disqus_url = 'https://rcmdnk.com/blog/2021/03/01/computer-windows-network/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+
+
+
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery//jquery.min.js" defer></script>
+  <![endif]-->
+  
+
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" defer></script>
+  <!--<![endif]-->
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/windows/",
+        "name": "Windows"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

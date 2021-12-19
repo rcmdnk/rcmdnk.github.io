@@ -1,0 +1,1342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: wercker | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/wercker/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-12-19T00:44:13+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[werckerで鍵認証に失敗してdeploy出来なかった件]]></title>
+    <link href="https://rcmdnk.com/blog/2017/08/01/computer-wercker/"/>
+    <updated>2017-08-01T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/08/01/computer-wercker</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B06XK488MT?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B06XK488MT&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81pxR8osE6L._SS200_.jpg" alt="プリミティブby Kathy Deployディッシュタオル" /></a>
+</div>
+
+<p>CIサービスであるwerckerはGitHubやBitbucketなどのプライベートレポジトリも
+フリーで扱えます。</p>
+
+<p>CIサービスだとTravis CIも有名ですがTravis CIだとプライベートレポジトリは有料なので
+プライベートレポジトリを扱いたい時はwerckerを使っています。</p>
+
+<p>OctopressのブログのソースコードをBitbucketにおいてそれをwerckerでビルド、
+GitHubへ送る、みたいなことをしてるのですが、それが突然deployに失敗していた件について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#werckerを使ってbitbucketのプライベートレポジトリからoctopressを自動デプロイする" id="markdown-toc-werckerを使ってbitbucketのプライベートレポジトリからoctopressを自動デプロイする">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#add-to-known_hosts" id="markdown-toc-add-to-known_hosts">add-to-known_hosts</a></li>
+  <li><a href="#ssh-keygenの-eオプション" id="markdown-toc-ssh-keygenの-eオプション">ssh-keygenの<code>-E</code>オプション</a></li>
+  <li><a href="#envoronmentにある鍵について" id="markdown-toc-envoronmentにある鍵について">Envoronmentにある鍵について</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="werckerを使ってbitbucketのプライベートレポジトリからoctopressを自動デプロイする">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p>ここにあるようにOctopressの元のコードはBitbucketのプライベートレポジトリにおいて、
+そこに<code>push</code>するとwerckerが働いてビルドする仕組みになっています。</p>
+
+<p>ビルドされたものはwerckerによってGitHubへdeployされ公開されます。</p>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>新しくポストを書いて送った所、何故かアップデートされないな、と思ったら
+deployのところで</p>
+
+<pre><code>## Pushing generated ./_deploy website
+Host key verification failed.
+fatal: Could not read from remote repository.
+</code></pre>
+
+<p>みたいなエラーが出ていました。
+ただ、これはOctopressのRakefileの仕様が悪いですが、
+このエラーが起こってもそのままスクリプトが進む仕組みになっていて
+werckerはエラーになってませんでした。</p>
+
+<p>なのでログ読んで初めて実際にはGitHubに送られてなかったということが分かるという。。。</p>
+
+<h2 id="add-to-known_hosts">add-to-known_hosts</h2>
+
+<p>それはともかく、このエラーは少なくとも数日前には出てなかったようなんですが
+なんだろうと思って調べていくと、
+これを行う前の<code>add-to-known_hosts</code>の所で
+<code>unknown option -- E</code>の様なエラーが出ていました。</p>
+
+<p>werckerには<a href="http://devcenter.wercker.com/docs/steps">Steps</a>という仕組みがあり、
+その中で既に出来上がったひとかたまりのステップを使うことが出来、
+それらを使うと複雑な作業もいくつかの変数を定義するだけで出来たりします。</p>
+
+<p><a href="https://app.wercker.com/explore/steps/search/">steps serach</a>
+とかから必要なものが探せます。</p>
+
+<p>今回問題があったのは<a href="https://github.com/wercker/step-add-to-known_hosts">step-add-to-known</a>
+というステップで、
+デプロイ先のGitHubなどのホストを<strong>known_hosts</strong>ファイルに登録するステップです。</p>
+
+<p><a href="https://github.com/wercker/step-add-to-known_hosts">このレポジトリ</a>を見てみると最近
+コアスクリプトである
+<a href="https://github.com/wercker/step-add-to-known_hosts/blob/master/run.sh">run.sh</a>
+に変更があり</p>
+
+<pre><code>ssh_key_fingerprint=$(ssh-keygen -l -f "$ssh_key_path" -E md5 | awk '{print $2}')
+</code></pre>
+
+<p>の様な行が追加されています。</p>
+
+<p>この変更が追加されたのが3日前です。</p>
+
+<p>この<code>-E</code>オプションがな言うことでエラーを起こしています。</p>
+
+<p>で、どうしたもんか、と思って調べてるうちについさっきまたアップデートがあり、</p>
+
+<pre><code>if [ "$WERCKER_ADD_TO_KNOWN_HOSTS_USE_MD5" = "true" ]; then
+    ssh_key_fingerprint=$(ssh-keygen -l -f "$ssh_key_path" -E md5 | awk '{print $2}')
+else
+    ssh_key_fingerprint=$(ssh-keygen -l -f "$ssh_key_path" | awk '{print $2}')
+fi
+</code></pre>
+
+<p>な感じに<code>use_md5</code>という値を<code>true</code>にしない限りは以前のまま<code>-E</code>を使わない様に変更されました。</p>
+
+<p>これによってさっきまでエラーを起こしてたdeployプロセスをそのままやり直すだけで上手くdeploy出来る様になりました。</p>
+
+<h2 id="ssh-keygenの-eオプション">ssh-keygenの<code>-E</code>オプション</h2>
+
+<p>この<code>-E</code>オプションはkey fingerprint(鍵指紋)のアルゴリズムを指定するオプションで
+<code>md5</code>か<code>sha256</code>が選べますが
+このオプションが導入されたのはOpenSSH 6.8からです。
+これ自体は2年くらい前にリリースされてますが
+古い環境だと古いOpenSSHがインストールされていて<code>ssh-keygen</code>に<code>-E</code>が付いてなかったりします。
+(<code>ssh -V</code>でバージョン確認。)</p>
+
+<blockquote>
+  <p><a href="http://www.openssh.com/txt/release-6.8">openssh release-6.8</a></p>
+</blockquote>
+
+<p>また、6.8より前では<code>md5</code>を使っていたのに対し、
+6.8以降は<code>sha256</code>がデフォルトになったので
+同じ鍵指紋を使いたい場合には<code>-E md5</code>が必要になります。</p>
+
+<p>一方、werckerは現在Dockerベースになっていて読んでくる<code>box</code>によって環境が代わりますが、
+使っているのは<code>ruby</code>というboxでこれに入ってるOpenSSHが古いようです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170119_werckerenvironment_120_90.jpg" width="120" height="90" alt="20170119_werckerenvironment_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/">werckerのアプリを古いLXCベースからDockerベースに移行</a></div></li></ul>
+
+<p>boxによっては新しいOpenSSHが入っている環境もあるので、
+その場合には<code>use_md5: true</code>を指定するかsha256な鍵指紋を与える必要があります。</p>
+
+<p>ただ現状のadd-to-known_hostsだとその辺自分で先に調べておかないといけないのでちょっと不便かもしれません。
+OpenSSHのバージョンが6.7以前なら<code>-E</code>使わずにmd5を使うだけにするとかスクリプトに足すとか。
+この辺変更があったばっかなのですぐにアップデートされるかもしれないのでちょっと様子見で、
+アップデートされそうならちょっとpull requestでも出してみます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2017/12/29 </strong></p>
+
+  <p>werckerのruby boxがアップデートされてOpenSSH 7.0が使われる様になりました。</p>
+
+  <p>なので<code>use_md5</code>を使わないとSHA256の方が使われる様になったので
+SHA256の値に置き換えておきました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="envoronmentにある鍵について">Envoronmentにある鍵について</h2>
+
+<p>werckerからGitHubにデプロイするのにこれ以外にデプロイ用の鍵が必要ですが、
+鍵はwerckerのWebインターフェースから作ることが出来ます。</p>
+
+<p>作ると各アプリケーションページの<strong>Environment</strong>の所に登録されるんですが、
+今見た所ここに何もありません。</p>
+
+<p>最初、鍵が勝手に消えてしまったためにデプロイに失敗したのだと思って作り直して
+登録し直したりしましたが上手く行かず、色々やってるうちに上にあるように出来る様になったわけです。</p>
+
+<p>もう一つ別のレポジトリが同様に以前鍵を作っていて鍵が消えたままの状態でしたが
+こちらは鍵を作り直さずにadd-to-known_hostsが治った段階で上手くいったので
+どうも以前の鍵が消えてるわけでは無さそう。</p>
+
+<p>werckerのインターフェースや仕組み自体も大分大きく変わったので
+それ以前に作っていた鍵はこの欄から消えている?
+(そうすると新たに公開鍵を渡したりは出来ないわけですが
+その場合はまた新しく作れば良い、ということか。。。?)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WerckerのタスクをDockerを用いてローカルでテストする]]></title>
+    <link href="https://rcmdnk.com/blog/2017/01/21/computer-wercker-mac/"/>
+    <updated>2017-01-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/01/21/computer-wercker-mac</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B006WEHNCQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B006WEHNCQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/418p4pBQ1cL._SS200_.jpg" alt="Introduction to the Command Line (Second Edition): The Fat Free Guide to Unix and Linux Commands (English Edition) 電子書籍: Nicholas Marsh" /></a>
+</div>
+
+<p><a href="https://app.wercker.com/">wercker</a>
+を使ってこのブログをビルドしていますが、
+Dockerベースのものに移行した時にちょっと分からないことがあって手間取りました。</p>
+
+<p>werckerの環境が良くわからないので<strong>wecker.yml</strong>に色々werckerのチェックを入れて
+pushしてウェブで確認みたいなことをしてましたが、
+ちょっと色々やりたい時にそれだと面倒なので、
+ローカルで直接タスクを実行する
+<a href="http://www.wercker.com/wercker-cli">Wercker CLI</a>
+を試してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#wercker-cli" id="markdown-toc-wercker-cli">Wercker CLI</a></li>
+  <li><a href="#dockerをインストール" id="markdown-toc-dockerをインストール">Dockerをインストール</a></li>
+  <li><a href="#wercker-cliをインストール" id="markdown-toc-wercker-cliをインストール">Wercker CLIをインストール</a></li>
+  <li><a href="#weckerをローカルで走らせてみる" id="markdown-toc-weckerをローカルで走らせてみる">Weckerをローカルで走らせてみる</a></li>
+  <li><a href="#octopressのサイトのビルドでちょっとトラブル" id="markdown-toc-octopressのサイトのビルドでちょっとトラブル">Octopressのサイトのビルドでちょっとトラブル</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="wercker-cli">Wercker CLI</h2>
+
+<p><a href="http://www.wercker.com/wercker-cli">Wercker CLI</a>
+はWerckerのタスクをローカルマシンで実行したり
+サーバー側で実行した結果をチェックしたり出来る
+コマンドラインツールです。</p>
+
+<p>Werckerは現在Dockerベースになっているため、ローカルで回すにはDockerの環境が必要になります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170119_werckerenvironment_120_90.jpg" width="120" height="90" alt="20170119_werckerenvironment_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/">werckerのアプリを古いLXCベースからDockerベースに移行</a></div></li></ul>
+
+<p>今回はその辺も含めてMacでHomebrewを用いて環境を作りました。</p>
+
+<h2 id="dockerをインストール">Dockerをインストール</h2>
+
+<p>HomebrewでDockerを探してみると</p>
+
+<pre><code>$ brew search docker
+boot2docker                      docker-compose                   docker-machine-nfs
+docker                           docker-gen                       docker-machine-parallels
+docker-clean                     docker-machine                   docker-swarm
+docker-cloud                     docker-machine-driver-xhyve
+homebrew/completions/boot2docker-completion       Caskroom/cask/docker-toolbox
+homebrew/completions/docker-completion            Caskroom/cask/docker
+homebrew/completions/docker-compose-completion    Caskroom/versions/boot2docker-status-beta
+homebrew/completions/docker-machine-completion    Caskroom/versions/docker-beta
+homebrew/emacs/dockerfile-mode
+</code></pre>
+
+<p>何やら沢山出てきますが、<strong>docker</strong>となっているものは
+所謂<a href="https://github.com/docker/docker">docker</a>コマンドをインストールするだけになります。</p>
+
+<p><a href="https://docs.docker.com/machine">docker-machine</a>などもそのコマンドのインストールです。</p>
+
+<p><a href="http://boot2docker.io/">Boot2docker</a>
+は軽量Linuxで、Dockerのコンテナを走らせるのに使いますが、
+上のリストにあるものはこれを管理するためのコマンドラインツールです。</p>
+
+<p>その後使われていたのが<a href="https://www.docker.com/products/docker-toolbox">Docker Toolbox</a>
+で、VirtualBoxも同時にインストールします。
+この中に<code>docker</code>や<code>docker-macihne</code>等のコマンドも入っています。</p>
+
+<p>で、現在はさらに新しいDockerのツールが出ています。</p>
+
+<blockquote>
+  <p><a href="https://docs.docker.com/docker-for-mac/docker-toolbox/">Docker for Mac vs. Docker Toolbox - Docker</a></p>
+</blockquote>
+
+<p>新しい<a href="https://docs.docker.com/docker-for-mac/">Docker for Mac</a>
+ではVirtualBoxなど使わずに直接Virtual Machineを管理する様な感じになっていて
+大分高速化されてるとのこと。</p>
+
+<p>また、<code>docker</code>コマンドだけで色々作業するようになっています。</p>
+
+<p>Macだけではなく、
+や<a href="https://docs.docker.com/engine/installation/linux/ubuntu/">Docker for Ubuntu</a>
+など各環境用のものが用意されています。</p>
+
+<p>HomebrewではこのDocker for Macは
+<strong>Caskroom/cask/docker</strong>になります。</p>
+
+<p>ということで、</p>
+
+<pre><code>$ brew cask install docker
+</code></pre>
+
+<p>これで<strong>/Applications/Docker.app</strong>がインストールされるので
+立ち上げてみると権限の付与の許可などを聞かれます。</p>
+
+<p>また、最初の起動時に
+<strong>/usr/local/bin/docker</strong>等に
+<strong>~/Library/Group\ Containers/group.com.docker/bin/docker</strong>等へのシンボリックリンクが
+作られます。
+これらはさらに
+<strong>/Applications/Docker.app/Contents/Resources/bin/docker</strong>などへのシンボリックリンクになっていてここに実体があります。
+<strong>/usr/local/bin</strong>に入れるにはちょっと気持ち悪い感じで
+なんで直接<strong>Docker.app</strong>の中へリンクしないのか非常に謎ですが。。。</p>
+
+<p>取り敢えず一度立ち上げると<code>docker</code>コマンドがコマンドから実行できる様になります。</p>
+
+<p><a href="https://docs.docker.com/docker-for-mac/">Get started with Docker for Mac - Docker</a>
+に簡単な例があるのでちょっとやってみます。</p>
+
+<ul>
+  <li><code>docker ps</code>で現在動いているコンテナ一覧。</li>
+  <li><code>docker ps -a</code>すると現在存在するコンテナ一覧。</li>
+  <li><code>docker stop &lt;NAME&gt;</code>で該当コンテナをストップ。</li>
+  <li><code>docker rm -f &lt;NAME&gt;</code>で該当コンテナを(動いていればストップして )削除。</li>
+</ul>
+
+<p>という感じ。実際やってみると、</p>
+
+<pre><code>$ docker run -d -p 80:80 --name webserver nginx
+f06061ab544b27318b18eb7d36f2dc155c852fe187f2594a90ba0ac92a44325b
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                         NAMES
+f06061ab544b        nginx               "nginx -g 'daemon ..."   10 seconds ago      Up 9 seconds        0.0.0.0:80-&gt;80/tcp, 443/tcp   webserver
+$ docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://cloud.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/engine/userguide/
+
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                         NAMES
+f06061ab544b        nginx               "nginx -g 'daemon ..."   24 seconds ago      Up 22 seconds       0.0.0.0:80-&gt;80/tcp, 443/tcp   webserver
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                     PORTS                         NAMES
+be7c0d7616a6        hello-world         "/hello"                 5 seconds ago       Exited (0) 4 seconds ago                                 ecstatic_ardinghelli
+f06061ab544b        nginx               "nginx -g 'daemon ..."   26 seconds ago      Up 25 seconds              0.0.0.0:80-&gt;80/tcp, 443/tcp   webserver
+$ docker stop webserver
+webserver
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
+be7c0d7616a6        hello-world         "/hello"                 24 seconds ago      Exited (0) 23 seconds ago                       ecstatic_ardinghelli
+f06061ab544b        nginx               "nginx -g 'daemon ..."   45 seconds ago      Exited (0) 6 seconds ago                        webserver
+$ docker rm -f webserver
+webserver
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                      PORTS               NAMES
+be7c0d7616a6        hello-world         "/hello"            32 seconds ago      Exited (0) 31 seconds ago                       ecstatic_ardinghelli
+$ docker rm -f ecstatic_ardinghelli
+ecstatic_ardinghelli
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+$
+</code></pre>
+
+<p>こんな感じです。</p>
+
+<h2 id="wercker-cliをインストール">Wercker CLIをインストール</h2>
+
+<p>こちらもHomebrewで</p>
+
+<pre><code>$ brew search wercker
+Caskroom/cask/wercker-cli                          Caskroom/cask/wercker
+</code></pre>
+
+<p>の2つのCaskが見つかりますが、<strong>wercker</strong>となってる方は
+サーバー側で行ったタスクをブラウザ以外で見たい時に使う
+管理ツールみたいな感じですが、
+ちょっと使ってみた所上手く動いてくれませんでした。</p>
+
+<p>取り敢えず置いておいて、今回使うのは*wercker-cli**の方ですが、
+実はCaskではなくてFormulaが
+<a href="http://devcenter.wercker.com/docs/cli/installation">Wercker CLIのInstallation</a>
+で紹介されています。</p>
+
+<p>両方見てみましたが、CaskもFormulaも全く同じものを入れていました。</p>
+
+<ul>
+  <li><a href="https://github.com/wercker/homebrew-wercker/blob/master/Formula/wercker-cli.rb">homebrew-wercker/wercker-cli.rb</a></li>
+  <li><a href="https://github.com/caskroom/homebrew-cask/blob/master/Casks/wercker-cli.rb">homebrew-cask/wercker-cli.rb</a></li>
+</ul>
+
+<p>Caskの方が後に作られてますが、Werckerの人ではない人たちがOfficial Formulaを知らずに入れた感じなのかな?という感じ。</p>
+
+<p>ただし、アップデートがあったときはFormulaの方ではないと
+自動でアップデートされないのでFormulaの方をいれておきます。</p>
+
+<pre><code>$ brew install wercker/wercker/wercker-cli
+</code></pre>
+
+<p>これで<code>wercker</code>コマンドが使えるようになります。</p>
+
+<p>今回は直接使いませんが、
+<code>wecker login</code>というコマンドでログインしてサーバー側の
+情報を取ってこれる様になれます。
+この際、GitHubのアカウントを遣った認証だとちょっと面倒です。</p>
+
+<blockquote>
+  <p><a href="https://skatsuta.github.io/2015/07/21/wercker-github-login/">GitHub アカウントを使っている場合に wercker CLI で認証を通す方法  Step by Step</a></p>
+</blockquote>
+
+<p>GitHbuアカウントを使って普段ログインしている場合でも、
+<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Password</strong>から
+パスワードを設定できるのでコマンドラインベースでサーバー側の結果も色々管理したい場合には
+パスワード設定しておいた方が便利だと思います。</p>
+
+<h2 id="weckerをローカルで走らせてみる">Weckerをローカルで走らせてみる</h2>
+
+<p>走らせる前にDocker.appを起動させて置く必要があります。
+特にVMを自分で作っておいたりする必要はありません。</p>
+
+<p>取り敢えず簡単なテストとして適当なディレクトリを作って
+中に以下の様な<strong>wercker.yml</strong>を作ります。</p>
+
+<figure class="code"><figcaption><span>wercker.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">box</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ruby</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">build</span><span class="p p-Indicator">:</span>
+</span><span class="line">  <span class="l l-Scalar l-Scalar-Plain">steps</span><span class="p p-Indicator">:</span>
+</span><span class="line">    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">script</span><span class="p p-Indicator">:</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Test run</span>
+</span><span class="line">      <span class="l l-Scalar l-Scalar-Plain">code</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">uname -a</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このディレクトリはGitのリポジトリでなくても構いません。
+実行されるときはそのディレクトリの中身がコピーされる形になります。</p>
+
+<p><code>build</code>のステップを実行して見るには<code>wercker build</code>を実行します。</p>
+
+<pre><code>$ wercker build
+--&gt; No Docker host specified, checking: /var/run/docker.sock
+--&gt; Executing pipeline
+--&gt; Running step: setup environment
+Pulling from library/ruby: latest
+Digest: sha256:6fce3ee90439d2d052495c2bb09b0a6303c608951b49dc2c6762a1b35c082bf6
+Status: Image is up to date for ruby:latest
+--&gt; Copying source to container
+--&gt; Running step: wercker-init
+--&gt; Running step: Test run
+Linux 09a3e28ddf7e 4.9.4-moby #1 SMP Wed Jan 18 17:04:43 UTC 2017 x86_64 GNU/Linux
+--&gt; Steps passed: 4.33s
+--&gt; Pipeline finished: 5.34s
+</code></pre>
+
+<p><strong>Linux 09….</strong>の部分が<code>uname -a</code>コマンドの出力ですが
+Macの中ですがLinuxが動いているのが分かります。</p>
+
+<p><code>deploy</code>なら<code>wercker deploy</code>でテストできます。</p>
+
+<p>Dockerベースなものだとこれら以外にも任意の名前でpipelineが作れるのですが、
+Wercker CLIだとまだ<code>build</code>と<code>deploy</code>しかサポートされてないみたいです。</p>
+
+<h2 id="octopressのサイトのビルドでちょっとトラブル">Octopressのサイトのビルドでちょっとトラブル</h2>
+
+<p>準備が出来たのでこのブログのビルドのテストをしてみました。</p>
+
+<pre><code>$ wercker build
+--&gt; No Docker host specified, checking: /var/run/docker.sock
+--&gt; Executing pipeline
+open /Users/user/Documents/octopress/.wercker/builds: no such file or directory
+--&gt; Running step: setup environment
+...
+Status: Downloaded newer image for ruby:latest
+--&gt; Copying source to container
+--&gt; Running step: wercker-init
+--&gt; Running step: Initialize git submodules
+fatal: Not a git repository: /Users/user/Documents/octopress/.git/modules/.themes/octogray/modules/.plugins/octopress-hatebu-posts
+Unable to find current revision in submodule path '.themes/octogray/.plugins/octopress-hatebu-posts'
+Failed to recurse into submodule path '.themes/octogray'
+--&gt; Step failed: Initialize git submodules 1.49s
+--&gt; Pipeline failed: 68.12s
+WARNING Box container has already stopped.
+FATAL Step failed: Initialize git submodules
+</code></pre>
+
+<p>なにやらSubmoduleの設定あたりでおかしくなってる模様。</p>
+
+<p>ちょっと調べてみると、</p>
+
+<pre><code>/Users/user/Documents/octopress/.themes/octogray/.plugins/octopress-hatebu-posts/.git
+</code></pre>
+
+<p>の内容が</p>
+
+<pre><code>gitdir: /Users/user/Documents/octopress/.git/modules/.themes/octogray/modules/.plugins/octopress-hatebu-posts
+</code></pre>
+
+<p>にとなってました。
+GitでSubmoduleになるとそこには<strong>.git</strong>ディレクトリは出来ずに、
+親の<strong>.git</strong>ディレクトリでまとめて管理するためにそこへのリンクが記述されています。
+(この場合は親の<strong>octogray</strong>のさらに親の<strong>octopress</strong>のディレクトリの<strong>.git</strong>。)</p>
+
+<p>これを見ると絶対パスを指定しています。
+当然のことながらこれだとLinuxのコンテナにコピーされた後にこれを見ると
+存在しないパスになってしまいます。</p>
+
+<p>一方他のSubmodulesは</p>
+
+<pre><code>gitdir: ../../../../.git/modules/.themes/octogray/modules/.plugins/octopress-hatebu-posts
+</code></pre>
+
+<p>な感じで相対ディレクトリになっています。
+ということで<strong>octopress-hatebu-posts/.git</strong>を上の様に書き直して
+やってみた所無事通りました。</p>
+
+<p>この様な問題を持ってるものが<strong>octogray</strong>のSubmodulesの中に
+2つだけありましたがなぜなのか謎。</p>
+
+<p>ただし、これらのSubmodulesはここで<code>submodules add</code>してそのまま使い続けてるので
+その辺で登録時に何か特殊ななことをしたのかも。</p>
+
+<p>他で<strong>octopress</strong>レポジトリなり<strong>octogray</strong>レポジトリをcloneして
+Submodulesを取ってくると全て相対ディレクトリになっていました。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>MacでHomebrewを用いて環境を作るには</p>
+
+<pre><code>$ brew cask install docker
+$ brew install wercker/wercker/wercker-cli
+</code></pre>
+
+<p>として必要な物をインストールし、
+<strong>/Applications/Docker.app</strong>を起動。</p>
+
+<p>これで<strong>wercker.yml</strong>のあるディレクトリに行って、</p>
+
+<pre><code>$ wercker build
+</code></pre>
+
+<p>とすれば<strong>build</strong>の内容をローカルで実行することが出来ます。</p>
+
+<p>また、最初の例にある通り、ローカルで走らせる分にはGitのレポジトリで無くてもなんでも構いません。
+コンテナも自分で作る事もできるわけで、
+Webサービスとは別に自前のテスト環境を作ったりするのにもWercker CLIは有用なツールだと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[werckerのアプリを古いLXCベースからDockerベースに移行]]></title>
+    <link href="https://rcmdnk.com/blog/2017/01/19/computer-wercker/"/>
+    <updated>2017-01-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/01/19/computer-wercker</id>
+    <content type="html"><![CDATA[<p>werckerからnon-Dockerなclassicな方法を使ったアプリケーションを停止するよ、というメールが来ていて
+Dockerベースな方法への変更を促されました。</p>
+
+<p>Dockerベースなアプリケーション自体はだいぶ前から利用出来るようになっていて、
+猶予期間が終わったので古い方法は廃止しますよ、ということらしいです。</p>
+
+<p>Dockerが使える様になったのは見た記憶がありましたが古いのが使えなくなるのは気づいてなかったので
+今更ながら移行しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#アプリのdockerベースへの移行" id="markdown-toc-アプリのdockerベースへの移行">アプリのDockerベースへの移行</a></li>
+  <li><a href="#新しいアプリの特徴-workfolows" id="markdown-toc-新しいアプリの特徴-workfolows">新しいアプリの特徴: Workfolows</a></li>
+  <li><a href="#werckerymlの移行作業" id="markdown-toc-werckerymlの移行作業">wercker.ymlの移行作業</a>    <ul>
+      <li><a href="#box" id="markdown-toc-box">box</a></li>
+      <li><a href="#submodulesを自分でアップデートしないといけない" id="markdown-toc-submodulesを自分でアップデートしないといけない">submodulesを自分でアップデートしないといけない</a></li>
+      <li><a href="#argumenterror-invalid-byte-sequence-in-us-ascii" id="markdown-toc-argumenterror-invalid-byte-sequence-in-us-ascii">ArgumentError: invalid byte sequence in US-ASCII</a></li>
+      <li><a href="#host-key-verification-failed" id="markdown-toc-host-key-verification-failed">Host key verification failed.</a></li>
+      <li><a href="#permission-denied-publickey" id="markdown-toc-permission-denied-publickey">Permission denied (publickey).</a></li>
+      <li><a href="#loaderror-cannot-load-such-file--xmlrpcclient" id="markdown-toc-loaderror-cannot-load-such-file--xmlrpcclient">LoadError: cannot load such file – xmlrpc/client</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="アプリのdockerベースへの移行">アプリのDockerベースへの移行</h2>
+
+<p>このブログはBitBucketに送ったものをwerckerでOctopressなビルドをしてhtml化していますが、
+特に気にせず古い方法を使い続けていました。</p>
+
+<p>取り敢えずこのままだと使えなくなる、ということで、メールに従って、
+<a href="https://app.wercker.com/applications/migrate">Classic app migrator</a>
+のページに行き、ウェブ上でアプリケーションをDockerベースのものに変換します。</p>
+
+<p>変換自体は上のページでワンクリックで出来ます。
+ただ、これをしてしまうと古いビルドの情報が辿れなくなってしまうみたいです。</p>
+
+<p>一応、ビルドが失敗したときの昔のメールからビルドページを開いてみると情報は残ってますが、
+ページの上側にあるはずのアプリケーションへのリンクが消えていて、何にも結び付けられていないビルドみたいになっているので
+直接辿り着かないと見れないようになってるみたいです。</p>
+
+<p>ブログのビルドなので別に良いのですが場合によってはログが重要な場合もあると思うのでちょっと注意が必要かもしれません。</p>
+
+<h2 id="新しいアプリの特徴-workfolows">新しいアプリの特徴: Workfolows</h2>
+
+<p>ウェブのインターフェースが刷新されていますが、
+機能的に大きく変わったのは
+<a href="http://devcenter.wercker.com/docs/workflows">Workflows</a>
+という機能が加わったことです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170119_werckernew.jpg" alt="20170119_werckernew.jpg" class="pic" /></p>
+
+<p>以前のアプリでは、<code>build</code>と<code>deploy</code>という2つの段階を作って、
+それぞれでテストやビルドを行ったり、
+作ったものを最終目的地に送ったりしていました。</p>
+
+<p>これが新しいアプリでは<strong>pipeline</strong>という任意の段階を作ることが出来、
+自由に繋げたり、さらに枝分かれさせて平行に進めたりすることが出来ます。</p>
+
+<p>古いアプリから移行されたものだと上の絵の様に
+<code>build</code>と<code>deploy</code>というpipelineがあって、
+<code>build</code>はレポジトリに<code>push</code>が来たら走る、
+<code>deploy</code>は<code>build</code>終わったら走る(ただしブランチが<strong>souce</strong>のときだけ)、という状態になっています。
+<code>deploy</code>の方にはGitHubに送ることを解釈してか、<code>GitHub</code>という名前がついてます。
+<strong>wercker.yml</strong>で参照される値は<code>deploy</code>の方です。</p>
+
+<p>以前のものに慣れてるとちょっと注意が必要なのは
+以前は、<code>build</code>、<code>deploy</code>の段階を<strong>wercker.yml</strong>に書いておくとこれらが自動で実行されましたが、
+新しいアプリではここのWorkflowsのページできちんと設定しておかないと
+<strong>wercker.yml</strong>に書いてあっても実行されません。</p>
+
+<p>一応<code>build</code>という名前のpipelineはアプリケーション作成時に自動で作られる様になっていますが、
+<code>deploy</code>に関しては無いので自分で作らないと<strong>wercker.yml</strong>に書いておいても動きません。</p>
+
+<p>pipelineを複数つなげると、そのpipeline毎にコンテナを使って
+環境を組み立てるので、例えば毎回<code>bundle install</code>を行う必要があったりします。</p>
+
+<p>なので小さな作業の場合なんかの場合はdeployの作業まで含めて<code>build</code>の中に入れてしまった方が
+実行時間は短くて済みます。</p>
+
+<p>分けておくメリットとしては、<code>deploy</code>の段階で何らかエラーが起きてもう一度走らせれば上手く行く可能性がある場合などに
+その作業だけをリトライすることが出来る、ということです。
+<code>build</code>の作業が長くかかる場合などにはありがたみが増します。</p>
+
+<p>取り敢えず以前の状態のまま移行されたので
+これらのレポジトリでは<code>build</code>と<code>deploy</code>を分けたままにしておきます。</p>
+
+<h2 id="werckerymlの移行作業">wercker.ymlの移行作業</h2>
+
+<h3 id="box">box</h3>
+
+<p>取り敢えずウェブで変換して新しいビルドを送ってみると、</p>
+
+<pre><code>Error interacting with this repository: docker.io/wercker/rvm GET https://registry.hub.docker.com/v1/repositories/wercker/rvm/images returned 404
+</code></pre>
+
+<p>こんな感じのエラーが<code>setup environment</code>のステップで出ました。
+Dockerへの移行時に<code>box</code>の設定だけは最低限必要で、それもしてなかったためです。</p>
+
+<blockquote>
+  <p><a href="http://devcenter.wercker.com/docs/migrating-to-workflows-from-classic">Migrating from Wercker Classic to Workflows</a></p>
+</blockquote>
+
+<p>これまで</p>
+
+<pre><code>box: wercker/rvm
+</code></pre>
+
+<p>という<code>box</code>を使ってましたが、上のページにある様に<a href="https://hub.docker.com/_/ruby/">Docker Hubのruby</a>
+のレポジトリを代わりに使えばOK。
+特にバージョンとか気にする必要も無いので、</p>
+
+<pre><code>box: ruby
+</code></pre>
+
+<p>とするだけ。とりあえずこれでビルドが走る様になります。</p>
+
+<h3 id="submodulesを自分でアップデートしないといけない">submodulesを自分でアップデートしないといけない</h3>
+
+<p>このブログのレポジトリはOctopressのソースを管理していますが、
+<a href="https://github.com/rcmdnk/octogray">octogray</a>
+というテーマを使っていて、このテーマがsubmoduleとして入っています。</p>
+
+<p>さらに、管理上便利なので、レポジトリの中にこのsubmoduleの中にあるファイルへの
+シンボリックリンクが貼られています。</p>
+
+<p>classicな方法だと何も考えずにwerckerを走らせても、
+自動でsubmodulesまでrecursiveにcloneされていました。</p>
+
+<p>これが新しいDockerを使ったアプリケーションではデフォルトでは
+submodulesは取ってこない様になったみたいです。</p>
+
+<blockquote>
+  <p><a href="http://devcenter.wercker.com/docs/git/submodules">Using Git Submodules</a></p>
+</blockquote>
+
+<p>ということでここにあるとおり、<code>build</code>の最初の方で、</p>
+
+<pre><code>- script:
+    name: Initialize git submodules
+    code: git submodule update --init --recursive
+</code></pre>
+
+<p>をしておきます。</p>
+
+<p>classicな前のビルドログを見ると確かに最初の<strong>get code</strong>のステップで
+cloneして該当のバージョンをcheckoutした後に<code>git submodule update --init --recursive</code>を
+していましたが、新しいログではcheckoutで終わっています。</p>
+
+<h3 id="argumenterror-invalid-byte-sequence-in-us-ascii">ArgumentError: invalid byte sequence in US-ASCII</h3>
+
+<p><code>rake generate</code>する段階で、</p>
+
+<pre><code>ArgumentError: invalid byte sequence in US-ASCII
+</code></pre>
+
+<p>と言ったエラーが出ました。</p>
+
+<p>該当するRakefileの行は</p>
+
+<pre><code>jekyll_config.gsub!(/\n^.*OCTOPRESS_TEST$/, "")
+</code></pre>
+
+<p>こんな感じ。</p>
+
+<p>同じ問題が起こって解決してた人が居たのでそのまま拝借。
+<strong>wercker.yml</strong>に<code>rake generate</code>を走らせるスクリプト設定の前に</p>
+
+<pre><code>- script:
+    name: set env
+    code: export RUBYOPT=-EUTF-8
+</code></pre>
+
+<p>を加えると解決できました。</p>
+
+<blockquote>
+  <p><a href="http://qiita.com/hmaruyama/items/71a55562d2f4ca785698">middlemanをwerckerでデプロイしたらエラーが発生した件 - Qiita</a></p>
+</blockquote>
+
+<h3 id="host-key-verification-failed">Host key verification failed.</h3>
+
+<p><code>deploy</code>のステップで</p>
+
+<pre><code>## Pushing generated ./_deploy website
+Host key verification failed.
+fatal: Could not read from remote repository.
+</code></pre>
+
+<p>なエラーが出ました。</p>
+
+<p>これはgithub.comにssh接続でpushしようとしている時にホストの確認が出来てないために置きています。</p>
+
+<p>これは<a href="https://github.com/wercker/step-add-to-known_hosts">step-add-to-known_host</a>
+というstepを使うと簡単に解決できます。</p>
+
+<p>GitHubへ作業を行いたいなら、</p>
+
+<pre><code>- add-to-known_hosts:
+    hostname: github.com
+    fingerprint: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
+</code></pre>
+
+<p>を作業ステップの前に入れておけばOK。</p>
+
+<p>このfingerprintの値は<a href="https://github.com/wercker/step-add-to-known_hosts">step-add-to-known_host</a>
+のREADMEにも書いてありますが、
+GitHubの以下のページでも手に入ります。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/articles/github-s-ssh-key-fingerprints/">GitHub’s SSH key fingerprints - User Documentation</a></p>
+</blockquote>
+
+<p>rsaの鍵を使うのでrsaの方のfingerprintで。</p>
+
+<p>このstepで<strong>~/.ssh/known_hosts</strong>に<strong>github.com</strong>が登録されます。</p>
+
+<p>古いバージョンではなぜかこれをしなくても大丈夫でしたが、
+古いバージョンではwerckerが用意したコンテナを使ってたこともあるので
+デフォルトでknown_hostsに値が入っていたとかだったんでしょうか。。。?</p>
+
+<h3 id="permission-denied-publickey">Permission denied (publickey).</h3>
+
+<p>再び<code>push</code>する時にエラー。
+今度は鍵認証に失敗している、とのことですが、
+これは単にmigrationすると前に作っていた鍵が失われたためです。</p>
+
+<p>ということで鍵を作り直し。</p>
+
+<p>Dockerベースの新しいバージョンでは
+<strong>Envronment</strong>タブか、もしくは<strong>Workfolows</strong>タブ内の各pipelineの中の設定で鍵を登録/作成することが出来ます。</p>
+
+<p><strong>Environment</strong>だとそのアプリ全体で使えるものになり、
+pipelineの中で作るとそのpipelineだけで使えるものになります。</p>
+
+<p>以前と色々とインターフェースも変わっていますが、
+それぞれの場所に<strong>generate SSH Keys</strong>と言うリンクがあるので
+そこから<strong>GITHUB_DEPLOY_KEY</strong>という名前で鍵を作ります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20170119_werckerenvironment.jpg" alt="20170119_werckerenvironment.jpg" class="pic" /></p>
+
+<p>作ると名前+<code>_PUBLIC</code>/<code>_PRIVATE</code>という2つの鍵が出来てるので、
+PUBLICの方の<strong>value</strong>の欄にある<strong>ssh-rsa</strong>という文字の所をクリックすると
+公開鍵の内容が表示されるのでこれをGitHubの方に登録すればOK。</p>
+
+<p>GitHub (deploy)の中で鍵を作成してGitHubの該当のレポジトリの<strong>Setting</strong><i class="fa fa-arrow-right"></i><strong>Deploy keys</strong>で
+<strong>Add deploy key</strong>から
+<strong>Allow write access</strong>にチェックを入れた状態で<strong>GITHUB_DEPLOY_KEY_PUBLIC</strong>の値を登録します。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p><strong>wercker.yml</strong>の中では</p>
+
+<pre><code>- add-ssh-key:
+    keyname: GITHUB_DEPLOY_KEY
+    host: github.com
+</code></pre>
+
+<p>みたいな感じで
+<a href="https://github.com/wercker/step-add-ssh-key">step-add-ssh-key</a>
+を使うと簡単に鍵の登録が出来ます。
+ここで<code>keyname</code>には<code>_PRIVATE</code>などを除いた最初に作った時に入れた名前を指定します。</p>
+
+<p>また、gitのユーザーも指定しておきます。</p>
+
+<pre><code>- script:
+    name: Prepare gitconfig
+    code: |
+        git config --global user.email "rcmdnk@gmail.com"
+        git config --global user.name "rcmdnk"
+</code></pre>
+
+<p>ちなみにソースのBitbucketはプライベートレポジトリを使ってるので
+こちらも鍵がないと外から取ってこれないわけですが、
+こちらの認証鍵は以前のまま使える様です。</p>
+
+<p>もし上手く行かない場合は<strong>Options</strong>タブから
+<strong>Repository access</strong>の<strong>Configure</strong>ボタンを押して始まるページで
+<strong>Configure access</strong>というステップで<strong>Add the deploy key to the selected repository for me</strong>という
+項目を選んで置くと鍵が生成されBitbucket側には自動で公開鍵が登録されます。</p>
+
+<h3 id="loaderror-cannot-load-such-file--xmlrpcclient">LoadError: cannot load such file – xmlrpc/client</h3>
+
+<p>接続の問題が解消された後にこんなエラーが。</p>
+
+<pre><code>rake aborted!
+LoadError: cannot load such file -- xmlrpc/client
+/pipeline/source/Rakefile:872:in `require'
+/pipeline/source/Rakefile:872:in `block in &lt;top (required)&gt;'
+/pipeline/source/Rakefile:457:in `block in &lt;top (required)&gt;'
+/usr/local/bundle/gems/rake-12.0.0/exe/rake:27:in `&lt;top (required)&gt;'
+Tasks: TOP =&gt; deploy
+(See full trace by running task with --trace)
+</code></pre>
+
+<p><code>xmlrpc</code>がないと。</p>
+
+<blockquote>
+  <p><a href="https://github.com/bundler/bundler/issues/5317">bundler 1.13.7 does not add hombrew ruby 2.4 built-in gems in LOAD_PATH · Issue #5317 · bundler/bundler</a></p>
+</blockquote>
+
+<p>こんなdiscussionが見つかりましたが、ruby 2.4からこのモジュールが
+デフォルトでは無くなったということで、
+これをロードするために</p>
+
+<pre><code>if Gem::Version.new(RUBY_VERSION) &gt;= Gem::Version.new('2.4.0')
+  gem 'xmlrpc', '~&gt; 0.2'
+end
+</code></pre>
+
+<p>をGemfileの中に追加しておきます。
+ローカル環境でアップデートが必要なら追記してから<code>bundle update</code>を実行。</p>
+
+<p>新しいDockerの<code>ruby</code>なコンテナは最新の2.4のものになっています。</p>
+
+<p>以前の古いコンテナは古いrubyを使っていた様でこのエラーには会わなかったみたいです。
+<code>xmlrpc</code>は<a href="https://github.com/rcmdnk/octogray/blob/82a139b9eac10832d8f6c778e7d5cbd97e40daa2/Rakefile#L866">ping</a>
+というタスクの中で
+使われていて、これはdeploy終了時に
+Searchエンジンなどにpingを送るためのタスクで
+ローカルでのテスト時には普段使ってなかったこともあって気づいてませんでした。</p>
+
+<p>逆に2.3以前のものだと</p>
+
+<pre><code>installError: xmlrpc requires Ruby version &gt;= 2.4.0dev.
+An error occurred while installing xmlrpc (0.2.1), and Bundler
+</code></pre>
+
+<p>みたいなエラーが出るので上の様にRubyのバージョンをチェックして必要なときだけ入れるようにしています。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[werckerでのbundle-installにおけるトラブルシューティング]]></title>
+    <link href="https://rcmdnk.com/blog/2016/01/15/blog-octopress-ruby-wercker/"/>
+    <updated>2016-01-15T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/01/15/blog-octopress-ruby-wercker</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01AIK7LH6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01AIK7LH6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51zoHSOUK5L._SS200_.jpg" alt="A Bundle Of Letters: (Annotated) (English Edition)" /></a>
+</div>
+
+<p>このブログはBitbucketにソースがあって、
+そこにpushすると
+<a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerに送られて自動でビルドされ、GitHubへ送られる</a>
+様になっているのですが、
+ちょっと動かなくなっていたのを直したのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#octopressブログのwerckerでのビルド" id="markdown-toc-octopressブログのwerckerでのビルド">Octopressブログのwerckerでのビルド</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#対処法" id="markdown-toc-対処法">対処法</a></li>
+  <li><a href="#bundle-installの問題" id="markdown-toc-bundle-installの問題">bundle-installの問題</a></li>
+  <li><a href="#pathの指定とgem_home" id="markdown-toc-pathの指定とgem_home">–pathの指定とGEM_HOME</a></li>
+  <li><a href="#インストールされたgemの実行ファイル" id="markdown-toc-インストールされたgemの実行ファイル">インストールされたgemの実行ファイル</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="octopressブログのwerckerでのビルド">Octopressブログのwerckerでのビルド</h2>
+
+<p><a href="https://rcmdnk.com/blog/tags/wercker/">wercker</a>は<a href="https://rcmdnk.com/blog/tags/travisci/">Travis CI</a>
+と同じような
+CI(継続的インテグレーション)サービスですが、
+Bitbucketに対応していることと、
+無料でGitHub/Bitbucketのプライベートレポジトリに対応しています。</p>
+
+<p>Bitbucketでは無料でプライベートレポジトリが持てるので、
+Bitbucket+werckerを使うと無料でプライベートなCI環境を作ることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p><code>rake</code>コマンドを使おうとした際、</p>
+
+<pre><code>$ rake generate
+rake aborted!
+Gem::LoadError: You have already activated rake 10.4.2, but your Gemfile requires rake 10.5.0. Prepending `bundle exec` to your command may solve this.
+/home/ubuntu/.rvm/gems/ruby-2.3.0@global/gems/bundler-1.9.10/lib/bundler/runtime.rb:34:in `block in setup'
+/home/ubuntu/.rvm/gems/ruby-2.3.0@global/gems/bundler-1.9.10/lib/bundler/runtime.rb:19:in `setup'
+/home/ubuntu/.rvm/gems/ruby-2.3.0@global/gems/bundler-1.9.10/lib/bundler.rb:122:in `setup'
+/home/ubuntu/.rvm/gems/ruby-2.3.0@global/gems/bundler-1.9.10/lib/bundler/setup.rb:8:in `&lt;top (required)&gt;'
+/pipeline/build/Rakefile:2:in `&lt;top (required)&gt;'
+LoadError: cannot load such file -- bundler/setup
+/pipeline/build/Rakefile:2:in `&lt;top (required)&gt;'
+(See full trace by running task with --trace)
+</code></pre>
+
+<p>みたいなエラーが出ていました。</p>
+
+<p>rakeの10.5.0が先日リリースされて
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+それが影響している様です。</p>
+
+<p>まず、<strong>wercker.yml</strong>ではboxを</p>
+
+<pre><code>box: wercker/rvm
+</code></pre>
+
+<p>で指定しています。</p>
+
+<p>この状態だと、<code>rake</code>がデフォルトで</p>
+
+<pre><code>/home/ubuntu/.rvm/rubies/ruby-2.3.0/bin/rake
+</code></pre>
+
+<p>に既にインストールされている状態でした。</p>
+
+<p>また、環境変数としては</p>
+
+<pre><code>PATH=/home/ubuntu/.rvm/gems/ruby-2.3.0/bin:/home/ubuntu/.rvm/gems/ruby-2.3.0@global/bin:/home/ubuntu/.rvm/rubies/ruby-2.3.0/bin:/home/ubuntu/phantomjs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/home/ubuntu/.rvm/bin
+GEM_PATH=/home/ubuntu/.rvm/gems/ruby-2.3.0:/home/ubuntu/.rvm/gems/ruby-2.3.0@global
+GEM_HOME=/home/ubuntu/.rvm/rubies/ruby-2.3.0
+</code></pre>
+
+<p>みたいな感じになっています。</p>
+
+<p>Octopressの中で、Gemfileで</p>
+
+<pre><code>gem 'rake', '~&gt; 10.0'
+</code></pre>
+
+<p>と<code>rake</code>を指定していて、ビルドなどを行う前に<code>bundle install</code>するようにしています。</p>
+
+<p>この<code>bundle install</code>ですが、werckerでは既にステップが用意されているので
+それを使っています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/wercker/step-bundle-install">bundle-install</a></p>
+</blockquote>
+
+<p>実はこれが問題で、単に</p>
+
+<pre><code>- bundle-install
+</code></pre>
+
+<p>と呼ぶと、</p>
+
+<pre><code>bundle install --path $WERCKER_CACHE_DIR/bundle-install/
+</code></pre>
+
+<p>が走ります。つまり、<strong>$GEM_HOME</strong>とは別の所にインストールされます。</p>
+
+<p>なので、このまま<code>rake</code>を使おうとすると<strong>$WERCKER_CACHE_DIR/bundle-install/</strong>(<strong>WERCKER_CACHE_DIR</strong>は<strong>/cache</strong>という値が入っています。)
+の方は無視して古い10.4.2を呼び出し、
+ディレクトリにあるGemfile.lockと比較してオカシイ、と言う事になっています。</p>
+
+<h2 id="対処法">対処法</h2>
+
+<p>いくつか方法がありますが、一つは<strong>GEM_PATH</strong>にキャッシュディレクトリを
+加えてあげる方法。</p>
+
+<p><code>rake</code>を使う前に</p>
+
+<pre><code>export GEM_PATH=$(cat .bundle/config|grep BUNDLE_PATH|cut -d'"' -f2)/ruby/$(ruby -v|cut -d" " -f2|cut -d"p" -f1)/:$GEM_PATH
+</code></pre>
+
+<p>みたいな行を加えておけば行ける様になります。
+(キャッシュ位置が変わっても良いように<code>bundle install</code>時に記憶される<strong>.bundle/config</strong>内の値を使って。)</p>
+
+<p>もし、新たな実行コマンドもインストールされる場合、
+PATHも</p>
+
+<pre><code>export PATH=$(cat .bundle/config|grep BUNDLE_PATH|cut -d'"' -f2)/ruby/$(ruby -v|cut -d" " -f2|cut -d"p" -f1)/bin:$PATH
+</code></pre>
+
+<p>と変更する必要があります。</p>
+
+<p>ただし、例えばRakefileの中で<code>jekyll</code>等を使う場合、
+<code>jekyll</code>がcacheの方にだけインストールされていても、
+Rakefile内で呼ぶ限りはPATHの設定が無くても呼ぶことが出来ます。</p>
+
+<p>または、キャッシュを使わず<strong>GEM_HOME</strong>にそのままインストールするように、<strong>bundle-install</strong>を使わず、</p>
+
+<pre><code>- script:
+    name: bundle install
+    code: bundle install
+</code></pre>
+
+<p>と、普通に<code>--path</code>オプション無しの<code>bundle install</code>を自分で呼んであげれば
+PATH等も気にせずに使えて楽です。</p>
+
+<p>代わりにキャッシュを使えなくなるので、毎回全部インストールすることになりますが、
+それ程多くのgemをインストールしないのであればこちらの方で良いかと。</p>
+
+<p>取り敢えず今はこの後者の方法でやっています。</p>
+
+<h2 id="bundle-installの問題">bundle-installの問題</h2>
+
+<p>ちょっと<a href="https://github.com/wercker/step-bundle-install/blob/master/run.sh">bundle-installのスクリプト</a>
+を見ていたらバグが有って、
+PATHを指定すると
+<strong>$WERCKER_CACHE_DIR/bundle-install/</strong>以外にもインストールできる様になってるはずなんですが、
+これが</p>
+
+<figure class="code"><figcaption><span>run.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="o">[</span> -z <span class="s2">&quot;</span><span class="nv">$WERCKER_BUNDLE_INSTALL_PATH</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="p">;</span> <span class="c1"># Check $WERCKER_BUNDLE_INSTALL exists</span>
+</span><span class="line"><span class="k">then</span>
+</span><span class="line">    <span class="k">if</span> <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$WERCKER_BUNDLE_INSTALL_PATH</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="c1"># Check $WERCKER_BUNDLE_INSTALL exists and is not empty</span>
+</span><span class="line">    <span class="k">then</span>
+</span><span class="line">        <span class="nv">bundle_command</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$bundle_command</span><span class="s2"> --path </span><span class="nv">$WERCKER_BUNDLE_INSTALL_PATH</span><span class="s2">&quot;</span>
+</span><span class="line">    <span class="k">else</span>
+</span><span class="line">        <span class="nv">bundle_command</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$bundle_command</span><span class="s2"> --path </span><span class="nv">$WERCKER_CACHE_DIR</span><span class="s2">/bundle-install/&quot;</span>
+</span><span class="line">    <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな事をしています。</p>
+
+<p>werckerでは、</p>
+
+<pre><code>- bundle-install:
+    path: verndor/bundle
+</code></pre>
+
+<p>の様に、ステップに対して変数を与える事が出来て、この場合、
+<strong>WERCKER</strong> + <strong>ステップ名</strong> + <strong>変数名</strong>みたいな環境変数としてスクリプト内で使われます。</p>
+
+<p>従って、ここでは<strong>WERCKER_BUNDLE_INSTALL_PATH</strong>を指定しているわけですが、
+スクリプトの中で、最初<code>-z</code>でチェックして、その後<code>-n</code>でチェックしています。</p>
+
+<p>単なるシェルスクリプトですが、<code>-z</code>は指定文字列が0文字であればTrue、
+<code>-n</code>は指定文字列が1文字以上ならばTrueになります。</p>
+
+<p>従って、ここでは、<strong>path</strong>に適当な空白以外の文字列を与えれば
+この部分全て飛ばされ、
+何も与えないか空白を与え場合は最後のキャッシュをパスに指定する部分にたどり着きます。</p>
+
+<p>コード中のコメントは嘘ですし、そもそもその通りのことをしても何も意味が無い。。。。</p>
+
+<p>コメント通りの事をしたいなら、</p>
+
+<pre><code>if [ -z "${WERCKER_BUNDLE_INSTALL_PATH+x}" ] ; # Check $WERCKER_BUNDLE_INSTALL exists
+</code></pre>
+
+<p>とすれば出来ます<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+。ので、どこかから変数チェックの方法をコピペしてきて間違えたのかな、、、と。</p>
+
+<p>なので、上では、</p>
+
+<pre><code>- bundle-install:
+    path: verndor/bundle
+</code></pre>
+
+<p>と書きましたが、これはpathを指定せずに、デフォルトのGEM_HOMEにインストールすることになります。</p>
+
+<p>なので、上の解決方の後者を使いたい時に、
+適当に</p>
+
+<pre><code>- bundle-install:
+    path: nocache
+</code></pre>
+
+<p>とかpathに値を入れておけば単に<code>bundle install</code>をパス指定無しで走らせて
+同じことが出来ます。</p>
+
+<p>が、bundle-installステップがこの辺対処してしまうと困るので、
+直接自分で書いています。</p>
+
+<p>bundle-installを使うメリットとしては、短い記述で済むのと、
+<code>rbenv</code>等を自動で呼んだりしてくれるところですが、
+今は使ってないので特に必要ないので。</p>
+
+<h2 id="pathの指定とgem_home">–pathの指定とGEM_HOME</h2>
+
+<p>bundlerの仕様でちょっとつまずいた所として、
+<code>--path</code>で指定する場所と<strong>GEM_HOME</strong>の値とが同じようなものではない、と言う点。</p>
+
+<p>どういうことかというと、
+<code>--path</code>で<strong>vendor/bundle</strong>の様に指定すると、
+現在使ってるrubyのバージョンを含めた
+<strong>vendor/bundle/ruby/2.3.0</strong>と言ったディレクトリにインストールされます。</p>
+
+<p>一方、<strong>GEM_HOME</strong>はこの
+<strong>vendor/bundle/ruby/2.3.0</strong>と言った実際にインストールされるディレクトリを指しています。</p>
+
+<p>従って、</p>
+
+<pre><code>bundle install --path $GEM_HOME
+</code></pre>
+
+<p>みたいにしてしまうと、
+インストールされるのは<strong>$GEM_HOME/ruby/2.3.0</strong>になるので、
+<strong>vendor/bundle/ruby/2.3.0/ruby/2.3.0</strong>
+みたいになってしまいます。</p>
+
+<p>この辺、ちょっと勘違いがあるかもしれませんが、
+bundle-installのpathへ値を渡そうと色々やってる時にちょっと戸惑ったのでメモ。</p>
+
+<h2 id="インストールされたgemの実行ファイル">インストールされたgemの実行ファイル</h2>
+
+<p><strong>/home/ubuntu/.rvm/rubies/ruby-2.3.0/bin/rake</strong>
+等の実行ファイルですが、この中身は</p>
+
+<figure class="code"><figcaption><span>rake </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="ch">#!/System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/bin/ruby</span>
+</span><span class="line"><span class="c1">#</span>
+</span><span class="line"><span class="c1"># This file was generated by RubyGems.</span>
+</span><span class="line"><span class="c1">#</span>
+</span><span class="line"><span class="c1"># The application &#39;rake&#39; is installed as part of a gem, and</span>
+</span><span class="line"><span class="c1"># this file is here to facilitate running it.</span>
+</span><span class="line"><span class="c1">#</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;&gt;= 0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="no">ARGV</span><span class="o">.</span><span class="n">first</span>
+</span><span class="line">  <span class="n">str</span> <span class="o">=</span> <span class="no">ARGV</span><span class="o">.</span><span class="n">first</span>
+</span><span class="line">  <span class="n">str</span> <span class="o">=</span> <span class="n">str</span><span class="o">.</span><span class="n">dup</span><span class="o">.</span><span class="n">force_encoding</span><span class="p">(</span><span class="s2">&quot;BINARY&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">str</span><span class="o">.</span><span class="n">respond_to?</span> <span class="ss">:force_encoding</span>
+</span><span class="line">  <span class="k">if</span> <span class="n">str</span> <span class="o">=~</span> <span class="sr">/\A_(.*)_\z/</span> <span class="ow">and</span> <span class="no">Gem</span><span class="o">::</span><span class="no">Version</span><span class="o">.</span><span class="n">correct?</span><span class="p">(</span><span class="vg">$1</span><span class="p">)</span> <span class="k">then</span>
+</span><span class="line">    <span class="n">version</span> <span class="o">=</span> <span class="vg">$1</span>
+</span><span class="line">    <span class="no">ARGV</span><span class="o">.</span><span class="n">shift</span>
+</span><span class="line">  <span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="n">gem</span> <span class="s1">&#39;rake&#39;</span><span class="p">,</span> <span class="n">version</span>
+</span><span class="line"><span class="nb">load</span> <span class="no">Gem</span><span class="o">.</span><span class="n">bin_path</span><span class="p">(</span><span class="s1">&#39;rake&#39;</span><span class="p">,</span> <span class="s1">&#39;rake&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じの簡単なRubyのスクリプトになっています。
+実際のrakeの機能はここから<strong>GEM_PATH</strong>にあるrakeの本体を辿って実行されます。</p>
+
+<p>ここで一つつまずいたのが、最初、</p>
+
+<pre><code>export PATH=$(cat .bundle/config|grep BUNDLE_PATH|cut -d'"' -f2)/ruby/$(ruby -v|cut -d" " -f2|cut -d"p" -f1)/bin:$PATH
+</code></pre>
+
+<p>と、<strong>PATH</strong>の方だけ指定して、<code>rake</code>も新しい方を使ってるだろう、と思ってたんですが、
+これをしても、さらに
+<strong>/cache/bundle-install/ruby/2.3.0/bin/rake</strong>と直接
+新しい<code>rake</code>を指定しても10.4.2の古いバージョンが呼ばれて困りました。</p>
+
+<p>実際には、新たにインストールした<strong>rake</strong>実行ファイルも
+元から入ってる実行ファイルと全く一緒なのでPATHだけ変更しても意味が無く、</p>
+
+<pre><code>export GEM_PATH=$(cat .bundle/config|grep BUNDLE_PATH|cut -d'"' -f2)/ruby/$(ruby -v|cut -d" " -f2|cut -d"p" -f1)/:$GEM_PATH
+</code></pre>
+
+<p>とGEM_PATHの方も加えてあげないと意味がありません。</p>
+
+<p>逆に、GEM_PATHに新たなgemのパスを加えると、
+古い
+<strong>/home/ubuntu/.rvm/rubies/ruby-2.3.0/bin/rake</strong>
+の方を使っても新しい10.5.0のrakeが呼ばれる事になります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[werckerでNo space left on deviceはサーバー側の一時的問題っぽい]]></title>
+    <link href="https://rcmdnk.com/blog/2015/03/07/computer-wercker/"/>
+    <updated>2015-03-07T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/03/07/computer-wercker</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00TS3M6D4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00TS3M6D4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51SeQZlmfxL._SS200_.jpg" alt="カードファイトヴァンガードG 第2弾「時空超越」 G-BT02/016　ドキドキ・ワーカー　RR" /></a>
+</div>
+
+<p><a href="http://wercker.com/">wercker</a>を使ってて
+何も問題が無いっぽいのに突然</p>
+
+<pre><code>No space left on device
+</code></pre>
+
+<p>というエラーで落ちてた件。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#no-space-left-on-device" id="markdown-toc-no-space-left-on-device">No space left on device</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="no-space-left-on-device">No space left on device</h2>
+
+<p>スペースが残ってないということなので、
+実は明記されてないけど使える容量が決まっていて、
+使いすぎて上限に到達してしまったのかと思いました。</p>
+
+<p>が、ちょっと探してみるとこんなツイート。</p>
+
+<blockquote class="twitter-tweet" lang="ja"><p><a href="https://twitter.com/Wercker">@Wercker</a> <a href="https://twitter.com/mattaussaguel">@mattaussaguel</a> <a href="https://twitter.com/fredwu">@fredwu</a> same for me. it works about 75% of the time. just have to push an empty change. rebuild seems to fail again.</p>&mdash; Wes Freeman (@wefreema) <a href="https://twitter.com/wefreema/status/389596370157314048">2013, 10月 14</a></blockquote>
+<script async="" src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" lang="ja"><p><a href="https://twitter.com/_wli">@_wli</a> Thank you for reporting. The problem should be resolved.</p>&mdash; wercker (@Wercker) <a href="https://twitter.com/Wercker/status/422625263357558784">2014, 1月 13</a></blockquote>
+<script async="" src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>一年以上前とかのものですが、たまに起こってたみたいで
+サーバー側の問題っぽいです。</p>
+
+<p>多分ジョブで作ったスペース(個人割り当てとかではなくて使ってるサーバーで)
+をクリアするような作業が追いつかなくなったりしてるんでしょうか？</p>
+
+<p>とりあえずすぐ後にジョブを流したら問題なく走ったので、
+やはり一時的にサーバーがいっぱいいっぱいになってしまった
+(もしくはジョブの割り当てを間違えていっぱいの方へ送ってしまった)
+とかみたい。</p>
+
+<p>他にも1年位前の記事を見るとジョブがよく落ちるとか言う話がありましたが、
+今のところ100以上投げてこういう問題はこれ一つだけなので、
+大分安定してきてる、ということですかね。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,2074 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: RaspberryPi | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/raspberrypi/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-12-19T00:44:13+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/"/>
+    <updated>2021-09-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS200_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+
+<p>以前、MH-Z19BをRaspberry Pi Zeroにつなげて二酸化炭素を測定できる様にしましたが、
+ちょっと問題があったので別途MH-Z19Cを買って入れ替えました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#以前の設定方法について" id="markdown-toc-以前の設定方法について">以前の設定方法について</a></li>
+  <li><a href="#起こっていた問題" id="markdown-toc-起こっていた問題">起こっていた問題</a></li>
+  <li><a href="#mh-z19c" id="markdown-toc-mh-z19c">MH-Z19C</a></li>
+  <li><a href="#mh-z19bとmh-z19c" id="markdown-toc-mh-z19bとmh-z19c">MH-Z19BとMH-Z19C</a></li>
+  <li><a href="#使用感" id="markdown-toc-使用感">使用感</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="以前の設定方法について">以前の設定方法について</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS90_CR0,0,120,90_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi/">MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>こちらで。MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定できる様にしました。</p>
+
+<p>Pythonのスクリプトで読み取ってGoogle Sheetsに送ったり、
+Blynkに送ってスマホから確認出来るようにしたりしています。</p>
+
+<h2 id="起こっていた問題">起こっていた問題</h2>
+
+<p>MH-Z19Bで測定を開始して割とすぐに測定が止まってしまうことがありました。
+コマンドを送っても接続がうまく出来てないような状況。</p>
+
+<p>Raspberry Pi自体を再起動したりしてもうまく接続できませんでした。</p>
+
+<p>この問題は、MH-Z19BにつながっているVinのピンにつながっているコードを抜き差しすると解決しました。</p>
+
+<p>その後、1週間に1回位起こる現象になっていて、正直常時使うには辛いレベルです。
+Raspberry Piの再起動とか自動で復帰できればよいのですが、物理的に抜き差しすることしか
+解決する方法は見つけれてない状態で。(その部分を外部からスイッチングできる様な装置使えば自動で復帰できるかもしれませんが。。。)</p>
+
+<p>と、そんな中、上の記事に対して</p>
+
+<blockquote>
+  <p>画像のものは偽物ですね
+私も偽のものを掴まされました…</p>
+</blockquote>
+
+<p>というコメントが。。。
+ちょっとどこを見て判断するのかはわかりませんが、裏が緑ではなく黒いところとか？</p>
+
+<p>これの真偽は正直わからないのですが、ただ、買ったサイトはAliExpressで、
+偽物を掴まされたという話もちょくちょく聞く様なところだったですし、
+届いたものも結構作りが雑な感じはしてました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_mhz19b1.jpg" alt="20210218_mhz19b1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20210218_mhz19b2.jpg" alt="20210218_mhz19b2.jpg" class="pic" /></p>
+
+<p>それでもそれっぽい測定出来てたので、もしかしたら単なる個体差かもしれませんが、
+いずれにしろ使いづらいので新しいものを買おう、と。</p>
+
+<h2 id="mh-z19c">MH-Z19C</h2>
+
+<p>とはいえ、またよくわからないものを掴まされても困るので、ちゃんとしたところから買いたいな、
+と思って探していたところ、
+MH-Z19Cの方を秋月電子通商が取り扱いを開始しているのを見つけました。</p>
+
+<blockquote>
+  <p><a href="https://akizukidenshi.com/catalog/g/gM-16142/">ＣＯ２センサーモジュール ＭＨ－Ｚ１９Ｃ: センサ一般 秋月電子通商-電子部品・ネット通販</a></p>
+</blockquote>
+
+<p>しかも現時点(2021/08/29)で税込み2 ,480円とAmazonとかより安い。
+AliExpressを探すともう少し安いのもありますが、安心感が全然違います。
+Amazonもよくわからないところしか販売してないですし。</p>
+
+<p>残念ながらMH-Z19Bの取り扱いは現状内容ですが、下に書くように
+特にMH-Z19Cでも困ることはなさそうなのでこれを買いました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210918_mhz19c1.jpg" alt="20210830_mhz19c1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20210918_mhz19c2.jpg" alt="20210830_mhz19c2.jpg" class="pic" /></p>
+
+<p>こんな感じのきれいなものが手に入りました。。。</p>
+
+<p>こちらのCの方は
+表側の白いテープが張ってある部分も赤く光ります。
+また、裏にも電源ランプみたいなものが付いていて、電源が入っていると
+裏の電源の横とVinの横に付いているランプがチカチカと光ります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210918_mhz19c4.jpg" alt="20210830_mhz19c4.jpg" class="pic" /></p>
+
+<p>ただこれは止められるなら止めたいな、とも思ったり。(嫌ならテープ貼っておくとかで処置するか、と。)</p>
+
+<h2 id="mh-z19bとmh-z19c">MH-Z19BとMH-Z19C</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS200_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19b.html">MH-Z19B ndir CO2 sensor for indoor air quality monitoring–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/MH-Z19B.pdf">MH-Z19B データシート</a></p>
+</blockquote>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS200_.jpg" alt="Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19c.html">MH-Z19C NDIR CO2 Sensor for HVAC and IAQ–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/infrared-gas-sensor/mh-z19c-pins-type-co2-manual-ver1_0.pdf">MH-Z19C データシート</a></p>
+</blockquote>
+
+<p>見た目も似てますが、中身もかなり同じ様な感じになっています。</p>
+
+<p>生えてるピンも同じなので、Raspberry Pi Zeroとの接続も同じです。
+(BME280が余計に付いてますが気にせず。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_fritzing.jpg" alt="20210218_fritzing.jpg" class="pic" /></p>
+
+<p>二酸化炭素を測定するために送る信号も2つとも同じです。
+また、Self calibrationと呼ばれる自動キャリブレーション機能のon/offを行う信号も同じになっています。</p>
+
+<p>違う信号として、MH-Z19Bには信号を送ることでキャリブレーションを即座に実行することが出来ますが、
+MH-Z19Cのデータシートにはその信号は明記されていません。</p>
+
+<p>ただ、この直接のキャリブレーションはHDピンとGNDピンをつなげれば行えます。(これは2つとも出来る。)</p>
+
+<p>また、MH-Z19Cの方が後に発売されたものですが、測定範囲が
+MH-Z19Bが0~5000ppm、MH-Z19Cが400~5000ppmとMH-Z19Bの方が広くなっています。</p>
+
+<p>なので、MH-Z19CはMH-Z19Bの簡易版?的な感じもしますが、
+単に余計な機能を落として安定させた、というものかもしれません。</p>
+
+<p>いずれにしろ、既に開発されているMH-Z19B用の測定ツールなどは基本的にそのまま使うことが出来ます。</p>
+
+<h2 id="使用感">使用感</h2>
+
+<p>現在同時に2つ動かせる環境じゃないのでBからCに交換して動かしています。</p>
+
+<p>1ヶ月ほど動かしていますが、今の所一度も測定が止まる様なことはありませんでした。</p>
+
+<p>Bの方だとひどいときは週に2回位起こってましたし、買った直後からも起こっていたので
+全然違います。</p>
+
+<p>Bの方がたまたま不良品だったのか、偽物を掴まされたのかは分かりませんが、
+やはり毎週測定が止まるようなことは異常だったようです。</p>
+
+<p>同時に測定できないので精度や比較をするのは難しいですが、
+人がいる環境で締め切っていると1000ppmを超えてきたり、
+窓を開けると400ppmまで下がったり大体同じ様な動作になっていると思います。</p>
+
+<p>外気で400ppmとして
+何度か外でマニュアルキャリブレーションをしてるのですが、
+Cは実際に400ppm以下の表示は出ないようになっていました。</p>
+
+<p>外気は人が住んでるよ言うなところだと400ppmよりは50~100ppmくらい高い様な感じですが、
+まあ正確にキャリブレーションするのも大変なので誤差+/-100ppm位は許容するということで。</p>
+
+<blockquote>
+  <p><a href="https://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.html">気象庁 二酸化炭素濃度の観測結果</a></p>
+</blockquote>
+
+<p>とりあえずちょくちょくつなげ直す様なことはなくなってよかったです。</p>
+
+<p>MH-Z19BはAmazonでもAliExpressでも出どころが確実なところがありませんが、
+MH-Z19Cであれば秋月電子通商で売ってるので今であればMH-Z19C
+の方が安心かとは思いました。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[tsd2gspread: 時系列データをGoogle Sheetsに書き込むPythonツール]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google/"/>
+    <updated>2021-04-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00KNRL068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00KNRL068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51EQHQnIMUL._SS200_.jpg" alt="現場ですぐ使える時系列データ分析～データサイエンティストのための基礎知識～" /></a>
+</div>
+
+<p>Raspberry Piから色々Google Sheetsに書き込むことが多くなってきたので、
+ちょっと機能をまとめたツール的なものをつくってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tsd2gspread" id="markdown-toc-tsd2gspread">tsd2gspread</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>    <ul>
+      <li><a href="#ツールとして使う" id="markdown-toc-ツールとして使う">ツールとして使う</a></li>
+      <li><a href="#親クラスとして使う" id="markdown-toc-親クラスとして使う">親クラスとして使う</a></li>
+    </ul>
+  </li>
+  <li><a href="#主なパラメーターなど" id="markdown-toc-主なパラメーターなど">主なパラメーターなど</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tsd2gspread">tsd2gspread</h2>
+
+<div class="github-widget" data-repo="rcmdnk/tsd2gspread"></div>
+
+<p>Pythonのツールで、pipで</p>
+
+<pre><code>$ pip install tsd2gspread
+</code></pre>
+
+<p>で入れられます。</p>
+
+<p>Google Sheetsに関しては、Pythonでは<a href="https://github.com/burnash/gspread">gspread</a>
+という便利なツールがあって、これを使うと簡単にGoogle SheetsのAPIを使えます。</p>
+
+<p>tsd2gspreadはこのgspreadを使って時系列データを書き込むのに特化したツールです。</p>
+
+<p>gspredをそのまま使っても良かったのですが、別のデータの書き込みに重複部分が増えてきたので
+まとめました。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<h3 id="ツールとして使う">ツールとして使う</h3>
+
+<p>まず、Google Sheets APIにアクセス出来るようサービスアカウントを作成してアカウント情報の入った
+jsonファイルを取得します。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">Authentication — gspread 3.7.0 documentation</a>.</p>
+</blockquote>
+
+<p>これを<strong>~/service_account.json</strong>などに置いておいて、
+以下の様なスクリプトを実行します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">tsd2gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">tsd2gspread</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make function to get data</span>
+</span><span class="line"><span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+</span><span class="line">    <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">    <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">    <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Set data getter</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">get_data</span> <span class="o">=</span> <span class="n">get_data</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで、
+<strong>MySheet</strong>という名前で以下の様な内容を持った
+ワークシート名が<strong>MyWork</strong>のSheetsが出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>datetime</th>
+      <th>foo</th>
+      <th>bar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2021-01-02 03:04:05</td>
+      <td>1</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>あとは<code>tg.write()</code>を実行するたびに、その実行時間と値が書き込まれていきます。</p>
+
+<p>実際に使う際には、この<code>get_data</code>関数を適時必要なものにして渡して、
+データを取得したいタイミングで<code>tg.write()</code>を実行すればOK。</p>
+
+<p>この例ではSheetsがない場合には作成して書き込みを行っていますが、
+その場合はサービスアカウントがオーナーとなってしまい、
+そのアカウントを作ったユーザー自体がアクセス権限を持ってない状態で作られるので、
+<code>share</code>で自分のアカウントを指定して自分がアクセスできるようにしてください。</p>
+
+<pre><code>sheet_name='MySheet',
+</code></pre>
+
+<p>の代わりに既存のSheetsのURLを<code>sheet_url</code>で指定したり
+Key(URLの中にあるランダムな文字列)を<code>sheet_key</code>で指定することも出来ます。</p>
+
+<p>この場合はSheets側で<strong>共有</strong>から、上で取得したサービスアカウントファイルの中にある
+<code>client_email</code>の値に対して編集権限で共有をしておく必要があります。</p>
+
+<p>指定の名前のSheetsがすでにあり、共有設定されていれば上のように名前で指定しても
+既存のファイルに書き込まれます。</p>
+
+<h3 id="親クラスとして使う">親クラスとして使う</h3>
+
+<p>Tsd2Gspreadというクラスがあるので、それを継承する形で使うことも出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">tsd2gspread</span> <span class="kn">import</span> <span class="n">Tsd2Gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Tsd2Gspread</span><span class="p">):</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">        <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">        <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>基本的に定義すべきな関数は<code>get_data</code>で、
+ここで書き込むべき変数を配列なりタプルなりで返す様にします。</p>
+
+<p>これでそのクラスのインスタンスを作って<code>write</code>してあげれば書き込めます。</p>
+
+<h2 id="主なパラメーターなど">主なパラメーターなど</h2>
+
+<p><code>tsd2gspread.get</code>なり<code>Tsd2gspread</code>に渡せるパラメーターについて。</p>
+
+<ul>
+  <li><code>sheet_name</code>, <code>sheet_url</code>, <code>sheet_key</code>: Sheetsを名前かURLかSheetsのKeyで指定できます。新たに作る場合には<code>sheet_name</code>のみが使えます。</li>
+  <li><code>columns</code>: 最初にSheetsを新たに作成する場合には<code>columns</code>に<code>,</code>で分けたカラム名を渡すことで
+カラム名を1行目に書き込むことが出来ます。</li>
+  <li><code>timedelta</code>: デフォルトではUTCの時間を書き込みます。これを日本時間に変更したい場合には<code>timedelta=9</code>などとしてUTCとの差を入れる必要があります。</li>
+</ul>
+
+<p>他にも色々とパラメーターはありますが、これらを<code>config_file</code>というパラメーターにファイルを渡すことでまとめて渡す事もできます。
+<code>config_file</code>の中身は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sheet_name=MySheet
+</span><span class="line">columns=foo,bar
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに<code>OPTION=VALUE</code>の様に書いておきます。</p>
+
+<p>その他詳細は<a href="https://github.com/rcmdnk/tsd2gspread">README</a>で。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Piからシャープの加湿空気清浄機を操作する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/03/04/computer-iot-raspberrypi/"/>
+    <updated>2021-03-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/03/04/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS200_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div>
+
+<p>シャープの加湿空気清浄機をアプリ以外から操作できるようになったので
+Raspberry Piから操作できるようにして、
+IFTTTとかを使っていろいろな条件でも管理できるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#cocoro" id="markdown-toc-cocoro">cocoro</a></li>
+  <li><a href="#cocoro--blynk" id="markdown-toc-cocoro--blynk">cocoro + Blynk</a></li>
+  <li><a href="#blynkのgeo-dns問題" id="markdown-toc-blynkのgeo-dns問題">BlynkのGEO DNS問題</a></li>
+  <li><a href="#iftttと連携して外出時に止める帰宅時に点ける" id="markdown-toc-iftttと連携して外出時に止める帰宅時に点ける">IFTTTと連携して外出時に止める、帰宅時に点ける</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="cocoro">cocoro</h2>
+
+<div class="github-widget" data-repo="rcmdnk/cocoro"></div>
+
+<p>最近買ったシャープの加湿空気清浄機を操作するためのツール。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210303_switchon_120_90.jpg" width="120" height="90" alt="20210303_switchon_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/">シャープの加湿空気清浄機をアプリ外から操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/25/life-iot-shopping/">加湿器調査: シャープの加湿空気清浄機KI-JS50購入(IoT)</a></div></li></ul>
+
+<p>これとBlynkというアプリとIFTTTを使ってRaspberry Piとスマホから色々できるようにします。</p>
+
+<h2 id="cocoro--blynk">cocoro + Blynk</h2>
+
+<p>まずは
+<a href="https://github.com/rcmdnk/cocoro">cocoro</a>
+をRaspberry Piにインストール。</p>
+
+<pre><code>$ sudo pip3 install cocoro
+</code></pre>
+
+<p><strong>/home/pi/.config/cocoro/config.yml</strong>に</p>
+
+<figure class="code"><figcaption><span>/home/pi/.config/cocoro/config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">appSecret</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;appSecret&gt;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">terminalAppIdKey</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;terminalAppIdKey&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の値をmitmproxyとかで調べて書いておきます。</p>
+
+<p>これで、</p>
+
+<pre><code>$ cocoro info
+</code></pre>
+
+<p>などしてちゃんと通信できることを確認。</p>
+
+<p>これでRaspberry Piから加湿空気清浄機を操作できるようになりました。</p>
+
+<p>ここまで来たらBlynkから操作できるようにします。</p>
+
+<p>Blynkに関して詳しくは以下で。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<p><a href="https://github.com/blynkkk/blynk-library">BlynkのオリジナルのC++のExampleコード</a>
+を参考に以下の様なコードを書きました。</p>
+
+<ul>
+  <li><a href="https://github.com/rcmdnk/blynk-library/blob/9eb02622f275808c7b62b93afc2e489a1addf805/linux/main.cpp#L38">blynk-library/main.cpp</a></li>
+</ul>
+
+<p>別途<a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">BME280による観測</a>なども入ってますが、今回使っているのはV1~V3の部分。</p>
+
+<figure class="code"><figcaption><span>main.cpp </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#define COCORO_CONFIG &quot;--config_file /home/pi/.config/my_raspi_home/cocoro.yml&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value for V%d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line">  <span class="n">string</span> <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cocoro switch &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;on &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;off &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">cmd</span> <span class="o">+=</span> <span class="n">COCORO_CONFIG</span><span class="p">;</span>
+</span><span class="line">  <span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V2</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value for V%d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">V2</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line">  <span class="n">string</span> <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cocoro humi &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;on &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;off &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">cmd</span> <span class="o">+=</span> <span class="n">COCORO_CONFIG</span><span class="p">;</span>
+</span><span class="line">  <span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V3</span><span class="p">)</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Got a value for V%d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">V3</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asStr</span><span class="p">());</span>
+</span><span class="line">  <span class="n">string</span> <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cocoro mode &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;recommendation &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;effective &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;auto &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;pollen &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">asInt</span><span class="p">()</span> <span class="o">==</span> <span class="mi">5</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cmd</span> <span class="o">+=</span> <span class="s">&quot;quiet &quot;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">cmd</span> <span class="o">+=</span> <span class="n">COCORO_CONFIG</span><span class="p">;</span>
+</span><span class="line">  <span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>あたりが重要なところ。</p>
+
+<p>これをコンパイルしてRaspberry Piで動かしておいて、
+アプリ側で以下の様なボタンを作ります。</p>
+
+<p>V1、V2は以下の様な0, 1を出すButton。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210304_v1.jpg" alt="20210304_v1.jpg" class="pic" /></p>
+
+<p>これにそれぞれ電源スイッチと加湿のOn/Offを割り当て。</p>
+
+<p>V3はSegmented Switchという最大5種類まで設置できるスイッチボタン。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210304_v3.jpg" alt="20210304_v3.jpg" class="pic" /></p>
+
+<p>これが最大5種類なのでよく使いそうなモード5つを選択して設置。</p>
+
+<p>これで以下の様なBlynkのUIになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210304_blynk.jpg" alt="20210304_blynk.jpg" class="pic" /></p>
+
+<p>これを使ってCOCORO Airを通さずにBlynkから加湿空気清浄機を操作できるようになりました。</p>
+
+<p>これだけだとCOCORO Airのアプリを直接使えば良いとなるわけですが、
+このBlynkを使って別経由で操作できるようにします。</p>
+
+<p>BlynkはAPIを通して操作できるようになっているのでそれを使います。</p>
+
+<ul>
+  <li><a href="https://blynkapi.docs.apiary.io/#">Blynk HTTP RESTful API · Apiary</a></li>
+</ul>
+
+<p>使う際には、まずBlynkの<strong>Project Settings</strong>にある
+<code>AUTH TOKEN</code>という値をメモしておきます。</p>
+
+<p>このTOKENを使って</p>
+
+<pre><code>http://blynk-cloud.com/&lt;AUTH TOKEN&gt;/update/V1?value=1
+</code></pre>
+
+<p>とかにGETすればV1の値を1に変更することが出来ます。
+このあたりのAPIの仕様は上のAPIページを参考に。</p>
+
+<p>試しに、適当なターミナルから</p>
+
+<pre><code>$ curl http://blynk-cloud.com/&lt;AUTH TOKEN&gt;/update/V1?value=1
+</code></pre>
+
+<p>とかしてちゃんと変更できるか確認。</p>
+
+<p>うまくいけばこれを使ってあらゆるところからBlynkを操作でき、
+すなわち加湿空気清浄機を操作できる様になります。</p>
+
+<h2 id="blynkのgeo-dns問題">BlynkのGEO DNS問題</h2>
+
+<p>上の様な感じでBlynkのAPIを使って色々やりたいところなんですが、
+このままIFTTTとかで使うとうまくいきません。</p>
+
+<pre><code>Action failure message: Your server returned a 400. Unable to make web request to http://blynk-cloud.com/&lt;AUTH TOKEN&gt;/update/V1
+</code></pre>
+
+<p>みたいなエラーが返ってきます。</p>
+
+<p>これは
+BlynkがGEO DNSという、接続元IPアドレスの地域によって違うレコードを返すDNSを使っているためです。</p>
+
+<p>日本で動かしているRaspberry Piに日本から接続するとうまくいきますが、
+IFTTTとかだとWebhookを送るサーバーが日本にあるわけではないので
+別のblynkサーバーに接続しに行ってしまってエラーになってしまいます。</p>
+
+<p>これを解決するためには使っているサーバーのIPアドレスを調べてそれを直接使うこと。</p>
+
+<pre><code>$ nslookup blynk-cloud.com
+Server:         XXX.XX.XX.X
+Address:        XXX.XX.XX.X#XX
+
+Non-authoritative answer:
+Name:   blynk-cloud.com
+Address: 188.166.206.43
+</code></pre>
+
+<p>という感じで<code>188.166.206.43</code>だとわかるのでこれを使います。</p>
+
+<p>上のURLだと</p>
+
+<pre><code>$ curl http://188.166.206.43/&lt;AUTH TOKEN&gt;/update/V1?value=1
+</code></pre>
+
+<p>とすれば同様の結果が得られますし、これであればIFTTTとかで使っても有効です。</p>
+
+<h2 id="iftttと連携して外出時に止める帰宅時に点ける">IFTTTと連携して外出時に止める、帰宅時に点ける</h2>
+
+<p>使うのはIFTTTの<strong>Location</strong>と<strong>Webhooks</strong>。</p>
+
+<p>外出時に消す操作は</p>
+
+<ul>
+  <li><strong>If</strong>のところで<strong>Location</strong>を選択
+    <ul>
+      <li><strong>You exit an area</strong>を選択</li>
+      <li>自宅付近を地図で選んで<strong>Create trigger</strong></li>
+    </ul>
+  </li>
+  <li><strong>Then That</strong>のところで<strong>Webhooks</strong>を選択
+    <ul>
+      <li><strong>Make a web request</strong></li>
+      <li><strong>URL</strong>に上の<code>GET</code>方式のURLを入力。スイッチを切るので最後の部分は<code>V1?value=0</code>に。</li>
+      <li><strong>Method</strong>は<code>GET</code></li>
+      <li><strong>Content Type</strong>と<strong>Body</strong>はそのまま</li>
+      <li>で<strong>Create action</strong></li>
+    </ul>
+  </li>
+</ul>
+
+<p>帰宅時に点ける操作は
+<strong>Location</strong>でexitではなく<strong>You enter an area</strong>で作り、
+<strong>Webhooks</strong>の方ではURLで最後の部分を<code>V1?value=1</code>にして
+別途作ります。</p>
+
+<p>これで家にいるときだけ点けることが出来ます。</p>
+
+<p>シャープのおまかせにしておくと、逆に家に居ないときに空気清浄能力を上げてきれいにする、
+という操作をしてくれたりしますが、
+食事時などでニオイが強くなっても割とすぐに消えるし、
+家の中は割とキレイそうなので無理に居ないときに回す必要は無いかな、ということでこういう設定に。</p>
+
+<p>家にいるときに普通の設定だとうるさすぎるので静音にしてますが、
+空気清浄能力はそれでも十分です。</p>
+
+<p>加湿に関しては少しそれだと足りないかな、という点はあって、
+その辺もこの辺使えば
+湿度とか見て自分の良いようにしようと思えばできるので今後やるかも。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シャープの加湿空気清浄機をアプリ外から操作する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/"/>
+    <updated>2021-03-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>IoT家電、ということで買ったシャープの加湿空気清浄機KI-JS50ですが、
+アプリを使えばスマホから操作できるものの、
+Google Homeとの連携などはそのままでは出来ません。</p>
+
+<p>そこでAPIを解析してアプリ以外から操作できるようにして、
+最終的にRaspberry PiとかGoogle Homeから操作できるようにしたいと思います。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シャープ加湿空気清浄機ki-js50" id="markdown-toc-シャープ加湿空気清浄機ki-js50">シャープ加湿空気清浄機KI-JS50</a></li>
+  <li><a href="#mitmproxyで通信を見てみる" id="markdown-toc-mitmproxyで通信を見てみる">mitmproxyで通信を見てみる</a></li>
+  <li><a href="#cocoro-python製cocoro-air-api" id="markdown-toc-cocoro-python製cocoro-air-api">cocoro: Python製COCORO AIR API</a></li>
+  <li><a href="#google-apps-script-gasでは出来ない" id="markdown-toc-google-apps-script-gasでは出来ない">Google Apps Script (GAS)では出来ない?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シャープ加湿空気清浄機ki-js50">シャープ加湿空気清浄機KI-JS50</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/25/life-iot-shopping/">加湿器調査: シャープの加湿空気清浄機KI-JS50購入(IoT)</a></div></li></ul>
+
+<p>シャープの最近の空気清浄機系の家電は
+<a href="https://jp.sharp/kuusei/cocoro/">COCORO AIR</a>
+というクラウドサービスを通じて家電の操作をスマホから行ったり、
+スマホで家電の状況を調べたりすることが出来るようになっています。</p>
+
+<p>家電によっては、所持者が家にいるときと外出時をスマホの位置情報で把握して
+それによって運転状況をAIによる判断で変えてくれたりします。</p>
+
+<p>まあ、AIによる判断で外出中はうるさくしても良いから激しく清浄したりするんですけど、
+そのあたりを設定することは出来ず、思い通りにどうこうすることは出来ません。</p>
+
+<p>一方で操作するためのAPIなんかを公開してくれてると良いのですが、
+今の所COOCRO AIRに関するAPIは公開されていません。</p>
+
+<p>せっかくのIoT家電なのに自由度が低いと残念な気持ちになってきます。</p>
+
+<h2 id="mitmproxyで通信を見てみる">mitmproxyで通信を見てみる</h2>
+
+<p>前回やったmitmproxyを使ってCOCORO AIRへの通信を観測して
+使えないか見てみます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/03/02/computer-windows-mac-network/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210302_mitmit_120_90.jpg" width="120" height="90" alt="20210302_mitmit_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/02/computer-windows-mac-network/">mitmproxyを使ってアプリの通信内容を確認する</a></div></li></ul>
+
+<p>設定してCOCORO AIRのアプリを立ち上げて色々やっていると</p>
+
+<pre><code>https://hms.cloudlabs.sharp.co.jp
+</code></pre>
+
+<p>といったURLに対して色々通信していることが分かります。</p>
+
+<p>なので、とりあえず<code>f</code>でfilterを起動して<code>sharp</code>で絞って見て見るようにします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_mitmproxy.jpg" alt="20210303_mitmproxy.jpg" class="pic" /></p>
+
+<p>試しにスイッチをON/OFFしてみると、それぞれPOSTが2回投げられ、
+どうやらそれぞれの1回目がコマンドで2回目はうまく行ったかどうかの確認の感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_switchon.jpg" alt="20210303_switchon.jpg" class="pic" /></p>
+
+<p>成功している場合、このResponseは</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_switchonok.jpg" alt="20210303_switchonok.jpg" class="pic" /></p>
+
+<p>の様な<code>errorCode: null</code>が返ってきているはずです。</p>
+
+<p>この画面で<code>: export.clip curl @focus</code>として
+スイッチを入れるcURLコマンドをとってみるとこんな感じのPOST。</p>
+
+<pre><code>$ curl -H 'Accept: application/json' \
+-H 'Content-Type:  application/json; charset=utf-8' \
+-H 'Proxy-Connection: close' \
+-H 'Cookie: JSESSIONID=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
+-H  'User-Agent: smartlink_v200i Mozilla/5.0 (iPhone; CPU iPhone OS  14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)  Mobile/15E148' \
+--compressed \
+-H 'Connection: close' \
+-X POST  \
+'https://hms.cloudlabs.sharp.co.jp/hems/pfApi/ta/control/deviceControl?boxId=https://db.cloudlabs.sharp.co.jp/clpf/key/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&amp;appSecret=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
+-d  '{"controlList":[{"status":[{"valueSingle":{"code":"30"},"statusCode":"80","valueType":"valueSingle"},{"valueBinary":{"code":"00030000000000000000000000FF00000000000000000000000000"},"statusCode":"F3","valueType":"valueBinary"}],"deviceId":"XXXXXX","echonetNode":"XX-XX-XX-XX-XX-XX","echonetObject":"XXXXXX"}]}'
+</code></pre>
+
+<p>これを取り出してすぐにKI-JS50のスイッチを一旦消して、
+これをすぐにコマンドラインから打ってみるとたしかにスイッチON出来ました。</p>
+
+<p>ここで、スイッチを入れる信号はPOSTしているデータ部分の</p>
+
+<pre><code>"status":[{
+  "valueSingle": {"code":"30"},
+  "statusCode": "80",
+  "valueType": "valueSingle"
+},{
+  "valueBinary":{
+    "code": "00030000000000000000000000FF00000000000000000000000000"
+  },
+  "statusCode": "F3",
+  "valueType": "valueBinary"
+}]
+</code></pre>
+
+<p>の部分。
+特に<code>code</code>で表されている27バイト分のコードが命令信号になっている模様。</p>
+
+<p>実際、スイッチを切ったりするのもこのコードが変わった形になっています。</p>
+
+<p>データとして送られている<code>deviceId</code>、<code>echonetNode</code>、<code>echonetObject</code>は使っている家電に関するもの。</p>
+
+<p>あとはURLの中にある文字列とCOOKIEでセットされている<code>JSESSIONID</code>というのがわかればなんとかなりそう。</p>
+
+<p>ということでなんどか試していると、このcURLコマンドは効かなくなりました。</p>
+
+<p>もう一度スマホの方から信号を送ってみて改めて正しいコマンドをとってみると、わずかに違うものに。</p>
+
+<p>違うのは</p>
+
+<pre><code>-H 'Cookie: JSESSIONID=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+</code></pre>
+
+<p>の部分。</p>
+
+<p>他は全く一緒。</p>
+
+<p>このCookieの値は必要に応じて取得して通信を有効化しているようです。</p>
+
+<p>この値をとってきている部分を探してみると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_getcookie.jpg" alt="20210303_getcookie.jpg" class="pic" /></p>
+
+<p>の部分。</p>
+
+<pre><code>https://hms.cloudlabs.sharp.co.jp/hems/pfApi/ta/setting/login/?appSecret=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&amp;serviceName=iClub
+</code></pre>
+
+<p>といったURLに</p>
+
+<pre><code>{"terminalAppId":"https:\/\/db.cloudlabs.sharp.co.jp\/clpf\/key\/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}'
+</code></pre>
+
+<p>といったデータを送ってPOSTをしています。
+そのResponseとして<code>Set-Cookie</code>でCookieの値を取得している様です。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_gotcookie.jpg" alt="20210303_gotcookie.jpg" class="pic" /></p>
+
+<p>ここで、<code>appSecret</code>と<code>terminalAppId</code>の値がおそらく
+個人IDや登録したスマホの特定に使われて通信の許可を得るためのキーになっている模様。</p>
+
+<p>したがってこれらの値は自分で通信を見て取得するしかありません。</p>
+
+<p>一方で、<code>deviceId</code>などはやり取りで取得することが出来ます。</p>
+
+<p>複数の家電を繋げている場合には一覧を取得して選ぶ必要があると思いますが、
+今はひとつなのでそれをとって使うだけ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210303_getbox.jpg" alt="20210303_getbox.jpg" class="pic" /></p>
+
+<p>このコマンドのところ。</p>
+
+<pre><code>https://hms.cloudlabs.sharp.co.jp/hems/pfApi/ta/setting/boxInfo/?appSecret=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&amp;mode=other'
+</code></pre>
+
+<p>といった感じのURLにGETする通信で取得していることが分かります。</p>
+
+<h2 id="cocoro-python製cocoro-air-api">cocoro: Python製COCORO AIR API</h2>
+
+<p>というわけで、上記を参考に簡単にコマンドラインからシャープ製加湿空気清浄機を操作する
+ツールを作ってみました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/cocoro"></div>
+
+<p>インストールは</p>
+
+<pre><code>$ pip install cocoro
+</code></pre>
+
+<p>で。</p>
+
+<p>上にも書いたように、<code>appSecret</code>と<code>terminalAppId</code>のキー部分(最後の<code>/</code>後の文字列)は
+mitmproxyなどを使って
+自分で取得する必要があるので頑張って取得してください。</p>
+
+<p>これらを</p>
+
+<figure class="code"><figcaption><span>~/.config/cocoro/config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">appSecret</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;*************appSecret**********************&gt;</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">terminalAppIdKey</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;************terminalAppIdKey*************&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といったファイルに書いて設置します。</p>
+
+<p>これで、<code>cocoro</code>コマンドを使っていろいろ出来ます。</p>
+
+<p>使っている家電の情報の取得:</p>
+
+<pre><code>$ cocoro info
+[INFO][Cocoro] Device information
+{'id': 123456, 'place': 'リビング', 'name': 'my js50', 'deviceType': 'AIR_CLEANER', 'zipCd': '7890123', 'yomi': '', 'lSubInfo': '{"room_data":{"size": 10.0, "struct": "prefab", "unit": "tatami"}}'}
+$ cocoro info model --log_level=warning
+KIJS50
+$ cocoro info maker --log_level=warning
+SHARP
+</code></pre>
+
+<p>こんな感じで取得。</p>
+
+<p>操作はスイッチのON/OFF:</p>
+
+<pre><code>$ cocoro switch on
+[INFO][Cocoro] Succeeded to control js50: switch on
+$ cocoro switch off
+[INFO][Cocoro] Succeeded to control js50: switch off
+</code></pre>
+
+<p>加湿のON/OFF:</p>
+
+<pre><code>$ cocoro humi on
+[INFO][Cocoro] Succeeded to control js50: humidification on
+$ cocoro humi off
+[INFO][Cocoro] Succeeded to control js50: humidification off
+</code></pre>
+
+<p>モード切替:</p>
+
+<pre><code>$ cocoro mode auto
+[INFO][Cocoro] Succeeded to control js50: mode auto
+</code></pre>
+
+<p>モード切替(<code>mode</code>)ではいかのモードが使えます:</p>
+
+<ul>
+  <li><code>auto</code>: 自動</li>
+  <li><code>sleep</code>: おやすみ</li>
+  <li><code>pollen</code>: 花粉</li>
+  <li><code>quiet</code>: 静音</li>
+  <li><code>medium</code>: 中</li>
+  <li><code>recommendation</code>: おまかせ</li>
+  <li><code>effective</code>: 効果実感</li>
+</ul>
+
+<p>あとはこれを自由に使って適当なところから司令を出せるようにすれば自由な操作が手に入ります。</p>
+
+<h2 id="google-apps-script-gasでは出来ない">Google Apps Script (GAS)では出来ない?</h2>
+
+<p>上の方法で適当なサーバーを立てておけば色々できるんですが、
+その代わりにGASでなんとか出来ないかな、と思って
+GASからPOSTしてみようといろいろ頑張ったのですがどうしても出来ず。</p>
+
+<p>何がいけないんだろうと思って探ってみると、
+GASでHTTPリクエストをするUrlFetchAppというツールが
+ユーザーエージェントを指定しても別途GASのユーザーエージェントを追加してしまう、
+というのが問題でした。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/15067462/urlfetch-with-custom-user-agent-string">google apps script - UrlFetch with custom user-agent string? - Stack Overflow</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/56099139/urlfetchapp-fetch-error-doesnt-seem-to-be-using-headers/56100109#56100109">google apps script - UrlFetchApp.fetch() error, doesn’t seem to be using headers - Stack Overflow</a></p>
+</blockquote>
+
+<p>これはGASで自由なユーザーエージェントを指定できてしまうと、
+スパム的な使い方をされるのが困る、ということでそれを避けてるとか避けてないとか。</p>
+
+<p>少なくとも今のところはユーザーエージェントを指定しないといけない様な通信にはUrlFetchAppは使えないようです。</p>
+
+<p>上のCOCORO Airの通信もユーザーエージェントがきちんと特定のものでないと
+appSecretやCookieの設定が正しくても<strong>403 Forbidden</strong>が返ってきてしまいます。</p>
+
+<p>ので、現状では上のPythonのライブラリを適当なサーバーで動かしてどうにかするしかないかな、といった感じです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi/"/>
+    <updated>2021-02-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS200_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div>
+
+<p>MH-Z19Bという二酸化炭素センサーを買って、
+Raspberry Pi Zeroにつなげて家の中の二酸化炭素を測定するようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mh-z19c" id="markdown-toc-mh-z19c">MH-Z19C</a></li>
+  <li><a href="#mh-z19b" id="markdown-toc-mh-z19b">MH-Z19B</a></li>
+  <li><a href="#raspberry-piとの接続" id="markdown-toc-raspberry-piとの接続">Raspberry Piとの接続</a></li>
+  <li><a href="#raspberry-piのuart設定" id="markdown-toc-raspberry-piのuart設定">Raspberry PiのUART設定</a></li>
+  <li><a href="#二酸化炭素濃度の読みとり" id="markdown-toc-二酸化炭素濃度の読みとり">二酸化炭素濃度の読みとり</a>    <ul>
+      <li><a href="#python" id="markdown-toc-python">Python</a></li>
+      <li><a href="#c" id="markdown-toc-c">C++</a></li>
+      <li><a href="#go" id="markdown-toc-go">Go</a></li>
+    </ul>
+  </li>
+  <li><a href="#キャリブレーション" id="markdown-toc-キャリブレーション">キャリブレーション</a></li>
+  <li><a href="#外気の二酸化炭素濃度" id="markdown-toc-外気の二酸化炭素濃度">外気の二酸化炭素濃度</a></li>
+  <li><a href="#実際の配線" id="markdown-toc-実際の配線">実際の配線</a></li>
+  <li><a href="#実測値" id="markdown-toc-実測値">実測値</a></li>
+  <li><a href="#測定が止まる" id="markdown-toc-測定が止まる">測定が止まる</a></li>
+  <li><a href="#気温" id="markdown-toc-気温">気温</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mh-z19c">MH-Z19C</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2021/09/18 </strong></p>
+
+  <p>以下で紹介しているAliExpressで買ったMH-Z19Bの調子が悪かったので
+秋月電子通商でMH-Z19Cを買って取り替えました。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS90_CR0,0,120,90_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/">MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="mh-z19b">MH-Z19B</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS200_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19b.html">MH-Z19B ndir CO2 sensor for indoor air quality monitoring–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/MH-Z19B.pdf">MH-Z19B データシート</a></p>
+</blockquote>
+
+<p>MH-Z19Bは二酸化炭素センサーモジュールで、Raspberry Piなどの小型PC
+と繋げて使う二酸化炭素センサーモジュールとしては一番良く例が出てくるものでした。</p>
+
+<p>最近はMH-Z19Cという新しいバージョンのものもあるので注意してください。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS200_.jpg" alt="Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19c.html">MH-Z19C NDIR CO2 Sensor for HVAC and IAQ–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/infrared-gas-sensor/mh-z19c-pins-type-co2-manual-ver1_0.pdf">MH-Z19C データシート</a></p>
+</blockquote>
+
+<strike>データシートを見るとMH-Z19Bが400~2000ppm、MH-Z19Cが0~2000ppmの範囲で測れるので
+Cの方が優秀なので、使いこなせるならCを買った方が良いんですが、</strike>
+
+<div class="postscript">
+  <p><strong>追記: 2021/08/22 </strong></p>
+
+  <p>Cの方が新しいからスペックが良い、と思いこんでたのか見間違えてましたが、
+MH-Z19Bが0~5000ppm、MH-Z19Cが400~5000ppmになってます。</p>
+
+  <p>上のAmazonのタイトルがそもそもそうなってて、上限も2000ではなく5000ですね。。。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>一部信号が違うのでよくあるMH-Z19B用に作られたライブラリとかが使えない可能性があります。
+(ただ、データシートを見ると、一番使う二酸化炭素濃度の読み取りコマンドは同じなのでそれだけなら問題ないとは思いますが。)</p>
+
+<p>MH-Z19、とB/Cがついてない古いバージョンもありますが(<a href="https://www.winsen-sensor.com/d/files/PDF/Infrared%20Gas%20Sensor/NDIR%20CO2%20SENSOR/MH-Z19%20CO2%20Ver1.0.pdf">MH-Z19 データシート</a>、基本的にはMH-Z19Bとほとんど同じ仕様ですし、売っているものは実はBだったりもするようですが、一応きちんとBが付いてるものを買ったほうが間違いないです。</p>
+
+<p>MH-Z19Bに関しては、Amazonでも3000円~4000円ほどで売ってますが、
+AliExpressというサイトで安いもので2000円位で売ってるので今回はそちらで買いました。</p>
+
+<blockquote>
+  <p><a href="https://ja.aliexpress.com/item/32725368770.html?spm=a2g0s.9042311.0.0.3da24c4doaS4MQ">MH Z19B MH Z19 CO2二酸化炭素ガスセンサーシリアル出力非分散型赤外線 infrared gas sensor infrared sensorinfrared co2 sensor - AliExpress</a></p>
+</blockquote>
+
+<p>他の人を見てもこれに関してはAliExpressで購入してる人が多いようでした。</p>
+
+<p>買う時にちょっと注意したほうが良いのは、ものによって、端子にピンが付いてたり
+付いてなかったりするので自分の用途を考えて使いやすいものを選んだほうが良いです。</p>
+
+<p>まあ、写真と違うものが来る可能性がゼロではないんですが。</p>
+
+<p>今回は年末に頼んだこともありますが、12月30日位に頼んで届いたのが1月24日とかでした。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_mhz19b1.jpg" alt="20210218_mhz19b1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20210218_mhz19b2.jpg" alt="20210218_mhz19b2.jpg" class="pic" /></p>
+
+<p>軽く忘れかけてた頃に届いた感じです。
+この辺考慮すると、多少高くてもAmazonで買ってしまっても良かったかも、と思ってます。</p>
+
+<p>年末ころはあまりMH-Z19Cを見なかった気がするんですが、今見るとMH-Z19Cも大分安く売ってるので、
+データシート見て色々できそうだと思ったらそっちを買っても良いかも。</p>
+
+<h2 id="raspberry-piとの接続">Raspberry Piとの接続</h2>
+
+<p>使っているのはRaspberry Pi Zero WHです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/16/computer-iot-raspberrypi/">Raspberry Piの初期設定</a></div></li></ul>
+
+<p>Raspberry PiのGPIOとの接続は4箇所。</p>
+
+<ul>
+  <li>MH-Z19BのV+と5V power (e.g. 4番)</li>
+  <li>MH-Z19BのV-とGround (e.g. 6番)</li>
+  <li>MH-Z19BのTxdとGPIO14 (RXD) (e.g. 8番)</li>
+  <li>MH-Z19BのRxdとGPIO15 (TXD) (e.g. 10番)</li>
+</ul>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.org/documentation/usage/gpio/">GPIO - Raspberry Pi Documentation</a></p>
+</blockquote>
+
+<p>ちょうど外側の2番から5番目までを埋める感じで揃えることができます。
+TXDとRXDはMH-Z19BとRaspberry Pi側で逆のものを接続する様にするところを注意。</p>
+
+<h2 id="raspberry-piのuart設定">Raspberry PiのUART設定</h2>
+
+<p>MH-Z19BとはUART(Universal Asynchronous Receiver Transmitter)という機器を使った
+非同期式のリシアル通信を使って喋ります。</p>
+
+<p>上で接続したTXDとRXDがそれぞれ送信データ(Transmit Data)、受信データ(Receive Data)を表す信号名になります。
+(なのでMH-Z19BのTXD(送信側)とRaspberry Pi側のRXD(受信側)をつなぐ。)</p>
+
+<p>細かいUARTの説明は他に譲って、Raspberry Piではどの様に使われているかというと
+公式にドキュメントがあります。</p>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.org/documentation/configuration/uart.md">UART configuration - Raspberry Pi Documentation</a></p>
+</blockquote>
+
+<p>Raspberry Piの種類によって違っていて、Raspberry Pi Zero WHだと初期状態で</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Configuration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>UART0</td>
+      <td>PL011(PrimeCell UART) (<code>/dev/ttyAMA0</code>)</td>
+      <td>secondary (Bluetooth) (<code>/dev/serial1</code>)</td>
+    </tr>
+    <tr>
+      <td>UART1</td>
+      <td>mini UART (<code>/dev/ttyS0</code>)</td>
+      <td>primary</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>になっています。</p>
+
+<p>Typeの違い、としては、PL011に比べmini UARTの方は一部機能が制限されたUARTといった感じです。</p>
+
+<p>初期状態だと、UART0の方はBluetoothモジュールに繋がれています。
+これが
+<code>/dev/serial1</code>がUART0の<code>/dev/ttyAMA0</code>のシンボリックリンクになっている状態。</p>
+
+<pre><code>pi@raspberrypi:~ $ ls -l /dev/serial*
+lrwxrwxrwx 1 root root x xxx xx xx:xx /dev/serial1 -&gt; ttyAMA0
+</code></pre>
+
+<p>今回使いたい
+GPIO14 (RXD), GPIO15 (TXD)は<code>/dev/serial0</code>にあたりますが、
+これは
+初期状態だとシリアルコンソールのために使われるようになっています。
+(UARTにはつながってない。)</p>
+
+<p>UARTを使うためには、</p>
+
+<ul>
+  <li>UART1でUART通信を行う</li>
+  <li>Bluetoothを無効にして、UART0でUART通信を行う</li>
+  <li>UART0でUART通信を行い、UART1でBluetoothを使う</li>
+</ul>
+
+<p>などが考えられます。</p>
+
+<p>UART1の方がmini UARTなので、そちらで使う方はパフォーマンスが落ちたり
+問題が起きやすかったりするわけですが、
+現状Bluetoothを頻繁に使うこともないので<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<ul>
+  <li>UART0でUART通信を行い、UART1でBluetoothを使う</li>
+</ul>
+
+<p>という方法にしました。</p>
+
+<p>この辺りは下のページのまとめが分かりやすかったです。</p>
+
+<blockquote>
+  <p><a href="https://www.usagi1975.com/201907061439/">Raspberry Piのシリアルコンソール設定について</a></p>
+</blockquote>
+
+<pre><code>pi@raspberrypi:~ $ ls -l /dev/serial*
+lrwxrwxrwx 1 root root x xxx xx xx:xx /dev/serial1 -&gt; ttyAMA0
+pi@raspberrypi:~ $ vcgencmd measure_clock core
+frequency(1)=250000000
+pi@raspberrypi:~ $
+</code></pre>
+
+<p>この状態から、<strong>/boo/config.txt</strong>に</p>
+
+<pre><code>dtoverlay=pi3-miniuart-bt
+</code></pre>
+
+<p>を加えてから再起動。</p>
+
+<p>再起動後</p>
+
+<pre><code>pi@raspberrypizero:~ $ ls -l /dev/serial*
+lrwxrwxrwx 1 root root x xxx  x xx:xx /dev/serial0 -&gt; ttyAMA0
+lrwxrwxrwx 1 root root x xxx  x xx:xx /dev/serial1 -&gt; ttyS0
+pi@raspberrypizero:~ $ vcgencmd measure_clock core
+frequency(1)=400000000
+pi@raspberrypizero:~ $
+</code></pre>
+
+<p>ttyAMA0(PL011)がserial0に、ttyS0(mini UART)がserial1(Bluetooth)になっていることが分かります。</p>
+
+<p>コアクロックも上のリンク内の説明にあるように400MHzに変わっています。</p>
+
+<strike>これで準備OK。</strike>
+
+<div class="postscript">
+  <p><strong>追記: 2021/03/22 </strong></p>
+
+  <p>この状態だとBluetoothが有効になっていませんでした。</p>
+
+  <p>Bluetoothを有効にするには<strong>/boo/config.txt</strong>に</p>
+
+  <pre><code>dtoverlay=pi3-miniuart-bt
+core_freq=250
+</code></pre>
+
+  <p>と<code>core_freq</code>の設定も入れる必要があります<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+  <p>この状態で再起動すると、</p>
+
+  <pre><code>pi@raspberrypizero:~ $ vcgencmd measure_clock core
+frequency(1)=250000000
+</code></pre>
+
+  <p>と、コアクロックが元の250MHzと同じになります。</p>
+
+  <p>この状態だとBluetoothが使えます。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="二酸化炭素濃度の読みとり">二酸化炭素濃度の読みとり</h2>
+
+<p><a href="https://www.winsen-sensor.com/d/files/infrared-gas-sensor/ndir-co2-sensor/mh-z19b-co2-manual(ver1_6).pdf">データシート</a>にあるコマンドを使って二酸化炭素濃度を読みとります。</p>
+
+<h3 id="python">Python</h3>
+
+<p>Python(3)で行うには、
+<a href="https://pythonhosted.org/pyserial/">pySerial</a>
+パッケージをインストールして、</p>
+
+<pre><code>$ pip3 install pyserial
+</code></pre>
+
+<p>以下の様なスクリプトを実行します。</p>
+
+<figure class="code"><figcaption><span>mhz19.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">serial</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="n">ser</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="s1">&#39;/dev/serial0&#39;</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">baudrate</span><span class="o">=</span><span class="mi">9600</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">bytesize</span><span class="o">=</span><span class="n">serial</span><span class="o">.</span><span class="n">EIGHTBITS</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">parity</span><span class="o">=</span><span class="n">serial</span><span class="o">.</span><span class="n">PARITY_NONE</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">stopbits</span><span class="o">=</span><span class="n">serial</span><span class="o">.</span><span class="n">STOPBITS_ONE</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">timeout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ser</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xff\x01\x86\x00\x00\x00\x00\x00\x79</span><span class="s1">&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="n">s</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+</span><span class="line"><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mh">0xff</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mh">0x86</span><span class="p">:</span>
+</span><span class="line">    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{s[2] * 256 + s[3]} ppm&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">else</span><span class="p">:</span>
+</span><span class="line">    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Failed to read CO2 concertration&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>上にも書いたようにアクセスするデバイスは<strong>/dev/serial0</strong>。</p>
+
+<p>後はデータシートに従って、ボーレートを9600などに設定して通信を繋げます。</p>
+
+<p>書き込みとしては<strong>0x86 Read CO2 concertration</strong>のセクションにある
+8バイト分の数字を送ります。</p>
+
+<p>その後9バイト分読み込んでいますが、
+成功すると、</p>
+
+<ul>
+  <li>1バイト目: <code>0xff</code></li>
+  <li>2バイト目: 送ったコマンド(3バイト目、つまり<code>0x86</code>)</li>
+</ul>
+
+<p>が入っているはずなのでそれをチェック。</p>
+
+<p>3バイト目、4バイト目に二酸化炭素濃度の情報が入っていて、
+2バイト分で濃度を表す数字がppm単位で入っています。</p>
+
+<ul>
+  <li>3バイト目: 二酸化炭素濃度を表す数字の上位バイト</li>
+  <li>4バイト目: 二酸化炭素濃度を表す数字の下位バイト</li>
+</ul>
+
+<p>なので</p>
+
+<pre><code>256 * 3バイト目 + 4バイト目
+</code></pre>
+
+<p>とすることでppm(百万分率)として計算できます。</p>
+
+<p>実行する際には<strong>/dev/serial0</strong>へのアクセスがrootユーザーのみになってるので、</p>
+
+<pre><code>$ sudo python3 ./mhz19.py
+482 ppm
+</code></pre>
+
+<p>の様に<code>sudo</code>する必要があります。</p>
+
+<p>こんな感じで簡単なスクリプトで読み取ることもできますが、
+先人たちが作ってくれたライブラリとかもあるのでそれを使うとさらに簡単に読めます。</p>
+
+<blockquote>
+  <p><a href="https://pypi.org/project/mh-z19/">mh-z19 · PyPI</a></p>
+</blockquote>
+
+<p>このパッケージに関しては、
+Wikiにも有用な情報が載っているのでPython以外の言語で読み取る場合にも
+MH-Z19Bを使う場合には一通り見ておくと理解が深まります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/UedaTakeyuki/mh-z19/wiki">Home · UedaTakeyuki/mh-z19 Wiki</a></p>
+</blockquote>
+
+<p>このパッケージを(Python3もなかったらともに)、</p>
+
+<pre><code>$ sudo apt install python3-pip
+$ sudo pip3 install mh-z19
+</code></pre>
+
+<p>としてインストールして</p>
+
+<pre><code>$ sudo python3 -m mh_z19
+{'co2':  482}
+</code></pre>
+
+<p>といった感じで読み取ることが出来ます。</p>
+
+<figure class="code"><figcaption><span>mhz19_module.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line"><span class="kn">import</span>  <span class="nn">mh_z19</span>
+</span><span class="line"><span class="n">ret</span> <span class="o">=</span> <span class="n">mh_z19</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span class="line"><span class="k">if</span> <span class="n">ret</span> <span class="ow">and</span> <span class="s1">&#39;co2&#39;</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+</span><span class="line">    <span class="k">print</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;co2&#39;</span><span class="p">],</span> <span class="s1">&#39;ppm&#39;</span><span class="p">)</span>
+</span><span class="line"><span class="k">else</span><span class="p">:</span>
+</span><span class="line">    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Failed to read CO2 concertration&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかいうスクリプトを作れば</p>
+
+<pre><code>$ sudo python3 ./mhz19_module.py
+482 ppm
+</code></pre>
+
+<p>の様に簡単に読み取れます。</p>
+
+<p>最初のスクリプトのところで、9バイト分読み込んでるにも関わらず最初の4バイト分だけ使っていますが、
+mh-z19では、<code>read_all()</code>という関数を呼ぶことでその他の情報も返してくれます。</p>
+
+<pre><code>&gt;&gt;&gt; import mh_z19
+&gt;&gt;&gt; print(mh_z19.read_all())
+{'co2': 482, 'temperature': 26, 'TT': 66, 'SS': 0, 'UhUl': 0}
+</code></pre>
+
+<p>ただし、二酸化炭素濃度以外はデータシートには載っていませんが、
+以下のサイトに5バイト目以降の説明があります。</p>
+
+<blockquote>
+  <p><a href="https://revspace.nl/MHZ19#Command_0x86_.28read_concentration.29">MHZ19 - RevSpace</a></p>
+</blockquote>
+
+<ul>
+  <li>5バイト目(TT): 摂氏+40</li>
+  <li>6バイト目(SS): 何らかのステータス値</li>
+  <li>7バイト目(Uh): 気圧に関する値?の上位バイト?</li>
+  <li>8バイト目(Ul): 気圧に関する値?の下位バイト?</li>
+  <li>9バイト目(CS): checksum (これはデータシートにある値)</li>
+</ul>
+
+<p>5バイト目に関しては気温を表し、40を引くと摂氏になるようです。</p>
+
+<pre><code>華氏 = 1.8 * 摂氏 + 32
+</code></pre>
+
+<p>なわけですが、ちょうど摂氏10℃の時に</p>
+
+<pre><code>華氏 = 1.8 * 10 + 32 = 10 + 40
+</code></pre>
+
+<p>となるので、簡易計算した華氏的な値、という感じです。</p>
+
+<p>ただ、この値が実際にセンサーがある周りの気温なのか何なのか、というのは不明なところで、
+人によって気温よりも高く出ていたり低く出ていたりといった報告があり、
+これをそのまま気温センサーとして使うことはやめた方が良さそうです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/UedaTakeyuki/mh-z19/wiki/Is-the-undocumented-TT-value-on-the-responses-of-command-0x86-really-related-to-the-ambient-temperature%3F">Is the undocumented TT value on the responses of command 0x86 really related to the ambient temperature? · UedaTakeyuki/mh-z19 Wiki</a></p>
+</blockquote>
+
+<p>6バイト目のステータス値については今の所0以外を見たことは無いです。</p>
+
+<p>7/8バイト目のUh/Ulの値は、10500位の値が出る、とのことなんですが、
+これも今の所全部0。</p>
+
+<p>最後のChecksumに関しては上のスクリプトだとチェックしてませんが、
+ちゃんとチェックしたいなら、
+2~8バイト目の合計の下位2バイトを取って反転させて1を足したもの、
+を返してくれるので、</p>
+
+<pre><code>if len(s) == 9 and s[0] == 0xff and s[1] == 0x86 \
+        and (0xff - sum(s) % 0x100 + 1):
+    print(f'{s[2]*256 + s[3]} ppm')
+</code></pre>
+
+<p>みたいにするとチェックが出来ます。</p>
+
+<p>ただ、通常最初の2つが正しく帰ってくるかどうかのチェックで十分なため
+それだけで済ましている人が多い様でした。</p>
+
+<p>実際、最初の2つのチェックを通っておかしな値が返ってくることは今の所ありません。
+(偶然最初の2つの数字が合ってしまう、という可能性はあるわけですが。)</p>
+
+<p><a href="https://pypi.org/project/mh-z19/">mh-z19</a>パッケージの中でも
+最初の2つをチェックしているだけになっています。</p>
+
+<p>このmh-z19を使ってMH-Z19を定期的にGoogle Spreadsheetsに記録するスクリプトを作って
+記録しています。</p>
+
+<p>以下の記事ではBME280で測定する気温などを記録していますが、
+基本的には同じことで、測定値の取得の部分がmh-z19パッケージを使って簡単に作れます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS90_CR0,0,120,90_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google/">Raspberry Piで測定した温度湿度気圧をGoogle Spreadsheetsに記録する</a></div></li></ul>
+
+<h3 id="c">C++</h3>
+
+<p>C++に関しては以下のページが参考になります。</p>
+
+<blockquote>
+  <p><a href="http://www.esjeko.nl/raspberry/co2/">co2UART - Measuring CO2 with an Raspberry PI and the MHZ19(B)</a></p>
+</blockquote>
+
+<p>簡単な例としてはこんな感じで読み込めます。</p>
+
+<figure class="code"><figcaption><span>mhz19.cpp </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class="cpp"><span class="line"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;wiringSerial.h&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="cp">#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp"></span>
+</span><span class="line"><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="kt">unsigned</span> <span class="kt">char</span> <span class="nf">getCheckSum</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">packet</span><span class="p">){</span>
+</span><span class="line">  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">checksum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line">  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+</span><span class="line">    <span class="n">checksum</span> <span class="o">+=</span> <span class="n">packet</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">checksum</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">-</span> <span class="n">checksum</span><span class="p">;</span>
+</span><span class="line">  <span class="n">checksum</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class="line">  <span class="k">return</span> <span class="n">checksum</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+</span><span class="line">  <span class="n">string</span> <span class="n">a</span><span class="p">;</span>
+</span><span class="line">  <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">serialOpen</span><span class="p">(</span><span class="s">&quot;/dev/serial0&quot;</span><span class="p">,</span> <span class="mi">9600</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">fd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cout</span> <span class="o">&lt;&lt;</span>  <span class="s">&quot;Failed to open /dev/serial0&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">buf_write</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mh">0xff</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">,</span> <span class="mh">0x86</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x79</span><span class="p">};</span>
+</span><span class="line">  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">buf_read</span><span class="p">[</span><span class="mi">9</span><span class="p">];</span>
+</span><span class="line">  <span class="n">write</span> <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buf_write</span><span class="p">,</span> <span class="mi">9</span><span class="p">);</span>
+</span><span class="line">  <span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buf_read</span><span class="p">,</span> <span class="mi">9</span><span class="p">);</span>
+</span><span class="line">  <span class="c1">//if(buf_read[0] == 0xff &amp;&amp; buf_read[1] == 0x86 &amp;&amp; getCheckSum(buf_read) == buf_read[8]){</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="n">buf_read</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mh">0xff</span> <span class="o">&amp;&amp;</span> <span class="n">buf_read</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mh">0x86</span><span class="p">){</span>
+</span><span class="line">    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">buf_read</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">+</span> <span class="n">buf_read</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; ppm&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+</span><span class="line">    <span class="n">cerr</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Failed to read CO2 concertration&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class="line">    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを以下のようなMakefileを作って</p>
+
+<figure class="code"><figcaption><span>Makefile  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">CC ?= gcc
+</span><span class="line">CXX ?= g++
+</span><span class="line">CXXFLAGS += -I ./ -DLINUX
+</span><span class="line">LDFLAGS += -lrt -lpthread
+</span><span class="line">
+</span><span class="line">CXXFLAGS += -c -O3 -w
+</span><span class="line">LDFLAGS += -s
+</span><span class="line">
+</span><span class="line">CXXFLAGS += -DRASPBERRY
+</span><span class="line">LDFLAGS += -lwiringPi -lm
+</span><span class="line">
+</span><span class="line">SOURCES=main.cpp
+</span><span class="line">
+</span><span class="line">OBJECTS=$(SOURCES:.cpp=.o)
+</span><span class="line">EXECUTABLE=mhz19
+</span><span class="line">
+</span><span class="line">all: $(SOURCES) $(EXECUTABLE)
+</span><span class="line">
+</span><span class="line">clean:
+</span><span class="line">	-rm $(OBJECTS) $(EXECUTABLE)
+</span><span class="line">
+</span><span class="line">$(EXECUTABLE): $(OBJECTS)
+</span><span class="line">	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
+</span><span class="line">
+</span><span class="line">.cpp.o:
+</span><span class="line">	$(CXX) $(CXXFLAGS) $&lt; -o $@</span></code></pre></td></tr></table></div></figure>
+
+<pre><code>$ make
+</code></pre>
+
+<p>して、</p>
+
+<pre><code>$ sudo ./mhz19
+482 ppm
+</code></pre>
+
+<p>Checksumに関してはC用例がデータシートに載っていたのでそれを(ちょっといじったもの)
+を付けておきました。</p>
+
+<p>この辺を参考にして、Raspberry Pi上ではBlynkを使った測定値表示のために使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>以下はBME280とMH-Z19Bの測定値をBlynkで見れるようにアップデートしたコード。</p>
+
+<div class="github-widget" data-repo="rcmdnk/blynk-library"></div>
+
+<h3 id="go">Go</h3>
+
+<p>Goは今回直接使ってはないので詳しくははぶきますが、ちょっとチェックとかに使ったので。</p>
+
+<p>以下のものとかを直接使えば一番簡単にすぐ<code>sudo  mhz19</code>するだけで読み取ることが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/kebhr/mhz19">kebhr/mhz19: Read CO2 concentration from MH-Z19 on Raspberry Pi</a></p>
+</blockquote>
+
+<h2 id="キャリブレーション">キャリブレーション</h2>
+
+<p>MH-Z19Bには二酸化炭素濃度の測定値をキャリブレーションする機能が付いています。</p>
+
+<p>基本的には400ppmをゼロポイントとしてキャリブレーションします。
+外気の二酸化炭素濃度が大体400ppm(後述)なので、換気を良くした状態の家の中か
+もしくは外に置いて20分ほどしてからキャリブレーションする、とかします。</p>
+
+<p>それ以外にも適当な濃度の中で値をキャリブレーションすることも出来ますが、
+普通の家で適当な二酸化炭素濃度を作ることはまず無理なのでやることはないと思います。</p>
+
+<p>ゼロポイントキャリブレーションの方は、出荷状態で定期的に実行されるように設定されています。
+起動後、24時間おきに良しなに行う、と、データシートには書いてありますが、
+実際にどの様に行われるかはよくわかりません。</p>
+
+<p>自分で行うことも出来て、
+400ppmの環境に20分ほど置いた後に、
+データシートにあるとおりにコマンドを送るか、
+<strong>HD</strong>ピンをGNDと7秒以上直結させるとその時点での値が400ppmとしてキャリブレーションされます。</p>
+
+<p>コマンドは、以下の9バイトを送ります。</p>
+
+<pre><code>{0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78}
+</code></pre>
+
+<p>Pythonパッケージの<a href="https://github.com/UedaTakeyuki/mh-z19/wiki">mh-z19</a>
+をインストールしてあるなら、</p>
+
+<pre><code>$ python3 -m mh_z19 --zero_point_calibration
+</code></pre>
+
+<p>で出来ます。</p>
+
+<h2 id="外気の二酸化炭素濃度">外気の二酸化炭素濃度</h2>
+
+<p>二酸化炭素がどの程度の濃度なのか、というのは昔どこかで習ったかもしれませんが、
+実際あまり感覚がありませんでした。</p>
+
+<p>まあ、最近たまにテレビとかでお店の換気とかの話でやってるのでなんとなく
+数値を見てる人もいるかと思いますが、気象庁のページによると
+400ppmちょっと、というのが現在の二酸化炭素濃度だそうです。</p>
+
+<blockquote>
+  <p><a href="https://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.html">気象庁  二酸化炭素濃度の観測結果 二酸化炭素濃度の月平均値</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.html">気象庁  二酸化炭素濃度の観測結果 最新の経年変化図</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.dir.co.jp/report/research/capital-mkt/esg/20130607_007287.html">日本の大気中の二酸化炭素濃度が400ppmvを突破 2013年06月07日</a></p>
+</blockquote>
+
+<p>測定値が綾里(りょうり、岩手)、南鳥島、与那国島という、空気がきれいそうなとこだけにあって、
+できるだけ人為的な影響がない環境下での濃度を測っているようです。</p>
+
+<p>また、過去2年分位が<strong>測定値</strong>となっていて、きちんとした値を出すには色々と時間がかかるようです
+(なんでそんなに時間がかかるのだろうか?)。</p>
+
+<p>数値を見ると夏場に下がって冬場に上がる感じで1年でも10ppm位の差があります。
+が、年毎に見るときれいに上がっていて、1987年には350ppm位だったものが、
+2020年には410ppm位になっています。</p>
+
+<p>これを数字改めて見るとすごいですね。。。</p>
+
+<p>以上はきれいな空気のところ、の濃度でしたが、
+東京の二酸化炭素濃度に関してこんなのがありました。</p>
+
+<blockquote>
+  <p><a href="https://www.tokyokankyo.jp/kankyoken_old/research/airpollution2/global-env/co2/">東京都環境科学研究所</a></p>
+</blockquote>
+
+<p>江東区の測定で、2006年までしかありませんが、綾里と比べて大体70ppm位高かったようですが、
+10年で20ppm位の差が増えてるようにも見えるので、今は90~100ppm位高い可能性があります。</p>
+
+<p>なので現在で500ppm位あるのかもしれません。</p>
+
+<p>いくつかのサイトに、通常の大気中の濃度は360ppmで、新宿路上だと450ppm、とかいう記述がありましたが(コロナ後に書いてる感じのものも結構あった)、
+おそらく<a href="http://www.nonrisk.co.jp/co2jintai-eikyou.pdf">この資料</a>が発端かな、と思うのですが(この資料自体が古いものを参照して作られた比較的最近のものな感じはありますが)、
+大気中の濃度が360ppmなのは1990年頃の話なので今だとやはり新宿では500ppmとかは余裕で超えてそうです。</p>
+
+<p>埼玉でのもの(比較的都市部に近いが観測値はそれなりに人里離れたところでやっている模様)。</p>
+
+<blockquote>
+  <p><a href="http://www.kankyou.pref.saitama.lg.jp/CO2/co2data.html">埼玉県／二酸化炭素濃度の観測結果</a></p>
+</blockquote>
+
+<p>やはり人の影響があるところだと100ppmとかかなり大きく振れる様です。</p>
+
+<p>ですので、MH-Z19Bのゼロポイントキャリブレーションとして、外に置いておいたとしても400ppmで合わせる、というのは実は少し低く合わせすぎているという可能性があります。</p>
+
+<h2 id="実際の配線">実際の配線</h2>
+
+<p>Raspberry Pi ZeroにはBME280が接続されていましたが、
+MH-Z19Bと共存が可能です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>配線はこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_fritzing.jpg" alt="20210218_fritzing.jpg" class="pic" /></p>
+
+<p><a href="https://rcmdnk.com/others/data/raspizero_bme280_mhz19.fzz">Fritzing file</a></p>
+
+<p>実際にはこんな感じ。。。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_raspi.jpg" alt="20210218_raspi.jpg" class="pic" /></p>
+
+<p>BME280は未だにブレッドボードに付けたままなんですが、
+そこにMH-Z19Bも付けようとしたら付属していたピンの幅が合わずに挿せませんでした。</p>
+
+<p>(片側の4つ、5つの近いもの同士のピン幅は挿さるピッチ幅なんですが、
+両側のピンの幅が合わず。実際他の人も合わない、という人が居たのでそういういものなのかと。</p>
+
+<p>ユニバーサル基板などにはんだ付けしてつける場合には少しピンを斜めにして挿してしまう、とかしているようです。</p>
+
+<p>ブレッドボードに無理やり挿そうとして斜めにするとうまく挿ささらないので、
+ペンチとかで途中で曲げるとかしないと、という感じでしょうか？
+(ただ、今持ってるブレッドボードだとそもそも幅が狭すぎて使えない。)</p>
+
+<p>この状態だと、むしろBME280側も直接つなげれば良いじゃん、という状態なんですが、
+単にメスオスのケーブルが無いだけです。。。</p>
+
+<p>そのうち。</p>
+
+<h2 id="実測値">実測値</h2>
+
+<p>上の様につないで実際に測ってみました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_mhz19bmeasurement.jpg" alt="20210218_mhz19bmeasurement.jpg" class="pic" /></p>
+
+<p>2月6日の朝から測定値があります。</p>
+
+<p>動き始めてから最初のうちは1000ppm付近の値で、計測の仕方を間違えているのか、
+それとも部屋の中が結構空気悪いのか、心配になりました。</p>
+
+<p>一旦換気してみよう、ということで窓全開にしてその部屋には人が居ないようにして
+1時間ほど放置してみました。
+それがすぐに750位まで落ちてるところです。</p>
+
+<p>窓際に置いてあることもあるので、外と同じ程度になっていたとは思ったんですが、
+換気が十分でないのか、そもそも外気がそんなものなのか。</p>
+
+<p>で、その後また戻ったのでやはり普段は空気悪いのか、と。</p>
+
+<p>一応人がいる環境で1000ppmくらいまでなら許容範囲(ただし、
+オフィスとかでたくさん人が集まる場所でそのくらいになる、という話なんですが)、
+ということでこんなものなのかな、と思ってました。</p>
+
+<p>で、次の日、ちょうど前日スタートし始めたころにガクッと下がってます。</p>
+
+<p>おそらくここでキャリブレーションが走った模様。</p>
+
+<p>なので正解は500ppmくらいか?という感じなのですが、せっかくなので
+ちゃんとキャリブレーションしようと思って外に置いてしばらくしてから
+ゼロポイントキャリブレーションを走らせてみました。</p>
+
+<p>モバイルバッテリーを使って外で起動させました<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。
+Wi-Fiも届いたようで良かったです。</p>
+
+<p>7日の分だけを拡大したのがこちら。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_mhz19bmeasurement2.jpg" alt="20210218_mhz19bmeasurement2.jpg" class="pic" /></p>
+
+<p>外に出したタイミングは夕方17:00頃ですが、
+上の図でいうと、直角に下がっている部分があるかと思いますが、
+その<strong>直前</strong>です。</p>
+
+<p>家の中での測定が520ppm付近だったものが、外に出して起動したところ550ppm位を示していました。</p>
+
+<p>このとき、気温の測定値を見てみると、それまで25度位で安定していたのが21度位に下がったので
+こちらの方はむしろ動作している感じでした(絶対値が正しいかどうかは別として)。</p>
+
+<p>が、数分後、急激に下がって400ppmの下限値になりました。
+それが上の図で直角に落ちているところ。
+このとき気温も15度位まで落ちてます。</p>
+
+<p>キャリブレーションが走ったのか?</p>
+
+<p>しばらく外に置いたまま放置してましたが、400ppmのまま変わらず。</p>
+
+<p>1時間ほど放置した後、ソフトウェアでゼロポイントキャリブレーションを実行してみました。</p>
+
+<p>Pythonのmh_z19パッケージを使って</p>
+
+<pre><code>$ sudo python3
+&gt;&gt;&gt; import mh_z19
+&gt;&gt;&gt; mh_z19.zero_point_calibration()
+</code></pre>
+
+<p>これを実行した後、値が445ppmになり、その後はその付近での値を示すようになりました。</p>
+
+<p>しばらくして家の中に移動させましたが、その移動させた後の測定が700ppm位まで跳ね上がっているところです。
+入れて再起動した直後は550ppmとかで数分後に700ppm近くまで上がりました。</p>
+
+<p>ただ、その後また600ppm位まで落ちて落ち着いています。</p>
+
+<p>最初の図を見てもらうと、その後600ppmくらいで落ち着いていたんですが、
+10日ころに一度ガクッと下がってます。</p>
+
+<p>その前の再起動のタイミング的に、1日一回のキャリブレーションが走った感じかも。</p>
+
+<p>その後、換気をしたり色々しながら見ていますが、ざっと見てる感じでは
+1000ppmよりは十分小さいのかな、という感じなので一安心といったところです。</p>
+
+<h2 id="測定が止まる">測定が止まる</h2>
+
+<p>11日付近で線が真っ直ぐになっているところは測定できてなかったところです。</p>
+
+<p>気づいてRaspberry Piを再起動してみたものの測定が開始出来ませんでした。</p>
+
+<p>そこで一旦MH-Z19Bにつながったコードを外して戻してみると測定が開始されました。
+おそらく5Vにつながっているコードを一旦外せばよいのだと思います。</p>
+
+<p>上の期間のあとも2度ほどあったので今のところで1週間に1度くらい起こっているペースです。</p>
+
+<p>それらのときもやはり
+Raspberry Piの再起動ではうまくいかず、コードの抜き差しで治りました。</p>
+
+<p>接触の問題なのか?個体が悪いのか…?</p>
+
+<h2 id="気温">気温</h2>
+
+<p>気温も一応測れるということで記録しています。</p>
+
+<p>気温はRaspberry Pi上でBME280を使って測定したものと、
+Nature Remo miniを使って測定したものが記録されています。</p>
+
+<p>気温測定に関してNature Remo miniとBME280で測定したものとの比較。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210115_both_120_90.jpg" width="120" height="90" alt="20210115_both_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google/">Nature RemoとBME 280 (RaspberryPi)での気温測定の比較</a></div></li></ul>
+
+<p>それらと日毎の平均値を比べたものがこれ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_temperature.jpg" alt="20210218_temperature.jpg" class="pic" /></p>
+
+<p>Nature Remo mini (NR AVG)とBME280 (BME AVG)は0.1度位の範囲の差におさまっていますが、
+MH-Z19の測定(MH-Z19 AVG)はこれらに対して大体4.5度ほど高くずれてます。</p>
+
+<p>ただ意外にも安定している感じで、下駄が正しくないですが、よくわからない数字を出している、というわけではなくちゃんと室温に関連した温度を出してくれている様です。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ということでとりあえず室内の二酸化炭素濃度が測れる様になりました。</p>
+
+<p>ちょっと機材的に不安定な所が見られますが、参考程度にはなるかなと思っています。</p>
+
+<p>費用的にはRaspberry Pi Zero + MH-Z19Bで3000円位になるので、
+単に二酸化炭素濃度を見たい、というだけであれば
+安いのであれば二酸化炭素濃度系が3000円ちょっとで
+買えるのでそっちの方が良いかも。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08NH7BS93?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08NH7BS93&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51gwTfd88GL._SS200_.jpg" alt="二酸化炭素濃度計 二酸化炭素計 co2メーターモニター 空気質検知器 センサー 空気品質 TVOC 高精度 多機能 濃度測定 リアルタイム監視 温度湿度表示付き USB充電 400-5000PPM測定範囲 (黒)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08NH7BS93?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08NH7BS93&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">二酸化炭素濃度計 二酸化炭素計 co2メーターモニター 空気質検知器 センサー 空気品質 TVOC 高精度 多機能 濃度測定 リアルタイム監視 温度湿度表示付き USB充電 400-5000PPM測定範囲 (黒)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08NH7BS93?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08NH7BS93&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E8%A8%88+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E8%A8%88+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>ただ記録したりなんだかんだするのはやはり面白いので、
+Raspberry Piとかで遊んでる人はMH-Z19Bとか買って二酸化炭素を見えるようにするのは
+比較的簡単にできますし
+おすすめです。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

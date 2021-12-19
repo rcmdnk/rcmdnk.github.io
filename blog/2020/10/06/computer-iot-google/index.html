@@ -1,0 +1,1498 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する">
+  <meta name="description" content="Withingsの体重計や睡眠計測のSleepを使ってますが、
+Withingsではそういった情報をクラウドで保存していて、
+APIを使ってアクセスできる様になっています。 自分で情報を扱える所に置くことができれば色々とできることもあるだろう、ということで
+Google Apps Script( &hellip;">
+  
+  <meta property="og:title" content="Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Withingsの体重計や睡眠計測のSleepを使ってますが、
+Withingsではそういった情報をクラウドで保存していて、
+APIを使ってアクセスできる様になっています。 自分で情報を扱える所に置くことができれば色々とできることもあるだろう、ということで
+Google Apps Script( &hellip;">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20201006_withingsapi.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,googleplus_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRN6WBX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2020-10-06T00:00:00+00:00'><span class='time'>06 Oct 2020</span></time></span>
+    <span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2020-10-08T00:00:00+00:00'><span class='date'>08 Oct 2020</span></time></span>
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/iot/"><span>IoT</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/google/"><span>Google</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2020/10/06/computer-iot-google/" itemprop="url">Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/" data-count="1">1</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/" data-count="2">2</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&title=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Share on Google+"
+    target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCount"  data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&amp;t=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&title=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20201006_withingsapi_200_200.jpg" width="200" height="200" alt="20201006_withingsapi_200_200">
+      </div>
+      
+      <p>Withingsの体重計や睡眠計測のSleepを使ってますが、
+Withingsではそういった情報をクラウドで保存していて、
+APIを使ってアクセスできる様になっています。</p>
+
+<p>自分で情報を扱える所に置くことができれば色々とできることもあるだろう、ということで
+Google Apps Script(GAS)を使ってGoogle Spreadsheetsに情報を保存できるようにしてみました。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#withings" id="markdown-toc-withings">Withings</a></li>
+  <li><a href="#withings-api" id="markdown-toc-withings-api">Withings API</a></li>
+  <li><a href="#oauth-20認証の準備" id="markdown-toc-oauth-20認証の準備">OAuth 2.0認証の準備</a></li>
+  <li><a href="#ブラウザとターミナルを使って取得してみる" id="markdown-toc-ブラウザとターミナルを使って取得してみる">ブラウザとターミナルを使って取得してみる</a></li>
+  <li><a href="#google-apps-scriptで取得する" id="markdown-toc-google-apps-scriptで取得する">Google Apps Scriptで取得する</a></li>
+  <li><a href="#取得した値をgoogle-spreadsheetsに保存する" id="markdown-toc-取得した値をgoogle-spreadsheetsに保存する">取得した値をGoogle Spreadsheetsに保存する</a></li>
+  <li><a href="#pythonで取得" id="markdown-toc-pythonで取得">Pythonで取得</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="withings">Withings</h2>
+
+<p>Withingsは体重計や睡眠計、スマートウォッチなどの健康関連製品を作っていますが、
+これらはIoT化されていてインターネットに繋いであれば情報はWithingsのサーバー上に保存されます。</p>
+
+<p>通常はそれをアプリを通して見れるようになっています。</p>
+
+<p>PCからでも<a href="https://healthmate.withings.com/20947576/timeline">マイページ</a>
+からグラフなどを見ることが出来ます。</p>
+
+<p>また、このマイページを通じてWithingsではない体重計で測った以前の体重などをアップロードしたり、
+今までWithingsの機器での計測をCSV形式でダウンロードすることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07B4TRQ3G?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07B4TRQ3G&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71FI0z8gdzL._SS90_CR0,0,120,90_.jpg" alt="Withings Body Cardio フランス生まれのスマート体重計 ブラック Wi-Fi/Bluetooth対応 心臓の健康チェック&amp;体組成計 【日本正規代理店品】 WBS04-BLACK-ALL-ASIA" /></a>
+</div></div><a class="click_box_link" href="/blog/2020/03/08/life-shopping/">ワイヤレスリンク対応体重計: Withings Body Cardio (Wi-Fi)への移行</a></div></li></ul>
+
+<p>他のサービスだとデータが特定のアプリやウェブサイトからしか見れなかったり
+データがダウンロードできなかったりして、
+さらにはサービス自体が終わってしまうとどうしようもなくなったりする場合もあります。</p>
+
+<p>今の所体重計関連でデータに自由にアクセスできるクラウドサービスを持っているのは
+Withingsだけだと思います(少なくとも日本から利用できるものに関しては。)</p>
+
+<h2 id="withings-api">Withings API</h2>
+
+<p>そんなわけで、単にデータを取り出したいだけであればマイページから行えば良いのですが、
+せっかくのIoTなので色々と他と連携させたり自分でデータを直接弄ったりしてみたくなります。</p>
+
+<p>そんなときにはAPI。</p>
+
+<blockquote>
+  <p><a href="https://developer.withings.com/oauth2/">Withings API</a></p>
+</blockquote>
+
+<p>他のIoT製品もそうですが、色々やっていくと自分で直接データに触りたくなってくることもあるので、
+今後選ぶ際にはAPIの充実してるかどうか、というのも重要だな、と思う今日このごろ。</p>
+
+<p>WithingsのAPIは体重などの計測情報を取ってくることに加え、
+データを入力することも出来たりユーザー管理も出来たりと
+恐らくアプリやウェブで操作できる一通りのことができる様です。</p>
+
+<p>なので、
+意味があるかどうかは置いておいて、
+自作でWithingsのアプリ的なものを作ることも可能だと思います。</p>
+
+<h2 id="oauth-20認証の準備">OAuth 2.0認証の準備</h2>
+
+<p>Withings APIはOAuth 2.0の認証を使って利用できます。</p>
+
+<p>まず、Withingsのアカウントが必要なので
+作ってない場合にはアカウントを作成:</p>
+
+<blockquote>
+  <p><a href="https://account.withings.com/connectionuser/account_create">アカウントの作成</a></p>
+</blockquote>
+
+<p>その次に、Withings API partnerとして登録する必要があります。</p>
+
+<blockquote>
+  <p><a href="https://account.withings.com/partner/add_oauth2">Withings API partner</a></p>
+</blockquote>
+
+<p>上記のページで、</p>
+
+<ul>
+  <li>Description: 適当な説明</li>
+  <li>メールアドレス: 適当なメールアドレス</li>
+  <li>会社: 個人利用になりますが必須なので適当にGitHubのアカウントでも</li>
+  <li>コールバックURI: きちんとしたものが決まってなければとりあえず<code>https://localhost</code>で</li>
+  <li>Environment: <code>dev</code>。他の値でも良いけど後で使うURLで<code>state</code>の値に設定するもの。</li>
+</ul>
+
+<p>な感じで登録すると</p>
+
+<ul>
+  <li>クライアントID</li>
+  <li>コンシューマーシークレット</li>
+</ul>
+
+<p>を取得することが出来ます。
+他に複製のしようがないので、現状一つのアカウントで作れるアプリは一つだけっぽいです
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h2 id="ブラウザとターミナルを使って取得してみる">ブラウザとターミナルを使って取得してみる</h2>
+
+<p>まずは簡単にブラウザとターミナルを使ってWithingsの情報を取得してみます。</p>
+
+<p>まず、認証を行い認証コードを取得します。</p>
+
+<pre><code>https://account.withings.com/oauth2_user/authorize2?response_type=code&amp;client_id=&lt;クライアントID&gt;&amp;scope=&lt;scope&gt;&amp;redirect_uri=&lt;コールバックURI&gt;&amp;state=&lt;Environment&gt;
+</code></pre>
+
+<p>上のURLで<code>&lt;クライアントID&gt;</code>を上で取得したもの、<code>&lt;コールバックURI&gt;</code>、<code>&lt;Enviroment&gt;</code>のところを自分で設定したものに変更します。</p>
+
+<p>また、<code>&lt;scope&gt;</code>に関しては<a href="https://developer.withings.com/oauth2/#section/Overview/Withings-API-list">Withings API list</a>から必要なものを。
+体重計とかの情報は<code>user.metrics</code>、SleepやWatchの情報は<code>user.activity</code>とかです。複数の場合は<code>,</code>で並べて<code>scope=user.metrics,user.activity</code>の様な感じに。</p>
+
+<pre><code>https://account.withings.com/oauth2_user/authorize2?response_type=code&amp;client_id=XXXXXXXXXXXXXXXXXXXXXXXXX&amp;scope=user.metrics,user.activity&amp;redirect_uri=https://localhost&amp;state=dev
+</code></pre>
+
+<p>みたいな感じ。</p>
+
+<p>これをブラウザで開くと</p>
+
+<p><img src="/images/post/20201006_withingsapi.jpg" alt="20201006_withingsapi.jpg" class="pic" /></p>
+
+<p>こんなページに行くので許可してあげます。</p>
+
+<p>許可すると、上の場合だとコールバックURIをlocalhostにしてるので、ローカルホストでWebサーバーを立ててなければ接続拒否になりますが、その際、ブラウザのURLを見ると</p>
+
+<pre><code>https://localhost/?code=dcd53fb4a37a44aa24e16079935f28041067a5a8&amp;state=dev
+</code></pre>
+
+<p>みたいになっているはずです。この<code>code=</code>の後ろの文字列が認証コードになるのでこれをコピーします。</p>
+
+<p>次に、ターミナルから以下のcurlコマンドを実行します。</p>
+
+<pre><code>$ curl --data 'grant_type=authorization_code&amp;client_id=&lt;クライアントID&gt;&amp;client_secret=&lt;コンシューマーシークレット&gt;&amp;redirect_uri=&lt;コールバックURI&gt;&amp;code=&lt;認証コード&gt;' 'https://account.withings.com/oauth2/token'
+</code></pre>
+
+<p><code>&lt;クライアントID&gt;</code>、<code>&lt;コンシューマーシークレット&gt;</code>は先程取得したもの、<code>&lt;コールバックURI&gt;</code>は上で指定したもの、<code>&lt;認証コード&gt;</code>は今取得したもの、に書き換えます。</p>
+
+<p>ただし、この認証コードの有効期限はたったの30秒になっています。</p>
+
+<p>なので、先に上のコマンドをターミナル上で認証コードの部分以外書いておいて、
+ブラウザで取得後すぐに貼り付けて実行、みたいにする必要があります。</p>
+
+<p>時間が経ってしまうと、</p>
+
+<pre><code>{"errors":[{"message":"invalid_grant: Invalid Params"}]}
+</code></pre>
+
+<p>みたいなエラーがかえってきます。</p>
+
+<p>うまく行けば</p>
+
+<pre><code>{"access_token":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX","expires_in":10800,"token_type":"Bearer","scope":"user.metrics,user.activity","refresh_token":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX","userid":"XXXXXXXX"}
+</code></pre>
+
+<p>みたいな感じの内容が返ってきます。</p>
+
+<p>この<code>access_token</code>をメモしておきます。
+これを使って体重の計測値を取得したければ、</p>
+
+<pre><code>$ curl 'https://wbsapi.withings.net/measure?action=getmeas&amp;access_token=&lt;access_token&gt;&amp;meastype=1&amp;category=1&amp;startdate=1601478000&amp;enddate=1601823600'
+</code></pre>
+
+<p>などとします。</p>
+
+<p>ここでは
+<a href="https://developer.withings.com/oauth2/#tag/measure">MeasureのGetmeas</a>
+というAPIを使っています。</p>
+
+<p><code>&lt;access_token&gt;</code>のところを先程取得したものに変更すれば値が取得できるはずです。</p>
+
+<p><code>startdate</code>、<code>enddate</code>はUNIX時間表記ですが、上のものは2020/10/01 00:00:00から2020/10/05/ 00:00:00までになっています。</p>
+
+<p><code>meastype</code>で上のページにあるようにほしい値を取ってこれます。<code>1</code>は体重、<code>6</code>なら体脂肪率、みたいな。
+複数欲しい場合には、<code>meastype</code>の代わりに<code>meastypes=1,4,5</code>のように<code>meastypes</code>を使って必要なものを<code>,</code>でつないでわたします。</p>
+
+<p><code>category</code>は<code>1</code>なら実際の計測値、<code>2</code>ならユーザーが設定した目標値になります。
+多分体重くらいしかないはずです。</p>
+
+<p>コマンドがうまく行けば</p>
+
+<pre><code>{
+  "status": 0,
+  "body": {
+    "updatetime": XXXXXXXXXX,
+    "timezone": "Asia/Tokyo",
+    "measuregrps": [
+      {
+        "grpid": XXXXXXXXXX,
+        "attrib": 0,
+        "date": XXXXXXXXXX,
+        "created": XXXXXXXXXX,
+        "category": 1,
+        "deviceid": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "hash_deviceid": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "measures": [
+          {
+            "value": 12345,
+            "type": 1,
+            "unit": -3,
+            "algo": 3,
+            "fm": 133
+          }
+        ],
+        "comment": null
+      },
+      ...
+    ]
+  }
+}
+</code></pre>
+
+<p>みたいなJSON形式の情報が取得できます(実際には整形されてないので上のは<a href="https://stedolan.github.io/jq/">jq</a>コマンドで整形したもの。)</p>
+
+<p><code>body.measuregrps</code>という配列があって、その中に計測がありますが、
+重要なのはその中の<code>measures</code>で、
+体重を求めるには<code>value</code>と<code>unit</code>を使って、</p>
+
+<pre><code>value * 10^(unit)
+</code></pre>
+
+<p>の様な計算をします。</p>
+
+<p>つまり、上の場合は、<code>12345 * 10^(-3) = 12.345</code>が体重(kg)になります。</p>
+
+<p>他の体脂肪率とかもこんな感じで<code>value</code>と<code>unit</code>を組み合わせて値を算出します。</p>
+
+<p>ここの<code>type</code>はどの<code>meastype</code>か、を示しています(<code>1</code>なので体重)。</p>
+
+<p>それら以外に<code>algo</code>、<code>fm</code>、<code>fw</code>という値があったりなかったりしますが、これらは
+以前使われていたもので今はdeprecatedなものなので無視してください。</p>
+
+<h2 id="google-apps-scriptで取得する">Google Apps Scriptで取得する</h2>
+
+<p>上の様にコマンドラインベースでアプリを作ることも可能ですが、
+今回はGoogle Spreadsheetsに保存したいので、
+そうであればGoogle Apps Scriptでやるのが一番便利です。</p>
+
+<p>Google Apps Scriptには
+<a href="https://github.com/gsuitedevs/apps-script-oauth2">apps-script-oauth2</a>
+という
+OAuth 2.0用のライブラリが用意されているのでこれを使います。</p>
+
+<div class="github-widget" data-repo="gsuitedevs/apps-script-oauth2"></div>
+
+<p>適当な<a href="https://script.google.com/home">Google Apps Scriptのプロジェクトを作成</a>
+したら、<strong>リソース</strong><i class="fa fa-arrow-right"></i><strong>ライブラリ</strong>に行って、
+<code>Add a library</code>の欄に</p>
+
+<pre><code>1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF
+</code></pre>
+
+<p>を記入して追加。
+追加するとバージョンが未選択状態になってるので最新のものを選んで起きます。</p>
+
+<p><img src="/images/post/20201006_library.jpg" alt="20201006_library.jpg" class="pic" /></p>
+
+<p>ちなみにメニューの方は<strong>ライブラリ</strong>とカタカナになってますが、
+ポップアップの方は機械翻訳を直せてないのかライブラリが<strong>図書館</strong>と訳されています。。。</p>
+
+<p>これでOAuth 2.0の認証が色々と簡単にできます。</p>
+
+<p>上のレポジトリにも
+<a href="https://github.com/gsuitedevs/apps-script-oauth2/tree/master/samples">samples</a>
+がたくさんあって、GitHubやLINE、またGoogleのサービスに関する例もあります。</p>
+
+<p>残念ながらここにWithingsの例がないので、
+ここにある例に従ってsampleを作ってみました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas-example"></div>
+
+<p>ここにある<a href="https://github.com/rcmdnk/Withings-gas-example/blob/main/Withings.gs">Withings.gs</a>
+をコピペしてGoogle Apps Scriptのプロジェクト内のファイルに貼り付けて、
+<code>CLIENT_ID</code>と<code>CLIENT_SECRET</code>の値を設定してください。</p>
+
+<p>さらに、GASでWithings APIを使う際には
+<a href="https://account.withings.com/partner/add_oauth2">Withings API partner</a>
+のページで
+コールバックURIを</p>
+
+<pre><code>https://script.google.com/macros/d/&lt;SCRIPT_ID&gt;/usercallback
+</code></pre>
+
+<p>の様に設定し直す必要があります。
+この<code>SCRIPT_ID</code>はメニューの<strong>ファイル</strong><i class="fa fa-arrow-right"></i><strong>プロジェクトのプロパティ</strong>から取得することが出来ますし、プロジェクトを開いているURLにも<code>https://script.google.com/d/&lt;SCRIPT_ID&gt;/...</code>の様になっているのでそこからとっても良いです。</p>
+
+<p>コールバックURIの設定をして、CLIENT_ID/CLIENT_SECRETをスクリプトで設定したら、
+<code>run</code>関数を選んで実行します。</p>
+
+<p>そうすると一回目は認証のプロセスになります。</p>
+
+<p>認証が終わって、もう一度実行すると値が取得できるはずです。</p>
+
+<p>取得した値は<strong>表示</strong><i class="fa fa-arrow-right"></i><strong>ログ</strong>に出てきます。
+(ログが表示されるまでちょっと(数十秒から1,2分)かかります。)</p>
+
+<p>デフォルトでは<code>MEASTYPES</code>で1(体重)と6(体脂肪率)、<code>DAYS</code>で30を指定して過去一ヶ月分のデータを取得する様になっています。</p>
+
+<h2 id="取得した値をgoogle-spreadsheetsに保存する">取得した値をGoogle Spreadsheetsに保存する</h2>
+
+<p>上のライブラリを使って実際に運用しているものがこちら</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas"></div>
+
+<p>Sleepの情報も取ってくるようにしています。</p>
+
+<p>ただ、Sleepに関してはここで取得しているのは一晩の全体の概要だけです。
+実際には睡眠中、ノンレム睡眠になったりレム睡眠になった毎に期間を分けたを細かいデータがあるのですが、
+そこまでどう扱うか考えられてないので。</p>
+
+<p>で、Spreadsheetsに保存する際にも色々工夫があるのですが、長くなりそうなので別に書きたいと思います。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2020/10/08 </strong></p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2020/10/08/computer-iot-google/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20201008_sheet_120_90.jpg" width="120" height="90" alt="20201008_sheet_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2020/10/08/computer-iot-google/">時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>このレポジトリのものは、
+<a href="https://script.google.com/home">Google Apps Script</a>
+のページから作った新規プロジェクトではなく、
+Google Spreadsheetsの<strong>ツール</strong><i class="fa fa-arrow-right"></i><strong>スクリプトエディタ</strong>から作成するプロジェクトを使います。
+それによってSpreadsheetsのIDとかを直接書く必要がなくなるので。</p>
+
+<p>このレポジトリのものも、Withings-gas-example同様にCLIENT_ID/SECRETを設定して、
+コールバックURIをこのプロジェクトのものに設定すれば簡単に使えると思います。</p>
+
+<p>このプロジェクトを作って<code>body</code>などの関数がちゃんと動くのを確認したら、<strong>編集</strong><i class="fa fa-arrow-right"></i><strong>現在のプロジェクトのトリガー</strong>
+へ行き<strong>トリガーを追加</strong>から新たな時間主導型のトリガーを追加します。</p>
+
+<ul>
+  <li>実行する関数を選択: <code>body</code> or <code>sleepSummary</code></li>
+  <li>デプロ時に実行: <code>Head</code>またはバージョンを作っててそれを指定したいならそれ</li>
+  <li>イベントソース: <code>時間主導型</code></li>
+  <li>時間ベースのトリガータイプ: <code>日付のタイマー</code></li>
+  <li>時刻を選択: <code>午前0時~1時</code></li>
+</ul>
+
+<p>の様な感じ。
+これで毎日Withings APIを確認してSpreadsheetsをアップデートします。</p>
+
+<p>取得してくる期間ですが、
+<a href="https://github.com/rcmdnk/Withings-gas/blob/main/params.gs">params.gs</a>
+の中でデフォルトで<code>body</code>も<code>sleepSummary</code>も10年間分取るようにしています
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>10年とすると基本的には最初から、ということを意図していて、
+全部を取得するようにしています。</p>
+
+<p>毎日アップデートするので、最初に一度全部同期したら、毎日の実行では1ヶ月だけ、とか
+短くしても良いんですが、
+体重測るのは1日多くて数回だし、10年分取ってきても大した量じゃないので
+1日1回するジョブであれば全部取ってきても問題ないだろう、ということでそのようにしています。</p>
+
+<h2 id="pythonで取得">Pythonで取得</h2>
+
+<p>Pythonを使ってAPIを使いたい場合には
+Withings公式がOAuth 2.0に関する使用例を作ってくれています。</p>
+
+<div class="github-widget" data-repo="withings-sas/api-oauth2-python"></div>
+
+<p>ユーザーが登録しているデバイス一覧を返すexampleがあるので、
+その辺を参考にして体重とかも取ってこれるかと。</p>
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<div class="footnotes"><ol><li id='fnin:1'>
+<p>色々使いたい場合にはこれを使い回すことになるので、
+コールバックURIとかに関してはちょっと面倒かも。
+ <a href="#fninref:1" rel="reference">↩</a></p>
+</li><li id='fnin:2'><p>秒で指定するので、<code>60*60*24*(365*10+4)</code>で365日x10年+4日です。4日、はうるう年が最大限あった場合、ということを考慮して適当に。 <a href="#fninref:2" rel="reference">↩</a></p>
+</li></ol></div>
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished' class='entry-date' datetime='2020-10-06T00:00:00+00:00'><span class='date'>06 Oct 2020</span></time></span><span class="date-wrapper">Last update<time itemprop='dateModified' class='updated' datetime='2020-10-08T00:00:00+00:00'><span class='date'>08 Oct 2020</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/google/'><span>Google</span></a>, <a class='tag' href='/blog/tags/iot/'><span>IoT</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&title=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Share on Google+"
+    target="_blank"><p class="googleplus_custom"><span class="googleplusBig"  data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Google+でシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&amp;t=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2020/10/06/computer-iot-google/&title=Withings+API%E3%82%92%E3%81%A8GAS%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E4%BD%93%E9%87%8D%E5%A4%89%E5%8C%96%E3%81%AA%E3%81%A9%E3%82%92Google+Spreadsheets%E3%81%AB%E4%BF%9D%E5%AD%98%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2020/10/05/computer-google-github/" title="Previous Post: Google Apps ScriptをGitHubで管理する">&laquo; Google Apps ScriptをGitHubで管理する</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2020/10/08/computer-iot-google/" title="Next Post: 時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む">時系列データをGoogle Apps ScriptからSpreadsheetsに良い感じに書き込む &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/gp/redirect.html?ie=UTF8&location=http%3A%2F%2Fwww.amazon.co.jp%2Fgp%2Fregistry%2Fwishlist%2FN9M4X3BSKHIH%3Fie%3DUTF8%26type&tag=rcmdnk0c-22&linkCode=ur2&camp=247&creative=1211">ほしいもの一覧</a>
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 168" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 199" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/12/15/computer-iot-shopping/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211215_oura1_120_90.jpg" width="120" height="90" alt="20211215_oura1_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/12/15/computer-iot-shopping/">Oura Ring Generation 3が届いた</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B09L4WDPLQ' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/512y2yMS8ZL._SS90_CR0,0,120,90_.jpg' alt='バッファロー 11ax/ac/n/a/g/b 無線LAN子機 USB3.0 内蔵アンテナタイプ WI-U3-1200AX2/N'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/12/08/computer-network/">Wi-Fi6アダプター WI-U3-1200AX2</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/14/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211114_hyper_120_90.jpg" width="120" height="90" alt="20211114_hyper_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/14/computer-windows/">WindowsのWSL用のターミナルとしてhyperを使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/08/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211108_wslsettings_120_90.jpg" width="120" height="90" alt="20211108_wslsettings_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/08/computer-windows/">Windowsターミナルの起動時の初期ディレクトリ設定</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2021/11/03/computer-github-python/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20211103_readthedocs_120_90.jpg" width="120" height="90" alt="20211103_readthedocs_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2021/11/03/computer-github-python/">Read the Docsでビルドが失敗している件</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2021 (45)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2021/12/'>DEC (2)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (97)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (5)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (72)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (2)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (152)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (13)</a></li><li><a href='/blog/2016/09/'>SEP (14)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (187)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (13)</a></li><li><a href='/blog/2015/10/'>OCT (18)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (32)</a></li><li><a href='/blog/2015/05/'>MAY (22)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (135)</a></li><li><a href='/blog/categories/computer/'>Computer (932)</a></li><li><a href='/blog/categories/life/'>Life (45)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.39867109634551%'>AeroFS(2)</a> <a href='/blog/tags/amazon/' style='font-size: 100.19933554817275%'>Amazon(1)</a> <a href='/blog/tags/analytics/' style='font-size: 100.59800664451828%'>Analytics(3)</a> <a href='/blog/tags/android/' style='font-size: 103.58803986710963%'>Android(18)</a> <a href='/blog/tags/applescript/' style='font-size: 103.18936877076412%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.39867109634551%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 104.58471760797342%'>AutoHotkey(23)</a> <a href='/blog/tags/bash/' style='font-size: 120.1328903654485%'>Bash(101)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19933554817275%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.39867109634551%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.79734219269103%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.59800664451828%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 110.96345514950166%'>Brew-file(55)</a> <a href='/blog/tags/bsd/' style='font-size: 101.59468438538207%'>BSD(8)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.39867109634551%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.79734219269103%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.78405315614619%'>Chrome(24)</a> <a href='/blog/tags/colinux/' style='font-size: 100.39867109634551%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.99667774086379%'>CSS(5)</a> <a href='/blog/tags/cygwin/' style='font-size: 106.17940199335548%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19933554817275%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.39867109634551%'>Desktop(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.99335548172758%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.59800664451828%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.99667774086379%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.59136212624584%'>Evernote(13)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19933554817275%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.76079734219269%'>Firefox(59)</a> <a href='/blog/tags/geektool/' style='font-size: 100.59800664451828%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19933554817275%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 101.79401993355482%'>git(9)</a> <a href='/blog/tags/git/' style='font-size: 106.17940199335548%'>Git(31)</a> <a href='/blog/tags/github/' style='font-size: 113.15614617940199%'>GitHub(66)</a> <a href='/blog/tags/github/' style='font-size: 100.19933554817275%'>Github(1)</a> <a href='/blog/tags/gmail/' style='font-size: 103.18936877076412%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.3953488372093%'>GNU(7)</a> <a href='/blog/tags/go/' style='font-size: 100.59800664451828%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.18936877076412%'>Google(16)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19933554817275%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 101.19601328903654%'>HHKB(6)</a> <a href='/blog/tags/homebrew/' style='font-size: 117.94019933554817%'>Homebrew(90)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.39202657807309%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.79734219269103%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.39867109634551%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 107.37541528239203%'>IoT(37)</a> <a href='/blog/tags/iphone/' style='font-size: 102.59136212624584%'>iPhone(13)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.79734219269103%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.39867109634551%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.1827242524917%'>JavaScript(26)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.59800664451828%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.79734219269103%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.78405315614619%'>Karabiner(24)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19933554817275%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.59468438538207%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19933554817275%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19933554817275%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.35548172757476%'>Linux(67)</a> <a href='/blog/tags/liquid/' style='font-size: 100.39867109634551%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.59800664451828%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(301)</a> <a href='/blog/tags/markdown/' style='font-size: 102.39202657807309%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.79401993355482%'>Music(9)</a> <a href='/blog/tags/network/' style='font-size: 106.37873754152824%'>Network(32)</a> <a href='/blog/tags/octopress/' style='font-size: 124.31893687707641%'>Octopress(122)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.39867109634551%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.59800664451828%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.79734219269103%'>Pocket(4)</a> <a href='/blog/tags/powershell/' style='font-size: 101.59468438538207%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 101.79401993355482%'>PR(9)</a> <a href='/blog/tags/prompt/' style='font-size: 100.59800664451828%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.79069767441861%'>PuTTY(14)</a> <a href='/blog/tags/python/' style='font-size: 107.17607973421927%'>Python(36)</a> <a href='/blog/tags/qi/' style='font-size: 100.99667774086379%'>Qi(5)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.39867109634551%'>Rakuten(2)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 102.79069767441861%'>RaspberryPi(14)</a> <a href='/blog/tags/ruby/' style='font-size: 102.79069767441861%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 107.57475083056478%'>screen(38)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.79069767441861%'>sentaku(14)</a> <a href='/blog/tags/shopping/' style='font-size: 107.17607973421927%'>Shopping(36)</a> <a href='/blog/tags/slack/' style='font-size: 100.19933554817275%'>Slack(1)</a> <a href='/blog/tags/svn/' style='font-size: 100.39867109634551%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.99667774086379%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.39867109634551%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.3953488372093%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.79069767441861%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.99667774086379%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.79734219269103%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 119.53488372093022%'>Vim(98)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.7873754152824%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.19601328903654%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.19601328903654%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.39867109634551%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 128.90365448504983%'>Windows(145)</a> <a href='/blog/tags/word/' style='font-size: 100.19933554817275%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.3953488372093%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.16611295681064%'>Zsh(51)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2019/10/25/life-shopping-rakuten/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20191025_rakuten_120_90.jpg" width="120" height="90" alt="20191025_rakuten_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2019/10/25/life-shopping-rakuten/">楽天会員規約に基づき利用停止措置がとられています</a><br><span class="views">4305 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873100844' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/31NJeGekxTL._SS90_CR0,0,120,90_.jpg' alt='uuencodeされた本―EUC/tar.gz版'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2021/09/17/computer-windows/">Windowsネイティブな環境でのtar.gzファイルの解凍</a><br><span class="views">3908 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B07XF4XT9Q' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/61etlVTj08L._SS90_CR0,0,120,90_.jpg' alt='Oura Ring オーラリング Balance&nbsp;model US9 Black 【アプリ日本語対応！NextSims】'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2021/11/01/computer-iot-shopping/">Oura Ring Generation 3を購入(a free lifetime Oura membership)</a><br><span class="views">2718 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2021/03/01/computer-windows-network/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20210301_property_120_90.jpg" width="120" height="90" alt="20210301_property_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2021/03/01/computer-windows-network/">Windows WSL2に外部から直接アクセスするための設定</a><br><span class="views">2558 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">2250 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://b.st-hatena.com/images/append.gif' alt='append'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2021 - rcmdnk -
+    <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<script>
+  window.GoogleAnalyticsObject = 'ga';
+  if (!('ga' in window)){
+    ga = function(){
+      ga.q.push(arguments);
+    };
+  }
+  ga.l = (new Date()).getTime();
+  ga.q = [['create', 'UA-39086461-1', 'auto'], ['send', 'pageview'], ['require', 'linkid', 'linkid.js']];
+</script>
+<script src="//www.google-analytics.com/analytics.js" async defer></script>
+
+
+<script>(function(w,d,s,l,i){
+           w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+         })(window,document,'script','dataLayer','GTM-MRN6WBX');</script>
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2020/10/06/computer-iot-google/';
+  var disqus_url = 'https://rcmdnk.com/blog/2020/10/06/computer-iot-google/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+
+
+
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery//jquery.min.js" defer></script>
+  <![endif]-->
+  
+
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" defer></script>
+  <!--<![endif]-->
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/iot/",
+        "name": "IoT"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

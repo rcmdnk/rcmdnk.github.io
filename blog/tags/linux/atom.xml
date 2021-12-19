@@ -1,0 +1,1405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Linux | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/linux/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2021-12-19T00:44:13+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへのmainコマンドの追加]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows/"/>
+    <updated>2021-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07H3JTZJY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07H3JTZJY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zbjv7k9uL._SS200_.jpg" alt="味の加久の屋 brew プレミアムおつまみ ウニ入りホタテマヨ 70g" /></a>
+</div>
+
+<p>Homebrewのパッケージリストを管理するツールのHomebrew-file
+でパッケージを管理する際に、<code>main</code>というコマンドを使えるようにしました。</p>
+
+<p>これによってより柔軟に複数の環境でのBrewfileの共有が出来るようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#brewfile" id="markdown-toc-brewfile">Brewfile</a></li>
+  <li><a href="#file機能" id="markdown-toc-file機能">file機能</a></li>
+  <li><a href="#ファイル指定で使える変数" id="markdown-toc-ファイル指定で使える変数">ファイル指定で使える変数</a></li>
+  <li><a href="#mainコマンドの追加" id="markdown-toc-mainコマンドの追加">mainコマンドの追加</a></li>
+  <li><a href="#チーム共有brewfileの運用" id="markdown-toc-チーム共有brewfileの運用">チーム共有Brewfileの運用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brewfile">Brewfile</h2>
+
+<p>Homebrew-fileにおけるBrewfileは基本的には以下の様な感じになります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">brew node
+</span><span class="line">brew python@3.9
+</span><span class="line">
+</span><span class="line">tap rcmdnk/file
+</span><span class="line">brew brew-file
+</span><span class="line">
+</span><span class="line">tap rcmdnk/file
+</span><span class="line">brew brew-file
+</span><span class="line">
+</span><span class="line">tap homebrew/cask
+</span><span class="line">cask bettertouchtool
+</span><span class="line">cask google-japanese-ime
+</span><span class="line">cask hyperswitch
+</span><span class="line">cask iterm2
+</span><span class="line">cask karabiner-elements
+</span><span class="line">
+</span><span class="line">appstore <span class="m">408981434</span>   iMovie        <span class="o">(</span><span class="m">10</span>.2.5<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409183694</span>   Keynote       <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409203825</span>   Numbers       <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409201541</span>   Pages         <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Ref: <a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#brewfile">Usage — Homebrew-file documentation</a></p>
+
+<p>Brewfileの中でコマンドとして使えるものとしては上の様に主に</p>
+
+<ul>
+  <li><code>tap</code>: Tapするレポジトリ</li>
+  <li><code>brew</code>: インストールするFormulaパッケージ</li>
+  <li><code>cask</code>: インストールするCaskパッケージ</li>
+  <li><code>appstore</code>: AppStoreからインストールするApp (<code>mas</code>を利用。)</li>
+</ul>
+
+<p>があります。</p>
+
+<p><code>cask</code>に関してはHomebrew 3.0.0から<code>brew cask</code>というコマンドはなくなり、<code>brew install ...</code>
+で同じようにインストールできるようになりましたが、
+<code>brew list --cask ...</code>の様に区別して見ることも出来る状態で
+<code>brew file init</code>とかでBrewfileに書き出す場合には区別して書き出しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210206_homebrew300_120_90.jpg" width="120" height="90" alt="20210206_homebrew300_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/">Homebrew 3.0.0リリース</a></div></li></ul>
+
+<p>Brewfileに手動で<code>brew iterm2</code>みたいにCaskなものを書いておいても<code>brew file install</code>でインストールすることは出来ます。</p>
+
+<h2 id="file機能">file機能</h2>
+
+<p>上記の4つ以外にもいくつか使えるコマンドがありますが、
+そのうちの一つに<code>file</code>というコマンドがあります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file ./Brewfile.ext
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書くと、<code>brew file install</code>をするとき、<strong>Brewfile.ext</strong>に書いてある
+パッケージも読み込んでインストールします。</p>
+
+<p><code>brew file init</code>すると、<strong>Brewfile.ext</strong>に元からあったパッケージはそちらに、
+新たに加わったパッケージは親の<strong>Brewfile</strong>に追加される様になっています。</p>
+
+<p>ファイルの指定方法として、上のように相対パスの様に書くと、親の<strong>Brewfile</strong>のある
+ディレクトリからの相対パスになります。
+なので、上の場合は<strong>Brewfile</strong>と同じディレクトリにある<strong>Brewfile.ext</strong>を見に行きます。</p>
+
+<p><strong>/home/user/Brewfile.ext</strong>の様に<code>/</code>から開始すると絶対パスとして見に行きます。</p>
+
+<p>もしファイルがない場合にはエラーにならずに無視されます。</p>
+
+<p>したがって、特定のマシンにだけ入れたいパッケージ、というものがある場合、</p>
+
+<p>file $HOME/Brewfile.ext</p>
+
+<p>としておいて、必要な環境にだけ<strong>$HOME/Brewfile.ext</strong>を置いておくと、
+その環境にだけ<code>brew file install</code>で<strong>Brewfile.ext</strong>の中身をインストールしてくれます。</p>
+
+<p>もし<strong>Brewfile</strong>と<strong>Brewfile.ext</strong>に同じパッケージが書かれているかつ
+そのパッケージが既にインストールされている状態で<code>brew file init</code>すると
+<strong>Brewfile.ext</strong>の方に優先して残すようになっています。</p>
+
+<h2 id="ファイル指定で使える変数">ファイル指定で使える変数</h2>
+
+<p><code>file</code>などで指定できるファイルに使える変数として、
+<code>~</code>でホームディレクトリを指定したり、<code>$HOME</code>などの環境変数を使うことが出来ます。</p>
+
+<p>加えて、
+<code>$HOSTNAME</code>、<code>$HOSTTYPE</code>、<code>$OSTYPE</code>、<code>$PLATFORM</code>の4つの変数も使えます。</p>
+
+<p>それぞれ</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: <code>os.uname().nodename</code></li>
+  <li><code>HOSTTYPE</code>: <code>os.uname().machine</code></li>
+  <li><code>OSTYPE</code>: Bashのシェル変数(<code>subprocess</code>で取得)</li>
+  <li><code>PLATFORM</code>: <code>sys.platform</code></li>
+</ul>
+
+<p>です。<code>HOSTNAME</code>、<code>HOSTTYPE</code>はシェル変数の同名のものと同じです。</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: マシン名(ドメインなし)</li>
+  <li><code>HOSTTYPE</code>: <code>x86_64</code>, <code>arm64</code>など</li>
+  <li><code>OSTYPE</code>: <code>linux-gnu</code>、<code>darwin20.3.0</code>など</li>
+  <li><code>PLATFORM</code>: <code>linux</code>、<code>darwin</code>など</li>
+</ul>
+
+<p>これを使うと、例えば特定のマシンにだけ入れたいパッケージがある場合、
+親の<strong>Brewfile</strong>を</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew python@3.8
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine2 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew python@3.9
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というファイルを用意しておくと、machine1では<code>python@3.8</code>をインストールして
+machine2では<code>python@3.9</code>をインストールし、
+その他の環境ではこれらをインストールしません。</p>
+
+<p>OSなど環境毎に変えたい場合には</p>
+
+<p>file ./Brewfile.$PLATFORM.$HOSTTYPE</p>
+
+<p>が便利です。</p>
+
+<p><code>OSTYPE</code>にはバージョン情報が入ってしまうため、
+そこまで管理したい場合には便利ですが、大概の場合はそのバージョンは無視して良いことが多く
+<code>PLATFORM</code>を使ったほうが便利です。</p>
+
+<p>あとはアーキテクチャの違いを<code>$HOSTTYPE</code>で追加しておきます。</p>
+
+<p>これは、特に最近でたM1 Macで使う際に便利です。</p>
+
+<p>M1のarm64の環境だと使えないCUIツールはまだ結構あって、
+Rosettaを使ったIntel環境も作っている人は多いかと思いますが、
+両方で同じ<strong>Brewfile</strong>を使おうと思うとIntel用に入れたものがarm64側でインストールに失敗してしまいます。</p>
+
+<p>そこで、上の様な<code>file</code>設定をしておいて、</p>
+
+<p><strong>Brewfile.darwin.x86_64</strong>というファイルにIntel側にだけ入れるものを書いておけば
+他のものは<strong>Brewfile</strong>で共有して使うことが出来ます。</p>
+
+<h2 id="mainコマンドの追加">mainコマンドの追加</h2>
+
+<p>上の<code>file</code>の場合、<code>brew init</code>や、
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+を使った<code>brew install</code>時に追加されるパッケージは親の<strong>Brewfile</strong>側になります。</p>
+
+<p>したがって、その環境特有のものをインストールした場合には手動で
+<strong>Brewfile</strong>から
+<strong>Brewfile.machine1</strong>とかに移して、他の環境では使わないようにする必要があります。</p>
+
+<p>これはほとんどが共通で、ほんの一部だけが特別なパッケージの場合には便利です。</p>
+
+<p>一方で、例えば仕事のチームで最低限必要なパッケージ群をまとめる<strong>Brewfile</strong>を作り、
+他を個別に管理したい、という場合、自動で<strong>Brewfile</strong>を管理するのが難しくなります。</p>
+
+<p><code>main</code>コマンドはこういった場合に使えるようにv8.5.0で追加しました。
+通常、<strong>メイン</strong>のファイルは最初に指定されている<strong>Brewfile</strong>本体になりますが、
+<code>main</code>コマンドで指定されたファイルがあるとそれに移ります。</p>
+
+<p><strong>メイン</strong>のファイルは、新たなパッケージが加わったときなどに、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>でパッケージが加えられるファイルになります。</p>
+
+<p><code>main</code>の使い方は<code>file</code>と同じ様にファイルへのパスを書く形で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じ。</p>
+
+<p>この場合、新たなパッケージが加えられた場合、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>では<strong>./Brewfile.$HOSTNAME</strong>
+に追加されます。</p>
+
+<p>もしファイルがない場合には自動的に作られます。</p>
+
+<p>これを使うと、<strong>Brewfile</strong>の自動アップデートを使っても共有ファイルの管理が簡単になります。</p>
+
+<p>例えば、MacとLinuxで共有しようと思うと、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、それぞれの環境でインストールしたものはそれぞれ、<strong>Brewfile.darwin</strong>、<strong>Brewfile.linux</strong>に追加されます。</p>
+
+<p>また、M1 Macでは</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTTYPE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、
+そのままのM1 (arm64)環境なら<strong>Brewfile.arm64</strong>、Rosetta使ったx86_64環境なら
+<strong>Brewfile.x86_64</strong>に追加されます。</p>
+
+<p>たまに整理してあげて、共通しているものを<strong>Brewfile</strong>に移す作業をしてあげれば良いかと。
+(この辺をうまくやる機能もそのうち実装したい。。。)</p>
+
+<p><strong>Brewfile</strong>と<code>main</code>で指定されてた<strong>Brewfile.$PLATFORM</strong>
+などの両方に同じパッケージが書かれていた場合、
+<code>brew file init</code>すると<code>main</code>の場合は<code>file</code>と違い
+親の<strong>Brewfile</strong>の方に優先して残すようになっています。</p>
+
+<p>ちなみに<code>main</code>や<code>file</code>は入れ子が可能で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、</p>
+
+<figure class="code"><figcaption><span>Brewfile.darwin </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、<strong>Brewfile.linux</strong>の方では<code>main</code>を追加しないままにしておくと、</p>
+
+<ul>
+  <li>Linux環境: HOSTによらず<strong>Brewfile.linux</strong>がメイン。</li>
+  <li>Mac環境: HOST毎に別のものがメインに。</li>
+  <li><strong>Brewfile</strong>にあるパッケージは全環境共通。</li>
+  <li><strong>Brewfile.darwin</strong>にあるパッケージはMac環境だけで共通。</li>
+</ul>
+
+<p>とすることが出来ます。</p>
+
+<h2 id="チーム共有brewfileの運用">チーム共有Brewfileの運用</h2>
+
+<p>そこで、例えばチーム共有<strong>Brewfile</strong>みたいのを考えることが出来ます。</p>
+
+<ul>
+  <li>まず、共有する<strong>Brewfile</strong>を作り、適当なGitHubのレポジトリで共有。
+    <ul>
+      <li><strong>Brewfile</strong>に<code>main ~/.Brewfile</code>という一行を加えておく。</li>
+      <li>このレポジトリは管理者だけが書き込めるものでも構いません。</li>
+    </ul>
+  </li>
+  <li>各個人で<strong>~/.Brewfile</strong>を用意。
+    <ul>
+      <li>最初の時点でとくに必要なものがなければ自分で用意しなくても良くて勝手に作ってくれる。</li>
+    </ul>
+  </li>
+  <li><code>brew file set_repo</code>で共有レポジトリを指定してセットする。</li>
+  <li><code>brew install</code>したり色々して<strong>~/.Brewfile</strong>をアップデート。
+    <ul>
+      <li><a href="https://github.com/rcmdnk/dotfiles/">dotfiles</a>などで<strong>~/.Brewfile</strong>も管理すると良いかと。</li>
+    </ul>
+  </li>
+  <li>管理者が共有の<strong>Brewfile</strong>をアップデートしてパッケージを追加したりする。
+    <ul>
+      <li>管理者以外でも便利で皆が使うべきものだと思えばPull Request出したり。</li>
+    </ul>
+  </li>
+  <li><code>brew file update</code>によって共有<strong>Brewfile</strong>をアップデート。
+    <ul>
+      <li>個人ごとの利用ではこのファイルを変更することは無いので、レポジトリ側のアップデートのみを撮ってくる形になる。</li>
+      <li>自分でインストールしたパッケージも共有<strong>Brewfile</strong>に追加されると<strong>~/.Brewfile</strong>からは消える。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言った感じの運用が出ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[systemdでcronジョブの代わりの設定をする]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux/"/>
+    <updated>2020-10-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000J5OFW0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000J5OFW0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81TNSEQjz5L._SS200_.jpg" alt="【正規品】TIME TIMER タイムタイマー 19cm 60分 TTA1-W 時間管理" /></a>
+</div>
+
+<p>Raspberry Piで定期的に実行したいジョブがあったので
+cronジョブとして実行しようかと思ってましたが、
+systemdで定期実行する、ということをやってみたかったので
+systemdでやってみることにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#実行用サービスの準備" id="markdown-toc-実行用サービスの準備">実行用サービスの準備</a></li>
+  <li><a href="#timerサービスの準備" id="markdown-toc-timerサービスの準備">Timerサービスの準備</a></li>
+  <li><a href="#登録" id="markdown-toc-登録">登録</a></li>
+  <li><a href="#cronジョブとの違い" id="markdown-toc-cronジョブとの違い">cronジョブとの違い</a></li>
+  <li><a href="#ユーザーレベルジョブ" id="markdown-toc-ユーザーレベルジョブ">ユーザーレベルジョブ</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>cronジョブで書けば</p>
+
+<pre><code>0 12 * * * /path/to/script
+</code></pre>
+
+<p>みたいな感じで毎日お昼の12:00に実行するようなもの。</p>
+
+<p>これを最近Linuxでは主に使われているサービス管理システムであるsystemdを使って作る、というもの。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798044911?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798044911&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41cVV6Rkp2L._SS90_CR0,0,120,90_.jpg" alt="CentOS7システム管理ガイドsystemd/NetworkManager/Firewalld徹底攻略" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/09/10/computer-linux/">CentOS 7などのSystemdに対応したデーモンプログラムを作る</a></div></li></ul>
+
+<h2 id="実行用サービスの準備">実行用サービスの準備</h2>
+
+<p>これをやるために、まず以下の様なサービスを用意します。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> My Job
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Service<span class="o">]</span>
+</span><span class="line"><span class="nv">Type</span> <span class="o">=</span> oneshot
+</span><span class="line"><span class="nv">ExecStart</span> <span class="o">=</span> /path/to/myjob
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>Type</code>に関しては、このジョブはタイマーで起動し、一回限り、
+終わったら終了、というものにしたいので<code>oneshot</code>に。
+<code>oneshot</code>は<code>ExecStart</code>のコマンドが終了したら起動完了、として通知します。</p>
+
+<p>通常使う<code>simple</code>にすると<code>ExexStart</code>を実行した時点で起動完了として、
+通常そのまま生き続ける様なものに使います。</p>
+
+<p><code>WantedBy</code>で<code>multi-user.target</code>を指定して
+通常の起動でGUIがない場合でも有効にする、
+という指定で、これは他のサービスでもだいたい同じ様に設定するものです。</p>
+
+<h2 id="timerサービスの準備">Timerサービスの準備</h2>
+
+<p>次に上のサービスを定期的に実行するタイマーを作ります。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> My Job Timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span> <span class="o">=</span> *-*-* <span class="m">12</span>:00:00
+</span><span class="line"><span class="nv">AccuracySec</span> <span class="o">=</span> 1s
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>まず、<code>Install</code>のセクションで<code>WantedBy</code>が<code>timers.target</code>を指定しています。</p>
+
+<p>これによってタイマーとしてジョブを起動するようになります。
+後はタイマーの定義を<code>Timer</code>セクションで行います。</p>
+
+<pre><code>OnCalendar = *-*-* 12:00:00
+</code></pre>
+
+<p>で毎日12時に実行、になります。
+cronジョブとは逆で普通な感じで<code>年-月-日 時:分:秒</code>と書いてあります。</p>
+
+<p>cronのように<code>1,2,3</code>で1,2,3のとき、<code>1..5</code>みたいな書き方で1~5、<code>0/5</code>で5置き、という書き方も各項目で出来ます。</p>
+
+<p>曜日も<code>Sun 20:00:00</code>みたいな感じで日曜の20時に、という指定も可能。
+<code>Mon,Wed</code>で複数にしたり、<code>Mon..Fri</code>で月曜から金曜、というのも可能。</p>
+
+<p>それら以外に<code>weekly</code>、<code>daily</code>、<code>hourly</code>といった任意の時間に定期的に実行する、という指定も可能。</p>
+
+<p><code>AccuracySec</code>は<code>1s</code>で1秒、と設定していますが、
+デフォルトでこの値は<code>1m</code>で1分です。</p>
+
+<p>この値の範囲内に始まる、ということなので、
+デフォルトでは12:00:00に設定すると12:01:00までの間のどこかで始まる、ということになります。</p>
+
+<p>ちょっと正確に時間を使いたかったので1秒にしてありますが、
+最小で<code>1us</code>(1マイクロ秒)まで小さく出来ます。</p>
+
+<p>一方、これを小さくすればするほど時間を管理するためにCPU利用率が上がるので
+最大限許容範囲で大きくした方が良いとのこと。
+ジョブ自体が数秒かかるものだったりミリ秒以下の必要がなかったので1sにしてあります。</p>
+
+<p>ただ、Raspberry Pi Zeroで<code>1us</code>で動かしていても目に見えたCPU利用率の変化はありませんでした。</p>
+
+<p>タイマー内で呼び出すサービスを指定していませんが
+この場合は同じディレクトリにある同じ名前のサービスを呼び出します。
+今回は<strong>myjob.service</strong>、<strong>myjob.timer</strong>、とサービスとタイマーが同じ名前のため
+<strong>myjob.service</strong>が呼び出される、ということに。</p>
+
+<p>もし、別のサービスを呼び出したい場合には、</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> My Job Timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span> <span class="o">=</span> *-*-* <span class="m">12</span>:00:00
+</span><span class="line"><span class="nv">AccuracySec</span> <span class="o">=</span> 1s
+</span><span class="line"><span class="nv">Unit</span> <span class="o">=</span> yourjob.service
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じでTimerセクションの中に<code>Unit</code>という変数を入れて
+そこにサービス名を指定します。</p>
+
+<h2 id="登録">登録</h2>
+
+<p><strong>myjob.service</strong>、<strong>myjob.timer</strong>
+の2つのファイルを
+<strong>/etc/systemd/system/</strong>に入れて</p>
+
+<pre><code>$ sudo systemctl daemon-reload
+$ sudo systemctl enable myjob.timer
+$ sudo systemctl start myjob.timer
+</code></pre>
+
+<p>で有効にしてスタート。</p>
+
+<h2 id="cronジョブとの違い">cronジョブとの違い</h2>
+
+<p>cronジョブと違って良い点は</p>
+
+<ul>
+  <li>秒単位で指定ができる</li>
+  <li>他のsystemdユニットへの依存関係が使える</li>
+  <li>runレベルの指定ができる</li>
+  <li>systemdでの管理で簡単に有効、無効化ができる</li>
+  <li>journaldでログが管理できる</li>
+  <li>cgroupsで管理できる</li>
+</ul>
+
+<p>悪い点としては</p>
+
+<ul>
+  <li>1つのスクリプトを実行したいだけでも2つのファイルが必要で内容も多くなってしまう</li>
+  <li>メールで通知したい場合、結構面倒
+    <ul>
+      <li>メール通知用スクリプト、それを実行する<code>Type = oneshot</code>なサービスを別途用意してUnitセクションに<code>OnFailure=&lt;service&gt;</code>のような形で設定する</li>
+    </ul>
+  </li>
+</ul>
+
+<p>という感じ。
+なのでやはり単純に1つのスクリプトをさっと定期実行設定したい、という場合にはcronの方が簡単です。</p>
+
+<p>システムを構築するような場合、きちんと設計したい場合には
+systemdを使ったほうが管理が簡単になる可能性はありますし、
+より詳細に管理が出来ます。</p>
+
+<h2 id="ユーザーレベルジョブ">ユーザーレベルジョブ</h2>
+
+<p>ユーザーレベルでの設定をsystemdで行うことも出来て、</p>
+
+<pre><code>~/.config/systemd/user/
+</code></pre>
+
+<p>ディレクトリにサービス/タイマーファイルを入れて、</p>
+
+<pre><code>$ systemctl --user enable myjob.timer
+</code></pre>
+
+<p>などとすればOK。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>cronジョブの代わりとしてsystemdを使おうと思った場合、
+やはり少し覚えることも多く、敷居としては高い感じはしました。</p>
+
+<p>その代わり詳細な時間設定や他のサービスとの連携もきちんと取れるようになるので、
+システム管理として何らかのジョブを定期的に走らせたい、
+という場合にはsystemdを使ったほうが便利だし、
+慣れれば設定したり管理するのもむしろ楽になるかと思います。</p>
+
+<p>システム管理をしよう、と思うくらいであればそれほど難しいものではないし
+いずれにしろ知っておかなくちゃいけないことだったりもするので。</p>
+
+<p>macOSの方でも、cronジョブは使えますが、macOSの機能として<code>launchd</code>という
+サービス管理をするシステムがあり、
+これを使ってcron的な定期ジョブを実行することが出来ます。</p>
+
+<p>これもsystemd同様、よりシステムに親和性の高い管理ができるという点で利点がありますが、
+やはり必要な記述量が多いのでちょっとしきい値が高いものではあります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[バージョン番号のソート]]></title>
+    <link href="https://rcmdnk.com/blog/2020/09/25/computer-linux-mac/"/>
+    <updated>2020-09-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/09/25/computer-linux-mac</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08FBXFLL9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08FBXFLL9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/810a84cOTiL._SS200_.png" alt="" /></a>
+</div>
+
+<p><code>v8.10.1</code>みたいなバージョン番号をソートしようとするとき、
+単に<code>sort</code>コマンドとか使うと<code>v8.2.1</code>と<code>v8.10.1</code>で真ん中の<code>2</code>と<code>10</code>の<code>1</code>だけを
+見て思ったのと逆にソートされてしまいます。</p>
+
+<p>かといって単純に<code>-n</code>で数字として全体を見ることもできないのでちょっと工夫が必要です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sortコマンド" id="markdown-toc-sortコマンド">sortコマンド</a></li>
+  <li><a href="#区切ってソート" id="markdown-toc-区切ってソート">区切ってソート</a></li>
+  <li><a href="#sort--v" id="markdown-toc-sort--v">sort -V</a></li>
+  <li><a href="#git-tagでの表示" id="markdown-toc-git-tagでの表示">git tagでの表示</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sortコマンド">sortコマンド</h2>
+
+<pre><code>v1.2.1
+v1.10.1
+v2.2.1
+v2.2.2
+v2.2.10
+v10.2.1
+</code></pre>
+
+<p>みたいな内容の<strong>versions.txt</strong>というフィアルの中身をソートしたいとき、
+期待するのは上の形になることです。</p>
+
+<p>これをそのまま<code>sort</code>コマンドとかに入れると</p>
+
+<pre><code>$ sort versions.txt
+v1.10.1
+v1.2.1
+v10.2.1
+v2.2.1
+v2.2.10
+v2.2.2
+</code></pre>
+
+<p>となります。</p>
+
+<p>このままだと<code>v</code>から始まって<code>.</code>とかも含まれる文字列なので
+単に2文字目が<code>1</code>か<code>2</code>でソート、<code>1</code>のうち、3文字目が数字より記号の方が優先されて、
+その次がまた単体の数字でソートされて、といった感じ。
+数字ソートオプション<code>-n</code>とかつけても変わりません。</p>
+
+<h2 id="区切ってソート">区切ってソート</h2>
+
+<p>そこで<code>sort</code>のオプションで<code>.</code>で区切って分けてそれぞれで数字としてソートするようにしてみます。</p>
+
+<p>出来るのはこんな感じ。</p>
+
+<pre><code>sort -n -t . -k 1.2,1 -k 2,2 -k 3,3 versions.txt
+</code></pre>
+
+<p>これで、上のファイルの内容がどのように並んでいても最初にあるような
+期待する順番で出力されます。</p>
+
+<p>各オプションは</p>
+
+<ul>
+  <li><code>-n</code>: 数字としてソートする</li>
+  <li><code>-t</code>: 区切り文字の指定。<code>-t .</code>で<code>.</code>で区切られ<code>v1</code>、<code>2</code>、<code>1</code>の様に3つのフィールドに分けられます。この指定がない場合は区切り文字はスペースになります。</li>
+  <li><code>-k</code>: ソートに用いる箇所の指定。
+    <ul>
+      <li>複数指定でき、先に指定した方が優先される。各区切りは左から1から数字が振られる。</li>
+      <li>各指定は<code>&lt;開始フィールド&gt;[フィールド中の開始文字][オプション][,終了フィールド[終了文字][オプション]]</code>
+        <ul>
+          <li>まず使うフィールドの指定は必須。(フィールド番号は左から1から始まる。)</li>
+          <li><code>.</code>の後に数字を書くとフィールド中の何文字目から、という指定が出来る。(フィールドの最初が1、指定がなければ1と同じ。)</li>
+          <li>終了側は文字指定がなければ指定したフィールドの最後までを見る。</li>
+          <li>終了フィールドを指定しないと見る行の最後まで、になる。
+            <ul>
+              <li>したがって、<code>-k 2 -k 3</code>とかは意味が無い(<code>-k 2</code>で3つ目のフィールド部分も含まれてしまうため)</li>
+            </ul>
+          </li>
+          <li>オプションはそのフィールドだけに適用したいオプションを指定する。(<code>-k2,2r</code>と指定すればその箇所だけ逆順でソートする)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>使っているファイルは<code>vX.Y.Z</code>の形のバージョン情報を持っているので、
+<code>X</code>, <code>Y</code>, <code>Z</code>の順でソートしたいわけですが、
+<code>.</code>で区切ると1つ目には<code>v</code>が付くので最初のものだけ、<code>-k 1.2,1</code>で
+1つ目のフィールドの2番目の文字からそのフィールドの最後まで、という指定をしています。</p>
+
+<h2 id="sort--v">sort -V</h2>
+
+<p>と、<code>sort</code>コマンドで頑張っては居ますが、実は<code>sort</code>コマンドには自動でバージョン記述を
+把握してソートしてくれる機能があります。</p>
+
+<pre><code>$ sort -V versions.txt
+</code></pre>
+
+<p>これだけで上のソートと同じ様に期待通りのバージョンの順序にしてくれます。</p>
+
+<p>ソートの方法としては数字部分を別途ひとまとめとして扱う、といういわゆるナチュラルソート(自然順)
+と呼ばれる方法とほぼほぼ同じですが、
+単純な文字列と数値のソートだけではなくコンピューターで使われるファイル名などにより適した
+改善が入っています。</p>
+
+<blockquote>
+  <p><a href="https://www.gnu.org/software/coreutils/manual/html_node/Version-sort-ordering.html#Version-sort-ordering">Version sort ordering (GNU Coreutils)</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://ja.wikipedia.org/wiki/%E8%87%AA%E7%84%B6%E9%A0%86">自然順 - Wikipedia</a><a href="https://ja.wikipedia.org/wiki/%E8%87%AA%E7%84%B6%E9%A0%86">自然順 - Wikipedia</a></p>
+</blockquote>
+
+<p>なので余程変な番号付をしてない限り<code>sort -V</code>でいい感じにソートできるはずです。
+(逆にこれでうまくソートできないものはバージョンの付け方を考え直した方が良いかも。)</p>
+
+<p>上のリファレンスもGNUのものになってますが、
+最初にGNU版sortにこの<code>-V</code>(<code>--version-sort</code>)というオプション
+があり、
+BSD版にはしばらくなかったみたいですが、
+現在はBSD版にも入っていて、macOSに入っているバージョンのsortでも使える様になっています。</p>
+
+<h2 id="git-tagでの表示">git tagでの表示</h2>
+
+<p>最近使う中で、バージョン一覧、みたいなものを一番良く表示するのは<code>git tag</code>コマンドです。</p>
+
+<p><code>git tag</code>で表示させてから、<code>sort</code>コマンドを使って、</p>
+
+<pre><code>$ git tag | sort -V
+</code></pre>
+
+<p>でバージョン順にソートできます。</p>
+
+<p>ただ、<code>sort</code>を使わなくても、Git 2.0からは</p>
+
+<pre><code>$ git tag --sort=version:refname
+</code></pre>
+
+<p>とすることでtagの出力を直接<code>sort -V</code>の様な期待通りの順に出してくれます。</p>
+
+<p><code>version</code>は<code>--sort=v:refname</code>の様に省略することもできます。</p>
+
+<p>このソートで逆順にしたい場合は</p>
+
+<pre><code>$ git tag --sort=-version:refname
+</code></pre>
+
+<p>の様にソートのやり方の最初にマイナス記号を付けます。</p>
+
+<p>常に<code>git tag</code>で上の様なバージョンとしてソートした上で表示したい場合、</p>
+
+<pre><code>$ git config --global tag.sort version:refname
+</code></pre>
+
+<p>とかして、<strong>~/.gitconfig</strong>に</p>
+
+<pre><code>[tag]
+  sort = version:refname
+</code></pre>
+
+<p>という行を追加しておくと<code>git tag</code>のデフォルトのソート方法がバージョン形式になります。
+(この機能はGit 2.1から。)
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>もし、tagの中に色々とバージョン名以外のものも含まれている場合、</p>
+
+<pre><code>$ git tag --sort=version:refname -l "v*"
+</code></pre>
+
+<p>の様な形で正規表現を渡してそれに沿ったもの(この場合は、<code>v</code>で始まる)tagだけ表示することもできます。</p>
+
+<p>ここで利用できる正規表現はシェル的なものになります。
+(<code>*</code>で全て0字以上の全ての文字列に対応。)</p>
+
+<p>Gitの機能であれば、単純にタグ名だけでソートするだけでなく、
+タグを作った日時でもソートでき、</p>
+
+<pre><code>$ git tag --sort=taggerdate -l "v*"
+</code></pre>
+
+<p>とすればタグを作った順になります。</p>
+
+<p>ただし、<code>taggerdate</code>は<code>git tag -a v1.2.3</code>の様に注釈付き(<code>annotated</code>)のものだけに付いていて、
+<code>git tag v1.2.3</code>の様に作った軽量(<code>lightweight</code>)版にはついてないので注意。</p>
+
+<p>その場合はコミットのポインタでしかないので、そういうのも含めて日時でソートしたい場合は、</p>
+
+<pre><code>$ git tag --sort=committerdate -l "v*"
+</code></pre>
+
+<p>の様な形でコミットの日時でやることもできます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[brew-fileのUbuntuなどDebian系Linuxへの対応]]></title>
+    <link href="https://rcmdnk.com/blog/2020/02/06/computer-linux-homebrew-brew-file/"/>
+    <updated>2020-02-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/02/06/computer-linux-homebrew-brew-file</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798109088?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798109088&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51S3TB2CW8L._SS200_.jpg" alt="Debian 辞典 (Desktop reference)" /></a>
+</div>
+
+<p>brew-fileをLinuxにも対応させた、と書いてましたが、
+Ubuntu等では動かない状態だったので対応しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brew-file" id="markdown-toc-brew-file">brew-file</a></li>
+  <li><a href="#linuxへの対応" id="markdown-toc-linuxへの対応">Linuxへの対応</a></li>
+  <li><a href="#debian系への対応" id="markdown-toc-debian系への対応">Debian系への対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="brew-file">brew-file</h2>
+
+<p>Homebrewのパッケージリストを管理するツール。</p>
+
+<p>Homebrew-fileと書いたりbrew-fileと書いたりこのブログの中でも統一されて無くて良くないですが、
+管理してるレポジトリ名が<code>homebrew-file</code>で
+コマンド名は<code>brew-file</code>、<code>brew</code>のサブコマンドとして<code>brew file</code>で呼び出される様なものです。
+なのでその時々の気分で変わってしまってすいません。(多分、brew-fileとしておくのが良いのかな、と最近は。)</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも現在はbundleというBrewfileファイルに書き出す機能がありますが、
+brew-fileではBrewfile自体をGitHubのレポジトリで管理したり、
+また、<code>brew install</code>時などに自動でBrewfileをアップデートしたり、
+普段<code>brew-file</code>というコマンドを意識せずに自動で管理できる様なものを目指しています。</p>
+
+<p>ほんとはbundleの機能に追加できれば良いんですが、あちらRubyでこちらPythonで
+統一するのも面倒だし、その先新しいこと加えるときにRubyよりPythonのが(個人的に)やりやすいので
+別途の形に。</p>
+
+<p>ちなみに、以前、そこそこ使われてきたのでbrew-fileのformulaを
+公式のレポジトリに入れてもらおうかと思ったこともあったんですが、
+上記の様にbundleという似た(今はもう)公式のツールがあるので微妙かな、ということで
+入れないことにしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B011WTXSJ2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B011WTXSJ2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51RErbdy69L._SS90_CR0,0,120,90_.jpg" alt="The Persistence Formula: Follow Through, Stop Quitting, Stay Focused, Avoid Distraction, Achieve Your Goals, Control Your Habits, Maximize Productivity, ... Enjoy The Entire Journey (English Edition)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/20/computer-homebrew-brew-file-mac/">HomebrewにFormulaを公式に入れてもらうためにチェックする事</a></div></li></ul>
+
+<p>まあ、Formulaの更新も自由に出来るので管理上は公式に入ってない方が楽なのでそれはそれで良いかな、と。</p>
+
+<h2 id="linuxへの対応">Linuxへの対応</h2>
+
+<p>今年はじめLinuxbrewがHomebrewに統一されたのでそれを機に
+Linuxでも本格的にHomebrewを使うためbrew-fileもLinux対応させました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/02/27/computer-linux-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190208_homebrew_120_90.jpg" width="120" height="90" alt="20190208_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/02/27/computer-linux-homebrew/">LinuxでHomebrewを使う: Homebrew-fileも対応させた</a></div></li></ul>
+
+<p>ただ、自分で使っていたのがRedHat系で、
+最近WindowsでWindows Subsystem for Linux(WSL)なUbuntuの所でエラーが出て使えなかったので
+それに対応させました。</p>
+
+<h2 id="debian系への対応">Debian系への対応</h2>
+
+<p>ここで問題になったRedHat系とDebian系の違いは、<code>/bin/sh</code>の違いです。
+RedHat系はBash、Debian系はDash。</p>
+
+<p>brew-fileの中で、外部コマンドを<code>subprocess.Popen</code>で呼び出している部分がありますが、
+<code>brew</code>コマンドを呼ぶ際、brew-fileの設定で<code>brew-file</code>へのラッパー関数に設定している場合があるので、
+その場合のループを防ぐために<code>command brew</code>の様な呼び方をしていました。</p>
+
+<p>これでMacでもRedHat系でも問題なかったのですが、Ubuntuでやってみると</p>
+
+<pre><code>[ERROR]: Failed at command: command brew --prefix
+</code></pre>
+
+<p>というエラー。実際にはPopenが</p>
+
+<pre><code>command brew --prefix: [Errno 2] No such file or directory
+</code></pre>
+
+<p>みたいなエラーを出しています。</p>
+
+<p>簡単なスクリプト例としては</p>
+
+<figure class="code"><figcaption><span>title lang: </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">#!/usr/bin/env python3
+</span><span class="line">import subprocess
+</span><span class="line">subprocess.call(["command", "echo", "foo"])</span></code></pre></td></tr></table></div></figure>
+
+<p>とか。Ubuntuとかで実行すると</p>
+
+<pre><code>FileNotFoundError: [Errno 2] layouto such file or directory: 'command': 'command'
+</code></pre>
+
+<p>とか出ると思います。</p>
+
+<p>これがDashでは<code>command</code>というものがないのだ、と思ってたんですが、
+普通に</p>
+
+<pre><code>$ /bin/sh # Dash起動
+$ command echo foo
+foo
+</code></pre>
+
+<p>とかは出来ます。
+ちょっとこの辺調べようとしたんですがよくわからないままなのでまたそのうち。。。</p>
+
+<p>とりあえず<code>command brew...</code>というのがうまく行かないので、
+Bashで直接やれば、ということで</p>
+
+<pre><code>["bash", "-i", "-c", "brew ls"]
+</code></pre>
+
+<p>みたいなものを渡してみたんですが、これがRedHat系で</p>
+
+<pre><code>Package bash-completion was not found in the pkg-config search path.
+Perhaps you should add the directory containing `bash-completion.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'bash-completion' found
+bash: /yum: No such file or directory
+</code></pre>
+
+<p>というエラーを出しました。
+どうやらbrewコマンドの中での何かしら環境変数の設定とかがうまくいってない模様。
+<code>Popen</code>呼ぶときには現在の環境変数全てを渡す様なことはしているので、ちょっとよくわからない。</p>
+
+<p>PKG_CONFIG_PATH云々はわかりますが、そもそもなんでこういう事が出てくるか、
+というのがbrewの中身を見たりしないとちょっと理解できなくて、
+面倒なので見てません。</p>
+
+<p>ただ、そもそも<code>-i</code>を付けてインタラクティブモードで<code>bash</code>を呼ぶ必要があるのか、というところで、
+<code>-i</code>ナシにしてみるとうまくいきました。</p>
+
+<pre><code>["bash", "-c", "brew ls"]
+</code></pre>
+
+<p>みたいな感じ。</p>
+
+<p>ただ、これも最後の実際のコマンドの部分がまとめた状態になるので余り良くない。</p>
+
+<p>ということで、関数、aliasを無視するにどうするか、と思ったところ、
+単に<code>brew</code>へのフルパスを取ってやるのが一番楽だし正確かな、ということでそうしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/01/30/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180130_aliasfunc_120_90.jpg" width="120" height="90" alt="20180130_aliasfunc_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/01/30/computer-bash-zsh/">Bash/Zshで関数やaliasを無視してオリジナルのコマンドを使う方法</a></div></li></ul>
+
+<p>ちょっと/bin/shに関する部分やsubprocessで呼ぶ際の環境、さらには
+subprocess.Popenでのshellやexecutable引数の意味、など
+もう一度ちゃんと理解しようと調べ始めて面倒になって中途半端な認識になってるので、
+またそのうちまとめられれば、とは思ってます。</p>
+
+<p>Ref:</p>
+
+<blockquote>
+  <p><a href="https://github.com/Linuxbrew/legacy-linuxbrew/issues/46">Linuxbrew: “Package bash-completion was not found…” at command prompt. · Issue #46 · Linuxbrew/legacy-linuxbrew</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://astropengu.in/blog/12/">ADC/MDAS への tmux のインストール</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.saltycrane.com/blog/2011/04/how-use-bash-shell-python-subprocess-instead-binsh/">How to use the bash shell with Python’s subprocess module instead of /bin/sh - SaltyCrane Blog</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://qiita.com/yoichi22/items/5afa8b3b39c723acb359">subprocess で shell=True でリストを与えたときの挙動 - Qiita</a></p>
+</blockquote>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[LinuxにHomebrewでShellCheckをインストールしたい(が、諦める)]]></title>
+    <link href="https://rcmdnk.com/blog/2020/01/24/computer-linux-bash/"/>
+    <updated>2020-01-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/01/24/computer-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4774186945?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4774186945&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41i956UyusL._SS200_.jpg" alt="[改訂第3版]シェルスクリプト基本リファレンス ──#!/bin/shで、ここまでできる (WEB+DB PRESS plus)" /></a>
+</div>
+
+<p>シェルスクリプトのチェックツールShellCheckをHomebrewでインストールしようとしたら
+ちょっと面倒だった件。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shellcheck" id="markdown-toc-shellcheck">ShellCheck</a></li>
+  <li><a href="#linuxでのshellcheckのインストール" id="markdown-toc-linuxでのshellcheckのインストール">LinuxでのShellCheckのインストール</a></li>
+  <li><a href="#gcc8をwithout-glibcで入れられるように" id="markdown-toc-gcc8をwithout-glibcで入れられるように">gcc@8を–without-glibcで入れられるように</a></li>
+  <li><a href="#without-glibcなgcc8でトライ" id="markdown-toc-without-glibcなgcc8でトライ">without-glibcなgcc@8でトライ</a></li>
+  <li><a href="#without-glibcなgcc9でトライ" id="markdown-toc-without-glibcなgcc9でトライ">without-glibcなgcc@9でトライ</a></li>
+  <li><a href="#gcc7とか" id="markdown-toc-gcc7とか">gcc@7とか</a></li>
+  <li><a href="#gccとか全部なしでやって見る" id="markdown-toc-gccとか全部なしでやって見る">gccとか全部なしでやって見る</a></li>
+  <li><a href="#直接cabal-install" id="markdown-toc-直接cabal-install">直接cabal install</a></li>
+  <li><a href="#諦めて直接" id="markdown-toc-諦めて直接">諦めて直接</a></li>
+  <li><a href="#macでのshecllcheck" id="markdown-toc-macでのshecllcheck">MacでのShecllCheck</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shellcheck">ShellCheck</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/11/26/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20141126_shellcheckcli_120_90.jpg" width="120" height="90" alt="20141126_shellcheckcli_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/11/26/computer-bash-zsh/">シェルスクリプトを簡単にチェックできるShellCheck, Vimでも使える</a></div></li></ul>
+
+<p>ShellCheckはシェルスクリプトの文法をチェックしてくれるツールで、
+Vimとかと連携しておくと捗ります。</p>
+
+<h2 id="linuxでのshellcheckのインストール">LinuxでのShellCheckのインストール</h2>
+
+<p>インストールするのはCentOS 7です。</p>
+
+<p>LinuxbrewがHomebrewに統合されたのを機に、
+ユーザーローカルエリアにインストールするツールはLinuxでもHomebrewで行うようにしてきました。</p>
+
+<p>その話は随分前の話なんですがなんですが、今更ShecllCheckが入ってないことに気が付きました。</p>
+
+<p>ということでインストールしてみようとすると、</p>
+
+<pre><code>$ brew install shellcheck
+Updating Homebrew...
+==&gt; Auto-updated Homebrew!
+Updated 1 tap (homebrew/core).
+No changes to formulae.
+==&gt; Installing dependencies for shellcheck: pandoc
+==&gt; Installing shellcheck dependency: pandoc
+==&gt; Downloading https://hackage.haskell.org/package/pandoc-2.9.1.1/pandoc-2.9.1.1.tar.gz
+Already downloaded: /home/user/.cache/Homebrew/downloads/4292bf61443a19f2a8957e8af9c220e56e8b2d83a1497b14fbbb1715811569f5--pandoc-2.9.1.1.tar.gz
+==&gt; cabal v1-sandbox init
+==&gt; cabal v1-update
+==&gt; cabal v1-sandbox init
+==&gt; cabal v1-install --jobs=32 --max-backjumps=100000 --only-dependencies
+Last 15 lines from /home/user/.cache/Homebrew/Logs/pandoc/04.cabal:
+2020-XX-XX XX:XX:XX +0900
+cabal
+v1-install
+--jobs=32
+--max-backjumps=100000
+--only-dependencies
+gcc-5: error: unrecognized command line option '-no-pie'
+`gcc-5' failed in phase `C Compiler'. (Exit code: 1)
+READ THIS: https://docs.brew.sh/Troubleshooting
+</code></pre>
+
+<p>というエラー。
+探してみるとこんなIssueが。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/linuxbrew-core/issues/10694">shellcheck fails to install · Issue #10694 · Homebrew/linuxbrew-core</a></p>
+</blockquote>
+
+<p>ここで</p>
+
+<pre><code>brew install gcc@8
+brew install shellcheck -svd --cc=gcc-8
+</code></pre>
+
+<p>というのがありますが、ちょっと注意が必要なのは何も考えずに<code>gcc@8</code>を入れると
+<code>glibc</code>が入って環境によっては問題が起こる点。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/05/08/computer-linux-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190208_homebrew_120_90.jpg" width="120" height="90" alt="20190208_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/05/08/computer-linux-homebrew/">Linuxbrew改めHomebrew@Linuxでrelocation errorに対する対処法</a></div></li></ul>
+
+<p><code>gcc</code>には<code>--without-glibc</code>というオプションがあるのですが、<code>gcc@8</code>の<a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc@8.rb">Formula</a>にはその様なオプションはありません。</p>
+
+<p>ということで仕方ないので自作。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-rcmdnkpac/blob/master/rcmdnk-gcc%408.rb">homebrew-rcmdnkpac/rcmdnk-gcc@8.rb at master · rcmdnk/homebrew-rcmdnkpac</a></p>
+</blockquote>
+
+<p><a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc@8.rb">gcc@8のFormula</a>
+に
+<a href="https://github.com/Homebrew/linuxbrew-core/blob/master/Formula/gcc.rb">gccのFormula</a>
+のglibcのところをちょっと足しただけですが。</p>
+
+<p>これで、Linuxで</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/rcmdnk-gcc@8 --without-glibc
+</code></pre>
+
+<p>でglibcなしでgcc@8が入れられます。</p>
+
+<p>これでOK、と思ってたら</p>
+
+<pre><code>$ brew install shellcheck --cc=gcc-8
+Warning: You passed `--cc=gcc-8`.
+You will encounter build failures with some formulae.
+Please create pull requests instead of asking for help on Homebrew's GitHub,
+Discourse, Twitter or IRC. You are responsible for resolving any issues you
+experience while you are running this unsupported configuration.
+==&gt; Installing dependencies for shellcheck: pandoc
+==&gt; Installing shellcheck dependency: pandoc
+Error: An exception occurred within a child process:
+  RuntimeError: The requested Homebrew GCC was not installed. You must:
+    brew install gcc@8
+</code></pre>
+
+<p>どうやら<code>--cc</code>オプションはHomebrewの中でFormulaから処理しているらしく、
+<code>gcc@8</code>の名前で入ってないとだめ、ということに。。。</p>
+
+<p>同じ名前のFormulaを別のTapで入れるとconflictを起こして問題になるので、
+Linuxbrew-coreのFormulaをアップデートするしかありません。</p>
+
+<h2 id="gcc8をwithout-glibcで入れられるように">gcc@8を–without-glibcで入れられるように</h2>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/linuxbrew-core/pull/19054">add –without-glibc option to gcc@X by rcmdnk · Pull Request #19054 · Homebrew/linuxbrew-core</a></p>
+</blockquote>
+
+<p>gccのFormulaを参考にすれば簡単にできるのでgcc@8なども<code>--without-glibc</code>出来るように変更。</p>
+
+<p>Pull Requestを出してある状態ですが、とりあえず自分でFormula(gcc@8.rbなど)を</p>
+
+<pre><code>~/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core/Formula
+</code></pre>
+
+<p>にコピーしてインストール。</p>
+
+<pre><code>$ brew install gcc@8  --without-glibc
+</code></pre>
+
+<p>入りました。</p>
+
+<p>すでにPull Requestはマージされてるので<code>brew update</code>すれば<code>gcc@8</code>なども<code>--without-glibc</code>で入れられるはずです。</p>
+
+<h2 id="without-glibcなgcc8でトライ">without-glibcなgcc@8でトライ</h2>
+
+<p>これでもう一度トライ:</p>
+
+<pre><code>$ brew install shellcheck -svd --cc=gcc-8
+...
+Downloaded   aeson-1.4.6.0
+Starting     aeson-1.4.6.0
+Building     JuicyPixels-3.3.4
+Building     aeson-1.4.6.0
+Completed    hxt-9.3.1.18
+Failed to install JuicyPixels-3.3.4
+Build log ( /tmp/pandoc-20200115-158652-15h1ohp/pandoc-2.9.1.1/.cabal-sandbox/logs/ghc-8.8.1/JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes.log ):
+cabal: Entering directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Configuring JuicyPixels-3.3.4...
+Preprocessing library for JuicyPixels-3.3.4..
+Building library for JuicyPixels-3.3.4..
+[ 1 of 30] Compiling Codec.Picture.InternalHelper ( src/Codec/Picture/InternalHelper.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/InternalHelper.o )
+[ 2 of 30] Compiling Codec.Picture.Metadata.Exif ( src/Codec/Picture/Metadata/Exif.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata/Exif.o )
+[ 3 of 30] Compiling Codec.Picture.Metadata ( src/Codec/Picture/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata.o )
+[ 4 of 30] Compiling Codec.Picture.Tiff.Internal.Types ( src/Codec/Picture/Tiff/Internal/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Types.o )
+[ 5 of 30] Compiling Codec.Picture.Tiff.Internal.Metadata ( src/Codec/Picture/Tiff/Internal/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Metadata.o )
+[ 6 of 30] Compiling Codec.Picture.Types ( src/Codec/Picture/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Types.o )
+&lt;command line&gt;: /lib/libz.so: wrong ELF class: ELFCLASS32
+cabal: Leaving directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Completed    cryptonite-0.26
+Completed    aeson-1.4.6.0
+cabal: Error: some packages failed to install:
+JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes failed during the building phase. The
+exception was:
+ExitFailure 1
+/home/user/.linuxbrew/opt/curl/bin/curl --version
+java -version
+/home/user/.linuxbrew/Homebrew/Library/Homebrew/build.rb (Formulary::FormulaLoader): loading /home/user/.linuxbrew/Homebrew/Library/Taps/linuxbrew/homebrew-xorg/Formula/xorg.rb
+</code></pre>
+
+<p>で止まってしまいます。</p>
+
+<pre><code>Failed to install JuicyPixels-3.3.4
+    Build log ( /tmp/pandoc-20200115-158652-15h1ohp/pandoc-2.9.1.1/.cabal-sandbox/logs/ghc-8.8.1/JuicyPixels-3.3.4-683Rg9ZKIIHL6oz4xD5Bes.log ):
+</code></pre>
+
+<p>の辺が失敗している模様。</p>
+
+<p>このログを見てみると</p>
+
+<pre><code>cabal: Entering directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+Configuring JuicyPixels-3.3.4...
+Preprocessing library for JuicyPixels-3.3.4..
+Building library for JuicyPixels-3.3.4..
+[ 1 of 30] Compiling Codec.Picture.InternalHelper ( src/Codec/Picture/InternalHelper.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/InternalHelper.o )
+[ 2 of 30] Compiling Codec.Picture.Metadata.Exif ( src/Codec/Picture/Metadata/Exif.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata/Exif.o )
+[ 3 of 30] Compiling Codec.Picture.Metadata ( src/Codec/Picture/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Metadata.o )
+[ 4 of 30] Compiling Codec.Picture.Tiff.Internal.Types ( src/Codec/Picture/Tiff/Internal/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Types.o )
+[ 5 of 30] Compiling Codec.Picture.Tiff.Internal.Metadata ( src/Codec/Picture/Tiff/Internal/Metadata.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Tiff/Internal/Metadata.o )
+[ 6 of 30] Compiling Codec.Picture.Types ( src/Codec/Picture/Types.hs, dist/dist-sandbox-4b7509f0/build/Codec/Picture/Types.o )
+&lt;command line&gt;: /lib/libz.so: wrong ELF class: ELFCLASS32
+cabal: Leaving directory '/tmp/cabal-tmp-158859/JuicyPixels-3.3.4'
+</code></pre>
+
+<p>どうも<code>/lib/libz.so</code>を見てるのが悪いようですが、
+<code>~/.linuxbrew/lib/libz.so</code>にもちゃんとHomebrewで入れたのが入っていて、
+環境変数<code>LD_LIBRARY_PATH</code>にも<code>~/.linuxbrew/lib/libz.so</code>は入っています。</p>
+
+<h2 id="without-glibcなgcc9でトライ">without-glibcなgcc@9でトライ</h2>
+
+<p>もう一つ新しいgccがあるのでそれを入れてみる</p>
+
+<pre><code>$ brew install gcc@9  --without-glibc
+Updating Homebrew...
+==&gt; Auto-updated Homebrew!
+Updated Homebrew from 13f508d0d to 50354852f.
+No changes to formulae.
+==&gt; Downloading https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz
+==&gt; ../configure --with-bugurl=https://github.com/Homebrew/linuxbrew-core/issues --disable-multilib --prefix=/home/user/.linuxbrew/Cellar/gcc@9/9.2.0_1 --libdir=/home/user/.linuxbrew/Cellar/gcc@9/9.2.0_1/lib/gcc/9 --enable-languages=c,c++,objc,obj-c++,fortran --disable-nls --enable-checking=release --program-suffix=-9 --with-gmp=/home/user/.linuxbrew/opt/gmp --with-mpfr=/home/user/.linuxbrew/opt/mpfr --with-mpc=/home/user/.linuxbrew/opt/libmpc --with-isl=/home/user/.linuxbrew/opt/isl --with-pkgversion=Homebrew GCC 9.2.0_1 --without-glibc
+==&gt; make
+Last 15 lines from /home/user/.cache/Homebrew/Logs/gcc@9/02.make:
+/bin/sh ../../gcc/../move-if-change tmp-constrs.h tm-constrs.h
+/bin/sh ../../gcc/../move-if-change tmp-preds.c insn-preds.c
+echo timestamp &gt; s-constrs-h
+/bin/sh ../../gcc/../move-if-change tmp-preds.h tm-preds.h
+echo timestamp &gt; s-preds
+/bin/sh ../../gcc/../move-if-change tmp-condmd.c build/gencondmd.c
+echo timestamp &gt; s-preds-h
+echo timestamp &gt; s-conditions
+rm gcc.pod
+make[3]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build/gcc'
+make[2]: *** [all-stage1-gcc] Error 2
+make[2]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build'
+make[1]: *** [stage1-bubble] Error 2
+make[1]: Leaving directory `/tmp/gcc@9-20200115-163739-1cqulwf/gcc-9.2.0/build'
+make: *** [all] Error 2
+sh: line 1: 193696 Segmentation fault      /usr/bin/gcc --version 2&gt; /dev/null
+READ THIS: https://docs.brew.sh/Troubleshooting
+These open issues may also help:
+llvm: can't pick up gcc-toolchain if run from opt/llvm/bin/clang++  https://github.com/Homebrew/linuxbrew-core/issues/18601
+</code></pre>
+
+<p>ここでsegmentation fault…</p>
+
+<p>これは面倒なのでこれ以上見てません。。。</p>
+
+<h2 id="gcc7とか">gcc@7とか</h2>
+
+<p>もうちょっと前のgccを使ってみてもインストールは出来ましたがshellcheckのインストールで
+<code>gcc@8</code>の場合と同じようになりました。</p>
+
+<h2 id="gccとか全部なしでやって見る">gccとか全部なしでやって見る</h2>
+
+<p>その他、<code>gcc</code>自体も<code>brew rm</code>して、とかもやってみましたが何も上手く行かず。。。</p>
+
+<p>Homebrewではどうやってもうまく行きません。</p>
+
+<h2 id="直接cabal-install">直接cabal install</h2>
+
+<p>shellcheckのインストール時に、<code>cabal</code>を使っているので直接使ってみる</p>
+
+<pre><code>$ cabal install ShellCheck
+</code></pre>
+
+<p>が、これも最初のものと同じエラーが出ます。。。</p>
+
+<h2 id="諦めて直接">諦めて直接</h2>
+
+<div class="github-widget" data-repo="koalaman/shellcheck"></div>
+
+<p>のREADMEに従ってpre-compiledされたものを入れてしまうことにしました。</p>
+
+<pre><code>$ scversion="stable"
+$ wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-${scversion?}.linux.x86_64.tar.xz" | tar -xJv
+$ cp shellcheck-${shellcheck} ~/usr/bin
+</code></pre>
+
+<p>もうこれで良しとしておきます。。。</p>
+
+<h2 id="macでのshecllcheck">MacでのShecllCheck</h2>
+
+<p>Macでも確認したらなぜか入ってなくてHomebrewで再インストールしたのですが、
+その際にBrewfileにすでにあるよ、という
+<a href="https://github.com/rcmdnk/homebrew-file">homebrew-file</a>
+のwarningが出て、おかしいなと思って
+<a href="https://github.com/rcmdnk/Brewfile/blob/master/Brewfile">Brewfile</a>
+の履歴を見ると<code>shellcheck</code>自体は2017年に追加されてそのままでした。
+それだと前のMacのときのものなので、Mac新しくしてからずっと使ってなかった?
+(でも最近でもVimでシェルスクリプトのチェックを見たような気がするが。。。)</p>
+
+<p>確かに再インストール前はVim+Aleでチェックが効いてなかったのが、</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/09/25/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170925_vimale_120_90.jpg" width="120" height="90" alt="20170925_vimale_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/09/25/computer-vim/">VimのSyntaxチェッカーをALEにした</a></div></li></ul>
+
+<p>インストール後には効くようになりました、当たり前だけど。</p>
+
+<p>なぞ。。。</p>
+]]></content>
+  </entry>
+  
+</feed>
