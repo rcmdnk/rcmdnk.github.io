@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Kramdown | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/kramdown/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[MarkdownのパーサーをKramdownへ変更]]></title>
+    <link href="https://rcmdnk.com/blog/2013/10/12/blog-octopress-kramdown/"/>
+    <updated>2013-10-12T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2013/10/12/blog-octopress-kramdown</id>
+    <content type="html"><![CDATA[<p>OctopressのデフォルトのMarkdownパーサーは<a href="http://dafoster.net/projects/rdiscount/">RDiscount</a>
+なんですが、
+UTF8関連のエラーが結構出て面倒なので
+<a href="http://kramdown.rubyforge.org/">Kramdown</a>
+に変更してみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#rdiscountの問題" id="markdown-toc-rdiscountの問題">RDiscountの問題</a></li>
+  <li><a href="#kramdownの導入" id="markdown-toc-kramdownの導入">Kramdownの導入</a>    <ul>
+      <li><a href="#パーサーの変更" id="markdown-toc-パーサーの変更">パーサーの変更</a></li>
+      <li><a href="#目次table-of-contentの変更" id="markdown-toc-目次table-of-contentの変更">目次(Table Of Content)の変更</a></li>
+      <li><a href="#footnote" id="markdown-toc-footnote">footnote</a></li>
+      <li><a href="#コード" id="markdown-toc-コード">コード</a></li>
+      <li><a href="#インデントコードなどの前後を必ず1行空ける" id="markdown-toc-インデントコードなどの前後を必ず1行空ける">インデントコードなどの前後を必ず1行空ける</a></li>
+      <li><a href="#div" id="markdown-toc-div">div要素など</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="rdiscountの問題">RDiscountの問題</h2>
+<p>RDiscountで見出しをつけようとした時</p>
+
+<pre><code>Liquid Exception: incompatible character encodings: UTF-8 and ASCII-8BIT in atom.xml
+</code></pre>
+
+<p>というエラーが出て、
+これを対処するためにjekyllの中身を直接変更する必要がありました
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>取り敢えずはこれで良かったんですが、最近Octopressのアップデートを追ってみようと
+した所、RDiscountのバージョンが<code>1.6.8</code>から<code>2.0.7</code>に変更されていました。</p>
+
+<p>取り敢えずGemfileを<code>2.0.7</code>に書き換えて<code>bundle install</code>してから<code>rake generate</code>
+してみると</p>
+
+<pre><code>/octopress/plugins/raw.rb:11:in `gsub': invalid byte sequence in UTF-8 (ArgumentError)
+</code></pre>
+
+<p>こんな感じで<code>raw.rb</code>がUTF-8周りで嫌がられます。
+これも上記の見出しの時のように治せるのかもしれませんが、
+そもそもjekyllの中身の方に手を加えるのは余り気持よくないので
+手元の方を変えるため、
+MarkdownパーサーをRDiscountからKramdownへ変更することにしました。</p>
+
+<p>以前一回断念してますが<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>、もう一回頑張ってみます。</p>
+
+<h2 id="kramdownの導入">Kramdownの導入</h2>
+
+<h3 id="パーサーの変更">パーサーの変更</h3>
+<p>Jekyll(0.12)がKramdownに依存してるので
+最近Octopressをインストールして<code>bundle install</code>していれば
+Kramdownもインストールされてるはずなので(<code>bundle list</code>でチェック)。
+Gemfile等はそのままでOK<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup> 。</p>
+
+<p>まず、<code>_config.yml</code>の中でKramdownを使うように変更します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gd">-markdown: rdiscount</span>
+</span><span class="line"><span class="gd">-rdiscount:</span>
+</span><span class="line"><span class="gd">-  extensions: [&#39;generate_toc&#39;]</span>
+</span><span class="line"><span class="gd">-  # Table Of Contents</span>
+</span><span class="line"><span class="gd">-  toc_token: &quot;{:TOC}&quot;</span>
+</span><span class="line"><span class="gi">+markdown: kramdown</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h3 id="目次table-of-contentの変更">目次(Table Of Content)の変更</h3>
+<p>RDiscountでTOCを導入した際に、上の様に<code>{:TOC}</code>と言う表記で
+目次を出力してましたが、Kramdownでは</p>
+
+<pre><code>* Table Of Contents
+{:toc}
+</code></pre>
+
+<p>の様に書きます。小文字の<code>toc</code>です。
+その上にあるアスタリスクから始まる行は表示されませんし、
+書いてある内容はなんでもいい、何も書かなくても</p>
+
+<pre><code>*
+{:toc}
+</code></pre>
+
+<p>これでもOKみたいですが、何故かアスタリスクは必須です
+<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p>TOCから外したいコンテンツがある場合は</p>
+
+<pre><code># ignore
+{:no_toc}
+</code></pre>
+
+<p>の様に<code>no_toc</code>をコンテンツ直下に書いてあげるとTOCから外してくれます。</p>
+
+<p>Kramdownによって生成されるTOCはリストに<code>markdown-toc</code>というidがふられています。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">ul</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;markdown-toc&quot;</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#section&quot;</span><span class="p">&gt;</span>エラー<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#section-1&quot;</span><span class="p">&gt;</span>対処法<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#raw&quot;</span><span class="p">&gt;</span>キャッシュされる<span class="p">&lt;</span><span class="nt">code</span><span class="p">&gt;</span>raw<span class="p">&lt;/</span><span class="nt">code</span><span class="p">&gt;</span>のコード<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#gist&quot;</span><span class="p">&gt;</span>Gistのページを直接貼り付ける<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#rake-clean-&quot;</span><span class="p">&gt;</span>rake cleanの 不具合?<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#octopressoctopress25&quot;</span><span class="p">&gt;</span>Octopressのコードの表示@Octopress2.5<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>また、hrefには、もしタイトルにアルファベットが含まれてれば
+日本語文字を除いたアルファベットだけから、
+日本語文字だけだの場合と<code>section</code>、<code>section-1</code>、<code>section-2</code>…と
+リファレンス名が付けられていきます。</p>
+
+<p>ulにIDが付いているので、<code>sass/custom/_styles.scss</code>等にこれについて書いておけば</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="scss"><span class="line"><span></span><span class="nn">#markdown-toc</span><span class="p">{</span>
+</span><span class="line">  <span class="nt">margin-left</span><span class="nd">:0</span><span class="o">;</span>
+</span><span class="line">  <span class="nt">li</span> <span class="p">{</span>
+</span><span class="line">    <span class="nt">margin-left</span><span class="nd">:1em</span><span class="o">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">&amp;</span><span class="nd">:before</span><span class="p">{</span>
+</span><span class="line">    <span class="nt">content</span><span class="nd">:</span><span class="s2">&quot;Contents&quot;</span><span class="o">;</span>
+</span><span class="line">    <span class="o">@</span><span class="nt">extend</span> <span class="nc">.heading</span><span class="o">;</span>
+</span><span class="line">    <span class="nt">text-rendering</span><span class="nd">:</span> <span class="nt">optimizelegibility</span><span class="o">;</span>
+</span><span class="line">    <span class="nt">font-weight</span><span class="nd">:</span> <span class="nt">bold</span><span class="o">;</span>
+</span><span class="line">    <span class="nt">font-size</span><span class="nd">:</span> <span class="nt">1</span><span class="nc">.7em</span><span class="o">;</span>
+</span><span class="line">    <span class="nt">line-height</span><span class="nd">:</span> <span class="nt">2</span><span class="nc">.0em</span><span class="o">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>こんな感じにすればTOCの上に<code>Contents</code>というタイトルが付きます。
+線で囲ってみたり、<code>float:right</code>等で文書を回りこましたりしてもOK
+<sup id="fninref:5"><a href="#fnin:5" rel="footnote">5</a></sup>。</p>
+
+<p>これまでは<code>{:TOC}</code>の上に</p>
+
+<pre><code>&lt;h1&gt;Contents&lt;/h1&gt;
+</code></pre>
+
+<p>と書いてましたがこれを削除して置き換え。</p>
+
+<p>ちなみに、TOCを入れる様な場合は自分の場合は必ずexcerptする直後に入れるので、
+<code>source/_includes/custom/after_excerpt.html</code>というファイルを作って
+各記事中で</p>
+
+<pre><code>&lt;!-- more --&gt;
+{%include custom/after_excerpt.html%}
+</code></pre>
+
+<p>の様にmoreとセットで入れて居ます。こうしておけばこのファイル内に
+TOCのことなどちょこちょこ書いておいて全体で一気に変更することが出来るので便利です。</p>
+
+<h3 id="footnote">footnote</h3>
+<p>これまでは<a href="https://github.com/fcy/footnote-octopress">footnote-octopress</a>
+のプラグインを使ってfootnoteを書いてましたが、
+このプラグインはRDiscountに依存してるのでそのままでは使えませんが、
+70行目辺りのRDiscountを使っている所で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gd">-ref_text = RDiscount.new(&quot;#{text}&lt;a href=&#39;#fnref:#{@current_reference}&#39; rev=&#39;footnote&#39;&gt;↩&lt;/a&gt;&quot;).to_html</span>
+</span><span class="line"><span class="gi">+ref_text = Kramdown::Document.new(&quot;#{text}&lt;a href=&#39;#fnref:#{@current_reference}&#39; rev=&#39;footnote&#39;&gt;↩&lt;/a&gt;&quot;).to_html</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としてやれば使えます。</p>
+
+<p>ただ、Kramdownでは<a href="http://michelf.ca/projects/php-markdown/extra/">PHP Markdown Extra</a>
+のFootnoteが使える様になっているのでそれも使いたい所。
+(RDiscountも2.0.7では同じくこれが使えます。)</p>
+
+<p><code>[^1]</code>でfootnoteを入れる場所を示し、それ以降に</p>
+
+<pre><code>[^1]: foonote
+</code></pre>
+
+<p>と言った形で書いておくと最後にまとめてくれます。
+内容は記事の途中でもどこに書いてもOKです。</p>
+
+<p>ただし、footnoteを書く際には必ず上に1行空行が必要です。</p>
+
+<pre><code>aaaa[^1]
+[^1]: note...
+</code></pre>
+
+<p>等と書いてしまうときちんと理解されません(<code>[^1]</code>やその後がそのまま出力される)。</p>
+
+<p>複数行に渡って書きたい時は、2行目以降は行頭4つスペースを入れます。
+基本的に、この4つのスペースが続いている部分を1つのブロック単位と捉える様です。</p>
+
+<p>footnote内にコードを書きたい時は、</p>
+
+<pre><code>[^1]: footnote with code
+    write code:
+
+        this is code
+
+    ok.
+</code></pre>
+
+<p>みたいな感じで、さらに4つ字下げします(この場合は2つでもOKっぽい？)。</p>
+
+<p>リスト(*や1等で書くMarkdown式のリスト)の場合も同じで、
+リスト中にコードを書いて、その後同じリストのインデントで再び書きたい時は
+上の様な感じで4つ字下げの中で記述します。</p>
+
+<p>取り敢えず今までのものはそのままで、新しい所は
+この方法で、という感じで良いと思います。</p>
+
+<p>出力されるのもどちらも
+ノートを挿入する場所は</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">sup</span> <span class="na">id</span><span class="o">=</span><span class="s">&#39;fnref:1&#39;</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&#39;#fn:1&#39;</span> <span class="na">rel</span><span class="o">=</span><span class="s">&#39;footnote&#39;</span><span class="p">&gt;</span>1<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">sup</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>実際のノートは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;footnotes&quot;</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;</span><span class="nt">ol</span><span class="p">&gt;</span>
+</span><span class="line">    <span class="p">&lt;</span><span class="nt">li</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;fn:1&quot;</span><span class="p">&gt;</span>
+</span><span class="line">      note<span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#fnref:1&quot;</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;reference&quot;</span><span class="p">&gt;</span><span class="ni">&amp;#8617;</span><span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+</span><span class="line">    <span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+</span><span class="line">  <span class="p">&lt;/</span><span class="nt">ol</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。但し、footnote.rbは<code>rel="reference"</code>の代わりに
+<code>rev='footnote'</code>になっています。(後、最後の矢印が直接書かれている。)</p>
+
+<p>従って、footnote.rbで使っていた<code>sass/plugins/_footnote.scss</code>や
+<code>source/javascripts/footnote.js</code>
+もそのまま使いまわせます。</p>
+
+<h3 id="コード">コード</h3>
+<p>Kramdownではtriple-backtick(<code>```</code>)による
+書き方は出来ません<sup id="fninref:6"><a href="#fnin:6" rel="footnote">6</a></sup>。</p>
+
+<p>その代わり<a href="http://michelf.ca/projects/php-markdown/extra/">PHP Markdown Extra</a>の
+Fenced Code Block (<code>~~~</code>で囲む)が使えます。</p>
+
+<p>triple-backtickの場合と違ってきっかり3つではなくて、3つ以上、なので、
+例えばコードの中に<code>~~~</code>を含みたい時は4つ以上の<code>~</code>で囲ってやれば簡単に出来ます。</p>
+
+<p><a href="http://kramdown.rubyforge.org/quickref.html">KramdownのQuick Reference</a>
+等を見るとハイライトも<code>~</code>の右側に言語指定することで簡単に出来る様な事になってますが、
+これを使うには<a href="http://coderay.rubychan.de/">CodeRay</a>というパッケージが必要です。</p>
+
+<p>CodeRay用のテーマを探してくればこのコード部分を自由に変えられて<sup id="fninref:7"><a href="#fnin:7" rel="footnote">7</a></sup>、
+GitHubライクなテーマ<sup id="fninref:8"><a href="#fnin:8" rel="footnote">8</a></sup>
+とかでも遊べるようですが、これらは通常のcodeblockで作るものとは
+別物になります。</p>
+
+<p>別々の色や大きさにもできるので、それを良しとすればよいですが、
+統一したい場合には下手に書くと違う色になってしまいます。</p>
+
+<p>後、<a href="http://coderay.rubychan.de/">CodeRayで用意されてる言語</a>
+が結構少なくて(shが無い！)、
+codeblockで使っている<a href="http://pygments.org/docs/lexers/">Pygments</a>の方が圧倒的です。</p>
+
+<p>なのでCodeRayの方に完全移行するわけには行かないので、
+通常のcodeblockでPygmentsによるハイライトを基本的に使う方がよさそうです。</p>
+
+<p>Triple-backtickの部分は直さないと行けないわけですが、
+今後RDiscountに戻るかもと考えると、インデントによる方法に変更して、
+<code>~~~</code>のFenced Code Blockもなるべく使わない様にしようと思います。</p>
+
+<h3 id="インデントコードなどの前後を必ず1行空ける">インデントコードなどの前後を必ず1行空ける</h3>
+<p>RDiscountではインデントでコードを書くとき、前後に空行を入れないでも
+コードだと理解してくれました。</p>
+
+<p>これがKramdownではしてくれません。空行無しでインデントすると
+そのまま通常の書式で書かれてしまうし、
+更に困るのが、下側に空行が無いと通常の文章がコードに巻き込まれます。</p>
+
+<p>これと似たようなことで</p>
+
+<ul>
+  <li><code>&gt;</code>での引用表示</li>
+</ul>
+
+<p>も、RDiscountでは上側空いて無くても良かったのが空けないと駄目に。
+(下側はRDiscountでも空けないと駄目。)</p>
+
+<p>また、</p>
+
+<ul>
+  <li>章節部分(<code>#</code>、<code>##</code>、特に<code>#</code>の後すぐに<code>##</code>が来るような場合)</li>
+  <li><code>- - -</code>による横線</li>
+  <li><code>&lt;hr&gt;</code>による横線</li>
+</ul>
+
+<p>の場合は、下側は続けて書いても大丈夫ですが、上側は必ず空けないといけません。</p>
+
+<p>これらの所が実は一番変更が面倒でした。
+RDiscountでも空けておいても何も問題ないし、通常Markdownでは空けるべき所なので
+空けて書くようにすべきです。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2013/10/16</strong></p>
+
+  <h3 id="div">div要素など</h3>
+
+  <p>RDiscountでは<code>&lt;div&gt;</code>等文章中に書いても
+そのまま理解していてくれましたが、
+Kramdownでは文章途中に書くとこれらはそのまま文章として出力されてしまいます。
+(<code>&lt;</code>等が<code>&amp;lt;</code>等になってしまう)</p>
+
+  <p>これを回避するためには、div, p, pre…等は必ず行頭に付けます。
+それからreferenceを見るとその上を空けないで書いてあるのもあるんですが、
+<code>&lt;div&gt;</code>と書く行の上は必ず空行にしないと文章中と同じく理解されて
+そのまま出力されます。</p>
+
+  <pre><code>文章。
+
+&lt;div&gt;...&lt;/div&gt;
+</code></pre>
+
+  <p>な感じで必ず1行空ける。ただ、一度<code>&lt;div&gt;</code>等で書き始めた行の中では
+再び<code>&lt;div&gt;</code>等を書き込んでも大丈夫(みたい？)。</p>
+
+  <blockquote>
+    <p>Ref: <a href="http://kramdown.rubyforge.org/syntax.html#html-blocks">kramdown Syntax</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="まとめ">まとめ</h2>
+<p>取り敢えず変更は済みましたが、もし変な所があったら
+指摘して頂けるとありがたいです<img alt="sweat" src="https://rcmdnk.com/images/emoji/unicode/1f613.png" class="emoji" /></p>
+
+]]></content>
+  </entry>
+  
+</feed>

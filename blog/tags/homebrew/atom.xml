@@ -1,0 +1,1288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Homebrew | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/homebrew/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへのmainコマンドの追加]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows/"/>
+    <updated>2021-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07H3JTZJY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07H3JTZJY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zbjv7k9uL._SS200_.jpg" alt="味の加久の屋 brew プレミアムおつまみ ウニ入りホタテマヨ 70g" /></a>
+</div>
+
+<p>Homebrewのパッケージリストを管理するツールのHomebrew-file
+でパッケージを管理する際に、<code>main</code>というコマンドを使えるようにしました。</p>
+
+<p>これによってより柔軟に複数の環境でのBrewfileの共有が出来るようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#brewfile" id="markdown-toc-brewfile">Brewfile</a></li>
+  <li><a href="#file機能" id="markdown-toc-file機能">file機能</a></li>
+  <li><a href="#ファイル指定で使える変数" id="markdown-toc-ファイル指定で使える変数">ファイル指定で使える変数</a></li>
+  <li><a href="#mainコマンドの追加" id="markdown-toc-mainコマンドの追加">mainコマンドの追加</a></li>
+  <li><a href="#チーム共有brewfileの運用" id="markdown-toc-チーム共有brewfileの運用">チーム共有Brewfileの運用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brewfile">Brewfile</h2>
+
+<p>Homebrew-fileにおけるBrewfileは基本的には以下の様な感じになります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">brew node
+</span><span class="line">brew python@3.9
+</span><span class="line">
+</span><span class="line">tap rcmdnk/file
+</span><span class="line">brew brew-file
+</span><span class="line">
+</span><span class="line">tap rcmdnk/file
+</span><span class="line">brew brew-file
+</span><span class="line">
+</span><span class="line">tap homebrew/cask
+</span><span class="line">cask bettertouchtool
+</span><span class="line">cask google-japanese-ime
+</span><span class="line">cask hyperswitch
+</span><span class="line">cask iterm2
+</span><span class="line">cask karabiner-elements
+</span><span class="line">
+</span><span class="line">appstore <span class="m">408981434</span>   iMovie        <span class="o">(</span><span class="m">10</span>.2.5<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409183694</span>   Keynote       <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409203825</span>   Numbers       <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore <span class="m">409201541</span>   Pages         <span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Ref: <a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#brewfile">Usage — Homebrew-file documentation</a></p>
+
+<p>Brewfileの中でコマンドとして使えるものとしては上の様に主に</p>
+
+<ul>
+  <li><code>tap</code>: Tapするレポジトリ</li>
+  <li><code>brew</code>: インストールするFormulaパッケージ</li>
+  <li><code>cask</code>: インストールするCaskパッケージ</li>
+  <li><code>appstore</code>: AppStoreからインストールするApp (<code>mas</code>を利用。)</li>
+</ul>
+
+<p>があります。</p>
+
+<p><code>cask</code>に関してはHomebrew 3.0.0から<code>brew cask</code>というコマンドはなくなり、<code>brew install ...</code>
+で同じようにインストールできるようになりましたが、
+<code>brew list --cask ...</code>の様に区別して見ることも出来る状態で
+<code>brew file init</code>とかでBrewfileに書き出す場合には区別して書き出しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210206_homebrew300_120_90.jpg" width="120" height="90" alt="20210206_homebrew300_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/">Homebrew 3.0.0リリース</a></div></li></ul>
+
+<p>Brewfileに手動で<code>brew iterm2</code>みたいにCaskなものを書いておいても<code>brew file install</code>でインストールすることは出来ます。</p>
+
+<h2 id="file機能">file機能</h2>
+
+<p>上記の4つ以外にもいくつか使えるコマンドがありますが、
+そのうちの一つに<code>file</code>というコマンドがあります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file ./Brewfile.ext
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書くと、<code>brew file install</code>をするとき、<strong>Brewfile.ext</strong>に書いてある
+パッケージも読み込んでインストールします。</p>
+
+<p><code>brew file init</code>すると、<strong>Brewfile.ext</strong>に元からあったパッケージはそちらに、
+新たに加わったパッケージは親の<strong>Brewfile</strong>に追加される様になっています。</p>
+
+<p>ファイルの指定方法として、上のように相対パスの様に書くと、親の<strong>Brewfile</strong>のある
+ディレクトリからの相対パスになります。
+なので、上の場合は<strong>Brewfile</strong>と同じディレクトリにある<strong>Brewfile.ext</strong>を見に行きます。</p>
+
+<p><strong>/home/user/Brewfile.ext</strong>の様に<code>/</code>から開始すると絶対パスとして見に行きます。</p>
+
+<p>もしファイルがない場合にはエラーにならずに無視されます。</p>
+
+<p>したがって、特定のマシンにだけ入れたいパッケージ、というものがある場合、</p>
+
+<p>file $HOME/Brewfile.ext</p>
+
+<p>としておいて、必要な環境にだけ<strong>$HOME/Brewfile.ext</strong>を置いておくと、
+その環境にだけ<code>brew file install</code>で<strong>Brewfile.ext</strong>の中身をインストールしてくれます。</p>
+
+<p>もし<strong>Brewfile</strong>と<strong>Brewfile.ext</strong>に同じパッケージが書かれているかつ
+そのパッケージが既にインストールされている状態で<code>brew file init</code>すると
+<strong>Brewfile.ext</strong>の方に優先して残すようになっています。</p>
+
+<h2 id="ファイル指定で使える変数">ファイル指定で使える変数</h2>
+
+<p><code>file</code>などで指定できるファイルに使える変数として、
+<code>~</code>でホームディレクトリを指定したり、<code>$HOME</code>などの環境変数を使うことが出来ます。</p>
+
+<p>加えて、
+<code>$HOSTNAME</code>、<code>$HOSTTYPE</code>、<code>$OSTYPE</code>、<code>$PLATFORM</code>の4つの変数も使えます。</p>
+
+<p>それぞれ</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: <code>os.uname().nodename</code></li>
+  <li><code>HOSTTYPE</code>: <code>os.uname().machine</code></li>
+  <li><code>OSTYPE</code>: Bashのシェル変数(<code>subprocess</code>で取得)</li>
+  <li><code>PLATFORM</code>: <code>sys.platform</code></li>
+</ul>
+
+<p>です。<code>HOSTNAME</code>、<code>HOSTTYPE</code>はシェル変数の同名のものと同じです。</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: マシン名(ドメインなし)</li>
+  <li><code>HOSTTYPE</code>: <code>x86_64</code>, <code>arm64</code>など</li>
+  <li><code>OSTYPE</code>: <code>linux-gnu</code>、<code>darwin20.3.0</code>など</li>
+  <li><code>PLATFORM</code>: <code>linux</code>、<code>darwin</code>など</li>
+</ul>
+
+<p>これを使うと、例えば特定のマシンにだけ入れたいパッケージがある場合、
+親の<strong>Brewfile</strong>を</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew python@3.8
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine2 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew python@3.9
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というファイルを用意しておくと、machine1では<code>python@3.8</code>をインストールして
+machine2では<code>python@3.9</code>をインストールし、
+その他の環境ではこれらをインストールしません。</p>
+
+<p>OSなど環境毎に変えたい場合には</p>
+
+<p>file ./Brewfile.$PLATFORM.$HOSTTYPE</p>
+
+<p>が便利です。</p>
+
+<p><code>OSTYPE</code>にはバージョン情報が入ってしまうため、
+そこまで管理したい場合には便利ですが、大概の場合はそのバージョンは無視して良いことが多く
+<code>PLATFORM</code>を使ったほうが便利です。</p>
+
+<p>あとはアーキテクチャの違いを<code>$HOSTTYPE</code>で追加しておきます。</p>
+
+<p>これは、特に最近でたM1 Macで使う際に便利です。</p>
+
+<p>M1のarm64の環境だと使えないCUIツールはまだ結構あって、
+Rosettaを使ったIntel環境も作っている人は多いかと思いますが、
+両方で同じ<strong>Brewfile</strong>を使おうと思うとIntel用に入れたものがarm64側でインストールに失敗してしまいます。</p>
+
+<p>そこで、上の様な<code>file</code>設定をしておいて、</p>
+
+<p><strong>Brewfile.darwin.x86_64</strong>というファイルにIntel側にだけ入れるものを書いておけば
+他のものは<strong>Brewfile</strong>で共有して使うことが出来ます。</p>
+
+<h2 id="mainコマンドの追加">mainコマンドの追加</h2>
+
+<p>上の<code>file</code>の場合、<code>brew init</code>や、
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+を使った<code>brew install</code>時に追加されるパッケージは親の<strong>Brewfile</strong>側になります。</p>
+
+<p>したがって、その環境特有のものをインストールした場合には手動で
+<strong>Brewfile</strong>から
+<strong>Brewfile.machine1</strong>とかに移して、他の環境では使わないようにする必要があります。</p>
+
+<p>これはほとんどが共通で、ほんの一部だけが特別なパッケージの場合には便利です。</p>
+
+<p>一方で、例えば仕事のチームで最低限必要なパッケージ群をまとめる<strong>Brewfile</strong>を作り、
+他を個別に管理したい、という場合、自動で<strong>Brewfile</strong>を管理するのが難しくなります。</p>
+
+<p><code>main</code>コマンドはこういった場合に使えるようにv8.5.0で追加しました。
+通常、<strong>メイン</strong>のファイルは最初に指定されている<strong>Brewfile</strong>本体になりますが、
+<code>main</code>コマンドで指定されたファイルがあるとそれに移ります。</p>
+
+<p><strong>メイン</strong>のファイルは、新たなパッケージが加わったときなどに、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>でパッケージが加えられるファイルになります。</p>
+
+<p><code>main</code>の使い方は<code>file</code>と同じ様にファイルへのパスを書く形で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap homebrew/core
+</span><span class="line">brew neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じ。</p>
+
+<p>この場合、新たなパッケージが加えられた場合、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>では<strong>./Brewfile.$HOSTNAME</strong>
+に追加されます。</p>
+
+<p>もしファイルがない場合には自動的に作られます。</p>
+
+<p>これを使うと、<strong>Brewfile</strong>の自動アップデートを使っても共有ファイルの管理が簡単になります。</p>
+
+<p>例えば、MacとLinuxで共有しようと思うと、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、それぞれの環境でインストールしたものはそれぞれ、<strong>Brewfile.darwin</strong>、<strong>Brewfile.linux</strong>に追加されます。</p>
+
+<p>また、M1 Macでは</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTTYPE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、
+そのままのM1 (arm64)環境なら<strong>Brewfile.arm64</strong>、Rosetta使ったx86_64環境なら
+<strong>Brewfile.x86_64</strong>に追加されます。</p>
+
+<p>たまに整理してあげて、共通しているものを<strong>Brewfile</strong>に移す作業をしてあげれば良いかと。
+(この辺をうまくやる機能もそのうち実装したい。。。)</p>
+
+<p><strong>Brewfile</strong>と<code>main</code>で指定されてた<strong>Brewfile.$PLATFORM</strong>
+などの両方に同じパッケージが書かれていた場合、
+<code>brew file init</code>すると<code>main</code>の場合は<code>file</code>と違い
+親の<strong>Brewfile</strong>の方に優先して残すようになっています。</p>
+
+<p>ちなみに<code>main</code>や<code>file</code>は入れ子が可能で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、</p>
+
+<figure class="code"><figcaption><span>Brewfile.darwin </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main ./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、<strong>Brewfile.linux</strong>の方では<code>main</code>を追加しないままにしておくと、</p>
+
+<ul>
+  <li>Linux環境: HOSTによらず<strong>Brewfile.linux</strong>がメイン。</li>
+  <li>Mac環境: HOST毎に別のものがメインに。</li>
+  <li><strong>Brewfile</strong>にあるパッケージは全環境共通。</li>
+  <li><strong>Brewfile.darwin</strong>にあるパッケージはMac環境だけで共通。</li>
+</ul>
+
+<p>とすることが出来ます。</p>
+
+<h2 id="チーム共有brewfileの運用">チーム共有Brewfileの運用</h2>
+
+<p>そこで、例えばチーム共有<strong>Brewfile</strong>みたいのを考えることが出来ます。</p>
+
+<ul>
+  <li>まず、共有する<strong>Brewfile</strong>を作り、適当なGitHubのレポジトリで共有。
+    <ul>
+      <li><strong>Brewfile</strong>に<code>main ~/.Brewfile</code>という一行を加えておく。</li>
+      <li>このレポジトリは管理者だけが書き込めるものでも構いません。</li>
+    </ul>
+  </li>
+  <li>各個人で<strong>~/.Brewfile</strong>を用意。
+    <ul>
+      <li>最初の時点でとくに必要なものがなければ自分で用意しなくても良くて勝手に作ってくれる。</li>
+    </ul>
+  </li>
+  <li><code>brew file set_repo</code>で共有レポジトリを指定してセットする。</li>
+  <li><code>brew install</code>したり色々して<strong>~/.Brewfile</strong>をアップデート。
+    <ul>
+      <li><a href="https://github.com/rcmdnk/dotfiles/">dotfiles</a>などで<strong>~/.Brewfile</strong>も管理すると良いかと。</li>
+    </ul>
+  </li>
+  <li>管理者が共有の<strong>Brewfile</strong>をアップデートしてパッケージを追加したりする。
+    <ul>
+      <li>管理者以外でも便利で皆が使うべきものだと思えばPull Request出したり。</li>
+    </ul>
+  </li>
+  <li><code>brew file update</code>によって共有<strong>Brewfile</strong>をアップデート。
+    <ul>
+      <li>個人ごとの利用ではこのファイルを変更することは無いので、レポジトリ側のアップデートのみを撮ってくる形になる。</li>
+      <li>自分でインストールしたパッケージも共有<strong>Brewfile</strong>に追加されると<strong>~/.Brewfile</strong>からは消える。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言った感じの運用が出ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew 3.0.0リリース]]></title>
+    <link href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/"/>
+    <updated>2021-02-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<p>Mac/Linuxのパッケージ管理ツールHomebrewの3.0.0がリリースされました。</p>
+
+<p>メジャーアップデートになりますが、今回はApple Silicon搭載のMacへの対応が
+メインのアップデートになっています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrewの歴史" id="markdown-toc-homebrewの歴史">Homebrewの歴史</a></li>
+  <li><a href="#300での目玉アップデート" id="markdown-toc-300での目玉アップデート">3.0.0での目玉アップデート</a></li>
+  <li><a href="#300でのその他のアップデート" id="markdown-toc-300でのその他のアップデート">3.0.0でのその他のアップデート</a>    <ul>
+      <li><a href="#新しい設定-homebrew_bootsnap" id="markdown-toc-新しい設定-homebrew_bootsnap">新しい設定: HOMEBREW_BOOTSNAP</a></li>
+      <li><a href="#いろいろなコマンドが削除された" id="markdown-toc-いろいろなコマンドが削除された">いろいろなコマンドが削除された</a></li>
+    </ul>
+  </li>
+  <li><a href="#bashzshfish用の補完ファイルが自動生成される様になった" id="markdown-toc-bashzshfish用の補完ファイルが自動生成される様になった">Bash/Zsh/Fish用の補完ファイルが自動生成される様になった</a>    <ul>
+      <li><a href="#新しいコマンド-brew-completions" id="markdown-toc-新しいコマンド-brew-completions">新しいコマンド: brew completions</a></li>
+      <li><a href="#brew-updateでよりうまいことサーバー側のブランチの変更を扱う" id="markdown-toc-brew-updateでよりうまいことサーバー側のブランチの変更を扱う">brew updateでよりうまいことサーバー側のブランチの変更を扱う</a></li>
+      <li><a href="#brew-untapしたものは自動でtapしないように" id="markdown-toc-brew-untapしたものは自動でtapしないように">brew untapしたものは自動でtapしないように</a></li>
+      <li><a href="#新しいコマンド-brew-casks" id="markdown-toc-新しいコマンド-brew-casks">新しいコマンド: brew casks</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrewの歴史">Homebrewの歴史</h2>
+
+<p>せっかくのメジャーアップデートなのでちょっと過去のアップデートを振り返り。</p>
+
+<p>過去の大きなアップデートは</p>
+
+<ul>
+  <li><a href="https://github.com/Homebrew/brew/releases/tag/0.1">0.1</a>: 2009年5月21日</li>
+  <li><a href="https://brew.sh/2016/09/21/homebrew-1.0.0/">1.0.0</a>: 2016年9月21日</li>
+  <li><a href="https://brew.sh/2019/02/02/homebrew-2.0.0/">2.0.0</a>: 2019年2月2日</li>
+  <li><a href="https://brew.sh/2021/02/05/homebrew-3.0.0/">3.0.0</a>: 2021年2月5日</li>
+</ul>
+
+<p>となっています。</p>
+
+<p>最初のメジャーリリースは2016年ですが、それより前にかなり使われてた印象はあります。</p>
+
+<p>私自身は2013年頃にGitの最新版を使いたくて入れたようです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B008B3AMNI?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B008B3AMNI&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41RrsWMRLJL._SS90_CR0,0,120,90_.jpg" alt="APPLE MacBook Air 1.7GHz Core i5/11.6/4GB/128GB MD224J/A" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/06/21/computer-mac/">gitの更新とHomebrewの導入</a></div></li></ul>
+
+<p>この頃はまだ
+<a href="https://www.macports.org/">MacPorts</a>も結構使われていた感じがありました。</p>
+
+<p>Googleによる検索数を見るとこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210206_trend.jpg" alt="20210206_trend.jpg" class="pic" /></p>
+
+<p><code>Homebrew</code>の方だけ<code>Mac</code>との組み合わせで少し不平等な比較ですが、
+<code>Homebrew</code>で探してしまうとビールの自家醸造の話が出てきてしまって2009年以前も多くて雑音が多いのと、
+逆にMacPortsの方は<code>Mac</code>が入ってるのでわざわざ<code>macports mac</code>と入れる人が居なくてそれだと検索数が無いので
+<code>homebrew mac</code>と<code>macports</code>での比較ですが、それぞれで相対的な増減を見てもらえれば、と。</p>
+
+<p>MacPortsの方が先に作られていたので2013年ころまではよく使われていて、逆にそれ以降は
+Homebrewがよく使われる様になっています。</p>
+
+<p>MacPortsの方は最近全く見てませんでしたが、開発は続いているようです。</p>
+
+<p>Homebrewに話は戻って、メジャーリリースに何が変わったか。</p>
+
+<p>1.0.0のときの大きな変更は、
+<strong>/usr/local/</strong>以下に直接ファイルを展開していた状態を、
+<strong>/usr/local/Homebrew</strong>の下にインストールした上で<strong>/usr/local/bin</strong>などにシンボリックリンクを貼る、という変更。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/09/29/computer-mac-homebrew-brew-file/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160929_homebrew_120_90.jpg" width="120" height="90" alt="20160929_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/29/computer-mac-homebrew-brew-file/">Homebrew 1.0.0がリリース: これに伴う変更とそれに対するBrew-fileでの変更</a></div></li></ul>
+
+<p>2.0.0の時はLinuxbrewとの統合が大きな変更でした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/02/08/computer-mac-linux-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190208_homebrew_120_90.jpg" width="120" height="90" alt="20190208_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/02/08/computer-mac-linux-homebrew/">Homebrew 2.0.0リリース: Linuxbrewの統合</a></div></li></ul>
+
+<p>3.0.0ではApple Silicon搭載のMacへの対応、ということです。</p>
+
+<p>2.0.0と3.0.0ではバックワードコンパチビリティはある程度保たれていると思いますが、
+どちらも強く期待されていたアップデートということでメジャーアップデートとしているようです。</p>
+
+<p>3.0.0のところでもいくつかコマンドが削除されたりはしてますが、
+そういったことはマイナーアップデートのところでも起こってるので。。。</p>
+
+<h2 id="300での目玉アップデート">3.0.0での目玉アップデート</h2>
+
+<p>3.0.0での目玉はApple Silicon搭載Macへの対応。</p>
+
+<p><strong>/usr/loca/Homebrew</strong>へのインストールがセキュリティの問題で出来なくなっているので
+インストール先は<strong>/opt/homebrew</strong>に変更になります。</p>
+
+<p>なんですが、
+残念ながら手元にApple Silicon M1の載ったMacが無いので
+個人的にはこの辺まだわかってないところです。</p>
+
+<h2 id="300でのその他のアップデート">3.0.0でのその他のアップデート</h2>
+
+<p>ということで、その他のアップデートでユーザー側として影響がありそうなものを見ていきたいと思います。</p>
+
+<p>以下以外にもいくつかアップデートが含まれていますが、その辺まで知りたい場合は
+<a href="https://brew.sh/2021/02/05/homebrew-3.0.0/">リリースノート</a>参照。</p>
+
+<h3 id="新しい設定-homebrew_bootsnap">新しい設定: HOMEBREW_BOOTSNAP</h3>
+
+<pre><code>export HOMEBREW_BOOTSNAP
+</code></pre>
+
+<p>と、この変数を定義しておくと、
+<a href="https://github.com/Shopify/bootsnap">Shopify/bootsnap</a>
+を使って<code>brew</code>コマンド(コア部分はRubyで実装されている)の実行を高速化してくれます。</p>
+
+<p>ただし、現状ではApple Silicon搭載のMacや、
+Homebrewで<code>ruby</code>をインストールしている場合には高速化されません。</p>
+
+<p>macOSにもともと入っているrubyがPATHの最上位にくる場合に限り、
+ということなので、rubyをHomebrewでインストールしている場合には使えません、残念。</p>
+
+<p>ただ、そのうち対応するかもしれないし、設定しておいても悪さはしない様なので、
+今のうちから設定しておいても良いかな、とは思います。</p>
+
+<h3 id="いろいろなコマンドが削除された">いろいろなコマンドが削除された</h3>
+
+<ul>
+  <li><a href="https://github.com/Homebrew/brew/pull/10397">Homebrew 3.0.0 deprecations/disables by MikeMcQuaid · Pull Request #10397 · Homebrew/brew</a></li>
+</ul>
+
+<p>何が削除されたか、はちゃんとまとまってないので要確認、ですが、
+ファイルの変化だけ見ると古いcask系のコマンドに関するものが消されている、といった感じでした。
+(もともと<code>cask</code>は使えないようになってましたが
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>)。</p>
+
+<p>普通に<code>install</code>、<code>uninstall</code>、<code>update</code>、<code>upgrade</code>
+辺りを使う限りは特に問題になることは無いと思います。</p>
+
+<h2 id="bashzshfish用の補完ファイルが自動生成される様になった">Bash/Zsh/Fish用の補完ファイルが自動生成される様になった</h2>
+
+<p>Bashの補完ファイルなどだと<strong>$(brew –prefix)/etc/bash_completion.d/brew</strong>
+に<code>brew</code>コマンド用の補完設定がありますが、
+このファイルが<code>brew update</code>のたびに自動で生成、アップデートされる様になった、とのことです。</p>
+
+<h3 id="新しいコマンド-brew-completions">新しいコマンド: brew completions</h3>
+
+<p>こちらは上の<code>brew</code>用の補完ではなく、他のパッケージがそれぞれでインストールする
+補完ファイル管理に関するものです。</p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file/blob/master/etc/bash_completion.d/brew-file">homebrew-file</a>
+なんかでも補完ファイルを入れてますが、
+今回の設定によると、その様なサードパーティー製のパッケージの補完ファイルに関しては
+opt-in型になって、デフォルトではインストールされないようになる、と。</p>
+
+<pre><code>$ brew completions --help
+Usage: brew completions [subcommand]
+
+Control whether Homebrew automatically links external tap shell completion
+files. Read more at https://docs.brew.sh/Shell-Completion.
+
+brew completions [state]:
+    Display the current state of Homebrew's completions.
+
+brew completions (link|unlink):
+    Link or unlink Homebrew's completions.
+
+  -d, --debug                      Display any debugging information.
+  -q, --quiet                      Make some output more quiet.
+  -v, --verbose                    Make some output more verbose.
+  -h, --help                       Show this message.
+</code></pre>
+
+<p>Ref: <a href="https://docs.brew.sh/Shell-Completion">Homebrew Shell Completion — Homebrew Documentation</a></p>
+
+<p>なんですが、正直動作がわかってないです。</p>
+
+<p>もともと使えない古い補完があるのが嫌で、サードパーティー製の補完コマンドをopt-in型にしたい、ということだったようです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/issues/10223">Update shell completions · Issue #10223 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>Bashとかだと<strong>$(brew –prefix)/et/bash_completion.d/</strong>の下にリンクされるかどうか、という話になります。</p>
+
+<p>が、いくつか試してみたものの、</p>
+
+<pre><code>$ brew completions state
+Completions are not linked.
+</code></pre>
+
+<p>の状態で新たにインストールしたものも<strong>bash_completions.d</strong>の下にリンクが貼られていました。</p>
+
+<p>ただ、これ、デフォルトでopt outされた状態になってますが、
+<strong>余計な補完があって困る</strong>、よりも、<strong>補完があると思ってたのに補完ファイルがインストールされてない</strong>方が嫌だと思う人もいると思うので、
+3.0.0にアップグレードしたらすぐに</p>
+
+<pre><code>$ brew completions link
+</code></pre>
+
+<p>を実行しておいた方が良いのではないかな、と個人的には思います。
+パッケージごとに選べるわけでもないので補完使いたければそうするしか無い気がする。</p>
+
+<p>というか、使わないなら単に<code>$(brew --prefix)/etc/bash_completions.d/</code>の中を
+読まないようにすればよいだけな気がする。
+それこそ好きなものだけ読むように手動設定することも出来るし。</p>
+
+<p>なんかコマンドの内容を勘違いしてる気はするのでまた理解できたらアップデートします。</p>
+
+<h3 id="brew-updateでよりうまいことサーバー側のブランチの変更を扱う">brew updateでよりうまいことサーバー側のブランチの変更を扱う</h3>
+
+<p>これはGitHubでデフォルトブランチ名が<code>master</code>から<code>main</code>に変わったことで、
+<a href="https://github.com/Homebrew/brew">brewのレポジトリ</a>でも変更する予定で
+その準備、ということだと思います。
+(まだ<code>master</code>を使っている状態。)</p>
+
+<h3 id="brew-untapしたものは自動でtapしないように">brew untapしたものは自動でtapしないように</h3>
+
+<p><a href="https://github.com/Homebrew/homebrew-cask">homebrew-cask</a>
+などはパッケージを探して見つからないときなどに
+自動でインストールしてその中から改めてパッケージを探す、という
+ことが行われます。</p>
+
+<p>他にもいくつか公式パッケージの中には自動でtapされるものがあります。</p>
+
+<p>ただ、敢えてCaskは使わない、と決めてhomebrew-caskをuntapした状態で、
+Formulaを探そうとして、見つからないときとかに毎回homebrew-caskが勝手に
+tapされるのは嫌だな、ということ。</p>
+
+<p>そこで3.0.0からユーザーが手動で<code>untap</code>したらそれを覚えておいて、
+勝手に再度<code>tap</code>するようなことはなくなる、ということです。</p>
+
+<h3 id="新しいコマンド-brew-casks">新しいコマンド: brew casks</h3>
+
+<p>インストール可能な
+Cask一覧を見るためのコマンド。
+(Caskファイルがインストールされているものの一覧。)</p>
+
+<p><code>brew formulae</code>というFormula一覧を見るコマンドも以前追加されていたようです。</p>
+
+<p>実際にインストールされているものは<code>brew list --formula</code>、<code>brew list --cask</code>などで確認します。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Homebrewの3.0.0ということで久しぶりの大きなアップデートで遂にApple Silicon搭載のMacに対応ができました。</p>
+
+<p>これでApple Silicon M1搭載のMacを躊躇する理由も無くなったので早く触ってみたいものです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew 2.7.0がリリース: `brew list`がオプションなしでファイルへの出力がなどができなくなった]]></title>
+    <link href="https://rcmdnk.com/blog/2020/12/22/computer-mac-homebrew/"/>
+    <updated>2020-12-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/12/22/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GF4W77R?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GF4W77R&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/415VJUjQmjL._SS200_.jpg" alt="Brew" /></a>
+</div>
+
+<p>Homebrew 2.7.0がリリースされました。
+ちょっと前に2.6.0がリリースされてたんですが、
+この2つのリリースで結構気になる大きな変更が入っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrewの最近のアップデート" id="markdown-toc-homebrewの最近のアップデート">Homebrewの最近のアップデート</a></li>
+  <li><a href="#270での違い" id="markdown-toc-270での違い">2.7.0での違い</a></li>
+  <li><a href="#brew-list" id="markdown-toc-brew-list">brew list</a></li>
+  <li><a href="#homebrew-fileの対応" id="markdown-toc-homebrew-fileの対応">Homebrew-fileの対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrewの最近のアップデート">Homebrewの最近のアップデート</h2>
+
+<p>12月1日に[2.6.0](<a href="https://brew.sh/2020/12/01/homebrew-2.6.0/">2.6.0 — Homebrew</a>がリリースされ、Big Surへのサポートなどが追加されました。</p>
+
+<p>一方で、<code>cask</code>コマンドがdeprecatedになって
+<code>brew cask list</code>などは<code>brew list --cask</code>を使えとWarningを出すようになりました。
+(この時点では一応結果は出してくれる。)</p>
+
+<p>そんな中、割と早いタイミングで12月21日に
+<a href="https://brew.sh/2020/12/21/homebrew-2.7.0/">2.7.0</a>
+がリリース。</p>
+
+<p>これにより1つ大きな変更として、上の<code>brew cask list</code>は結果を返さずにエラーを返すようになりました。</p>
+
+<p>前の
+<a href="https://brew.sh/2020/09/08/homebrew-2.5.0/">2.5.0</a>
+が9月頃なので割と早い。
+(2.3から2.4は10日くらいと瞬足でしたが。)</p>
+
+<p>2.6.0をリリースした際にはそれまで開発されてたものが割と組み込まれないままで
+リリースされてたので、それらが上手く納まったので早速リリースされたのかな、という感じがします。</p>
+
+<h2 id="270での違い">2.7.0での違い</h2>
+
+<p>で、2.7.0で何が変わったかというと、
+<a href="https://brew.sh/2020/12/21/homebrew-2.7.0/">ブログ</a>
+を見るだけだとあまりユーザーが気にすることもないように見えます。</p>
+
+<p>ただ上にも書いた<code>cask</code>コマンドが完全に使えなくなった、というのは結構大きいところだと思います。</p>
+
+<p>また、ブログにあるところで気にする点としては、</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/9383">update.sh: refuse to update shallow homebrew-core/cask clones. by MikeMcQuaid · Pull Request #9383 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>とかで、Formula/Caskのファイルが入っているhomebrew-core/homebrew-caskのローカルレポジトリが
+shallow cloneだと<code>brwe update</code>で以下みたいなエラーが出るようになります。</p>
+
+<pre><code>$ brew update
+Error: homebrew-core is a shallow clone. To `brew update` first run:
+  git -C "/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core" fetch --unshallow
+  This restriction has been made on GitHub's request because updating shallow
+  clones is an extremely expensive operation due to the tree layout and traffic of
+  Homebrew/homebrew-core. We don't do this for you automatically to avoid
+  repeatedly performing an expensive unshallow operation in CI systems (which
+  should instead be fixed to not use shallow clones). Sorry for the inconvenience!
+</code></pre>
+
+<p>このエラー自体はGitHubのレポジトリ側の設定なので、Homebrewのバージョンが古くても出ます。
+(つまりHomebrew 2.7.0とは直接は関係ない)</p>
+
+<p>出たら指示にある通り</p>
+
+<pre><code>$ git -C "/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core" fetch --unshallow
+</code></pre>
+
+<p>とかを実行すれば良いだけなんですが、いきなり出るのでちょっとだるい。</p>
+
+<p>shallow cloneとかしたつもりはないんですが、これが出たのは見て分かる通りLinux環境で、
+具体的にはWindowsのWSL2の環境です。</p>
+
+<p>macOSの環境では出ていません。</p>
+
+<p>Linux環境ではインストールスクリプトが違うので、以前のものだと
+shallow cloneしていたのかもしれません。</p>
+
+<p>今は治ったのか、以前そういうものだったのか、などちゃんとチェックはしてませんが、
+特にLinux環境でLinuxbrewの頃からHomebrewを使ってる人はチェックしておいた方が良いかと思います。</p>
+
+<p>その他は<code>BREW_CLEANUP_PERIODIC_FULL_DAYS</code>という環境変数が導入され、
+これに対して</p>
+
+<pre><code>export BREW_CLEANUP_PERIODIC_FULL_DAYS=10
+</code></pre>
+
+<p>とかしておくと10日毎以上経ったあとに<code>brew install</code>/<code>upgrade</code>/<code>reinstall</code>すると
+<code>brew cleanup</code>も同時に実行する、というもの。
+デフォルトの値は<code>30</code>です。
+これまでもこの<code>bleanup</code>を一緒に実行する機能自体はありましたが、
+実行までの日数が変更できなかったのが今回から変えられるようになりましたよ、というもの。</p>
+
+<p>この機能自体を無効にする
+<code>BREW_CLEANUP_PERIODIC_FULL_DAYS</code>という変数は以前からあって、
+これに<code>1</code>とか設定しておけば勝手に<code>cleanup</code>することは無いようになってました。</p>
+
+<p>で、それだけだと思いきや、結構大きな別の変更もあります。</p>
+
+<h2 id="brew-list">brew list</h2>
+
+<p>特にブログで触れられてない部分ですが、
+いろいろな<code>deprecations</code>がアップデートに含まれています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/commit/74fb058c7ed6b382ec92160d4d57f5459d4b8e2d">More deprecations · Homebrew/brew@74fb058</a></p>
+</blockquote>
+
+<p>上にも書いている<code>cask</code>が完全に使えなくなった、というのも1つ。</p>
+
+<p>この中で、<code>brew list</code>というコマンドを標準出力以外に渡すとエラーを出すようになった変更があります。</p>
+
+<p><code>brew cask list</code>の代わりに<code>brew list --cask</code>を強制される様になったわけですが、
+Caskも<code>brew list</code>を使うため、
+単に<code>brew list</code>を使うと何を表示するのか不鮮明な状態になってしまいました。</p>
+
+<p>2.6.0からは<code>brew list</code>はFormulaとCask両方を表示する様になっていました。
+ただし、ファイルへの書き出しなど、標準出力以外へリダイレクションなどを行うと
+以前の<code>brew list</code>の同様にFormulaだけを出力するようになっていました。</p>
+
+<p>書き出し方によらずFormulaだけを出力するには<code>brew list --formula</code>とします。</p>
+
+<p>これが警告機関であったわけですが、<code>cask</code>同様、
+2.7.0では<code>brew list</code>をオプションなしで使ってファイルへ書き出そうとすると
+エラーを返す様になりました。</p>
+
+<pre><code>$  brew list &gt; brewlist.txt
+Error: Calling `brew list` to only list formulae is disabled! Use `brew list --formula` instead.
+</code></pre>
+
+<p>これが特に影響すると思うのは、Brewfileなどを使って
+独自にパッケージを管理している人。
+以前まで<code>brew list</code>を使っていたはずなので、
+何らかの変更が必要です。</p>
+
+<h2 id="homebrew-fileの対応">Homebrew-fileの対応</h2>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">homebrew-file</a>
+も<code>brew list</code>を使っていたのでHomebrew 2.7.0でエラーを出すようになっていました。</p>
+
+<p>ので、治しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/103">brew-file fails on ‘brew list’ · Issue #103 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>同じく<code>brew cask install</code>とかも出来なくなっているので上に加えてv8.3.1で治してあります。</p>
+
+<p>2.6.0がリリースされる前に、こういった変更が開発版には入っていて、今後入ってきそうだ、ということは気づいてたんですが
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、
+2.6.0の時点で変更が入らなかったので
+やはり影響が大きいので入れないのかな、と思ってました。</p>
+
+<p>が、このリリースの感じからすると、
+2.6.0でいきなり入れるのは影響大きすぎるからWarning出して周知して、
+次のタイミングで完全に外すようにしよう、といった感じだったのかもしれません。</p>
+
+<p>それもあっての早いタイミングでのリリースか、たまたま他の機能がまとまったから
+リリースなのかはわかりませんが。</p>
+
+<p>ただ、<code>cask</code>はちゃんとWarningしてくれてたけど、
+<code>brew list</code>はWarningが入ってなかったので見逃されるのかな、とか思ってたんですが。</p>
+
+<p>標準出力とリダイレクションで結果が違うという状態だったので気持ち悪いな、とは思ってましたが。。。</p>
+
+<p>それ以外にもHomebrew-fileに影響が出てる可能性もあるので
+<a href="https://github.com/rcmdnk/homebrew-file/issues">GitHubのIssues</a>
+とかで教えて下さい。</p>
+
+<p>現状でもbrew-wrapを使った場合に<code>brew install &lt;cask&gt;</code>するとFormulaかCaskかわからずに
+一旦Formula(<code>brew</code>)として追加されてしまう、という問題がありますが、
+いっそBrewfile内で分けなくても良いかな、とも。
+ご意見あればなんでもください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[HomebrewでミーティングアプリZoomのCaskがzoomusからzoomにrename]]></title>
+    <link href="https://rcmdnk.com/blog/2020/12/15/computer-mac-homebrew/"/>
+    <updated>2020-12-15T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/12/15/computer-mac-homebrew</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00B5L5JRM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00B5L5JRM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31X9eeywR3L._SS200_.jpg" alt="" /></a>
+</div>
+
+<p>MacでHomebrewを使って
+最近良く使われる
+ミーティングアプリの<a href="https://zoom.us/jp-jp/meetings.html">Zoom</a>
+をインストールすることが出来ますが、
+以前までこのCaskは<code>zoomus</code>という名前でした。</p>
+
+<p>これが先日<code>zoom</code>というCaskに名前変更されました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#zoomus-to-zoom" id="markdown-toc-zoomus-to-zoom">zoomus to zoom</a></li>
+  <li><a href="#zoomus-vs-zoom" id="markdown-toc-zoomus-vs-zoom">zoomus v.s. zoom</a></li>
+  <li><a href="#zoomブームで間違える人続出で変更" id="markdown-toc-zoomブームで間違える人続出で変更">Zoomブームで間違える人続出で変更</a></li>
+  <li><a href="#zoomusからzoomへの変更方法" id="markdown-toc-zoomusからzoomへの変更方法">zoomusからzoomへの変更方法</a></li>
+  <li><a href="#homebrewのアップデートbrew-caskがobsoleteに" id="markdown-toc-homebrewのアップデートbrew-caskがobsoleteに">Homebrewのアップデート(<code>brew cask</code>がobsoleteに)</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="zoomus-to-zoom">zoomus to zoom</h2>
+
+<p>MacでHomebrewは自動で<code>brew upgrade</code>とかcronで行っているのですが、
+その際にZoomが上手くアップグレードされてなくて消えてしまっていて、
+でもCaskは登録されたまま、ということで再インストールしてみようとしてみると</p>
+
+<pre><code>$ brew reinstall zoomus
+==&gt; Caveats
+RENAME WARNING
+Due to prevalent user confusion, the zoomus cask (this one) will be renamed to zoom.
+In the meantime, zoomus will install zoom for you as a dependency, but you should update your scripts.
+We’re aware this solution is subpar. If you’d like to help us improve it,
+we accept PRs and need the equivalent of formula_renames.json for casks: https://docs.brew.sh/Rename-A-Formula
+To migrate now, do:
+  brew uninstall zoomus
+  brew install zoom
+==&gt; Downloading https://d11yldzmag5yn.cloudfront.net/prod/5.4.58903.1122/Zoom.pkg
+Already downloaded: /Users/user/Library/Caches/Homebrew/downloads/7c46079392a9987ce02e05532981f0aba10d024ef1beeaa7401c6028cc27c589--Zoom.pkg
+All Formula dependencies satisfied.
+==&gt; Uninstalling Cask zoomus
+==&gt; Purging files for version 5.4.58903.1122,alias of Cask zoomus
+==&gt; Installing Cask zoomus
+zoomus was successfully installed!
+</code></pre>
+
+<p>な感じの表示が。</p>
+
+<p>ミーティングアプリ、Zoom.us.appのCaskが<code>zoomus</code>から<code>zoom</code>に変わったとのこと。</p>
+
+<h2 id="zoomus-vs-zoom">zoomus v.s. zoom</h2>
+
+<p>ミーティングアプリのZoomのCaskは昔からありますが、
+これはつい最近までHomebrewでは
+<a href="https://github.com/Homebrew/homebrew-cask/blob/master/Casks/zoomus.rb">zoomus</a>
+という名前のCaskでインストールできる様になっていました。</p>
+
+<p>Zoomを使い始めた頃、<code>brew cask install zoom</code>でZoomインストールできた、
+と思っていざ立ち上げてみると何やら使えず、
+仕方なく直接ダウンロードして使ったりしていました。</p>
+
+<p>(ミーティングの直前に入れよう、と思って、使えない!と焦った思い出。)</p>
+
+<p>で、よく調べてみると、
+以前までは<code>zoom</code>というCaskは
+<a href="https://www.logicalshift.co.uk/unix/zoom/">Zoom</a>
+という、テキストベースのゲームプレーヤーのようなアプリのためのものでした。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-cask/blob/bdefe680aadb503e71f145448877a2f82b50be86/Casks/zoom.rb">homebrew-cask/zoom.rb at bdefe680aadb503e71f145448877a2f82b50be86 · Homebrew/homebrew-cask</a></p>
+</blockquote>
+
+<p>これ自体、<code>Zoom.app</code>という名前のアプリをインストールするので間違ってはいない。</p>
+
+<p>きっとこれに<code>zoom</code>という名前を取られたからミーティングアプリの方は<code>zoomus</code>にしたのかな、
+と思ったら、
+<code>zoom.rb</code>の
+<a href="https://github.com/Homebrew/homebrew-cask/commit/3fd9b618357d6f94343f0dd50ca52a333d0c566e#diff-b94501e84cc4b984ce6774e41c1b0ed49a012726ecf6c73878748e1027913192">最初のcommit</a>
+は2014/10/10で、
+<code>zoomus.rb</code>の
+<a href="https://github.com/Homebrew/homebrew-cask/commit/4fb3b3af5d44a4805d0cba0a793688a1fdd47cb3#diff-31e24f58a24773a4d238b7da3417b4e6efe8eafb6f45f51f088525a982ce41a0">最初のcommit</a>は2014/2/28でした。</p>
+
+<p>つまり、
+<code>zoomus.rb</code>のが先。</p>
+
+<p>ただ、そもそも<code>Zoom.app</code>は2000に始まったもので、この名前を最初に使った様です
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+。</p>
+
+<p>一方で、ミーティングアプリの方は2011年に会社作って2013年にアプリを作って、
+という感じらしいので
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+おそらく<code>Zoom.app</code>というものがすでにあるから<code>Zoom.us.app</code>という名前のアプリにしたんだと思います。</p>
+
+<p>そういう経緯もあって、Homebrew-caskに最初入れたとき、
+入れた人がアプリの名前の通り<code>zoomus</code>で入れたんだと思います。</p>
+
+<h2 id="zoomブームで間違える人続出で変更">Zoomブームで間違える人続出で変更</h2>
+
+<p>まあ実際続出だったかどうかは知りませんが、
+やはりこれだけ有名になったアプリをインストールするのに
+あまりに紛らわしいものがあるのは良くない、
+また、対象のアプリはあまり使われてるものではない、ということで
+<code>zoom</code>というCaskが<code>Zoom.us.app</code>をインストールするように変更され、
+<code>zoomus</code>はobsoleteなものとなりました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-cask/pull/93802">Rename zoomus to zoom by vitorgalvao · Pull Request #93802 · Homebrew/homebrew-cask</a></p>
+</blockquote>
+
+<p>上のIssue内に<code>zoom</code>と<code>zoomus</code>のダウンロード数がありますが、この時点(11/30)で、
+過去一ヶ月で</p>
+
+<ul>
+  <li>zoom: 2288</li>
+  <li>zoomus: 6918</li>
+</ul>
+
+<p>のダウンロードがあったとのこと。</p>
+
+<p>ただ、<code>Zoom.app</code>の知名度的におそらく殆どのものは<code>Zoom.us.app</code>を入れようとして間違って入れられたものだと思われます。</p>
+
+<p>というわけで、<code>zoom</code>の方で<code>Zoom.us.app</code>がインストールされる様になりました。</p>
+
+<p>ただ、Issue自体にThumbsdownが5つも着いてる辺り
+抵抗がある人はいるみたいです。</p>
+
+<p>個人的にもアプリの名前は<code>Zoom.us.app</code>だし、
+今更変えるのはどうかな、とは思います。</p>
+
+<p><code>Zoom.app</code>を使ってる人だっているかも知れないのに。</p>
+
+<p>今後<code>Zoom.app</code>を使いたい場合にはHomebrewで入れるなら</p>
+
+<pre><code>$ brew install https://github.com/Homebrew/homebrew-cask/blob/25b3303c6203c78ff9099b4a040af8ad60c4f704/Casks/zoom.rb
+</code></pre>
+
+<p>の様に直接過去のファイルを参照するか、このCaskを自分でTap用レポジトリ作って入れて管理するか。</p>
+
+<p>いずれにしろHomebrewの公式サポートは外れることになります。</p>
+
+<p>まあ最初にインストールしたときはこの紛らわしいアプリめ…と思ったものではありますが。</p>
+
+<h2 id="zoomusからzoomへの変更方法">zoomusからzoomへの変更方法</h2>
+
+<p>対処としては書いてあるとおり</p>
+
+<pre><code>$ brew uninstall zoomus
+$ brew install zoom
+</code></pre>
+
+<p>とすればOK</p>
+
+<h2 id="homebrewのアップデートbrew-caskがobsoleteに">Homebrewのアップデート(<code>brew cask</code>がobsoleteに)</h2>
+
+<p>ちなみに最近のHomebrew(2.6.x)で<code>brew cask install</code>など
+が非推奨になり、上の様にCaskも<code>cask</code>なしでやるのが推奨となっています。</p>
+
+<p><code>cask</code>をつけると</p>
+
+<pre><code>Warning: Calling brew cask install is deprecated! Use brew install [--cask] instead.
+Warning: Cask ‘zoom’ is already installed.
+To re-install zoom, run:
+  brew reinstall zoom
+</code></pre>
+
+<p>みたいなwarningが出るように。</p>
+
+<p>listするときも</p>
+
+<pre><code>$ brew list # or brew list --formula
+$ brew list --cask
+</code></pre>
+
+<p>の様に<code>--cask</code>というオプションを付けてHomebrewのFormulaと同じコマンドを使うことが推奨されます。</p>
+
+<p>これでちょっと困ってるのが<a href="https://github.com/rcmdnk/homebrew-file">Homebrew-file</a>。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/102">check install package if formula or cask · Issue #102 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>普通に<code>brew file init</code>とかする分には今の所問題ないのですが、
+brew-warpを使ってると</p>
+
+<pre><code>$ brew install zoom
+</code></pre>
+
+<p>とすると<code>zoom</code>がFormulaの欄に入ってしまいます。</p>
+
+<p>その後もう一度<code>brew file init</code>すれば正しくなるのですが、ちょっと面倒。</p>
+
+<p>というのも、Brewfileのアップデート時に、<code>brew list</code>を呼ぶとかなり時間がかかるので、
+単体インストールのときには元のファイルの内容をもとに直接一つ足すような作業をしているからです。</p>
+
+<p>Caskかどうか判断するにはおそらく<code>brew list --cask</code>呼ぶのが速いんですが、
+それならいっそ<code>brew file init</code>するのとあまり変わらん、という事態。</p>
+
+<p>これ2.5.xのときに次来るのは気づいてたんですが治さないまま来ていた。。。
+とりあえず仕方ないから<code>brew file init</code>と同じことを毎回する様にしておくか。。。</p>
+
+<p>ちなみに、この変更が来ることに気づいたのは以下のIssueで、
+もともとmaster版で進んでた変更だと、<code>brew list</code>したときに、
+標準出力には出すけどパイプなどでつないだら出さない、という
+悲しい変更があってバグってたときでした。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/101"><code>brew file update</code> fails, reporting <code>brew list</code> being disabled · Issue #101 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>どうやらこの変更は現在の2.6.2には入れられず、
+とりあえず上の<code>wrap</code>での問題以外はHomebrew-fileも動いているはず。</p>
+
+<p>ただ、なにか問題があったらIssueとかで教えて下さい。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[HomebrewからのPython2の削除]]></title>
+    <link href="https://rcmdnk.com/blog/2020/03/09/computer-homebrew-python/"/>
+    <updated>2020-03-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/03/09/computer-homebrew-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873117380?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873117380&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51%2Bxv65qdBL._SS200_.jpg" alt="入門 Python 3" /></a>
+</div>
+
+<p>一ヶ月前ほどで今更気づきましたが、
+HomebrewからPython2のFormulaが削除されています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#python2の削除" id="markdown-toc-python2の削除">Python2の削除</a></li>
+  <li><a href="#python3" id="markdown-toc-python3">Python3</a></li>
+  <li><a href="#セットアップの更新" id="markdown-toc-セットアップの更新">セットアップの更新</a></li>
+  <li><a href="#pythonスクリプトの更新" id="markdown-toc-pythonスクリプトの更新">Pythonスクリプトの更新</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="python2の削除">Python2の削除</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873117380?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873117380&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51%2Bxv65qdBL._SS90_CR0,0,120,90_.jpg" alt="入門 Python 3" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/03/02/computer-mac-homebrew/">Homebrewの'python'でインストールされるものがpython3になった</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873112109?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873112109&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51W3A9A9N2L._SS90_CR0,0,120,90_.jpg" alt="初めてのPython 第2版" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/03/10/computer-mac-homebrew-python/">Homebrewでインストールされる/usr/local/bin/pythonが再びPython2に変更</a></div></li></ul>
+
+<p>Homebrewで2年ほど前にPython3への移行で少しごたごたがありましたが、
+2020年1月1日でPython2のサポートが終了したので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+これを機にHomebrewでも
+Python2を削除したようです。</p>
+
+<p>もともと上のときから<code>python</code>というFormulaはPython 3をインストールするようになっていましたが、
+今回<code>python@2</code>及び、そのエイリアスの<code>python2</code>が削除されました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-core/commit/028f11f9e40e4812a57e84fb670bbf2f30a60525">python@2: delete (#49796) · Homebrew/homebrew-core@028f11f</a></p>
+</blockquote>
+
+<p>削除されてももともと入れていた場合、<code>brew list</code>とかでpython@2とかが見れるし入ったままになっていると思いますが、
+一旦削除すると再インストールはできない状態になります。</p>
+
+<p>上のコミットメッセージに</p>
+
+<pre><code>python@2: delete (#49796)
+
+EOL 1 January 2020.
+We gave it 1 month more to live so that people had time to migrate.
+All in all, developers had 11 years to do their migration.
+
+You can use the `brew extract` command and maintain python@2 in your own
+tap if necessary:
+https://docs.brew.sh/How-to-Create-and-Maintain-a-Tap
+</code></pre>
+
+<p>とありますが、<code>brew extract</code>が上手くいかないので、もし今後どうしても
+HomebrewでPython2をインストールしたい場合、</p>
+
+<pre><code>$ brew install brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/86a44a0a552c673a05f11018459c9f5faae3becc/Formula/python@2.rb
+</code></pre>
+
+<p>の様に過去のFormulaを直接参照するような形にすれば入れることはできます。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/60298514/brew-reinstalling-python2">macos - Brew - reinstalling python@2 - Stack Overflow</a></p>
+</blockquote>
+
+<h2 id="python3">Python3</h2>
+
+<p>Python3に関しては<code>python</code>というFormulaが担当してます。
+Python2が削除されても<code>brew install python</code>で<strong>/usr/local/bin/python</strong>へリンクを作ることは今のところしないようで、
+<code>python3</code>や<code>pip3</code>コマンドを使うように、としています。</p>
+
+<p><code>python</code>や<code>pip</code>で3を呼びたいときは
+<strong>/usr/local/opt/python/libexec/bin</strong>にリンクがあるので
+ここへPATHを通せば<code>python</code>で<code>python3</code>が呼べるようにはなります。</p>
+
+<p>site-packagesは<code>$(brew --prefix)/lib/pythonX.Y/site-packages</code>。</p>
+
+<blockquote>
+  <p><a href="https://docs.brew.sh/Homebrew-and-Python">Python — Homebrew Documentation</a></p>
+</blockquote>
+
+<p>現時点で<code>python</code>が入れるPythonは3.7.6です。</p>
+
+<p>これとは別に<code>python@3.8</code>というフォーミュラが用意されていて、
+<code>/usr/local/opt/python@3.8/bin/python3</code>にインストールされます。
+site-packagesは<strong>/usr/local/opt/python@3.8/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages</strong>。</p>
+
+<h2 id="セットアップの更新">セットアップの更新</h2>
+
+<p>とりあえずPython2についてどうしようか、と思いましたが、
+削除してしまいました。</p>
+
+<pre><code>$ brew rm python@2
+</code></pre>
+
+<p>まだ、macOSデフォルトの<strong>/usr/bin/python</strong>(2.7.16)は存在しています。</p>
+
+<p>現状Shebangで</p>
+
+<pre><code>#!/usr/bin/env python
+</code></pre>
+
+<p>と呼んでる物がまだ結構あって(Python3に対応しているものでも)、Python3への対応をどうしようか、と思ってるんですが、
+とりあえず様子見として<strong>/usr/local/opt/python/libexec/bin</strong>へもPATHを通して
+<code>python</code>でも<code>python3</code>を呼ぶようにして見ようと思います。</p>
+
+<p>以下の様な設定を<strong>.bashrc</strong>とかに追加。</p>
+
+<pre><code>_set_homebrew_path () {
+  brew_prefix=$(command brew --prefix 2&gt;/dev/null)
+  ret=$?
+  if [ $ret -ne 0 ];then
+    return
+  fi
+  export PATH="$brew_prefix/bin:$PATH"
+  export PATH="$brew_prefix/sbin:$PATH"
+  export LD_LIBRARY_PATH="$prefix/lib:$LD_LIBRARY_PATH"
+  #...
+  #...
+  local python3=$("$brew_prefix/bin/python3" --version 2&gt;/dev/null)
+  local ret=$?
+  if [ $ret -eq 0 ];then
+    export PATH="/usr/local/opt/python/libexec/bin:$PATH"
+    python_version=$(echo "$python3"|cut -d' ' -f2|cut -d '.' -f 1,2)
+    export PYTHONPATH="$brew_prefix/lib/python$python_version/site-packages"
+  fi
+  #...
+  #...
+}
+
+_set_homebrew_path
+</code></pre>
+
+<h2 id="pythonスクリプトの更新">Pythonスクリプトの更新</h2>
+
+<p>今後、各OSでPythonをどう扱っていくかわかりませんが、
+Python2の代わりにPython3を標準的に入れてくようにはなると思います。</p>
+
+<p>一部のOSとかで標準的にPython3を<strong>/usr/bin/python</strong>に入れるものもあるみたいですが、
+一般的にはPython3は<code>python3</code>で呼ぶような状態で、
+しばらくはそのままだと思います。</p>
+
+<p>ただ、今更Python2用のコードを書いても仕方ないので、
+これを機に使ってるスクリプトは基本的に</p>
+
+<pre><code>#!/usr/bin/env python3
+</code></pre>
+
+<p>に置き換えて使える様に変更していかないとな、といったところ。</p>
+]]></content>
+  </entry>
+  
+</feed>

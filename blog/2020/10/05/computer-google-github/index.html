@@ -1,0 +1,1390 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>Google Apps ScriptをGitHubで管理する</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="Google Apps ScriptをGitHubで管理する">
+  <meta name="description" content="色々とGoogle Apps Script(GAS)を触ることが増えてきた中で、
+GitHubにGASのソースコードを直接コミットできる拡張機能が便利だったのでその紹介。">
+  
+  <meta property="og:title" content="Google Apps ScriptをGitHubで管理する">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="色々とGoogle Apps Script(GAS)を触ることが増えてきた中で、
+GitHubにGASのソースコードを直接コミットできる拡張機能が便利だったのでその紹介。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20201005_gas.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,googleplus_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="http://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2020-10-05T00:00:00+00:00'><span class='time'>05 Oct 2020</span></time></span>
+    
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/google/"><span>Google</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/github/"><span>GitHub</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2020/10/05/computer-google-github/" itemprop="url">Google Apps ScriptをGitHubで管理する</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2020/10/05/computer-google-github/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/" data-count="2">2</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/" data-count="4">4</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&title=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Google+"
+    target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCount"  data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&amp;t=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&title=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20201005_gas_200_200.jpg" width="200" height="200" alt="20201005_gas_200_200">
+      </div>
+      
+      <p>色々とGoogle Apps Script(GAS)を触ることが増えてきた中で、
+GitHubにGASのソースコードを直接コミットできる拡張機能が便利だったのでその紹介。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#google-apps-scriptのコード管理機能" id="markdown-toc-google-apps-scriptのコード管理機能">Google Apps Scriptのコード管理機能</a></li>
+  <li><a href="#google-apps-script-github-アシスタント" id="markdown-toc-google-apps-script-github-アシスタント">Google Apps Script GitHub アシスタント</a></li>
+  <li><a href="#注意点" id="markdown-toc-注意点">注意点</a></li>
+  <li><a href="#gasのスクリプトをローカル環境で編集" id="markdown-toc-gasのスクリプトをローカル環境で編集">GASのスクリプトをローカル環境で編集</a></li>
+  <li><a href="#clasp" id="markdown-toc-clasp">clasp</a></li>
+  <li><a href="#google-apps-script-github-アシスタントとclasp" id="markdown-toc-google-apps-script-github-アシスタントとclasp">Google Apps Script GitHub アシスタントとclasp</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="google-apps-scriptのコード管理機能">Google Apps Scriptのコード管理機能</h2>
+
+<p>Google Apps Scriptに関するファイルは
+Google DriveにあるファイルやGoogleドキュメントと同様に
+履歴機能や版管理と同じ様なバージョン管理を行うことが出来ます。</p>
+
+<p><strong>ファイル</strong>から<strong>変更履歴を表示</strong>で過去の状態を見ることが出来ます。
+これはファイルごとになるので今開いているシートの過去の状態が見ることが出来ます。</p>
+
+<p>これとは別に<strong>版を管理</strong>から、現在の状態に名前をつけてバージョニングすることができ、
+トリガーで実行するときなんかにこのバージョンを指定して実行することも出来ます。</p>
+
+<p>そんな感じである程度のバージョン管理的なことはできるものの、
+過去の履歴はずっと残っているものではなく、いつの間にか消えてることもあるので
+きちんと管理したい場合には使えません。</p>
+
+<p>消えるものとしてはGoogle Driveでファイルの詳細を見て変更履歴を見ようとすると、</p>
+
+<blockquote>
+  <p>版を管理
+「…」の旧版は、保存してから 30 日間経過した場合、または保存した版が 100 個に達した場合に削除される可能性があります。削除されないようにするには、ファイルのコンテキスト メニューで [この履歴を削除しない] を選択します。 詳細</p>
+</blockquote>
+
+<p>と出ます。</p>
+
+<p>また、Google Documentの版管理は別のようで、</p>
+
+<blockquote><p>Google ドキュメント、スプレッドシート、スライドの版の履歴は、Google ドライブ内のファイルの版とは異なります。Google 形式のファイルの変更履歴を確認する方法もご覧ください。</p><footer><strong>履歴とファイルの版を表示する - パソコン - Google ドライブ ヘルプ</strong> <cite><a href="https://support.google.com/drive/answer/2409045?hl=ja&amp;co=GENIE.Platform=Desktop">support.google.com/drive/answer/&hellip;</a></cite></footer></blockquote>
+
+<blockquote><p>* 1 個の図形描画、ドキュメント、プレゼンテーションに対して、最大 40 個の版に名前を付けて追加できます。<br />* 1 個のスプレッドシートに対して最大 15 個の版に名前を付けて追加できます。</p><footer><strong>ファイルの変更内容を確認する - パソコン - ドキュメント エディタ ヘルプ</strong> <cite><a href="https://support.google.com/docs/answer/190843">support.google.com/docs/answer/&hellip;</a></cite></footer></blockquote>
+
+<p>とあり、版の数の制限に違いがあるようです。</p>
+
+<p>さらに</p>
+
+<blockquote><p>## ファイルの以前の版が表示されない<br />* 容量節約のため、ファイルの版が統合されることがあります。</p><footer><strong>ファイルの変更内容を確認する - パソコン - ドキュメント エディタ ヘルプ</strong> <cite><a href="https://support.google.com/docs/answer/190843">support.google.com/docs/answer/&hellip;</a></cite></footer></blockquote>
+
+<p>ともあるので、過去のバージョンが意図せず消える場合もあります。</p>
+
+<p>Apps Scriptに関しては記述が見つけられませんでしたが、最大でも100個まで、
+30日以上経ったものは消える可能性がある、という感じだと思います。</p>
+
+<p>というわけで、なんとなく履歴は残すことはできるけど、
+きちんと管理しようと思うと難しいものです。</p>
+
+<p>ちょっと話がずれますが、もうすぐゴミ箱に捨てたものが30日経つと完全に消去されるように
+なりますよ、という表示が出てますね。</p>
+
+<blockquote><p>Important:Starting October 13, 2020, Google Drive files are automatically deleted forever after they've been inyour trash for 30 consecutive days. Learn more.</p><footer><strong>Delete and restore files in Google Drive - Computer - Google Drive Help</strong> <cite><a href="https://support.google.com/drive/answer/2375102">support.google.com/drive/answer/&hellip;</a></cite></footer></blockquote>
+
+<h2 id="google-apps-script-github-アシスタント">Google Apps Script GitHub アシスタント</h2>
+
+<blockquote>
+  <p><a href="https://chrome.google.com/webstore/detail/google-apps-script-github/lfjcgcmkmjjlieihflfhjopckgpelofo">Google Apps Script GitHub アシスタント</a></p>
+</blockquote>
+
+<p>Gogole Apps ScriptのコードをGitHubなどのSCM (Software Code Management)
+サービスで管理できる様にしてくれる
+Google Chromeの拡張機能です。</p>
+
+<p>拡張機能を入れるとこんな感じで<code>Login SCM</code>などのボタンが追加されます。</p>
+
+<p><img src="/images/post/20201005_gas.jpg" alt="20201005_gas.jpg" class="pic" /></p>
+
+<p>そこからGitHubなどのサービスにログインします。
+BitbucketやGitLabにも対応しています。
+GitHubの通常のレポジトリ以外にもGistに送ることも可能。</p>
+
+<p>ログインしたら<code>Repository</code>ボタンから既存のレポジトリを選択するか、
+<code>Create new repo</code>を選んで新しいレポジトリを作って管理します。</p>
+
+<p>で、右側の<code>Branch</code>でブランチを選択。</p>
+
+<p><code>Repository</code>で<code>gist</code>を選ぶと、右側のボタンが<code>Branch</code>の代わりに<code>Gist</code>となって、
+GistのIDを選択できるようになります。</p>
+
+<p>新規Gistにしたい場合もこの<code>Gist</code>ボタンの中から<code>Create new gist</code>で。</p>
+
+<p>レポジトリとブランチを選んだら、
+その右にある矢印ボタンの上向きのものを押すと今保存してあるファイルを
+<code>commit</code> &amp; <code>push</code>することが出来ます。</p>
+
+<p><img src="/images/post/20201005_push.jpg" alt="20201005_push.jpg" class="pic" /></p>
+
+<p>こんな感じのコミット画面が出てくるので適当なコメントを入れてcommit。</p>
+
+<p>送られるのは現在のプロジェクトで作っている全ての<strong>.gs</strong>ファイルと<strong>.html</strong>ファイル。</p>
+
+<p>逆にGitHub側でアップデートがあってそれを取り込みたい場合は下矢印のボタンを押すと、</p>
+
+<p><img src="/images/post/20201005_pull.jpg" alt="20201005_pull.jpg" class="pic" /></p>
+
+<p>みたいに変更点が表示されるのでよければ<code>Pull</code>します。</p>
+
+<p>これらの<code>commit</code>や<code>pull</code>はGAS側にレポジトリを保持しているわけではなく、
+一時フォルダでその都度行う様な形になっています。</p>
+
+<p>なのでGASでの作業中にGitHub側で何か変更があっても、GASから<code>commit &amp; push</code>すれば
+その次の状態としてGASで保存された状態が送られます。</p>
+
+<p>また、<code>pull</code>する際には、GAS側でGitHubに送っていない変更があってもそれは無視されて
+上書きされる形になります。</p>
+
+<p>もし、パスワードとかトークンとかを使うスクリプトを書いていて、それらは外したい、といった場合、
+別途<code>secrets.gs</code>などといった別ファイルを作り、その中で値を設定しておいて、
+オプションから<code>secrets.gs</code>だけ送らないようにする、ということも出来ます。</p>
+
+<p>オプションは矢印ボタンの右側のボタンを押すと下のようなダイアログが出てくるので
+<strong>Ignore file patterns</strong>で送りたくないファイル名(正規表現でも可)を<code>;</code>で区切って記入します。</p>
+
+<p><img src="/images/post/20201005_options.jpg" alt="20201005_options.jpg" class="pic" /></p>
+
+<h2 id="注意点">注意点</h2>
+
+<p>複数のプロジェクトを同時にChromeで開くとレポジトリの管理が壊れます。</p>
+
+<p>常に最後に開いたプロジェクトで設定されたレポジトリが全ての開いたプロジェクトで
+リモートレポジトリとして認識されるようです。</p>
+
+<p>両方ともレポジトリに結びついている
+<strong>A</strong>、<strong>B</strong>というプロジェクトを順に開いた後、
+<strong>A</strong>というプロジェクトのウィンドウ/タブに戻って
+<code>pull</code>してみると<strong>B</strong>に結びついたレポジトリの内容を取ってこようとします。</p>
+
+<p><code>commit &amp; push</code>する方も<strong>B</strong>に送るので、
+ちょっと編集しただけで送ろうとしたのに大量の<code>diff</code>が出てくる、ということもあります。</p>
+
+<p>この際、<code>Repository</code>のボタンの表示はもとのレポジトリ名のままなので
+あまり注意してないとそのまま<code>push</code>したり<code>pull</code>して内容を壊してしまう可能性があります。</p>
+
+<p>そうでなくても上にも書いたように、GAS側にレポジトリをキープして
+管理しているわけではないので、
+<code>commit &amp; push</code>や<code>pull</code>する際には状態を強制的に上書きする様な形になってしまうので
+少し注意が必要です。</p>
+
+<p>決定する前に必ず<code>diff</code>を見てちゃんと正しいか確認する必要があります。</p>
+
+<p>また、一度連携したレポジトリは次回開いた際にも有効ですが、
+プロジェクトを開いてからレポジトリを認識するまでにしばらく(10秒くらい)かかります。</p>
+
+<p>この間はいずれにしろ<code>Repository</code>とかのボタンは押せないのでそんなに問題ないですが、
+最初の頃ちょっとちゃんと連携が維持されてるかどうか不安になる感じもありました。</p>
+
+<h2 id="gasのスクリプトをローカル環境で編集">GASのスクリプトをローカル環境で編集</h2>
+
+<p><strong>Google Apps Script GitHub アシスタント</strong>を使えば
+GitHubにコードが送れるので、
+それをローカル環境に持ってきて適当なエディタで編集することも可能です。</p>
+
+<p>上にも書いたようにWeb上でも編集しながら、ローカルでも編集しながら、
+みたいなことをするとちょっと混乱のもとになるのでなるべくどちらかにした方が良いとは思います。</p>
+
+<h2 id="clasp">clasp</h2>
+
+<p>また、単にローカルで編集したいだけであれば
+Google純正の<code>clasp</code>というコマンドを使うことも出来ます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/clasp">google/clasp: 🔗 Command Line Apps Script Projects</a></p>
+</blockquote>
+
+<p><code>clasp clone</code>でGASのプロジェクトを現在のディレクトリに取ってきて、
+<code>clasp push</code>でローカルの変更の反映、<code>clasp pull</code>でリモートから変更を取得、といった感じ。</p>
+
+<p>ただ、スクリプトファイルは<strong>.gs</strong>ではなくて<strong>.js</strong>として保存されます。
+<strong>.js</strong>の方がIDEのサポートを受けられる、などの理由があるみたいですが、
+その辺は大概設定でなんとでもなるので微妙なところ。</p>
+
+<p>さらに以前は<code>push</code>するときにローカルファイルとして<strong>.gs</strong>がある場合ローカルファイルも
+<strong>.js</strong>に変更していたみたいですが、現在はその様なことはなく、
+<strong>.gs</strong>ファイルがある場合にはリモートで<strong>.gs</strong>に変換される様になったみたいです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/clasp/issues/51">Do not rename .gs files to .js before pushing · Issue #51 · google/clasp</a></p>
+</blockquote>
+
+<p>もし、ローカルに<strong>a.js</strong>と<strong>a.gs</strong>という拡張子が違うものがあると</p>
+
+<pre><code>$ clasp push
+File names: a.js/a.gs conflict. Only keep one.
+</code></pre>
+
+<p>みたいな感じでエラーが出ます。</p>
+
+<p>このclaspとgitを使った管理をすることも考えられ、
+適当なGitのレポジトリを作って、そこに<code>clasp clone</code>。</p>
+
+<p>そこでファイルを編集して、<code>git commit</code>でバージョン管理、
+GASに送っても良いようなら<code>clasp push</code>でGASへ反映、といった感じ。</p>
+
+<p>ウェブの方で直接編集したら<code>clasp pull</code>でローカルに反映。</p>
+
+<p>といった感じ。</p>
+
+<p>ただし、ウェブ側で編集する可能性がある場合、ローカルにあるファイルは全て
+<strong>.js</strong>の拡張子にしておく必要があります。
+(そうでく<strong>.gs</strong>で編集していると<code>pull</code>時に<strong>.js</strong>という別のファイルが出来てしまう)</p>
+
+<h2 id="google-apps-script-github-アシスタントとclasp">Google Apps Script GitHub アシスタントとclasp</h2>
+
+<p>Google Apps Script GitHub アシスタントとclaspを同時に使うことも考えられます。</p>
+
+<p>この場合にはスクリプトファイルは<strong>.gs</strong>という名前で管理すべきです。</p>
+
+<p>やることとしては、まず
+GitHubに適当なレポジトリを作ってローカルに<code>git clone</code>。</p>
+
+<p>そのレポジトリに入った状態で<code>clasp clone xxx</code>してGASのファイルを取得。
+GAS用設定ファイルの<strong>appsscript.json</strong>と<strong>.clasp.json</strong>はそのままに、
+<strong>.js</strong>ファイルを全て<strong>.gs</strong>へ拡張子を変更。</p>
+
+<p>これで</p>
+
+<ul>
+  <li>ローカルで変更して<strong>clasp push</strong>でGASへの反映</li>
+  <li><code>git commit</code>, <code>git push</code>でGitHubへ反映</li>
+</ul>
+
+<p>が出来ます。</p>
+
+<p>また、</p>
+
+<ul>
+  <li>ローカルの変更をGitHubに反映させて、GASで<code>pull</code></li>
+  <li>GASで<strong>commit &amp; push</strong>してローカルで<code>pull</code></li>
+</ul>
+
+<p>することでGitHubを経由したアップデートも可能です。</p>
+
+<p>ただ、ローカルで<code>clasp pull</code>すると<strong>.js</strong>ファイルとして取得されるので<strong>.gs</strong>に
+変更して置き換える必要があります。</p>
+
+<p>など、この3方向全て同時に使おうとすると色々混乱するので気をつけないといけませんが、
+色々とできることはあるので知っておくとGASの開発がはかどります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Googleの機能だけでもバックアップ的な観点だとある程度の事はできますが、
+きちんとコード管理したい場合にはGitHubなどに入れたいところです。</p>
+
+<p>また、GASだと特にちょっとした小さなスクリプトでスニペット的なものもあって、
+使い回しができる物も多いので、
+GitHubで公開して共有できると嬉しいところです。</p>
+
+<p>ちょっと注意が必要なのはアクセストークンとかスクリプトのどこかに
+書いておいてそのままアップロードしないようにしないといけない点。</p>
+
+<p><a href="https://chrome.google.com/webstore/detail/google-apps-script-github/lfjcgcmkmjjlieihflfhjopckgpelofo">Google Apps Script GitHub アシスタント</a>
+でも特定のファイルだけ無視する設定ができるので、
+必要なものは別ファイルにちゃんと分けて
+公開されないようにする必要があります。</p>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished dateModified' class='entry-date updated' datetime='2020-10-05T00:00:00+00:00'><span class='date'>05 Oct 2020</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/github/'><span>GitHub</span></a>, <a class='tag' href='/blog/tags/google/'><span>Google</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2020/10/05/computer-google-github/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//plus.google.com/share?url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&title=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Google+"
+    target="_blank"><p class="googleplus_custom"><span class="googleplusBig"  data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">Google+でシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&amp;t=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2020/10/05/computer-google-github/&title=Google+Apps+Script%E3%82%92GitHub%E3%81%A7%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2020/10/05/computer-google-github/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2020/09/28/life-iot/" title="Previous Post: SwitchBotのスマートカーテンが売り出されている">&laquo; SwitchBotのスマートカーテンが売り出されている</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2020/10/06/computer-iot-google/" title="Next Post: Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する">Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/gp/redirect.html?ie=UTF8&location=http%3A%2F%2Fwww.amazon.co.jp%2Fgp%2Fregistry%2Fwishlist%2FN9M4X3BSKHIH%3Fie%3DUTF8%26type&tag=rcmdnk0c-22&linkCode=ur2&camp=247&creative=1211">ほしいもの一覧</a>
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 173" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 213" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2022/02/27/life-iot-shopping/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20220227_nitori1_120_90.jpg" width="120" height="90" alt="20220227_nitori1_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2022/02/27/life-iot-shopping/">ニトリのスマートシーリングライトが優秀だった</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2022/02/20/computer-iot/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20220220_co2_120_90.jpg" width="120" height="90" alt="20220220_co2_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2022/02/20/computer-iot/">二酸化炭素濃度、温度、湿度計の比較</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B097DNC871' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/61tC8I8iusL._SS90_CR0,0,120,90_.jpg' alt='Protmex co2センサー CO2測定器 リアルタイム遠隔監視 二酸化炭素濃度計 アラーム機能 18650mAh大容量電池温度 湿度表示付き 高精度 空気質検知器 ポータブル 測定器 検測機 USB充電式 日本語説明書付き'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2022/02/19/computer-iot/">PTH-8: スマホで確認できる二酸化炭素濃度計</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2022/02/16/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2022/02/16/computer-windows-autohotkey/">AutoHotkeyでカーソル下の文字を見てアクションを変える</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B005FIJ1SY' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71De7X33KDL._SS90_CR0,0,120,90_.jpg' alt='【新型】エルゴプロ EHP-LPL ハイブリット機能 オットマン内蔵 GY（KM-10） EHP-LPL'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2022/02/15/life-shopping/">ちょっといい椅子買った(エルゴヒューマンプロオットマン)</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2022 (17)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2022/02/'>FEB (9)</a></li><li><a href='/blog/2022/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2021 (46)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2021/12/'>DEC (3)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (97)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (5)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (72)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (2)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (152)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (13)</a></li><li><a href='/blog/2016/09/'>SEP (14)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (187)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (13)</a></li><li><a href='/blog/2015/10/'>OCT (18)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (32)</a></li><li><a href='/blog/2015/05/'>MAY (22)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (135)</a></li><li><a href='/blog/categories/computer/'>Computer (942)</a></li><li><a href='/blog/categories/life/'>Life (53)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.39867109634551%'>AeroFS(2)</a> <a href='/blog/tags/amazon/' style='font-size: 100.39867109634551%'>Amazon(2)</a> <a href='/blog/tags/analytics/' style='font-size: 100.59800664451828%'>Analytics(3)</a> <a href='/blog/tags/android/' style='font-size: 103.58803986710963%'>Android(18)</a> <a href='/blog/tags/applescript/' style='font-size: 103.18936877076412%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.39867109634551%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 104.98338870431894%'>AutoHotkey(25)</a> <a href='/blog/tags/bash/' style='font-size: 120.1328903654485%'>Bash(101)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19933554817275%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.39867109634551%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.79734219269103%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.59800664451828%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 110.96345514950166%'>Brew-file(55)</a> <a href='/blog/tags/bsd/' style='font-size: 101.59468438538207%'>BSD(8)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.39867109634551%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.79734219269103%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.78405315614619%'>Chrome(24)</a> <a href='/blog/tags/colinux/' style='font-size: 100.39867109634551%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.99667774086379%'>CSS(5)</a> <a href='/blog/tags/cygwin/' style='font-size: 106.17940199335548%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19933554817275%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.39867109634551%'>Desktop(2)</a> <a href='/blog/tags/diy/' style='font-size: 100.19933554817275%'>DIY(1)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.99335548172758%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.59800664451828%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.99667774086379%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.59136212624584%'>Evernote(13)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19933554817275%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.76079734219269%'>Firefox(59)</a> <a href='/blog/tags/geektool/' style='font-size: 100.59800664451828%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19933554817275%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 101.79401993355482%'>git(9)</a> <a href='/blog/tags/git/' style='font-size: 106.17940199335548%'>Git(31)</a> <a href='/blog/tags/github/' style='font-size: 113.15614617940199%'>GitHub(66)</a> <a href='/blog/tags/github/' style='font-size: 100.19933554817275%'>Github(1)</a> <a href='/blog/tags/gmail/' style='font-size: 103.18936877076412%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.3953488372093%'>GNU(7)</a> <a href='/blog/tags/go/' style='font-size: 100.59800664451828%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.18936877076412%'>Google(16)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19933554817275%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 101.3953488372093%'>HHKB(7)</a> <a href='/blog/tags/home/' style='font-size: 100.19933554817275%'>Home(1)</a> <a href='/blog/tags/homebrew/' style='font-size: 117.94019933554817%'>Homebrew(90)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.39202657807309%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.79734219269103%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.39867109634551%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 109.56810631229236%'>IoT(48)</a> <a href='/blog/tags/iphone/' style='font-size: 102.59136212624584%'>iPhone(13)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.79734219269103%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.39867109634551%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.1827242524917%'>JavaScript(26)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.59800664451828%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.79734219269103%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.78405315614619%'>Karabiner(24)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19933554817275%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.59468438538207%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19933554817275%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19933554817275%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.35548172757476%'>Linux(67)</a> <a href='/blog/tags/liquid/' style='font-size: 100.39867109634551%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.59800664451828%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(301)</a> <a href='/blog/tags/markdown/' style='font-size: 102.39202657807309%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.79401993355482%'>Music(9)</a> <a href='/blog/tags/network/' style='font-size: 106.37873754152824%'>Network(32)</a> <a href='/blog/tags/octopress/' style='font-size: 124.31893687707641%'>Octopress(122)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.39867109634551%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.59800664451828%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.79734219269103%'>Pocket(4)</a> <a href='/blog/tags/powershell/' style='font-size: 101.59468438538207%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 101.79401993355482%'>PR(9)</a> <a href='/blog/tags/prompt/' style='font-size: 100.59800664451828%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.79069767441861%'>PuTTY(14)</a> <a href='/blog/tags/python/' style='font-size: 107.17607973421927%'>Python(36)</a> <a href='/blog/tags/qi/' style='font-size: 100.99667774086379%'>Qi(5)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.59800664451828%'>Rakuten(3)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 103.18936877076412%'>RaspberryPi(16)</a> <a href='/blog/tags/ruby/' style='font-size: 102.79069767441861%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 107.57475083056478%'>screen(38)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.79069767441861%'>sentaku(14)</a> <a href='/blog/tags/shopping/' style='font-size: 108.37209302325581%'>Shopping(42)</a> <a href='/blog/tags/slack/' style='font-size: 100.19933554817275%'>Slack(1)</a> <a href='/blog/tags/svn/' style='font-size: 100.39867109634551%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.99667774086379%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.39867109634551%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.3953488372093%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.79069767441861%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.99667774086379%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.79734219269103%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 119.734219269103%'>Vim(99)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.7873754152824%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.19601328903654%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.19601328903654%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.39867109634551%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 129.30232558139534%'>Windows(147)</a> <a href='/blog/tags/word/' style='font-size: 100.19933554817275%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.3953488372093%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.16611295681064%'>Zsh(51)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873100844' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/31NJeGekxTL._SS90_CR0,0,120,90_.jpg' alt='uuencodeされた本―EUC/tar.gz版'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2021/09/17/computer-windows/">Windowsネイティブな環境でのtar.gzファイルの解凍</a><br><span class="views">6135 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2019/10/25/life-shopping-rakuten/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20191025_rakuten_120_90.jpg" width="120" height="90" alt="20191025_rakuten_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2019/10/25/life-shopping-rakuten/">楽天会員規約に基づき利用停止措置がとられています</a><br><span class="views">3368 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2021/03/01/computer-windows-network/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20210301_property_120_90.jpg" width="120" height="90" alt="20210301_property_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2021/03/01/computer-windows-network/">Windows WSL2に外部から直接アクセスするための設定</a><br><span class="views">3162 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">3150 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2017/03/03/computer-windows/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20170303_key_120_90.jpg" width="120" height="90" alt="20170303_key_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2017/03/03/computer-windows/">ノートPCのキーボードのボタン一つだけが壊れた時の対処法</a><br><span class="views">1969 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://b.st-hatena.com/images/append.gif' alt='append'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2022 - rcmdnk -
+    <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<script>
+  window.GoogleAnalyticsObject = 'ga';
+  if (!('ga' in window)){
+    ga = function(){
+      ga.q.push(arguments);
+    };
+  }
+  ga.l = (new Date()).getTime();
+  ga.q = [['create', 'UA-39086461-1', 'auto'], ['send', 'pageview'], ['require', 'linkid', 'linkid.js']];
+</script>
+<script src="//www.google-analytics.com/analytics.js" async defer></script>
+
+<script src="https://www.googletagmanager.com/gtag/js?id=UA-39086461-1" async defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-39086461-1');
+</script>
+
+
+<script>(function(w,d,s,l,i){
+           w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+         })(window,document,'script','dataLayer','GTM-MRN6WBX');</script>
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2020/10/05/computer-google-github/';
+  var disqus_url = 'https://rcmdnk.com/blog/2020/10/05/computer-google-github/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+
+
+
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery//jquery.min.js" defer></script>
+  <![endif]-->
+  
+
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" defer></script>
+  <!--<![endif]-->
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/google/",
+        "name": "Google"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

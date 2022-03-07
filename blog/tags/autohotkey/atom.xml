@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: AutoHotkey | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/autohotkey/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[AutoHotkeyでカーソル下の文字を見てアクションを変える]]></title>
+    <link href="https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey/"/>
+    <updated>2022-02-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>AuotHotkeyで何らかアクションを起こす時に
+カーソル下の文字を見てアクションを変える方法を覚えたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#方法" id="markdown-toc-方法">方法</a></li>
+  <li><a href="#hotstrings" id="markdown-toc-hotstrings">Hotstrings</a></li>
+  <li><a href="#a_thishotkey" id="markdown-toc-a_thishotkey">A_ThisHotkey</a></li>
+  <li><a href="#sleep-or-clipwait" id="markdown-toc-sleep-or-clipwait">Sleep or Clipwait</a></li>
+  <li><a href="#その他で活用できそうな所" id="markdown-toc-その他で活用できそうな所">その他で活用できそうな所</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>このIssueでもらったもの:</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/74">Normal mode ‘a’ behavior in the end of line · Issue #74 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>でノーマルモード中、
+<i class="key">A</i>を押すとカーソルの右側に移動してインサートモードに移る機能があります。
+これは単に<i class="key">right</i>を入力してモード変換をしているだけです。</p>
+
+<p>これが行末の場合、次の行に行ってしまいます。</p>
+
+<p>一方、実際のVimでは行末で<i class="key">A</i>を押すとその行にとどまってインサートモードに入ります。
+正確にはVimのノーマルモードではカーソルは各文字の上にあるような形になっていて、これは通常時の文字の左側にカーソルがあるのと同じです。
+そして行末、というのが最終文字、となっているので実際には最後から一文字手前のところにカーソルがあることになります。
+なのでそこから<i class="key">A</i>するとその行の最後から書き始め、になります。</p>
+
+<p>これを実際のVimっぽくしたい、と。</p>
+
+<h2 id="方法">方法</h2>
+
+<p>この問題は分かってましたが行末とかわからないしな、と思って取り組めてませんでしたが、
+良い参考を教えてもらいました。</p>
+
+<blockquote>
+  <p><a href="https://www.reddit.com/r/AutoHotkey/comments/4ma5b8/identifying_end_of_line_when_typing_with_ahk_and/">Identifying “End of Line” when typing with AHK? And implementing it into a hotstring. : AutoHotkey</a></p>
+</blockquote>
+
+<p>ここにある例がまさに行末の判定をしてアクションを変えていて、ほぼそのまま使えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>  <span class="n">CheckChr</span><span class="p">(</span><span class="n">key</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">BlockInput</span><span class="p">,</span> <span class="n">Send</span>
+</span><span class="line">    <span class="n">tempClip</span> <span class="o">:=</span> <span class="nv">clipboard</span>
+</span><span class="line">    <span class="nv">clipboard</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span><span class="line">    <span class="nb">SendInput</span> <span class="p">{</span><span class="n">Shift</span> <span class="n">Down</span><span class="p">}{</span><span class="n">Right</span><span class="p">}{</span><span class="n">Shift</span> <span class="n">up</span><span class="p">}{</span><span class="n">Ctrl</span> <span class="n">down</span><span class="p">}</span><span class="n">c</span><span class="p">{</span><span class="n">Ctrl</span> <span class="n">Up</span><span class="p">}{</span><span class="n">Left</span><span class="p">}</span>
+</span><span class="line">    <span class="nb">Sleep</span> <span class="mi">10</span>
+</span><span class="line">    <span class="n">ret</span> <span class="o">:=</span> <span class="nv">False</span>
+</span><span class="line">    <span class="n">If</span> <span class="p">(</span><span class="nv">clipboard</span> <span class="o">~=</span> <span class="n">key</span><span class="p">){</span>
+</span><span class="line">      <span class="n">ret</span> <span class="o">:=</span> <span class="nv">True</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">    <span class="nb">sleep</span> <span class="mi">10</span>
+</span><span class="line">    <span class="nv">clipboard</span> <span class="o">:=</span> <span class="n">tempClip</span>
+</span><span class="line">    <span class="nb">BlockInput</span><span class="p">,</span> <span class="n">off</span>
+</span><span class="line">    <span class="nb">Return</span> <span class="n">ret</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<blockquote>
+  <p>https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/vim_ahk.ahk#L278</p>
+</blockquote>
+
+<p>こんな感じの関数を用意して、カーソル下の文字が引数にいれる文字と一致するかどうかをチェックします。</p>
+
+<p>AutoHotkeyでは<code>clipboard</code>という変数がWindowsのクリップボードの値と同期しているのでそれを使います。</p>
+
+<p>このアクションが起こった後にクリップボードを変更したくないので元の値を一旦退避して、</p>
+
+<ul>
+  <li><i class="key">Shift</i>-<i class="key">Right</i></li>
+</ul>
+
+<p>で一文字選択した状態で</p>
+
+<ul>
+  <li><i class="key">Ctrl</i>-<i class="key">C</i></li>
+</ul>
+
+<p>でコピーする、という作業をします。</p>
+
+<p>コピーした後にその中身が何かをチェックしています。</p>
+
+<p>あとは
+AutoHotkeyでの改行は`nなので、
+こんな感じで改行コードでない場合だけ右にいくようにするだけ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="o">!</span> <span class="n">Vim</span><span class="o">.</span><span class="n">CheckChr</span><span class="p">(</span><span class="s">&quot;</span><span class="se">`n</span><span class="s">&quot;</span><span class="p">)){</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">,</span> <span class="p">{</span><span class="n">Right</span><span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">Vim</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="s">&quot;Insert&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<blockquote>
+  <p>https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/bind/vim_enter_insert.ahk#L9</p>
+</blockquote>
+
+<p>以下、元の参考を見て新たに知ったこととかよく分かってないこととか。</p>
+
+<h2 id="hotstrings">Hotstrings</h2>
+
+<p>元の参考コードは括弧を自動で閉じる機能ですが、
+キーバインド部を</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">:*:</span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じにしています。</p>
+
+<p>この<code>:*:{::</code>ですが、<code>:*:{</code>が左辺で<code>::</code>を境にして設定される側とそれに対するアクション(キー)が書かれています。</p>
+
+<p>左辺に<code>:</code>が2つあるのが
+<a href="https://www.autohotkey.com/docs/Hotstrings.htm">Hotstrings</a>
+と呼ばれるもので、これは複数の入力文字に対してアクションを指定したい場合に使います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">::</span><span class="n">btw</span><span class="o">::</span><span class="n">by</span> <span class="n">the</span> <span class="n">way</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これだと<code>btw</code>と打った後に<i class="key">Space</i>、<i class="key">.</i>、<i class="key">Enter</i>のいずれかが押されると<code>btw</code>が<code>by the way</code>に変換されます。</p>
+
+<p>この最初の<code>::</code>の間にはオプションを入れることができ、
+<code>:*:</code>は上の指定キーを入力した瞬間に即座にアクションを実行する、というもの。</p>
+
+<p><code>btw</code>の例だとスペースとかを押さなくてもすぐに変換されることになります。</p>
+
+<p>スニペット的な感じ。</p>
+
+<p>他のオプションとかは
+<a href="https://www.autohotkey.com/docs/Hotstrings.htm">Hotstringsのドキュメント</a>
+参照してください。</p>
+
+<p>で、ここでは<code>{</code>とかだけをキーバインドしたいわけですが、
+それに対して即時オプションを設定すると単に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とするのと変わらない気が。。。</p>
+
+<p>実際ちょっと試した限りではまったく同じように動作しました。</p>
+
+<p>上の参考ページは5年前の記事なので、その間に変わったこととかがあるのかもしれませんし、
+何かしら特殊な状況で必要なのかもしれませんが、それが何か分かってません。</p>
+
+<h2 id="a_thishotkey">A_ThisHotkey</h2>
+
+<p>キーバインドする際に、出力側で<code>A_ThisHotkey</code>を使うと入力の文字列になります。
+(正確には最後に実行されたホットキーが格納されている。)</p>
+
+<p>上の例だと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにして、<code>:*:{</code>とかなっているのを<code>SetReplace</code>できれいにして<code>{</code>として渡しています。</p>
+
+<p>これはもしEOLがこれにしか使わないなら<code>SetReplace</code>を<code>EOL</code>の関数の中に入れてしまえば良いし、
+もう一つラッパー関数を作っても良いかもしれません。</p>
+
+<p>また、そもそもそれぞれのキーは決まっているので</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="n">EOL</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>そしてしまえば。</p>
+
+<p>また、全部同じことをしたいなら，</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="o">:*:</span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="o">:*:</span><span class="p">[</span><span class="o">::</span>
+</span><span class="line">    <span class="o">:*:</span><span class="p">(</span><span class="o">::</span>
+</span><span class="line">      <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span><span class="line">      <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じにまとめることもできます。</p>
+
+<h2 id="sleep-or-clipwait">Sleep or Clipwait</h2>
+
+<p>上の例では
+<a href="https://www.autohotkey.com/docs/commands/Sleep.htm">Sleep</a>
+を使っていますが、AutoHotkeyには
+<a href="https://www.autohotkey.com/docs/commands/ClipWait.htm">ClipWait</a>
+という機能もあります。</p>
+
+<p>ClipWaitだとタイムアウト時間を設定してコピーが完了次第次に進めるのでそっちのが良さげ。</p>
+
+<p>実はvim_ahkの中でClipWaitを使ってる箇所があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/bind/vim_normal.ahk#L14">vim_ahk/vim_normal.ahk at 98759b8a692896fa96c0b1e96d2a325847ce542d · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>完全にどうやってるか、は忘れてましたが、<code>~</code>でカーソル下の文字を大文字小文字でトグルする機能で
+文字の大小を見て変換する、という際にクリップボードを使っています。
+ここではClipWaitを利用。</p>
+
+<p>多分ClipWaitの方が良いんだと思いますが、ちょっとまたちゃんと調べてから変更しようかと思ってます。</p>
+
+<h2 id="その他で活用できそうな所">その他で活用できそうな所</h2>
+
+<p>vim_ahkの中で実際のVimと動作が微妙に違う部分はたくさんあって、
+特に今回の例のようにカーソル下の状態とか、周辺の状況を把握しないと無理、というものが結構あります。</p>
+
+<p>その辺あまりまとめて無かったんですが、
+ざっと思いつくところからリストアップしてそのうちやろうかと。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/76">use CheckChr, BlockInput for some places · Issue #76 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>クリップボード以外にも、ノーマルモードでh/j/k/lのような移動キーをキーリピートをすると文字が入力されてしまったりすることもあり、
+この辺参考例の中にある
+<a href="https://www.autohotkey.com/docs/commands/BlockInput.htm">BlockInput</a>
+を使ったらうまく出来ないかな、とかも。</p>
+
+<p>もし何か使ってて気になる点とかがあれば気軽にGitHubのIssueとか
+Twitterとかでも良いので教えていただけるとありがたいです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkにciwなどを追加]]></title>
+    <link href="https://rcmdnk.com/blog/2022/01/24/computer-autohotkey-vim-windows/"/>
+    <updated>2022-01-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/01/24/computer-autohotkey-vim-windows</id>
+    <content type="html"><![CDATA[<p>Winndows上でVimをEmulateするvim_ahkに<code>ciw</code>など
+カーソル下の単語を選択してコピーしたり変更したりするキーバインドを追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#viwyiwdiwciw" id="markdown-toc-viwyiwdiwciw">viw/yiw/diw/ciw</a></li>
+  <li><a href="#例" id="markdown-toc-例">例</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<p>vim_ahkはWindowsで<a href="https://www.autohotkey.com/">AutoHotkey</a>を使ってVim以外のアプリでもVimライクな動作を実現するツールです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkではNormal ModeとかVisual Modeとかも実装されていて、
+Normal Modeで<code>vw</code>とすると現在位置から次の単語の先頭まで選択、みたいなことは簡単に出来る様になっています。</p>
+
+<h2 id="viwyiwdiwciw">viw/yiw/diw/ciw</h2>
+
+<p>Vimコマンドの中でもよく使うキーバインドとして、</p>
+
+<ul>
+  <li><code>ciw</code>: 現在カーソルがある下の単語を消して書き直す</li>
+</ul>
+
+<p>というものがあります。単語のどの位置に居たとしてもその単語全体を消して書き直します。</p>
+
+<p>同様に<code>yiw</code>なら単語をコピー、<code>diw</code>なら単語を削除です。</p>
+
+<p><code>viw</code>は<code>v</code>でVisual Modeに入ってその後単語を選択した状態になります。</p>
+
+<p>これらをvim_ahkでも出来るようになりました。</p>
+
+<p>ちょっと本物との違いとして、
+単語の末尾、をきちんと捉える方法が無いので、現在カーソルのある位置にある単語から次の単語の切れ目の前まで、を
+選択したり削除したりするようになっています。</p>
+
+<p>また、<code>単語</code>の単位がアプリによって違うためアプリによって選択される範囲が違ったりします。</p>
+
+<h2 id="例">例</h2>
+
+<p><code>|</code>の位置がカーソルの位置とする:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状況</th>
+      <th>選択範囲</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>abc e|fg　hij</code></td>
+      <td><code>efg　</code></td>
+    </tr>
+    <tr>
+      <td><code>print("a|bc")</code></td>
+      <td><code>abc</code> (ワードパッド)、<code>("abc")</code> (メモ帳)</td>
+    </tr>
+    <tr>
+      <td><code>abc/d|ef/ghi</code></td>
+      <td><code>def</code> (ワードパッド)、 <code>abc/def/ghi</code> (メモ帳)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>こんな感じでワードパッドだと記号を区切りとして扱ってくれますがメモ帳だと
+一部扱いが通常文字扱いになっていたりちょっと様子が違います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkに一時停止機能を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/24/computer-windows-autohotkey-vim/"/>
+    <updated>2021-09-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/24/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B008GXT6SK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B008GXT6SK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61AU73nfrFL._SS200_.jpg" alt="PFU キーボード Happy Hacking Keyboard Professional2 Type-S 無刻印/白 PD-KB400WNS" /></a>
+</div>
+
+<p>Windows上でVimをEmulateするvim_ahkに
+一時停止機能を追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#一時停止機能" id="markdown-toc-一時停止機能">一時停止機能</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<p>vim_ahkはWindowsで
+<a href="https://www.autohotkey.com/">AutoHotkey</a>
+を使ってVim以外のアプリでもVimライクな動作を実現するツールです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<h2 id="一時停止機能">一時停止機能</h2>
+
+<p>vim_ahkでは各アプリのショートカットなどとconflictするキーバインドを設定している可能性があります。</p>
+
+<p>そういった場合、一時的にvim_ahkを無効にしてそのアプリのキーバインドを実行したい場合もあるかと思います。</p>
+
+<p>そういった場合、vim_ahkを有効にしながらvim_ahkのショートカットキーと被るそのアプリ特有のキーバインドを使いたい場合もあるかと思います。</p>
+
+<p>この様な状況に対応するため、一時的にvim_ahkを無効化するショートカットキーを追加しました。</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">s</i></p>
+
+<p>で無効化、有効化(suspend/restart)をトグルします。</p>
+
+<p>このショートカットキーはVimGroupに対応する、vim_ahkが有効なアプリに限り有効です。</p>
+
+<p>このショートカットキーをメモ帳などvim_ahkが有効なアプリが最前面の状態で押すと、
+トレイアイコンを有効にしていれば</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210925_disabled.png" alt="alt" class="pic" /></p>
+
+<p>の様な無効化の状態になります。</p>
+
+<p>この間は</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">s</i></p>
+
+<p>以外のvim_ahkに関するキーバインドは無効になります。
+(<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">v</i>で設定画面を表示するものだけは有効)</p>
+
+<p>再び同じキーを押すと有効になります。</p>
+
+<p><a href="https://github.com/rcmdnk/vim_ahk/releases/tag/v0.10.0">Release Release v0.10.0 · rcmdnk/vim_ahk</a></p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>何かしらvim_ahkとconflictしてしまうキーバインドが出てしまう可能性もありますが、
+これにより一時的に無効飲してあらゆるショートカットキーを使うことが出来るようになります。
+(<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>を使うようなものはめったに無い、という前提で。)</p>
+
+<p>直接スクリプトをいじれば特定のアプリで必要の無いショートカットキーを変更することも出来ますが、
+exeを使う場合や、あまりAutoHotkeyに詳しくない状態でconflictしてしまうキーバインドを一時的に無効にしてアプリのキーを使うことが出来るようになります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkで簡単にアプリケーション上で有効に出来るようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2021/05/02/windows-autohotkey-vim/"/>
+    <updated>2021-05-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/05/02/windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>WindowsでAutoHotkeyを使ってVimライクな動作をどこでも実現する
+vim_ahkではこれまで有効にするアプリケーションを指定する方法を取っていましたが、
+簡単にすべてのアプリケーション上でも有効に出来るようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#これまでのアプリケーションの指定" id="markdown-toc-これまでのアプリケーションの指定">これまでのアプリケーションの指定</a></li>
+  <li><a href="#新しいオプション" id="markdown-toc-新しいオプション">新しいオプション</a></li>
+  <li><a href="#実装" id="markdown-toc-実装">実装</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyのスクリプトで、Windows上のどこでも
+<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で移動したり<i class="key">Y</i>/<i class="key">P</i>でコピペしたりするVimチックな動きを
+再現するためのスクリプトです。</p>
+
+<p>exeファイルを直接使えばAutoHotkeyがインストールされてない環境でも動きます。</p>
+
+<h2 id="これまでのアプリケーションの指定">これまでのアプリケーションの指定</h2>
+
+<p>これまでは設定メニューの<code>Application</code>欄に記入されたアプリケーションのみの上で
+有効になるようにしていました。</p>
+
+<p>これは、ターミナル上やVim上で有効になってしまうとそこでオリジナルのVimが使えなくなってしまったりするためです。</p>
+
+<p>後は基本的にはエディタ的な所での動作を想定してたので、Allow List的なもののが良いかな、と思ってそうしていました。</p>
+
+<h2 id="新しいオプション">新しいオプション</h2>
+
+<p>今回<code>Application list usage</code>というオプションを追加しました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210502_vimahksettings.png" alt="20210502_vimahksettings.png" class="pic" /></p>
+
+<p>スクリプト内では<code>VimAppList</code>という変数が該当します。</p>
+
+<p>これまでと同じ動作にするには<code>Allow List</code>を選びます(デフォルト設定)。</p>
+
+<p>これ以外に<code>All</code>、<code>Deny List</code>という選択肢があって、
+<code>All</code>を選択すれば<code>Application</code>のリストを無視してWindows内すべてのアプリケーション上で
+vim_ahkが有効になります。</p>
+
+<p>一方で<code>Deny List</code>を選択すれば<code>Application</code>のリストにあるもの以外で有効に出来ます。</p>
+
+<h2 id="実装">実装</h2>
+
+<p>AutoHotkeyのスクリプト内では通常</p>
+
+<pre><code>#If WinActive("ahk_group XXX")
+</code></pre>
+
+<p>みたいな感じで現在最前面にあるウィンドウが指定のウィンドウ(もしくはウィンドウグループ)かどうかを確かめ、該当する場合にキー設定を有効にする、みたなことをします。</p>
+
+<p>ここを</p>
+
+<pre><code>#If Vim.IsVimGroup()
+</code></pre>
+
+<p>みたいな感じで関数にして、</p>
+
+<pre><code>IsVimGroup(){
+  if(this.Conf["VimAppList"]["val"] == "Allow List"){
+    Return WinActive("ahk_group " . this.GroupName)
+  }else if(this.Conf["VimAppList"]["val"] == "Deny List"){
+    Return !WinActive("ahk_group " . this.GroupName)
+  }
+  Return True
+}
+</code></pre>
+
+<p>の様な感じで状況に応じて扱いを変えてやることでやっています。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkでモードによってキャレットの太さを変える]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/20/computer-vim-autohotkey/"/>
+    <updated>2021-04-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/20/computer-vim-autohotkey</id>
+    <content type="html"><![CDATA[<p>Vimの機能で編集時にノーマルモードとインサートモードでキャレットの形を変更する機能があります。</p>
+
+<p>CLI版だとターミナルエミューレーターによって使えたり使えなかったりしますが、
+GUI版だとノーマルモードだと文字にかぶる様なインジケーターで
+インサートモードに入ると文字の間に入るようなのになったりアンダーバーになったり。</p>
+
+<p>それをvim_ahkでなんとかできないか、ということで入れてみたもの。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#キャレットサイズ" id="markdown-toc-キャレットサイズ">キャレットサイズ</a></li>
+  <li><a href="#windowsの設定" id="markdown-toc-windowsの設定">Windowsの設定</a></li>
+  <li><a href="#systemparameterinfoa" id="markdown-toc-systemparameterinfoa">SystemParameterInfoA</a></li>
+  <li><a href="#有効にする方法" id="markdown-toc-有効にする方法">有効にする方法</a></li>
+  <li><a href="#残っている問題" id="markdown-toc-残っている問題">残っている問題</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはWindows上でAutoHotkeyを使ってあらゆるアプリケーション上で
+Vimライクな操作を実現するためのスクリプトです。</p>
+
+<p>ノーマルモードやインサートモードといったモード変更をした上で
+<i class="key">J</i><i class="key">K</i>で上下に動いたりすることができます。</p>
+
+<h2 id="キャレットサイズ">キャレットサイズ</h2>
+
+<p>キャレットというかテキストカーソルというか。</p>
+
+<p>文字を書き込む時に書き込む位置に表示される四角形のインジケーター的なやつです。</p>
+
+<p>Vimではモードが変わった際に、それをわかりやすくするため、
+ノーマルモードでは位置の文字に被さるようなものになり、
+インサートモードでは文字の左側に細いものだったり、アンダーバーにしたりする機能があります。</p>
+
+<p>WindowsやMacのアプリ版だと恐らく最初から使えると思います。</p>
+
+<p>ターミナル上のVimだとターミナルエミュレーターとの兼ね合いもあるので
+その上で設定している人もいるかと。</p>
+
+<p>それをvim_ahkでも実現したいな、というもの。</p>
+
+<blockquote>
+</blockquote>
+
+<p>1年くらい前にIssueで出してくれたもので、確かに面白いな、と思ったもので
+どうにかできないかと調べてました。</p>
+
+<h2 id="windowsの設定">Windowsの設定</h2>
+
+<p>調べてると、
+Windows 10ではそもそもテキストカーソルを変更する設定が追加されてることに気づきました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_winsettings.jpg" alt="20210420_winsettings.jpg" class="pic" /></p>
+
+<p>この設定は上の設定画面で変更すると再起動とかしないでも即座に反映されます。</p>
+
+<p>なのでこいつの値をなんとか変更してやれば良いんじゃないかと。</p>
+
+<p>で、こいつを決めてるレジストリ値を見つけ出し、
+AutoHotkeyではレジストリを直接いじることも出来るので、
+モード変更時に変えてやればよいだろうということで、</p>
+
+<pre><code>RegWrite, REG_DWORD, HKEY_CURRENT_USER\Control Panel\Desktop, CaretWidth, 0xa
+</code></pre>
+
+<p>みたいなものを変更時にやってやれば良いんじゃないか、と。</p>
+
+<p><strong>HKEY_CURRENT_USER\Control Panel\Desktop</strong>の下にある<strong>CaretWidth</strong>というレジストリ値が、
+デフォルトでは0 (0x1)になっていて、これを10 (0xa)に変更する設定です。</p>
+
+<p>これをノーマルモードに入る時に実行して、インサートモードでは最後を0x1にしてあげれば
+できそう。</p>
+
+<p>ということでやってみたのですが、実際レジストリの値は変更されるものの、
+キャレットの太さは変わらず。</p>
+
+<p>太くした状態で再ログインとかすると太く反映されますが、また再ログインするまで
+変更は反映されません。</p>
+
+<p>Windowsの設定のところでは即座に変わっていて、これも実際レジストリ値の変更を行っているので、
+レジストリの値を反映した後に何らかそれを別の実際に使うところに反映するためのコマンドが必要な様です。</p>
+
+<h2 id="systemparameterinfoa">SystemParameterInfoA</h2>
+
+<p>直接レジストリの変更だけでは駄目だったようですが、
+<a href="https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfoa">SystemParametersInfoA function</a>
+というシステムワイドな設定変更をするものを見つけてくれた人がいました。</p>
+
+<p>これを使った設定変更も作ってくれた人がいて、
+これによってアプリ上でインサートモードからノーマルモードに移ると太いテキストカーソルに、
+インサートモードに移ると細いカーソルに戻す設定を実現しました。</p>
+
+<h2 id="有効にする方法">有効にする方法</h2>
+
+<p>vim_ahk v0.9.0以上のバージョンを入れると</p>
+
+<pre><code>Change to thick text caret when in normal mode
+</code></pre>
+
+<p>という設定項目がvim_ahkの設定の中に出てくるのでそれにチェックを入れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_vimahksettings.jpg" alt="20210420_vimahksettings.jpg" class="pic" /></p>
+
+<p>もしくはvim_ahkを他のスクリプトの中から呼んでいるならvim_ahkを読み込む前に
+<code>VimChangeCaretWidth</code>の値を<code>1</code>に設定してください。</p>
+
+<h2 id="残っている問題">残っている問題</h2>
+
+<p>とりあえずそれっぽいものが出来たのですが、まだちょっと実用化が難しい状態です。</p>
+
+<p>問題としては</p>
+
+<ul>
+  <li>特定のアプリ上でしか変更が反映されない
+    <ul>
+      <li>基本的にはWindowsネイティブなアプリのみが対象</li>
+      <li>Wordpad, Word, OneNoteなど</li>
+      <li>Evernoteなどに移ると常に元の太さのまま</li>
+    </ul>
+  </li>
+  <li>一部のアプリでは太くなった状態(ノーマルモード)で移るとキャレットは太い状態になっているが、インサートモードに移ってもカーソルが変わらない
+    <ul>
+      <li>Wordpadでノーマルモードに入り、そのままメモ帳に移るとキャレットが太い状態のまま維持される</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/65">Issues on VimChangeCaretWidth · Issue #65 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>実際にやってみた様子:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210420_vimahkcaret.gif" alt="20210420_vimahkcaret.gif" class="pic" /></p>
+
+<p>Wordpad上ではモードを切り替えるごとにキャレットの太さが変わっているのがわかります。</p>
+
+<p>ただ、太いママメモ帳に移るとモードを変えても太いままになります。</p>
+
+<p>一方で、Evernoteなどでは太い状態で移ってもEvernote上では元の細い状態が維持されます。</p>
+
+<p>このあたり、レジストリの変更とは少し状態が違うようで、
+まだうまく反映しきれてない部分があるみたいです。</p>
+
+<p>メモ帳などの上で設定は維持されるものの変更するための命令が効かないのもよくわからない点です。</p>
+
+<p>もし何かわかる方がいたら教えていただけるとありがたいです。</p>
+]]></content>
+  </entry>
+  
+</feed>

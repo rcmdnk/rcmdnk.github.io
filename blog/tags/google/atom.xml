@@ -1,0 +1,1994 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Google | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/google/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[tsd2gspread: 時系列データをGoogle Sheetsに書き込むPythonツール]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google/"/>
+    <updated>2021-04-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00KNRL068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00KNRL068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51EQHQnIMUL._SS200_.jpg" alt="現場ですぐ使える時系列データ分析～データサイエンティストのための基礎知識～" /></a>
+</div>
+
+<p>Raspberry Piから色々Google Sheetsに書き込むことが多くなってきたので、
+ちょっと機能をまとめたツール的なものをつくってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tsd2gspread" id="markdown-toc-tsd2gspread">tsd2gspread</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>    <ul>
+      <li><a href="#ツールとして使う" id="markdown-toc-ツールとして使う">ツールとして使う</a></li>
+      <li><a href="#親クラスとして使う" id="markdown-toc-親クラスとして使う">親クラスとして使う</a></li>
+    </ul>
+  </li>
+  <li><a href="#主なパラメーターなど" id="markdown-toc-主なパラメーターなど">主なパラメーターなど</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tsd2gspread">tsd2gspread</h2>
+
+<div class="github-widget" data-repo="rcmdnk/tsd2gspread"></div>
+
+<p>Pythonのツールで、pipで</p>
+
+<pre><code>$ pip install tsd2gspread
+</code></pre>
+
+<p>で入れられます。</p>
+
+<p>Google Sheetsに関しては、Pythonでは<a href="https://github.com/burnash/gspread">gspread</a>
+という便利なツールがあって、これを使うと簡単にGoogle SheetsのAPIを使えます。</p>
+
+<p>tsd2gspreadはこのgspreadを使って時系列データを書き込むのに特化したツールです。</p>
+
+<p>gspredをそのまま使っても良かったのですが、別のデータの書き込みに重複部分が増えてきたので
+まとめました。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<h3 id="ツールとして使う">ツールとして使う</h3>
+
+<p>まず、Google Sheets APIにアクセス出来るようサービスアカウントを作成してアカウント情報の入った
+jsonファイルを取得します。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">Authentication — gspread 3.7.0 documentation</a>.</p>
+</blockquote>
+
+<p>これを<strong>~/service_account.json</strong>などに置いておいて、
+以下の様なスクリプトを実行します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">tsd2gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">tsd2gspread</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make function to get data</span>
+</span><span class="line"><span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+</span><span class="line">    <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">    <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">    <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Set data getter</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">get_data</span> <span class="o">=</span> <span class="n">get_data</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで、
+<strong>MySheet</strong>という名前で以下の様な内容を持った
+ワークシート名が<strong>MyWork</strong>のSheetsが出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>datetime</th>
+      <th>foo</th>
+      <th>bar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2021-01-02 03:04:05</td>
+      <td>1</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>あとは<code>tg.write()</code>を実行するたびに、その実行時間と値が書き込まれていきます。</p>
+
+<p>実際に使う際には、この<code>get_data</code>関数を適時必要なものにして渡して、
+データを取得したいタイミングで<code>tg.write()</code>を実行すればOK。</p>
+
+<p>この例ではSheetsがない場合には作成して書き込みを行っていますが、
+その場合はサービスアカウントがオーナーとなってしまい、
+そのアカウントを作ったユーザー自体がアクセス権限を持ってない状態で作られるので、
+<code>share</code>で自分のアカウントを指定して自分がアクセスできるようにしてください。</p>
+
+<pre><code>sheet_name='MySheet',
+</code></pre>
+
+<p>の代わりに既存のSheetsのURLを<code>sheet_url</code>で指定したり
+Key(URLの中にあるランダムな文字列)を<code>sheet_key</code>で指定することも出来ます。</p>
+
+<p>この場合はSheets側で<strong>共有</strong>から、上で取得したサービスアカウントファイルの中にある
+<code>client_email</code>の値に対して編集権限で共有をしておく必要があります。</p>
+
+<p>指定の名前のSheetsがすでにあり、共有設定されていれば上のように名前で指定しても
+既存のファイルに書き込まれます。</p>
+
+<h3 id="親クラスとして使う">親クラスとして使う</h3>
+
+<p>Tsd2Gspreadというクラスがあるので、それを継承する形で使うことも出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">tsd2gspread</span> <span class="kn">import</span> <span class="n">Tsd2Gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Tsd2Gspread</span><span class="p">):</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">        <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">        <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>基本的に定義すべきな関数は<code>get_data</code>で、
+ここで書き込むべき変数を配列なりタプルなりで返す様にします。</p>
+
+<p>これでそのクラスのインスタンスを作って<code>write</code>してあげれば書き込めます。</p>
+
+<h2 id="主なパラメーターなど">主なパラメーターなど</h2>
+
+<p><code>tsd2gspread.get</code>なり<code>Tsd2gspread</code>に渡せるパラメーターについて。</p>
+
+<ul>
+  <li><code>sheet_name</code>, <code>sheet_url</code>, <code>sheet_key</code>: Sheetsを名前かURLかSheetsのKeyで指定できます。新たに作る場合には<code>sheet_name</code>のみが使えます。</li>
+  <li><code>columns</code>: 最初にSheetsを新たに作成する場合には<code>columns</code>に<code>,</code>で分けたカラム名を渡すことで
+カラム名を1行目に書き込むことが出来ます。</li>
+  <li><code>timedelta</code>: デフォルトではUTCの時間を書き込みます。これを日本時間に変更したい場合には<code>timedelta=9</code>などとしてUTCとの差を入れる必要があります。</li>
+</ul>
+
+<p>他にも色々とパラメーターはありますが、これらを<code>config_file</code>というパラメーターにファイルを渡すことでまとめて渡す事もできます。
+<code>config_file</code>の中身は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sheet_name=MySheet
+</span><span class="line">columns=foo,bar
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに<code>OPTION=VALUE</code>の様に書いておきます。</p>
+
+<p>その他詳細は<a href="https://github.com/rcmdnk/tsd2gspread">README</a>で。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シャープCOCORO AIRとGoogle Homeの連携]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/12/computer-iot-google/"/>
+    <updated>2021-04-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/12/computer-iot-google</id>
+    <content type="html"><![CDATA[<div class="app-img">
+  <a href="//itunes.apple.com/jp/app//Sharp?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple114/v4/48/5b/fc/485bfc18-a9b0-ca1a-54b6-dfca635275a1/AppIcon-0-0-1x_U007emarketing-0-0-0-3-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/200x200bb.jpg" alt="COCORO AIR" /></a>
+</div>
+
+<p>シャープの家電と連携するクラウドサービスCOCORO AIRが
+Google Homeと連携できる、ということを今更ながら気づいたのでちょっと連携してみた感想。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シャープの家電" id="markdown-toc-シャープの家電">シャープの家電</a></li>
+  <li><a href="#google-homeと連携" id="markdown-toc-google-homeと連携">Google Homeと連携</a></li>
+  <li><a href="#連携して使えること" id="markdown-toc-連携して使えること">連携して使えること</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シャープの家電">シャープの家電</h2>
+
+<p>ちょっと前にシャープの加湿空気清浄機を買いました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/25/life-iot-shopping/">加湿器調査: シャープの加湿空気清浄機KI-JS50購入(IoT)</a></div></li></ul>
+
+<p>この機器は
+<a href="https://cocoroplus.jp.sharp/air/">COCORO AIR</a>
+というシャープのクラウドサービスに対応していて、
+外出先からでも運転をON/OFFしたり運転状況を変えたりチェックしたり出来るものになっています。</p>
+
+<p>ただ、API的なものは存在せず、スマホ以外から自動で操作するようなことは出来ないな、と思っていました。</p>
+
+<p>そのあたりを何とかするため、以下の様なことを行ってスマホ以外からでも操作できるようにしてみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210303_switchon_120_90.jpg" width="120" height="90" alt="20210303_switchon_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/">シャープの加湿空気清浄機をアプリ外から操作する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/04/computer-iot-raspberrypi/">Raspberry Piからシャープの加湿空気清浄機を操作する</a></div></li></ul>
+
+<p>これでRaspberry Piから操作できるので、後はIFTTTなりなんなりを使って好きなように操作できるようになっています。</p>
+
+<h2 id="google-homeと連携">Google Homeと連携</h2>
+
+<p>上みたいなことをやりたい理由の1つとして、Google Homeとの連携がありました。</p>
+
+<p>が、今更気づいたこととして、COCORO AIRはGoogle Homeと直接連携することが可能でした。</p>
+
+<blockquote>
+  <p><a href="https://cocoroplus.jp.sharp/support/googleassistant/">Google アシスタント対応スピーカー  COCORO+（ココロプラス）  SHARP（シャープ）のスマート家電向けサービス</a></p>
+</blockquote>
+
+<ul>
+  <li>Google Home</li>
+  <li>Amazon Alexa</li>
+  <li>LINE Clova</li>
+</ul>
+
+<p>との連携が可能、とのこと。</p>
+
+<p>Google HomeのアプリでCOCORO AIRを探すとあって、連携が出来ます。</p>
+
+<p>実際には、今回Google Homeのアプリを立ち上げた際に、COCORO AIRとの連携をしませんか?
+的なポップアップが出てて連携した感じです。</p>
+
+<p>最近連携できるようになったのかな?とも思ったのですが、連携自体はCOCORO AIRが出来た頃?から?
+少なくとも2018年とかには出来ていた様です。</p>
+
+<h2 id="連携して使えること">連携して使えること</h2>
+
+<p>実際に連携してどのように使えるか使ってみました。</p>
+
+<p>今あるのは加湿空気清浄機KI-JS50ですが、
+COCORO AIRで登録してある名前(<code>JS50</code>としている)としてGoogle Homeに登録されていました。</p>
+
+<p>これに対して、</p>
+
+<ul>
+  <li>JS50を止めて</li>
+</ul>
+
+<p>というとすぐに止まりました。
+Raspberry Piを通して行うよりも速いです。</p>
+
+<p>これを実行すると、スマホに、<strong>外部サービスからの操作がありました</strong>という通知がCOCORO AIRからされるようにっっています。</p>
+
+<ul>
+  <li>JS50をつけて</li>
+</ul>
+
+<p>というと、一旦</p>
+
+<pre><code>JS50をスイッチオン、この操作を実行してもよろしいですか
+</code></pre>
+
+<p>と聞かれます。これに対して、<strong>はい</strong>と答えるとスイッチが点きました。</p>
+
+<p>ただ、この返答がなかなかちゃんと反応してくれなくて、2回聞かれることもよくあり、
+2回目に答えてもちゃんと反応してくれないことも。</p>
+
+<p>これ以外に、</p>
+
+<ul>
+  <li>JS50、おまかせにして</li>
+</ul>
+
+<p>とするとモードの変更もできました。</p>
+
+<p>ただ、他の、<strong>自動</strong>、や<strong>静音</strong>、<strong>強</strong>などは
+<code>ジドウ</code>、<code>セイオン</code>、<code>シズカニ</code>、<code>キョウ</code>、<code>ツヨク</code>、
+などしてもだめで、なぜか<code>スイッチオン、この操作を実行してもよろしいですか</code>
+が出たり出なかったり。</p>
+
+<p>加湿のON/OFFも出来るそうなんですが上手くいかず。</p>
+
+<p>スイッチオン、もなんか聞かれるし、手元にスマホがあるならアプリからやった方が
+ストレスなく変更できるな、というのが素直な感想でした。。。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Google HomeとCOCORO AIRが連携できることを見逃していましたが、
+COCORO AIRのトップページからはどう行ったらたどり着けるのかよくわからず、
+直接検索しないと分からないのでは、と(多分ちゃんと探せばあるのかなと思いますが、
+見つけられなかった。。。)</p>
+
+<p>使い勝手としては、止める分には割と良いんですが、
+つけるのに何故か一度聞かれる、という仕様。</p>
+
+<p>加えて(日本語が悪いのかもしれませんが)モード変更などがあまりうまく認識してくれません。</p>
+
+<p>Raspberry Piで直接スマホの信号を使うのに比べると、
+まず圧倒的に簡単、という点があり、反応速度も速い、という利点はありますが、
+消すこと以外にはちょっと使い勝手が悪い感じがしています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[IFTTTを使って学校/職場/家の滞在時間を記録する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/03/08/computer-iot-google/"/>
+    <updated>2021-03-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/03/08/computer-iot-google</id>
+    <content type="html"><![CDATA[<p>身の回り記録の1つとして、IFTTTを使って自分が特定の場所にどれくらい居たか、
+を記録するようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#iftttを使った位置情報記録" id="markdown-toc-iftttを使った位置情報記録">IFTTTを使った位置情報記録</a></li>
+  <li><a href="#google-spreadsheetsで直接分解して滞在時間を出す" id="markdown-toc-google-spreadsheetsで直接分解して滞在時間を出す">Google Spreadsheetsで直接分解して滞在時間を出す</a></li>
+  <li><a href="#google-apps-scriptを使う" id="markdown-toc-google-apps-scriptを使う">Google Apps Scriptを使う</a></li>
+  <li><a href="#日毎に分ける" id="markdown-toc-日毎に分ける">日毎に分ける</a></li>
+  <li><a href="#自動で実行" id="markdown-toc-自動で実行">自動で実行</a></li>
+  <li><a href="#データポータルdatastudioで表示してみる" id="markdown-toc-データポータルdatastudioで表示してみる">データポータル(DataStudio)で表示してみる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="iftttを使った位置情報記録">IFTTTを使った位置情報記録</h2>
+
+<p>IFTTTでは<code>If</code>で<code>Location</code>というサービスで携帯電話の位置情報を使って特定の領域に入ったか出たタイミングで記録を取ることが出来ます。</p>
+
+<ul>
+  <li>You enter or exit an area</li>
+  <li>You exit an area</li>
+  <li>You enter an area</li>
+</ul>
+
+<p>といった具合で特定の領域に入ったか出たか、またはその両方で記録が取れます。</p>
+
+<p>領域として指定できるのは最小で半径100m程です。</p>
+
+<p><code>Then</code>でGoogle Sheetsを選ぶことでその情報をGoogle Sheetsに保存できます。</p>
+
+<p>記録できる値としては、</p>
+
+<ul>
+  <li><code>OccurredAt</code> (時間)</li>
+  <li><code>LocationMapImageUrl</code> (該当地域のイメージのURL)</li>
+  <li><code>LocationMapUrl</code> (該当地域の地図のURL)</li>
+  <li><code>EnteredOrExited</code> (入ったか、出たかで<code>entered</code>か<code>exited</code>と記録される。)</li>
+</ul>
+
+<p>MapImageとMapURLとかに関しては1つのルールで使っても意味ないですが(毎回同じなので)、
+複数のルールで同じSheetsに書き込む様にすると意味があるものが作れるかもしれません。</p>
+
+<p>今回は時間と入ったか出たか、を記録したいと思いますが、
+例えばGoogle Spreadsheetsに記録するには</p>
+
+<pre><code>{{OccurredAt}} ||| {{EnteredOrExited}}
+</code></pre>
+
+<p>みたいにすればA列に日時、B列に<code>entered</code>/<code>exited</code>が書き込まれます。</p>
+
+<p>ただ、ちょっとこの<code>OccurredAt</code>の書式が微妙です。</p>
+
+<pre><code>March 1, 2021 at 08:51AM
+</code></pre>
+
+<p>な感じの入力で変更が出来ないので色々処理しようとしても
+Spreadsheetsで<strong>日時</strong>として認識される形ではないので辛い。</p>
+
+<h2 id="google-spreadsheetsで直接分解して滞在時間を出す">Google Spreadsheetsで直接分解して滞在時間を出す</h2>
+
+<p><code>entered</code>と<code>exited</code>がわかればその間の時間を計算すれば滞在時間がわかるわけですが、
+Google Spreadsheetsで時間を計算しようと思うと
+上の<code>OccurredAt</code>のままだとうまく出来ません。</p>
+
+<p>色々文字列を処理すればできそうですが、
+IFTTTに関数とかをすべて書いて行おうとすると以下の様な感じでできます。</p>
+
+<pre><code>{{OccurredAt}} |||
+{{EnteredOrExited}} |||
+=date(index(H:H, row(), 1), if(index(F:F, row(), 1)="January", 1, if(index(F:F, row(), 1)="February", 2, if(index(F:F, row(), 1)="March", 3, if(index(F:F, row(), 1)="April", 4, if(index(F:F, row(), 1)="May", 5, if(index(F:F, row(), 1)="June", 6, if(index(F:F, row(), 1)="July", 7, if(index(F:F, row(), 1)="August", 8, if(index(F:F, row(), 1)="September", 9, if(index(F:F, row(), 1)="October", 10, if(index(F:F, row(), 1)="November", 11, 12))))))))))), substitute(index(G:G, row(), 1), ",", "")) |||
+=timevalue(index(J:J, row(), 1)) |||
+=if(AND(index(B:B, row(), 1)="entered", index(B:B, row()+1, 1)="exited"), 24*(index(C:C, row()+1, 1)-index(C:C, row(), 1) + index(D:D, row()+1, 1)-index(D:D, row(), 1)), "") |||
+=split(index(A:A, row(), 1), " ")
+</code></pre>
+
+<p>これを使うと以下のような表が出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+      <th>E</th>
+      <th>F</th>
+      <th>G</th>
+      <th>H</th>
+      <th>I</th>
+      <th>J</th>
+      <th>K</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>March 1, 2021 at 08:51AM</td>
+      <td>entered</td>
+      <td>2021/03/01</td>
+      <td>0.36875</td>
+      <td>3.166666667</td>
+      <td>March</td>
+      <td>1,</td>
+      <td>2021</td>
+      <td>at</td>
+      <td>8:51</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>March 1, 2021 at 12:01PM</td>
+      <td>exited</td>
+      <td>2021/03/01</td>
+      <td>0.5006944444</td>
+      <td> </td>
+      <td>March</td>
+      <td>1,</td>
+      <td>2021</td>
+      <td>at</td>
+      <td>12:01</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>やってることは、まず、G列に<code>split</code>関数を使ってA列に書き込んだ日時の文字列を分解する命令を
+埋め込んでG~Kに入れます。</p>
+
+<p>C列ではG列の月の名前を数字に直して、H列の日付(<code>,</code>が着いてるのでそれを削除)とH列の
+年を合わせて日付を出します。</p>
+
+<p>D列ではK列に出している時刻を1日を1とした時間に直したときの値に<code>timevalue</code>関数を使って変更しています。K列ではもともと<code>06:58PM</code>の様に<code>AM</code>、<code>PM</code>が付いてる形のものが自動的に24時間表記になっていますが、これはデフォルトでこの形は時刻として認識されるので表記がそうなっていますし、値としても時刻として認識された形で入っています。</p>
+
+<p>E列最終的に欲しい値で
+<code>entered</code>の列の場合にC列の次の<code>exited</code>の行との差(日付の差なので1日差があると1になる)と
+<code>timevalue</code>の差を足して、それに24をかけることで時間単位にしています。</p>
+
+<h2 id="google-apps-scriptを使う">Google Apps Scriptを使う</h2>
+
+<p>上の形だとごちゃごちゃするに無駄な入力が増えるので、
+Google SpreadsheetsでApps Scriptと連携して新たな関数を作って同じ様なことをすることが考えられます。</p>
+
+<p>IFTTT側で以下の様なものを用意。</p>
+
+<pre><code>{{OccurredAt}} ||| {{EnteredOrExited}} ||| =getTimeDiff(row())
+</code></pre>
+
+<figure class="code"><figcaption><span>getTimeDiff.gs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">const</span> <span class="nx">ORIG_SHEET</span> <span class="o">=</span> <span class="s1">&#39;シート1&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">TIMEZONE_OFFSET</span> <span class="o">=</span> <span class="s1">&#39;0900&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">HOUR_MS</span> <span class="o">=</span> <span class="mf">1000</span> <span class="o">*</span> <span class="mf">60</span> <span class="o">*</span> <span class="mf">60</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="cm">/**</span>
+</span><span class="line"><span class="cm"> * Fill timevalue difference of `A{row}` - `A{row-1}`, if `B{row}` is &#39;exited&#39;, else empty</span>
+</span><span class="line"><span class="cm"> * @param {&#39;4&#39;} row use `row()` to use current row</span>
+</span><span class="line"><span class="cm"> * @return timevalue difference or &#39;&#39; if is_exited is &#39;entered&#39;</span>
+</span><span class="line"><span class="cm"> * @customfunction</span>
+</span><span class="line"><span class="cm"> */</span>
+</span><span class="line"><span class="kd">function</span> <span class="nx">getTimeDiff</span><span class="p">(</span><span class="nx">row</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">  <span class="k">try</span><span class="p">{</span>
+</span><span class="line">    <span class="kd">const</span> <span class="nx">ss</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSpreadsheet</span><span class="p">();</span>
+</span><span class="line">    <span class="kd">const</span> <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">getSheetByName</span><span class="p">(</span><span class="nx">ORIG_SHEET</span><span class="p">);</span>
+</span><span class="line">    <span class="kd">const</span> <span class="nx">values</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">String</span><span class="p">(</span><span class="nx">row</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;:B&#39;</span> <span class="o">+</span> <span class="nb">String</span><span class="p">(</span><span class="nx">row</span><span class="o">+</span><span class="mf">1</span><span class="p">)).</span><span class="nx">getValues</span><span class="p">();</span>
+</span><span class="line">    <span class="k">if</span> <span class="p">(</span><span class="nx">values</span><span class="p">[</span><span class="mf">0</span><span class="p">][</span><span class="mf">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;entered&#39;</span><span class="p">)</span> <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class="line">    <span class="k">return</span> <span class="p">(</span><span class="nx">getDateTime</span><span class="p">(</span><span class="nx">values</span><span class="p">[</span><span class="mf">1</span><span class="p">][</span><span class="mf">0</span><span class="p">])</span><span class="o">-</span><span class="nx">getDateTime</span><span class="p">(</span><span class="nx">values</span><span class="p">[</span><span class="mf">0</span><span class="p">][</span><span class="mf">0</span><span class="p">]))</span><span class="o">/</span><span class="nx">HOUR_MS</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span><span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+</span><span class="line">    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">getDateTime</span><span class="p">(</span><span class="nx">datetime</span><span class="p">){</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">ta</span> <span class="o">=</span> <span class="nb">String</span><span class="p">(</span><span class="nx">datetime</span><span class="p">).</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mf">3</span><span class="p">,</span> <span class="mf">1</span><span class="p">);</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">time</span> <span class="o">=</span> <span class="nx">ta</span><span class="p">[</span><span class="mf">3</span><span class="p">].</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;12&#39;</span><span class="p">)</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">1</span><span class="p">].</span><span class="nx">endsWith</span><span class="p">(</span><span class="s1">&#39;PM&#39;</span><span class="p">))</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">String</span><span class="p">(</span><span class="nb">Number</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">])</span> <span class="o">+</span> <span class="mf">12</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">[</span><span class="mf">3</span><span class="p">]</span> <span class="o">=</span> <span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nx">time</span><span class="p">[</span><span class="mf">1</span><span class="p">].</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;AM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;PM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s1">&#39;GMT+&#39;</span> <span class="o">+</span> <span class="nx">TIMEZONE_OFFSET</span><span class="p">);</span>
+</span><span class="line">  <span class="k">return</span> <span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">ta</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで、</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>March 1, 2021 at 08:51AM</td>
+      <td>entered</td>
+      <td>3.166666667</td>
+    </tr>
+    <tr>
+      <td>March 1, 2021 at 12:01PM</td>
+      <td>exited</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>みたいな入力になります。</p>
+
+<h2 id="日毎に分ける">日毎に分ける</h2>
+
+<p>上の方法だと<strong>入った日</strong>に関してそこからどれだけ滞在したか、が見れます。</p>
+
+<p>ただ、一日に何度も入ったり出たりするかもしれないし、
+家の滞在時間とかを考えると日をまたいだりします。</p>
+
+<p>場合によっては24時間以上になることも。</p>
+
+<p>この辺を可視化しようとする場合に、ある特定の日に何時間居たか、をまとめてくれてたほうが嬉しかったりします。</p>
+
+<p>そこで以下の様なスクリプトで別のシートに日毎の滞在時間を計算し直して書き込むようにしてみます。</p>
+
+<figure class="code"><figcaption><span>makeEachDay.gs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">const</span> <span class="nx">ORIG_SHEET</span> <span class="o">=</span> <span class="s1">&#39;シート1&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">NEW_SHEET</span> <span class="o">=</span> <span class="s1">&#39;StayingTime&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">TIMEZONE</span> <span class="o">=</span> <span class="s1">&#39;Asia/Tokyo&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">TIMEZONE_OFFSET</span> <span class="o">=</span> <span class="s1">&#39;0900&#39;</span><span class="p">;</span>
+</span><span class="line"><span class="kd">const</span> <span class="nx">HOUR_MS</span> <span class="o">=</span> <span class="mf">1000</span> <span class="o">*</span> <span class="mf">60</span> <span class="o">*</span> <span class="mf">60</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">getDateTime</span><span class="p">(</span><span class="nx">datetime</span><span class="p">){</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">ta</span> <span class="o">=</span> <span class="nb">String</span><span class="p">(</span><span class="nx">datetime</span><span class="p">).</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mf">3</span><span class="p">,</span> <span class="mf">1</span><span class="p">);</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">time</span> <span class="o">=</span> <span class="nx">ta</span><span class="p">[</span><span class="mf">3</span><span class="p">].</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;12&#39;</span><span class="p">)</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">1</span><span class="p">].</span><span class="nx">endsWith</span><span class="p">(</span><span class="s1">&#39;PM&#39;</span><span class="p">))</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">String</span><span class="p">(</span><span class="nb">Number</span><span class="p">(</span><span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">])</span> <span class="o">+</span> <span class="mf">12</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">[</span><span class="mf">3</span><span class="p">]</span> <span class="o">=</span> <span class="nx">time</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nx">time</span><span class="p">[</span><span class="mf">1</span><span class="p">].</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;AM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;PM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">ta</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s1">&#39;GMT+&#39;</span> <span class="o">+</span> <span class="nx">TIMEZONE_OFFSET</span><span class="p">);</span>
+</span><span class="line">  <span class="k">return</span> <span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">ta</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">getDayStart</span><span class="p">(</span><span class="nx">datetime</span><span class="p">){</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">dt</span> <span class="o">=</span> <span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">datetime</span><span class="p">.</span><span class="nx">getTime</span><span class="p">());</span>
+</span><span class="line">  <span class="nx">dt</span><span class="p">.</span><span class="nx">setHours</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="mf">0</span><span class="p">,</span> <span class="mf">0</span><span class="p">);</span>
+</span><span class="line">  <span class="k">return</span> <span class="nx">dt</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="kd">function</span> <span class="nx">makeEachDay</span><span class="p">(){</span>
+</span><span class="line">  <span class="kd">const</span> <span class="nx">ss</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSpreadsheet</span><span class="p">();</span>
+</span><span class="line">  <span class="nx">ss</span><span class="p">.</span><span class="nx">setSpreadsheetTimeZone</span><span class="p">(</span><span class="nx">TIMEZONE</span><span class="p">);</span>
+</span><span class="line">  <span class="kd">const</span> <span class="nx">s_orig</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">getSheetByName</span><span class="p">(</span><span class="nx">ORIG_SHEET</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="kd">const</span> <span class="nx">datetimes</span> <span class="o">=</span> <span class="nx">s_orig</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;A:A&#39;</span><span class="p">).</span><span class="nx">getValues</span><span class="p">();</span>
+</span><span class="line">  <span class="kd">const</span> <span class="nx">inout</span> <span class="o">=</span> <span class="nx">s_orig</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;B:B&#39;</span><span class="p">).</span><span class="nx">getValues</span><span class="p">();</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">dt</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">time</span> <span class="o">=</span> <span class="mf">0</span><span class="p">;</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">values</span> <span class="o">=</span> <span class="p">[];</span>
+</span><span class="line">  <span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1</span><span class="p">;</span>
+</span><span class="line">  <span class="k">while</span><span class="p">(</span><span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">datetimes</span><span class="p">.</span><span class="nx">length</span><span class="p">){</span>
+</span><span class="line">    <span class="nx">i</span><span class="o">++</span><span class="p">;</span>
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="nx">datetimes</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="k">break</span><span class="p">;</span>
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="nx">inout</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;entered&#39;</span><span class="p">)</span><span class="k">continue</span><span class="p">;</span>
+</span><span class="line">    <span class="kd">let</span> <span class="nx">dt_entered</span> <span class="o">=</span> <span class="nx">getDateTime</span><span class="p">(</span><span class="nx">datetimes</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span><span class="line">
+</span><span class="line">    <span class="nx">i</span><span class="o">++</span><span class="p">;</span>
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="nx">i</span> <span class="o">==</span> <span class="nx">datetimes</span><span class="p">.</span><span class="nx">length</span> <span class="o">||</span> <span class="nx">datetimes</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="k">break</span><span class="p">;</span>
+</span><span class="line">    <span class="kd">let</span> <span class="nx">dt_exited</span> <span class="o">=</span> <span class="nx">getDateTime</span><span class="p">(</span><span class="nx">datetimes</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span><span class="line">    <span class="kd">let</span> <span class="nx">dt_entered_start</span> <span class="o">=</span> <span class="nx">getDayStart</span><span class="p">(</span><span class="nx">dt_entered</span><span class="p">);</span>
+</span><span class="line">    <span class="kd">let</span> <span class="nx">dt_exited_start</span> <span class="o">=</span> <span class="nx">getDayStart</span><span class="p">(</span><span class="nx">dt_exited</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">if</span><span class="p">(</span><span class="nx">dt</span> <span class="o">===</span> <span class="kc">null</span><span class="p">)</span><span class="nx">dt</span> <span class="o">=</span> <span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt_entered_start</span><span class="p">.</span><span class="nx">getTime</span><span class="p">());</span>
+</span><span class="line">    <span class="k">while</span><span class="p">(</span><span class="kc">true</span><span class="p">){</span>
+</span><span class="line">      <span class="k">if</span><span class="p">(</span><span class="nx">dt</span> <span class="o">&lt;</span> <span class="nx">dt_entered_start</span><span class="p">){</span>
+</span><span class="line">        <span class="nx">values</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()),</span> <span class="nx">time</span> <span class="o">/</span> <span class="nx">HOUR_MS</span><span class="p">]);</span>
+</span><span class="line">        <span class="nx">time</span> <span class="o">=</span> <span class="mf">0</span><span class="p">;</span>
+</span><span class="line">        <span class="nx">dt</span><span class="p">.</span><span class="nx">setDate</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getDate</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1</span><span class="p">);</span>
+</span><span class="line">        <span class="k">continue</span><span class="p">;</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">      <span class="k">if</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">==</span> <span class="nx">dt_entered_start</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nx">dt_entered_start</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">==</span> <span class="nx">dt_exited_start</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()){</span>
+</span><span class="line">        <span class="nx">time</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">dt_exited</span> <span class="o">-</span> <span class="nx">dt_entered</span><span class="p">);</span>
+</span><span class="line">        <span class="k">break</span><span class="p">;</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">      <span class="k">if</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">==</span> <span class="nx">dt_entered_start</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()){</span>
+</span><span class="line">        <span class="kd">let</span> <span class="nx">dt_next</span> <span class="o">=</span> <span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">());</span>
+</span><span class="line">        <span class="nx">dt_next</span><span class="p">.</span><span class="nx">setDate</span><span class="p">(</span><span class="nx">dt_next</span><span class="p">.</span><span class="nx">getDate</span><span class="p">()</span><span class="o">+</span><span class="mf">1</span><span class="p">);</span>
+</span><span class="line">        <span class="nx">time</span> <span class="o">+=</span> <span class="nx">dt_next</span> <span class="o">-</span> <span class="nx">dt_entered</span><span class="p">;</span>
+</span><span class="line">        <span class="nx">values</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()),</span> <span class="nx">time</span> <span class="o">/</span> <span class="nx">HOUR_MS</span><span class="p">]);</span>
+</span><span class="line">        <span class="nx">time</span> <span class="o">=</span> <span class="mf">0</span><span class="p">;</span>
+</span><span class="line">        <span class="nx">dt</span><span class="p">.</span><span class="nx">setDate</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getDate</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1</span><span class="p">);</span>
+</span><span class="line">        <span class="k">continue</span><span class="p">;</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">      <span class="k">if</span><span class="p">(</span><span class="nx">dt</span> <span class="o">&lt;</span> <span class="nx">dt_exited_start</span><span class="p">){</span>
+</span><span class="line">        <span class="nx">values</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()),</span> <span class="mf">24</span><span class="p">]);</span>
+</span><span class="line">        <span class="nx">time</span> <span class="o">=</span> <span class="mf">0</span><span class="p">;</span>
+</span><span class="line">        <span class="nx">dt</span><span class="p">.</span><span class="nx">setDate</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getDate</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1</span><span class="p">);</span>
+</span><span class="line">        <span class="k">continue</span><span class="p">;</span>
+</span><span class="line">      <span class="p">}</span>
+</span><span class="line">      <span class="nx">time</span> <span class="o">=</span> <span class="nx">dt_exited</span> <span class="o">-</span> <span class="nx">dt</span><span class="p">;</span>
+</span><span class="line">      <span class="k">break</span><span class="p">;</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">time</span> <span class="o">!=</span> <span class="mf">0</span><span class="p">){</span>
+</span><span class="line">    <span class="nx">values</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="ow">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()),</span> <span class="nx">time</span> <span class="o">/</span> <span class="nx">HOUR_MS</span><span class="p">]);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="k">if</span><span class="p">(</span><span class="nx">values</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mf">0</span><span class="p">)</span><span class="k">return</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">  <span class="kd">let</span> <span class="nx">s_new</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">getSheetByName</span><span class="p">(</span><span class="nx">NEW_SHEET</span><span class="p">);</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">s_new</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nx">s_new</span> <span class="o">=</span> <span class="nx">ss</span><span class="p">.</span><span class="nx">insertSheet</span><span class="p">(</span><span class="nx">NEW_SHEET</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="kd">const</span> <span class="nx">range</span> <span class="o">=</span> <span class="nx">s_new</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s2">&quot;A:B&quot;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">range</span><span class="p">.</span><span class="nx">deleteCells</span><span class="p">(</span><span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">Dimension</span><span class="p">.</span><span class="nx">COLUMNS</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">s_new</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="mf">1</span><span class="p">,</span> <span class="mf">1</span><span class="p">,</span> <span class="mf">2</span><span class="p">).</span><span class="nx">setValues</span><span class="p">([[</span><span class="s1">&#39;StartDateTime&#39;</span><span class="p">,</span> <span class="s1">&#39;Hours&#39;</span><span class="p">]]);</span>
+</span><span class="line">  <span class="nx">s_new</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="s1">&#39;A:A&#39;</span><span class="p">).</span><span class="nx">setNumberFormat</span><span class="p">(</span><span class="s1">&#39;yyyy/MM/dd&#39;</span><span class="p">);</span>
+</span><span class="line">  <span class="nx">s_new</span><span class="p">.</span><span class="nx">setFrozenRows</span><span class="p">(</span><span class="mf">1</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">  <span class="kd">const</span> <span class="nx">numRows</span> <span class="o">=</span> <span class="nx">values</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+</span><span class="line">  <span class="kd">const</span> <span class="nx">numColumns</span> <span class="o">=</span> <span class="nx">values</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">length</span><span class="p">;</span>
+</span><span class="line">  <span class="nx">s_new</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span> <span class="mf">1</span><span class="p">,</span> <span class="nx">numRows</span><span class="p">,</span> <span class="nx">numColumns</span><span class="p">).</span><span class="nx">setValues</span><span class="p">(</span><span class="nx">values</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>上のスクリプト内でシート側のタイムゾーンを<strong>Asia/Tokyo</strong>に設定していますが、
+スクリプト側のタイムゾーンが違うと
+<code>getDayStart(datetime)</code>とかで0時にセットする際にそのタイムゾーンの時間での0時にせっとされたりしてしまいます。</p>
+
+<p>そういったことを避けるためにスクリプトのタイムゾーンを設定。
+設定方法は、旧エディタであれば<strong>ファイル</strong><i class="fa fa-arrow-right"></i><strong>プロジェクトのプロパティ</strong>からタイムゾーンを東京とかに変更できます。</p>
+
+<p>新エディタだと</p>
+<ul>
+  <li>左にある歯車マークから<strong>プロジェクトの設定</strong>を呼び出して</li>
+  <li><strong>「appsscript.json」マニフェストファイルをエディタで表示する</strong>、にチェック</li>
+  <li>
+    <p>エディタに戻ると<strong>appsscript.json</strong>があるので、そこの<code>timeZone</code>の値を</p>
+
+    <pre><code>  "timeZone": "Asia/Tokyo",
+</code></pre>
+
+    <p>に変える</p>
+  </li>
+</ul>
+
+<p>という作業で出来ます。</p>
+
+<p>これで<code>makeEachDay</code>関数をエディタから実行すると</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>March 1, 2021 at 08:51AM</td>
+      <td>entered</td>
+    </tr>
+    <tr>
+      <td>March 1, 2021 at 12:01PM</td>
+      <td>exited</td>
+    </tr>
+    <tr>
+      <td>March 1, 2021 at 01:05PM</td>
+      <td>entered</td>
+    </tr>
+    <tr>
+      <td>March 1, 2021 at 06:58PM</td>
+      <td>exited</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>みたいにお昼に外に出て滞在が2つに分かれてしまっている場合にも</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>StartDateTime</td>
+      <td>Hours</td>
+    </tr>
+    <tr>
+      <td>2021/03/01</td>
+      <td>9.05</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>みたいな感じで3/1分でまとめてくれます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>March 2, 2021 at 08:31AM</td>
+      <td>entered</td>
+    </tr>
+    <tr>
+      <td>March 3, 2021 at 01:08AM</td>
+      <td>exited</td>
+    </tr>
+    <tr>
+      <td>March 3, 2021 at 09:28AM</td>
+      <td>entered</td>
+    </tr>
+    <tr>
+      <td>March 3, 2021 at 07:33PM</td>
+      <td>exited</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>の3/2みたいに次の日に渡ってしまった場合でも</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>StartDateTime</td>
+      <td>Hours</td>
+    </tr>
+    <tr>
+      <td>2021/03/02</td>
+      <td>15.48333333</td>
+    </tr>
+    <tr>
+      <td>2021/03/03</td>
+      <td>11.21666667</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>な感じで、3/2分は8:31から24:00まで、24:00から1:08分は次の日の分として
+3/3に足されています。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>March 10, 2021 at 08:18AM</td>
+      <td>entered</td>
+    </tr>
+    <tr>
+      <td>March 12, 2021 at 08:41PM</td>
+      <td>exited</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>みたいに丸一日越した場合でも、</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>StartDateTime</td>
+      <td>Hours</td>
+    </tr>
+    <tr>
+      <td>2021/03/10</td>
+      <td>15.7</td>
+    </tr>
+    <tr>
+      <td>2021/03/11</td>
+      <td>24</td>
+    </tr>
+    <tr>
+      <td>2021/03/12</td>
+      <td>20.68333333</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>な感じで中の日は1日分にしてそれぞれの日で表示してくれます。</p>
+
+<h2 id="自動で実行">自動で実行</h2>
+
+<p>ここまで出来たら後はIFTTTで出入りするたびに記録させ、適当なタイミングで
+<code>makeEachDay</code>を実行させればOK。</p>
+
+<p>Apps Scriptの設定でトリガーで適当に夜に走る様にしておけば良いかと。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210308_trigger.jpg" alt="20210308_trigger.jpg" class="pic" /></p>
+
+<h2 id="データポータルdatastudioで表示してみる">データポータル(DataStudio)で表示してみる</h2>
+
+<p>せっかくデータをとってるので<a href="https://datastudio.google.com/">データポータル</a>データポータルを使って可視化してみます。</p>
+
+<p>リソースとして該当のSpreadsheets内の<code>StayingTime</code>シートを選んで追加します。</p>
+
+<p>職場と家とかで、2つ以上の場所で記録して居たりする場合にはそれぞれのシートを追加。</p>
+
+<p>2つ以上ある場合は混合データとしてそれらを<code>StartDateTime</code>を基準に混合します。</p>
+
+<p>混合する時は左のシートの<code>StartDateTime</code>に合わせてテーブルが作られるのでより長い期間の記録がある方を左に。
+指標に<code>Hours</code>をそれぞれ加えて<code>HoursWork</code>、<code>HoursHome</code>とかわかりやすい名前で登録しておきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210308_combine.jpg" alt="20210308_combine.jpg" class="pic" /></p>
+
+<p>(注: 上の絵ではちょっと同じSpreadsheets内に作った別シートからデータを取っています。)</p>
+
+<p>積み上げ縦棒グラフを選んでデータソースに上で作った統合データを追加。</p>
+
+<p>ディメンジョンには<code>StartDateTime</code>。</p>
+
+<p>指標に職場時間(<code>HoursWork</code>)、家時間(<code>HoursHome</code>)を集計方法を合計(SUM)にして加えます。
+加えて24時間で分かりやすいように
+<strong>指標を追加</strong>から<strong>フィールドを作成</strong>、で、</p>
+
+<pre><code>24-HoursWork-HoursHome
+</code></pre>
+
+<p>といった感じの指標を作って加えます。</p>
+
+<p>これでこんな感じのグラフが出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210308_graph.jpg" alt="20210308_graph.jpg" class="pic" /></p>
+
+<p>今の実際のところはほとんど家で絵にならないので上の値は適当に入れたものです…
+(自粛に入った後に作ったもので未だにあまり活躍してないのが悲しい)</p>
+
+<p>上の様な感じで長期的に記録していけば月ごとだったり年ごとだったりでも
+家に居た時間とか職場や学校に居た時間とか見ることが出来て新たな発見ができるかもしれません。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2021/03/09 </strong></p>
+
+  <p>別にこういうことをしたいわけじゃないんですが、
+こんなアプリがあるようです。(もうすぐサービス終了)</p>
+
+  <p><a href="https://zanreko.com/">残業証拠レコーダー  自動で簡単に残業時間の証拠を確保できるアプリ！</a></p>
+
+  <p>IFTTT+Google Spreadsheetsでこれと同じことが出来ますね!
+(実際には弁護士側かなにかが管理しているサーバーで改竄できないようにデータ管理できるから法的証拠になるよ、とかなのでしょうかね?単なるメモでも証拠になることもあるみたいなんで使い方次第かもしれませんが。)</p>
+
+  <p>ほんとたまたま目についたので追記しておきました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Nature RemoとBME 280 (RaspberryPi)での気温測定の比較]]></title>
+    <link href="https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google/"/>
+    <updated>2021-01-15T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google</id>
+    <content type="html"><![CDATA[<p>Google Spreadsheetsに保存するようにしたNature Remo Miniと
+BME 280(on Raspberry Pi)で測定した気温の変化を比べてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#気温測定" id="markdown-toc-気温測定">気温測定</a></li>
+  <li><a href="#比較" id="markdown-toc-比較">比較</a></li>
+  <li><a href="#bme-280の湿度と気圧" id="markdown-toc-bme-280の湿度と気圧">BME 280の湿度と気圧</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="気温測定">気温測定</h2>
+
+<p>スマートリモコンであるNature Remo miniは
+気温を測定できる様になっています。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07CWNLHJ8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07CWNLHJ8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51lXe4Oo99L._SS200_.jpg" alt="Nature スマートリモコン Nature Remo mini ネイチャーリモミニ Remo-2W1 Alexa/Google Home/Siri対応" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07CWNLHJ8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07CWNLHJ8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Nature スマートリモコン Nature Remo mini ネイチャーリモミニ Remo-2W1 Alexa/Google Home/Siri対応</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07CWNLHJ8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07CWNLHJ8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FNature+Remo+mini+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FNature+Remo+mini+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>測定した気温によって、しきい値を超えたらリモンコンでアクションを起こす、
+みたいなことを設定できたりします。</p>
+
+<p>また、測定した気温はクラウドへ送られていて、それをAPI経由で取得したりすることもできます。</p>
+
+<p>保存されているデータが時系列として保存されているかどうかはわかりませんが、
+APIとして取得できるのはその時に保持している値だけです。</p>
+
+<p>また、測定の間隔や測定結果が送られる間隔、の様なものは明記されておらず、
+取得できる更新時刻が一時間位変わらない事もあります。</p>
+
+<p>おそらくある程度変化があったときだけデータを送る、といったことをしている模様。</p>
+
+<p>そのデータを時系列として見るためにAPIで取得してGoogle Spreadsheets
+に保存しておくようにしました。</p>
+
+<p>1分おきにAPIを使って記録しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201009_natureremo_120_90.jpg" width="120" height="90" alt="20201009_natureremo_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/">NatureRemo APIとGASを使って温度や家電の状態をGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<p>もう一つ、Raspberry Piで遊ぶ一環として、BME 280というデバイスを使って
+温度測定などを出来るようにしてみました。</p>
+
+<p>こちらも1分おきに測定してGoogle Spreadsheetsに書き込む様にしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS90_CR0,0,120,90_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google/">Raspberry Piで測定した温度湿度気圧をGoogle Spreadsheetsに記録する</a></div></li></ul>
+
+<h2 id="比較">比較</h2>
+
+<p>Spreadsheetsで記録したものを<a href="https://datastudio.google.com/u/0/navigation/reporting">Google データポータル</a> (Data Studio)で見てみました。</p>
+
+<p>デバイスは2つとも同じテーブル上の隣同士で置いてあります。</p>
+
+<p>関係ないですが、データポータルって日本のサイトだとデータポータルで、英語のサイトだとData Studioなんですよね。
+日本のサイトもURLは<code>datastudio</code>。</p>
+
+<p>言語設定が日本語だと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_dataportal.jpg" alt="20210115_dataportal.jpg" class="pic" /></p>
+
+<p>言語設定を英語にすると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_datastudio.jpg" alt="20210115_datastudio.jpg" class="pic" /></p>
+
+<p>URLがdatastudioなので後からデータポータル、という名前に変更したのかな、と思いきや、
+英語版はData Studioなので何かしら日本語の<strong>データスタジオ</strong>とかいうものに商標権が取られてる、とかあったんでしょうか?</p>
+
+<p>最初データポータルで分からないところをググろうとして、日本語でいいのが見つからないので英語で見つけようとして”Data Portal”で検索してたらまともに見つからなくて困った思い出。</p>
+
+<p>それは良しとして、
+2つを比較してみたものがこちら。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_both.jpg" alt="20210115_both.jpg" class="pic" /></p>
+
+<p>1ヶ月程度、
+日付毎に最高気温(MAX)、平均気温(AVG)、最小気温(MIN)を見せていて、
+青のNRがNature Remo min、赤のBMEがBME 280で測定したものです。</p>
+
+<p>平均を見ると大体1℃位の違いで合っているので測定結果は結構信用できそうです。</p>
+
+<p>最大、最小を見るとBME 280の方が幅が大きく出ています。
+これはBME 280の方が細かく測定しているので、
+一時的に高くなったりしたときとかもきちんと測定出来るのでこんな感じになっています。</p>
+
+<p>それでも1℃、2℃程度の違いですね。</p>
+
+<p>下は1日の変化をそれぞれ1分間隔で見てみたもの。</p>
+
+<p>Nature Remo mini:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_natureremo.jpg" alt="20210115_natureremo.jpg" class="pic" /></p>
+
+<p>BME 280:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_bme280.jpg" alt="20210115_bme280.jpg" class="pic" /></p>
+
+<p>MAX、AVG、MINの3つを載せてますが、データが1分間隔なのでここではすべて同じ線になっています。</p>
+
+<p>データポータルで2つのデータを結合するのに日時を結合キーとして使用すると
+日付単位でしか結合できないのでこの2つを一緒に表示することが出来ない。。。
+(実際出来ないのか、使い方がわかってないのか、データポータルは難しい。。。)</p>
+
+<p>比べると、Nature Remo miniの方に比べてBME 280の方は細かく(実際に1分ごと)変化しているのがわかると思います。</p>
+
+<p>Nature Remo miniの方は上がる時と下がるときが大体同じ高さになってる様に見えますが、
+実際にこれを見てみるとすべて0.5℃ずつでした。
+最初のキャリブレーションが関係するのか、全て20.1℃、20.6℃、21.1℃、みたいに
+きりの良い数字ではないのですが0.5℃ずつ。</p>
+
+<p>BME 280と比べても大体同じ動きをしていて、一時的に下がったり上がったりしている場面で追えて無いところもありますが、
+大きく上がったり下がったりする場面では
+1分間隔で変わっているところもあります。</p>
+
+<p>最初Nature Remoのデータを見た時に、アップデート時刻が何分も変わらない部分ばかりで、
+測定か、情報を送るタイミングか、またはその両方がそもそも
+ある程度時間間隔をおいておこなっているものだと思っていました。</p>
+
+<p>ただ、これを見る限り、測定はかなり細かく行っていて、それを少なくとも1分未満の間隔でチェックして、
+変化があったらクラウドに送る、ということを行っている様です。
+思ったよりも頑張ってるみたいです。</p>
+
+<p>細かい変化を追えて無い、というのは、もしかすると、
+一時的な変化でリモコンが動作してしまうのを避けるため、
+敢えてある程度の過去の平均などを見て定常的に上がったり下がったりしない限りはデータを更新しない、
+とかしているのかも?</p>
+
+<p>温度を細かく正確に測るよりも、リモコンのしきい値としての役割の方が重要なので
+それっぽい気もします。
+(多分データは細かく送ってサーバー側で処理しているのかな?)</p>
+
+<h2 id="bme-280の湿度と気圧">BME 280の湿度と気圧</h2>
+
+<p>おまけでBME 280で測っている湿度と気圧のグラフ。</p>
+
+<p>温度(Temp)+湿度(Humi):</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_bmetmphum.jpg" alt="20210115_bmetmphum.jpg" class="pic" /></p>
+
+<p>気圧(Press):</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210115_bmepres.jpg" alt="20210115_bmepres.jpg" class="pic" /></p>
+
+<p>データポータルはサクッと時系列グラフを作るのは簡単なんですが、
+ちょっと凝ったことをしようとすると面倒で。。。</p>
+
+<p>あと、幅が固定なので、PC版で良い感じにするとスマホから見にくいし、スマホで良い感じにするとPCで見にくいし、というのが難点。</p>
+
+<p>やはりちょっと見るにはスマホから見たいのでスマホで良い感じにしたいわけですが、
+そもそもアプリもないのでブラウザで見るしか無い、ということも。</p>
+
+<p>なにかこの辺別の良い感じのものにしたい。</p>
+
+<p>現状、BME 280の結果に関しては
+Blynkというアプリを使った記録も行っていて、今、室温などを見る場合には主にそっちを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>ただ、今後色々可視化して行く中で別の良い方法も探したいと思っているところです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Piで測定した温度湿度気圧をGoogle Spreadsheetsに記録する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google/"/>
+    <updated>2020-10-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS200_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div>
+
+<p>Google Spreadsheetsに色々とりあえずでもいいから保存していこう、ということで
+Raspberry PiでBME280を使って測定している温度、湿度、気圧の値を
+保存するようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-pi--bme280" id="markdown-toc-raspberry-pi--bme280">Raspberry Pi &amp; BME280</a></li>
+  <li><a href="#blynk" id="markdown-toc-blynk">Blynk</a></li>
+  <li><a href="#記録方法" id="markdown-toc-記録方法">記録方法</a></li>
+  <li><a href="#google-spreadsheets-api" id="markdown-toc-google-spreadsheets-api">Google Spreadsheets API</a></li>
+  <li><a href="#書き込みスクリプト" id="markdown-toc-書き込みスクリプト">書き込みスクリプト</a></li>
+  <li><a href="#raspberry-piで定期実行" id="markdown-toc-raspberry-piで定期実行">Raspberry Piで定期実行</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-pi--bme280">Raspberry Pi &amp; BME280</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS200_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FBME280+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>BME280は温度、湿度、気圧を測定できるセンサーで、
+Raspberry Piとかに接続して測定するときによく使われるものです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>ここにあるようにこれまでは
+Blynkというスマホからコンピューターへ命令を送ったり
+コンピューターから情報を取得したりするアプリを使っていました。</p>
+
+<h2 id="blynk">Blynk</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GYRVHJ9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GYRVHJ9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61lN0oNqz6L._SS90_CR0,0,120,90_.jpg" alt="Raspberry Pi Zero WH スターターセット (ANKER超小型電源、SanDisk MicroSD 高速型 32GB、USBスイッチケーブル付き)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/18/computer-iot-raspberrypi/">Blynkを使ってRaspberryi Piをスマホから操作する</a></div></li></ul>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_superchart.jpg" alt="20190826_superchart.jpg" class="pic" /></p>
+
+<p>こんな感じで簡単にグラフ表示が出来る。</p>
+
+<p>とりあえずこれで満足してたんですが、
+BlynkではBlynkのサーバーに情報をアップロードして、
+それをスマホから見ている感じ。</p>
+
+<p>Raspberry Pi側で1分置きに計測して送っていますが、
+Blynkアプリ上だと1年分まで見れます。</p>
+
+<p>Blynkの情報はスマホからExportしたり、
+<a href="https://blynkapi.docs.apiary.io/#reference/0/pin-history-data/get-all-history-data-for-specific-pin">API</a>
+を使って履歴を取ってこれたりします。</p>
+
+<p>なので1年分は取ってこれるのかな、と思ったら
+どうやら1週間分しか取得することは出来ないようです。</p>
+
+<blockquote>
+  <p><a href="https://community.blynk.cc/t/only-getting-a-week-of-history-when-retrieving-csv/21836">Only getting a week of history when retrieving CSV - Need Help With My Project - Blynk Community</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://community.blynk.cc/t/pin-history-data-http-restful-api/26055">Pin history data - HTTP RESTful API - Need Help With My Project - Blynk Community</a></p>
+</blockquote>
+
+<p>2年以上前の話で、改善するよ、とか、1ヶ月までは伸ばすつもりだよ、とか
+答えてますが現時点でも1週間なので多分変わらないでしょう。
+(APIでもアプリからExportしても同じ。)</p>
+
+<p>ということで、見えてるのに過去の情報は取れない、という状態。</p>
+
+<p>やはりせっかくなので記録として残したいのでSpreadsheetsに書いておきたい、と思った次第です。</p>
+
+<h2 id="記録方法">記録方法</h2>
+
+<p>方法としては、</p>
+
+<ol>
+  <li>Blynkサーバーにある情報を1日1回位取得して新しい分だけSpreadsheetsにアップデートで加える</li>
+  <li>Raspberry Piから直接Google SpreadsheetsのAPIを使って書き込む</li>
+</ol>
+
+<p>が考えられます。</p>
+
+<p>1の方法に関しては、Blynkが
+<a href="https://blynkapi.docs.apiary.io/#reference/0/pin-history-data/get-all-history-data-for-specific-pin">API</a>
+を提供してくれてるので、
+<a href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/">NatureRemoの情報を記録</a>
+したのと同じ様なことをGoogle Apps Scriptでやればいいだけ。</p>
+
+<p>ただ、今後Blynkを使い続けるかわからないのと、
+Blynkの無料枠で使おうと思うと、上の様なチャートは結構無料枠内を埋めてしまい、
+他のボタンとかが作りづらい、というので将来的に別のボタンに変更するかも、
+という点から2の直接書き込む方法にしました。</p>
+
+<p>計測などにちょっと無駄な重複が出ますが、
+ちょっと見た感じではRaspberry Pi Zeroでも全然負荷になってないようなので
+別々にしておきます。</p>
+
+<p>BlynkがC++なプログラムでGoogleのAPIのパッケージとかがC++用とかなくてちょっと面倒だった、というのもあります。</p>
+
+<p>1を使うと1週間分は遡れますが、まあそれくらい別にいいか、と。
+(手で入れても良かったのですが面倒だったのでしなかった。)</p>
+
+<h2 id="google-spreadsheets-api">Google Spreadsheets API</h2>
+
+<p>Pythonを使ったスクリプトを作成します。</p>
+
+<blockquote>
+  <p><a href="https://developers.google.com/sheets/api/quickstart/python">Python Quickstart Sheets API Google Developers</a></p>
+</blockquote>
+
+<p>Google公式のSpreadsheetsのAPIですが、
+Python用の
+<a href="https://github.com/googleapis/google-api-python-client">google-api-python-client</a>
+というパッケージを
+直接使おうと思うとPythonとかでも結構Spreadsheetsだけのためでも
+書く量が多くなってしまいます。</p>
+
+<p>ちょっと探したところ、
+<a href="https://gspread.readthedocs.io/en/latest/index.html">gspread</a>
+というのがシンプルに書けて使い勝手がよさそうだったので使ってみました。</p>
+
+<div class="github-widget" data-repo="burnash/gspread"></div>
+
+<p>gspreadではサービスアカウントを使った認証も可能で、
+自動で動かすのはそちらの方が便利なのでサービスアカウントを使います。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">For Bots: Using Service Account</a></p>
+</blockquote>
+
+<p>Sheetに書き込むだけなら簡単に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="kn">import</span> <span class="nn">gspread</span>
+</span><span class="line"><span class="n">gc</span> <span class="o">=</span> <span class="n">gspread</span><span class="o">.</span><span class="n">service_account</span><span class="p">()</span>
+</span><span class="line"><span class="n">wks</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;Where is the money Lebowski?&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sheet1</span>
+</span><span class="line"><span class="n">wks</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>だけで書けてしまいます。</p>
+
+<h2 id="書き込みスクリプト">書き込みスクリプト</h2>
+
+<p>こんな感じのスクリプトを作ります。</p>
+
+<p>Spreadsheets書き込み部分は
+<a href="https://gspread.readthedocs.io/en/latest/user-guide.html">gspreadのドキュメント</a>
+参照。</p>
+
+<p>Spreadsheetsに関しては先に作成しておいて、ID
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+を取得しておいて<code>SHEET_KEY</code>に設定します。</p>
+
+<p>また、<code>Living</code>という名前のシートを作っておきます。</p>
+
+<p>このあたりは<code>gspread</code>からAPI経由で作成することも出来ますが、
+今回はその辺は省いて直接作っておくようにしています。</p>
+
+<p>また、以下を参考にして書き込みのためのService Accountを作成し、credentials.jsonを取得しておきます。また、作成された<code>client_email</code>を書き込むSpreadsheetsの共有から編集者として追加しておきます。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#service-account">Authentication — gspread 3.6.0 documentation</a></p>
+</blockquote>
+
+<p>BME280に関しては
+製造元のSwitch ScienceがPythonの例(<a href="https://github.com/SWITCHSCIENCE/BME280/blob/master/Python27/bme280_sample.py">BME280/bme280_sample.py</a>)
+を公開してくれているのでそれを参考にして作っています。
+(ほぼコピペ。)</p>
+
+<figure class="code"><figcaption><span>bme280.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+<span class="line-number">98</span>
+<span class="line-number">99</span>
+<span class="line-number">100</span>
+<span class="line-number">101</span>
+<span class="line-number">102</span>
+<span class="line-number">103</span>
+<span class="line-number">104</span>
+<span class="line-number">105</span>
+<span class="line-number">106</span>
+<span class="line-number">107</span>
+<span class="line-number">108</span>
+<span class="line-number">109</span>
+<span class="line-number">110</span>
+<span class="line-number">111</span>
+<span class="line-number">112</span>
+<span class="line-number">113</span>
+<span class="line-number">114</span>
+<span class="line-number">115</span>
+<span class="line-number">116</span>
+<span class="line-number">117</span>
+<span class="line-number">118</span>
+<span class="line-number">119</span>
+<span class="line-number">120</span>
+<span class="line-number">121</span>
+<span class="line-number">122</span>
+<span class="line-number">123</span>
+<span class="line-number">124</span>
+<span class="line-number">125</span>
+<span class="line-number">126</span>
+<span class="line-number">127</span>
+<span class="line-number">128</span>
+<span class="line-number">129</span>
+<span class="line-number">130</span>
+<span class="line-number">131</span>
+<span class="line-number">132</span>
+<span class="line-number">133</span>
+<span class="line-number">134</span>
+<span class="line-number">135</span>
+<span class="line-number">136</span>
+<span class="line-number">137</span>
+<span class="line-number">138</span>
+<span class="line-number">139</span>
+<span class="line-number">140</span>
+<span class="line-number">141</span>
+<span class="line-number">142</span>
+<span class="line-number">143</span>
+<span class="line-number">144</span>
+<span class="line-number">145</span>
+<span class="line-number">146</span>
+<span class="line-number">147</span>
+<span class="line-number">148</span>
+<span class="line-number">149</span>
+<span class="line-number">150</span>
+<span class="line-number">151</span>
+<span class="line-number">152</span>
+<span class="line-number">153</span>
+<span class="line-number">154</span>
+<span class="line-number">155</span>
+<span class="line-number">156</span>
+<span class="line-number">157</span>
+<span class="line-number">158</span>
+<span class="line-number">159</span>
+<span class="line-number">160</span>
+<span class="line-number">161</span>
+<span class="line-number">162</span>
+<span class="line-number">163</span>
+<span class="line-number">164</span>
+<span class="line-number">165</span>
+<span class="line-number">166</span>
+<span class="line-number">167</span>
+<span class="line-number">168</span>
+<span class="line-number">169</span>
+<span class="line-number">170</span>
+<span class="line-number">171</span>
+<span class="line-number">172</span>
+<span class="line-number">173</span>
+<span class="line-number">174</span>
+<span class="line-number">175</span>
+<span class="line-number">176</span>
+<span class="line-number">177</span>
+<span class="line-number">178</span>
+<span class="line-number">179</span>
+<span class="line-number">180</span>
+<span class="line-number">181</span>
+<span class="line-number">182</span>
+<span class="line-number">183</span>
+<span class="line-number">184</span>
+<span class="line-number">185</span>
+<span class="line-number">186</span>
+<span class="line-number">187</span>
+<span class="line-number">188</span>
+<span class="line-number">189</span>
+<span class="line-number">190</span>
+<span class="line-number">191</span>
+<span class="line-number">192</span>
+<span class="line-number">193</span>
+<span class="line-number">194</span>
+<span class="line-number">195</span>
+<span class="line-number">196</span>
+<span class="line-number">197</span>
+<span class="line-number">198</span>
+<span class="line-number">199</span>
+<span class="line-number">200</span>
+<span class="line-number">201</span>
+<span class="line-number">202</span>
+<span class="line-number">203</span>
+<span class="line-number">204</span>
+<span class="line-number">205</span>
+<span class="line-number">206</span>
+<span class="line-number">207</span>
+<span class="line-number">208</span>
+<span class="line-number">209</span>
+<span class="line-number">210</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">import</span> <span class="nn">os</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">smbus2</span> <span class="kn">import</span> <span class="n">SMBus</span>
+</span><span class="line">
+</span><span class="line"><span class="n">SHEET_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;SHEET_KEY&gt;&quot;</span>
+</span><span class="line"><span class="n">CREDENTIALS</span> <span class="o">=</span> <span class="s2">&quot;~/.config/gspread/credentials.json&quot;</span>
+</span><span class="line"><span class="n">WORKSHEET_NAME</span> <span class="o">=</span> <span class="s2">&quot;Living&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">SpreadSheets</span><span class="p">():</span>
+</span><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sheet_key</span><span class="p">,</span> <span class="n">worksheet_name</span><span class="p">,</span> <span class="n">credentials</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">sheet_key</span> <span class="o">=</span> <span class="n">sheet_key</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">worksheet_name</span> <span class="o">=</span> <span class="n">worksheet_name</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="kn">import</span> <span class="nn">gspread</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">gspread</span><span class="o">.</span><span class="n">service_account</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_sheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">gc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">gc</span><span class="o">.</span><span class="n">open_by_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sheet_key</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_worksheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">sh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sheet</span><span class="p">()</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">sh</span><span class="o">.</span><span class="n">worksheet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">worksheet_name</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">bme280</span> <span class="o">=</span> <span class="n">BME280</span><span class="p">()</span>
+</span><span class="line">        <span class="n">data</span> <span class="o">=</span> <span class="n">bme280</span><span class="o">.</span><span class="n">read_data</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">worksheet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_worksheet</span><span class="p">()</span>
+</span><span class="line">        <span class="n">worksheet</span><span class="o">.</span><span class="n">append_row</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">BME280</span><span class="p">():</span>
+</span><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus_number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="mh">0x76</span><span class="p">,</span> <span class="n">my_timedelta</span><span class="o">=</span><span class="mi">9</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus_number</span> <span class="o">=</span> <span class="n">bus_number</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span> <span class="o">=</span> <span class="n">i2c_address</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">my_timedelta</span> <span class="o">=</span> <span class="n">my_timedelta</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="n">SMBus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus_number</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="mf">20.00</span> <span class="o">*</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">write_reg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg_address</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">write_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">reg_address</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_calib_param</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">calib</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0x88</span><span class="p">,</span> <span class="mh">0x88</span><span class="o">+</span><span class="mi">24</span><span class="p">):</span>
+</span><span class="line">            <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">        <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="mh">0xA1</span><span class="p">))</span>
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0xE1</span><span class="p">,</span> <span class="mh">0xE1</span><span class="o">+</span><span class="mi">7</span><span class="p">):</span>
+</span><span class="line">            <span class="n">calib</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">10</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">12</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">14</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">16</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">18</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">20</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">23</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">22</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">24</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">calib</span><span class="p">[</span><span class="mi">25</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">27</span><span class="p">])</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="mh">0x0F</span> <span class="o">&amp;</span> <span class="n">calib</span><span class="p">[</span><span class="mi">29</span><span class="p">]))</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">30</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">((</span><span class="n">calib</span><span class="p">[</span><span class="mi">29</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">))</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calib</span><span class="p">[</span><span class="mi">31</span><span class="p">])</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+</span><span class="line">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x8000</span><span class="p">:</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">print_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">now</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pres</span><span class="p">,</span> <span class="n">hum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_data</span><span class="p">()</span>
+</span><span class="line">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;datetime : </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;temperature : </span><span class="si">{</span><span class="n">temp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> degree&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pressure    : </span><span class="si">{</span><span class="n">pres</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> hPa&quot;</span><span class="p">)</span>
+</span><span class="line">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;humidity    : </span><span class="si">{</span><span class="n">hum</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> %&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">get_calib_param</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">my_timedelta</span><span class="p">))</span>
+</span><span class="line">                           <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+</span><span class="line">        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mh">0xF7</span><span class="p">,</span> <span class="mh">0xF7</span><span class="o">+</span><span class="mi">8</span><span class="p">):</span>
+</span><span class="line">            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i2c_address</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</span><span class="line">        <span class="n">pres_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span>
+</span><span class="line">        <span class="n">temp_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span>
+</span><span class="line">        <span class="n">hum_raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_t</span><span class="p">(</span><span class="n">temp_raw</span><span class="p">)</span>
+</span><span class="line">        <span class="n">pres</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_p</span><span class="p">(</span><span class="n">pres_raw</span><span class="p">)</span>
+</span><span class="line">        <span class="n">hum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_h</span><span class="p">(</span><span class="n">hum_raw</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">now</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pres</span><span class="p">,</span> <span class="n">hum</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_t</span><span class="p">):</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">16384.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">131072.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">8192.0</span><span class="p">)</span>\
+</span><span class="line">            <span class="o">*</span> <span class="p">(</span><span class="n">adc_t</span> <span class="o">/</span> <span class="mf">131072.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">8192.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span>
+</span><span class="line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">/</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_p</span><span class="p">):</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-</span> <span class="mf">64000.0</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(((</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2048</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span> <span class="o">+</span> <span class="p">((</span><span class="n">v1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">v2</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mf">65536.0</span><span class="p">)</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(((</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v1</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">8192</span><span class="p">))</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
+</span><span class="line">              <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">v1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">262144</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">((</span><span class="mi">32768</span> <span class="o">+</span> <span class="n">v1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">32768</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">if</span> <span class="n">v1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class="line">            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1048576</span> <span class="o">-</span> <span class="n">adc_p</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">v2</span> <span class="o">/</span> <span class="mi">4096</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3125</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">pressure</span> <span class="o">&lt;</span> <span class="mh">0x80000000</span><span class="p">:</span>
+</span><span class="line">            <span class="n">pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">v1</span>
+</span><span class="line">        <span class="k">else</span><span class="p">:</span>
+</span><span class="line">            <span class="n">pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">v1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span class="line">        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">*</span> <span class="p">(((</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">8.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">8.0</span><span class="p">))</span>
+</span><span class="line">                               <span class="o">/</span> <span class="mf">8192.0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">4096</span>
+</span><span class="line">        <span class="n">v2</span> <span class="o">=</span> <span class="p">((</span><span class="n">pressure</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span> <span class="o">/</span> <span class="mf">8192.0</span>
+</span><span class="line">        <span class="n">pressure</span> <span class="o">=</span> <span class="n">pressure</span> <span class="o">+</span> <span class="p">((</span><span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_p</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span> <span class="o">/</span> <span class="mf">16.0</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">pressure</span> <span class="o">/</span> <span class="mi">100</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">compensate_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_h</span><span class="p">):</span>
+</span><span class="line">        <span class="n">var_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">-</span> <span class="mf">76800.0</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">var_h</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">adc_h</span> <span class="o">-</span> <span class="p">(</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mf">64.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">/</span><span class="mf">16384.0</span> <span class="o">*</span> <span class="n">var_h</span>
+</span><span class="line">            <span class="p">))</span> <span class="o">*</span> <span class="p">(</span>
+</span><span class="line">                <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">65536.0</span> <span class="o">*</span> <span class="p">(</span>
+</span><span class="line">                    <span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">/</span> <span class="mf">67108864.0</span> <span class="o">*</span> <span class="n">var_h</span>
+</span><span class="line">                    <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">67108864.0</span> <span class="o">*</span> <span class="n">var_h</span><span class="p">)))</span>
+</span><span class="line">        <span class="k">else</span><span class="p">:</span>
+</span><span class="line">            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class="line">        <span class="n">var_h</span> <span class="o">=</span> <span class="n">var_h</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_h</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">var_h</span> <span class="o">/</span> <span class="mf">524288.0</span><span class="p">)</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">var_h</span> <span class="o">&gt;</span> <span class="mf">100.0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="mf">100.0</span>
+</span><span class="line">        <span class="k">elif</span> <span class="n">var_h</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+</span><span class="line">            <span class="n">var_h</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span class="line">        <span class="k">return</span> <span class="n">var_h</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="c1"># reset default t_fine</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">=</span> <span class="mf">20.00</span> <span class="o">*</span> <span class="mf">5120.0</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">osrs_t</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Temperature oversampling x 1</span>
+</span><span class="line">        <span class="n">osrs_p</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Pressure oversampling x 1</span>
+</span><span class="line">        <span class="n">osrs_h</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># Humidity oversampling x 1</span>
+</span><span class="line">        <span class="n">mode</span> <span class="o">=</span> <span class="mi">3</span>                        <span class="c1"># Normal mode</span>
+</span><span class="line">        <span class="n">t_sb</span> <span class="o">=</span> <span class="mi">5</span>                        <span class="c1"># Tstandby 1000ms</span>
+</span><span class="line">        <span class="n">is_filter</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="c1"># Filter off</span>
+</span><span class="line">        <span class="n">spi3w_en</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># 3-wire SPI Disable</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">ctrl_meas_reg</span> <span class="o">=</span> <span class="p">(</span><span class="n">osrs_t</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">osrs_p</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="n">mode</span>
+</span><span class="line">        <span class="n">config_reg</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_sb</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">is_filter</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="n">spi3w_en</span>
+</span><span class="line">        <span class="n">ctrl_hum_reg</span> <span class="o">=</span> <span class="n">osrs_h</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF2</span><span class="p">,</span> <span class="n">ctrl_hum_reg</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF4</span><span class="p">,</span> <span class="n">ctrl_meas_reg</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span><span class="mh">0xF5</span><span class="p">,</span> <span class="n">config_reg</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">argv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">        <span class="n">argv</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class="line">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class="line">        <span class="n">bme280</span> <span class="o">=</span> <span class="n">BME280</span><span class="p">()</span>
+</span><span class="line">        <span class="n">bme280</span><span class="o">.</span><span class="n">print_data</span><span class="p">()</span>
+</span><span class="line">    <span class="k">else</span><span class="p">:</span>
+</span><span class="line">        <span class="n">sh</span> <span class="o">=</span> <span class="n">SpreadSheets</span><span class="p">(</span><span class="n">sheet_key</span><span class="o">=</span><span class="n">SHEET_KEY</span><span class="p">,</span>
+</span><span class="line">                          <span class="n">worksheet_name</span><span class="o">=</span><span class="n">WORKSHEET_NAME</span><span class="p">,</span>
+</span><span class="line">                          <span class="n">credentials</span><span class="o">=</span><span class="n">CREDENTIALS</span><span class="p">)</span>
+</span><span class="line">        <span class="n">sh</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="k">try</span><span class="p">:</span>
+</span><span class="line">        <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span class="line">    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+</span><span class="line">        <span class="k">pass</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h2 id="raspberry-piで定期実行">Raspberry Piで定期実行</h2>
+
+<p>systemdを使った定期実行を設定します。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000J5OFW0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000J5OFW0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81TNSEQjz5L._SS90_CR0,0,120,90_.jpg" alt="【正規品】TIME TIMER タイムタイマー 19cm 60分 TTA1-W 時間管理" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux/">systemdでcronジョブの代わりの設定をする</a></div></li></ul>
+
+<p>上にある<strong>bme280.py</strong>をRaspberry Piの<strong>/home/pi/scripts/bme280.py</strong>に置いて、
+以下の様な2つのsystemd用ファイルを用意し、
+<strong>/etc/systemd/system/</strong>に設置します。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/bme280.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> BME280 logging
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Service<span class="o">]</span>
+</span><span class="line"><span class="nv">Type</span> <span class="o">=</span> oneshot
+</span><span class="line"><span class="nv">ExecStart</span> <span class="o">=</span> /home/pi/scripts/bme280.py
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/bme280.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span> <span class="o">=</span> BME280 logging timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span> <span class="o">=</span> *-*-* *:*:00
+</span><span class="line"><span class="nv">AccuracySec</span> <span class="o">=</span> 1s
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span> <span class="o">=</span> timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>1分毎に計測して記録する設定。</p>
+
+<p>設置後、</p>
+
+<pre><code>$ cmd sudo systemctl enable bme280.timer
+$ cmd sudo systemctl restart bme280.timer
+</code></pre>
+
+<p>として有効にしてタイマーを開始させれば計測し、Spreadsheetsに記録していってくれます。</p>
+]]></content>
+  </entry>
+  
+</feed>

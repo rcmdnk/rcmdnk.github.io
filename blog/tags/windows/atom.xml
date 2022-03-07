@@ -1,0 +1,1353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Windows | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/windows/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[AutoHotkeyでカーソル下の文字を見てアクションを変える]]></title>
+    <link href="https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey/"/>
+    <updated>2022-02-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>AuotHotkeyで何らかアクションを起こす時に
+カーソル下の文字を見てアクションを変える方法を覚えたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#方法" id="markdown-toc-方法">方法</a></li>
+  <li><a href="#hotstrings" id="markdown-toc-hotstrings">Hotstrings</a></li>
+  <li><a href="#a_thishotkey" id="markdown-toc-a_thishotkey">A_ThisHotkey</a></li>
+  <li><a href="#sleep-or-clipwait" id="markdown-toc-sleep-or-clipwait">Sleep or Clipwait</a></li>
+  <li><a href="#その他で活用できそうな所" id="markdown-toc-その他で活用できそうな所">その他で活用できそうな所</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>このIssueでもらったもの:</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/74">Normal mode ‘a’ behavior in the end of line · Issue #74 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p><a href="https://github.com/rcmdnk/vim_ahk">vim_ahk</a>でノーマルモード中、
+<i class="key">A</i>を押すとカーソルの右側に移動してインサートモードに移る機能があります。
+これは単に<i class="key">right</i>を入力してモード変換をしているだけです。</p>
+
+<p>これが行末の場合、次の行に行ってしまいます。</p>
+
+<p>一方、実際のVimでは行末で<i class="key">A</i>を押すとその行にとどまってインサートモードに入ります。
+正確にはVimのノーマルモードではカーソルは各文字の上にあるような形になっていて、これは通常時の文字の左側にカーソルがあるのと同じです。
+そして行末、というのが最終文字、となっているので実際には最後から一文字手前のところにカーソルがあることになります。
+なのでそこから<i class="key">A</i>するとその行の最後から書き始め、になります。</p>
+
+<p>これを実際のVimっぽくしたい、と。</p>
+
+<h2 id="方法">方法</h2>
+
+<p>この問題は分かってましたが行末とかわからないしな、と思って取り組めてませんでしたが、
+良い参考を教えてもらいました。</p>
+
+<blockquote>
+  <p><a href="https://www.reddit.com/r/AutoHotkey/comments/4ma5b8/identifying_end_of_line_when_typing_with_ahk_and/">Identifying “End of Line” when typing with AHK? And implementing it into a hotstring. : AutoHotkey</a></p>
+</blockquote>
+
+<p>ここにある例がまさに行末の判定をしてアクションを変えていて、ほぼそのまま使えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>  <span class="n">CheckChr</span><span class="p">(</span><span class="n">key</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">BlockInput</span><span class="p">,</span> <span class="n">Send</span>
+</span><span class="line">    <span class="n">tempClip</span> <span class="o">:=</span> <span class="nv">clipboard</span>
+</span><span class="line">    <span class="nv">clipboard</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span><span class="line">    <span class="nb">SendInput</span> <span class="p">{</span><span class="n">Shift</span> <span class="n">Down</span><span class="p">}{</span><span class="n">Right</span><span class="p">}{</span><span class="n">Shift</span> <span class="n">up</span><span class="p">}{</span><span class="n">Ctrl</span> <span class="n">down</span><span class="p">}</span><span class="n">c</span><span class="p">{</span><span class="n">Ctrl</span> <span class="n">Up</span><span class="p">}{</span><span class="n">Left</span><span class="p">}</span>
+</span><span class="line">    <span class="nb">Sleep</span> <span class="mi">10</span>
+</span><span class="line">    <span class="n">ret</span> <span class="o">:=</span> <span class="nv">False</span>
+</span><span class="line">    <span class="n">If</span> <span class="p">(</span><span class="nv">clipboard</span> <span class="o">~=</span> <span class="n">key</span><span class="p">){</span>
+</span><span class="line">      <span class="n">ret</span> <span class="o">:=</span> <span class="nv">True</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">    <span class="nb">sleep</span> <span class="mi">10</span>
+</span><span class="line">    <span class="nv">clipboard</span> <span class="o">:=</span> <span class="n">tempClip</span>
+</span><span class="line">    <span class="nb">BlockInput</span><span class="p">,</span> <span class="n">off</span>
+</span><span class="line">    <span class="nb">Return</span> <span class="n">ret</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<blockquote>
+  <p>https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/vim_ahk.ahk#L278</p>
+</blockquote>
+
+<p>こんな感じの関数を用意して、カーソル下の文字が引数にいれる文字と一致するかどうかをチェックします。</p>
+
+<p>AutoHotkeyでは<code>clipboard</code>という変数がWindowsのクリップボードの値と同期しているのでそれを使います。</p>
+
+<p>このアクションが起こった後にクリップボードを変更したくないので元の値を一旦退避して、</p>
+
+<ul>
+  <li><i class="key">Shift</i>-<i class="key">Right</i></li>
+</ul>
+
+<p>で一文字選択した状態で</p>
+
+<ul>
+  <li><i class="key">Ctrl</i>-<i class="key">C</i></li>
+</ul>
+
+<p>でコピーする、という作業をします。</p>
+
+<p>コピーした後にその中身が何かをチェックしています。</p>
+
+<p>あとは
+AutoHotkeyでの改行は`nなので、
+こんな感じで改行コードでない場合だけ右にいくようにするだけ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">if</span><span class="p">(</span><span class="o">!</span> <span class="n">Vim</span><span class="o">.</span><span class="n">CheckChr</span><span class="p">(</span><span class="s">&quot;</span><span class="se">`n</span><span class="s">&quot;</span><span class="p">)){</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">,</span> <span class="p">{</span><span class="n">Right</span><span class="p">}</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">Vim</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="s">&quot;Insert&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<blockquote>
+  <p>https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/bind/vim_enter_insert.ahk#L9</p>
+</blockquote>
+
+<p>以下、元の参考を見て新たに知ったこととかよく分かってないこととか。</p>
+
+<h2 id="hotstrings">Hotstrings</h2>
+
+<p>元の参考コードは括弧を自動で閉じる機能ですが、
+キーバインド部を</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">:*:</span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じにしています。</p>
+
+<p>この<code>:*:{::</code>ですが、<code>:*:{</code>が左辺で<code>::</code>を境にして設定される側とそれに対するアクション(キー)が書かれています。</p>
+
+<p>左辺に<code>:</code>が2つあるのが
+<a href="https://www.autohotkey.com/docs/Hotstrings.htm">Hotstrings</a>
+と呼ばれるもので、これは複数の入力文字に対してアクションを指定したい場合に使います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">::</span><span class="n">btw</span><span class="o">::</span><span class="n">by</span> <span class="n">the</span> <span class="n">way</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これだと<code>btw</code>と打った後に<i class="key">Space</i>、<i class="key">.</i>、<i class="key">Enter</i>のいずれかが押されると<code>btw</code>が<code>by the way</code>に変換されます。</p>
+
+<p>この最初の<code>::</code>の間にはオプションを入れることができ、
+<code>:*:</code>は上の指定キーを入力した瞬間に即座にアクションを実行する、というもの。</p>
+
+<p><code>btw</code>の例だとスペースとかを押さなくてもすぐに変換されることになります。</p>
+
+<p>スニペット的な感じ。</p>
+
+<p>他のオプションとかは
+<a href="https://www.autohotkey.com/docs/Hotstrings.htm">Hotstringsのドキュメント</a>
+参照してください。</p>
+
+<p>で、ここでは<code>{</code>とかだけをキーバインドしたいわけですが、
+それに対して即時オプションを設定すると単に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とするのと変わらない気が。。。</p>
+
+<p>実際ちょっと試した限りではまったく同じように動作しました。</p>
+
+<p>上の参考ページは5年前の記事なので、その間に変わったこととかがあるのかもしれませんし、
+何かしら特殊な状況で必要なのかもしれませんが、それが何か分かってません。</p>
+
+<h2 id="a_thishotkey">A_ThisHotkey</h2>
+
+<p>キーバインドする際に、出力側で<code>A_ThisHotkey</code>を使うと入力の文字列になります。
+(正確には最後に実行されたホットキーが格納されている。)</p>
+
+<p>上の例だと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにして、<code>:*:{</code>とかなっているのを<code>SetReplace</code>できれいにして<code>{</code>として渡しています。</p>
+
+<p>これはもしEOLがこれにしか使わないなら<code>SetReplace</code>を<code>EOL</code>の関数の中に入れてしまえば良いし、
+もう一つラッパー関数を作っても良いかもしれません。</p>
+
+<p>また、そもそもそれぞれのキーは決まっているので</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="n">EOL</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>そしてしまえば。</p>
+
+<p>また、全部同じことをしたいなら，</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span>    <span class="o">:*:</span><span class="p">{</span><span class="o">::</span>
+</span><span class="line">    <span class="o">:*:</span><span class="p">[</span><span class="o">::</span>
+</span><span class="line">    <span class="o">:*:</span><span class="p">(</span><span class="o">::</span>
+</span><span class="line">      <span class="n">EOL</span><span class="p">(</span><span class="n">StrReplace</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">,</span> <span class="s">&quot;:*:&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">))</span>
+</span><span class="line">      <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じにまとめることもできます。</p>
+
+<h2 id="sleep-or-clipwait">Sleep or Clipwait</h2>
+
+<p>上の例では
+<a href="https://www.autohotkey.com/docs/commands/Sleep.htm">Sleep</a>
+を使っていますが、AutoHotkeyには
+<a href="https://www.autohotkey.com/docs/commands/ClipWait.htm">ClipWait</a>
+という機能もあります。</p>
+
+<p>ClipWaitだとタイムアウト時間を設定してコピーが完了次第次に進めるのでそっちのが良さげ。</p>
+
+<p>実はvim_ahkの中でClipWaitを使ってる箇所があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/blob/98759b8a692896fa96c0b1e96d2a325847ce542d/lib/bind/vim_normal.ahk#L14">vim_ahk/vim_normal.ahk at 98759b8a692896fa96c0b1e96d2a325847ce542d · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>完全にどうやってるか、は忘れてましたが、<code>~</code>でカーソル下の文字を大文字小文字でトグルする機能で
+文字の大小を見て変換する、という際にクリップボードを使っています。
+ここではClipWaitを利用。</p>
+
+<p>多分ClipWaitの方が良いんだと思いますが、ちょっとまたちゃんと調べてから変更しようかと思ってます。</p>
+
+<h2 id="その他で活用できそうな所">その他で活用できそうな所</h2>
+
+<p>vim_ahkの中で実際のVimと動作が微妙に違う部分はたくさんあって、
+特に今回の例のようにカーソル下の状態とか、周辺の状況を把握しないと無理、というものが結構あります。</p>
+
+<p>その辺あまりまとめて無かったんですが、
+ざっと思いつくところからリストアップしてそのうちやろうかと。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/76">use CheckChr, BlockInput for some places · Issue #76 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>クリップボード以外にも、ノーマルモードでh/j/k/lのような移動キーをキーリピートをすると文字が入力されてしまったりすることもあり、
+この辺参考例の中にある
+<a href="https://www.autohotkey.com/docs/commands/BlockInput.htm">BlockInput</a>
+を使ったらうまく出来ないかな、とかも。</p>
+
+<p>もし何か使ってて気になる点とかがあれば気軽にGitHubのIssueとか
+Twitterとかでも良いので教えていただけるとありがたいです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkにciwなどを追加]]></title>
+    <link href="https://rcmdnk.com/blog/2022/01/24/computer-autohotkey-vim-windows/"/>
+    <updated>2022-01-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/01/24/computer-autohotkey-vim-windows</id>
+    <content type="html"><![CDATA[<p>Winndows上でVimをEmulateするvim_ahkに<code>ciw</code>など
+カーソル下の単語を選択してコピーしたり変更したりするキーバインドを追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#viwyiwdiwciw" id="markdown-toc-viwyiwdiwciw">viw/yiw/diw/ciw</a></li>
+  <li><a href="#例" id="markdown-toc-例">例</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<p>vim_ahkはWindowsで<a href="https://www.autohotkey.com/">AutoHotkey</a>を使ってVim以外のアプリでもVimライクな動作を実現するツールです。</p>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkではNormal ModeとかVisual Modeとかも実装されていて、
+Normal Modeで<code>vw</code>とすると現在位置から次の単語の先頭まで選択、みたいなことは簡単に出来る様になっています。</p>
+
+<h2 id="viwyiwdiwciw">viw/yiw/diw/ciw</h2>
+
+<p>Vimコマンドの中でもよく使うキーバインドとして、</p>
+
+<ul>
+  <li><code>ciw</code>: 現在カーソルがある下の単語を消して書き直す</li>
+</ul>
+
+<p>というものがあります。単語のどの位置に居たとしてもその単語全体を消して書き直します。</p>
+
+<p>同様に<code>yiw</code>なら単語をコピー、<code>diw</code>なら単語を削除です。</p>
+
+<p><code>viw</code>は<code>v</code>でVisual Modeに入ってその後単語を選択した状態になります。</p>
+
+<p>これらをvim_ahkでも出来るようになりました。</p>
+
+<p>ちょっと本物との違いとして、
+単語の末尾、をきちんと捉える方法が無いので、現在カーソルのある位置にある単語から次の単語の切れ目の前まで、を
+選択したり削除したりするようになっています。</p>
+
+<p>また、<code>単語</code>の単位がアプリによって違うためアプリによって選択される範囲が違ったりします。</p>
+
+<h2 id="例">例</h2>
+
+<p><code>|</code>の位置がカーソルの位置とする:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状況</th>
+      <th>選択範囲</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>abc e|fg　hij</code></td>
+      <td><code>efg　</code></td>
+    </tr>
+    <tr>
+      <td><code>print("a|bc")</code></td>
+      <td><code>abc</code> (ワードパッド)、<code>("abc")</code> (メモ帳)</td>
+    </tr>
+    <tr>
+      <td><code>abc/d|ef/ghi</code></td>
+      <td><code>def</code> (ワードパッド)、 <code>abc/def/ghi</code> (メモ帳)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>こんな感じでワードパッドだと記号を区切りとして扱ってくれますがメモ帳だと
+一部扱いが通常文字扱いになっていたりちょっと様子が違います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WindowsのWSL用のターミナルとしてhyperを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2021/11/14/computer-windows/"/>
+    <updated>2021-11-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/11/14/computer-windows</id>
+    <content type="html"><![CDATA[<p>Windows 11にアップグレードして
+wsltty上で日本語が化ける様になってしまったので
+Winodws純正のWindows Terminalを使ってたんですが、
+日本語入力に難があるのでhyperに乗り換えました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windows-11でのターミナル問題" id="markdown-toc-windows-11でのターミナル問題">Windows 11でのターミナル問題</a></li>
+  <li><a href="#hyper" id="markdown-toc-hyper">Hyper</a></li>
+  <li><a href="#うまく出来てないこと" id="markdown-toc-うまく出来てないこと">うまく出来てないこと</a></li>
+  <li><a href="#macosでは" id="markdown-toc-macosでは">macOSでは</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windows-11でのターミナル問題">Windows 11でのターミナル問題</h2>
+
+<p>Windows 11はWindows 10からだと無償でアップグレードが出来るので
+一般に配布された直後に入れてみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/10/18/computer-windows/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20211018_settingscheck_120_90.jpg" width="120" height="90" alt="20211018_settingscheck_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/10/18/computer-windows/">Windows 11へアップグレード</a></div></li></ul>
+
+<p>タスクバーやスタートメニューに関して少し見た目が変わったりしましたが、
+中身的にはあまり変わってない印象。</p>
+
+<p>アプリなども特に問題なく使えてましたが、
+WSL2を使うために使っていた
+ターミナルアプリの<a href="https://github.com/mintty/wsltty">wsltty</a>
+で日本語が化けるようになってしまいました。</p>
+
+<p>いろいろ試したものもうまくいかず、
+一方でWindows 11からはWindows純正のWindows Terminalが
+コマンドプロンプトやPowerShellを使うのにも使うターミナルとして
+組み込まれていて、これでWSLも使えるためこれに乗り換えていました。</p>
+
+<p>ただ、問題として日本語を入力しようとすると少し問題があります。</p>
+
+<p>Vimとかで右端の方で日本語を入力しようとると、変換中はうまく次の行に折り返しが出来ず、
+右端の変換されている文字幅の下にどんどん追加されていく様な入力になります。
+(一番右端で書き始めると下に一列に文字が入っていくような形。)</p>
+
+<p>さらに、文章の途中に日本語を入力すると、後ろにある文字列と変換中の文字が被って意味わからないことになります。</p>
+
+<p>変換を決定するとちゃんと入力されるのですが結構気持ち悪いです。</p>
+
+<h2 id="hyper">Hyper</h2>
+
+<p><a href="https://hyper.is/">Hyper™</a></p>
+
+<p>HyperはHTML/JS/CSSを使って作られたターミナルエミュレーターです。</p>
+
+<p>拡張機能などをWebアプリ感覚で作れるのでWeb開発をしてる人には手を入れ込むのが
+簡単だったりします。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/07/24/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20160724_hyperterm.gif" width="120" height="90" alt="20160724_hyperterm" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/07/24/computer-mac/">ターミナル作業が爽快になるターミナルエミュレーター: HyperTerm</a></div></li></ul>
+
+<p>マルチプラットフォームに対応していて、
+Windows、macOSに加え、様々なLinux環境でも使えます。</p>
+
+<p>5年以上前に出た頃にちょっと試して面白いな、と思いつつ、
+まだちょっと荒い感じがあって使ってませんでしたが、今回改めて使ってみることに。</p>
+
+<p>以前(といっても調べたのは5年以上前)出来てなかった256色カラーは対応するようになっていました。</p>
+
+<p>日本語に関しては全く問題なく表示でき、入力も問題なく出来ました。</p>
+
+<p>その他に関しても特に違和感なかったのでとりあえずこれで良いかな、と。</p>
+
+<p>設定ファイルはメニューのEdit-&gt;Preferencesや<i class="key">Ctrl</i>-<i class="key">,</i>で開くか、
+または</p>
+
+<pre><code>C:\Users\&lt;User&gt;\AppData\Roaming\Hyper\.hyper.js
+</code></pre>
+
+<p>にあるファイルを直接編集します。
+Hyperではこのファイルを編集して保存すると自動的に設定が読み込まれてターミナルがアップデートされる様になっています。</p>
+
+<p>一旦デフォルトのファイルを以下の様に書き換えて使っています。</p>
+
+<figure class="code"><figcaption><span>C:\Users\&lt;User&gt;\AppData\Roaming\Hyper\.hyper.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gd">--- hyper.js.old</span>
+</span><span class="line"><span class="gi">+++ hyper.js</span>
+</span><span class="line"><span class="gu">@@ -12,7 +12,7 @@</span>
+</span><span class="line">     fontSize: 12,
+</span><span class="line">
+</span><span class="line">     // font family with optional fallbacks
+</span><span class="line"><span class="gd">-    fontFamily: &#39;Menlo, &quot;DejaVu Sans Mono&quot;, Consolas, &quot;Lucida Console&quot;, monospace&#39;,</span>
+</span><span class="line"><span class="gi">+    fontFamily: &#39;&quot;Cascadia Mono&quot;, Menlo, &quot;DejaVu Sans Mono&quot;, Consolas, &quot;Lucida Console&quot;, monospace&#39;,</span>
+</span><span class="line">
+</span><span class="line">     // default font weight: &#39;normal&#39; or &#39;bold&#39;
+</span><span class="line">     fontWeight: &#39;normal&#39;,
+</span><span class="line"><span class="gu">@@ -27,7 +27,7 @@</span>
+</span><span class="line">     letterSpacing: 0,
+</span><span class="line">
+</span><span class="line">     // terminal cursor background color and opacity (hex, rgb, hsl, hsv, hwb or cmyk)
+</span><span class="line"><span class="gd">-    cursorColor: &#39;rgba(248,28,229,0.8)&#39;,</span>
+</span><span class="line"><span class="gi">+    cursorColor: &#39;#fff&#39;,</span>
+</span><span class="line">
+</span><span class="line">     // terminal text color under BLOCK cursor
+</span><span class="line">     cursorAccentColor: &#39;#000&#39;,
+</span><span class="line"><span class="gu">@@ -36,7 +36,7 @@</span>
+</span><span class="line">     cursorShape: &#39;BLOCK&#39;,
+</span><span class="line">
+</span><span class="line">     // set to `true` (without backticks and without quotes) for blinking cursor
+</span><span class="line"><span class="gd">-    cursorBlink: false,</span>
+</span><span class="line"><span class="gi">+    cursorBlink: true,</span>
+</span><span class="line">
+</span><span class="line">     // color of the text
+</span><span class="line">     foregroundColor: &#39;#fff&#39;,
+</span><span class="line"><span class="gu">@@ -67,7 +67,7 @@</span>
+</span><span class="line">     showWindowControls: &#39;&#39;,
+</span><span class="line">
+</span><span class="line">     // custom padding (CSS format, i.e.: `top right bottom left`)
+</span><span class="line"><span class="gd">-    padding: &#39;12px 14px&#39;,</span>
+</span><span class="line"><span class="gi">+    padding: &#39;0px 0px&#39;,</span>
+</span><span class="line">
+</span><span class="line">     // the full list. if you&#39;re going to provide the full color palette,
+</span><span class="line">     // including the 6 x 6 color cubes and the grayscale map, just provide
+</span><span class="line"><span class="gu">@@ -103,11 +103,11 @@</span>
+</span><span class="line">     //
+</span><span class="line">     // PowerShell on Windows
+</span><span class="line">     // - Example: `C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
+</span><span class="line"><span class="gd">-    shell: &#39;&#39;,</span>
+</span><span class="line"><span class="gi">+    shell: &#39;C:\\Windows\\System32\\wsl.exe&#39;,</span>
+</span><span class="line">
+</span><span class="line">     // for setting shell arguments (i.e. for using interactive shellArgs: `[&#39;-i&#39;]`)
+</span><span class="line">     // by default `[&#39;--login&#39;]` will be used
+</span><span class="line"><span class="gd">-    shellArgs: [&#39;--login&#39;],</span>
+</span><span class="line"><span class="gi">+    shellArgs: [&#39;~&#39;],</span>
+</span><span class="line">
+</span><span class="line">     // for environment variables
+</span><span class="line">     env: {},
+</span><span class="line"><span class="gu">@@ -116,14 +116,14 @@</span>
+</span><span class="line">     bell: &#39;SOUND&#39;,
+</span><span class="line">
+</span><span class="line">     // if `true` (without backticks and without quotes), selected text will automatically be copied to the clipboard
+</span><span class="line"><span class="gd">-    copyOnSelect: false,</span>
+</span><span class="line"><span class="gi">+    copyOnSelect: true,</span>
+</span><span class="line">
+</span><span class="line">     // if `true` (without backticks and without quotes), hyper will be set as the default protocol client for SSH
+</span><span class="line">     defaultSSHApp: true,
+</span><span class="line">
+</span><span class="line">     // if `true` (without backticks and without quotes), on right click selected text will be copied or pasted if no
+</span><span class="line">     // selection is present (`true` by default on Windows and disables the context menu feature)
+</span><span class="line"><span class="gd">-    quickEdit: false,</span>
+</span><span class="line"><span class="gi">+    quickEdit: true,</span>
+</span><span class="line">
+</span><span class="line">     // choose either `&#39;vertical&#39;`, if you want the column mode when Option key is hold during selection (Default)
+</span><span class="line">     // or `&#39;force&#39;`, if you want to force selection regardless of whether the terminal is in mouse events mode
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li>Fontを<strong>Cascadia Mono</strong>に</li>
+</ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/09/23/computer-windows-mac-putty-iterm2/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190923_puttycascadiacode_120_90.jpg" width="120" height="90" alt="20190923_puttycascadiacode_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/09/23/computer-windows-mac-putty-iterm2/">Microsoftの新しいフォントCascadia Codeを試す</a></div></li></ul>
+
+<ul>
+  <li>カーソルを白に。</li>
+  <li>カーソルを点滅するように。</li>
+  <li>外枠の幅をゼロに。</li>
+  <li>起動時にWSLを起動するように。</li>
+  <li>文字列選択時にコピー。</li>
+  <li>右クリック時にペースト。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>WSLに関しては、<code>shell</code>でwslの実行ファイルを指定し、<code>shellArgs</code>を<code>~</code>と指定してあげる必要があります。</p>
+
+<p>通常のコマンドプロンプトで開いた場合には
+<code>wsl</code>というコマンドを打てばwslに入る事もできます。</p>
+
+<h2 id="うまく出来てないこと">うまく出来てないこと</h2>
+
+<ul>
+  <li>Vim内でインサートモード時にカーソルを変更できない</li>
+</ul>
+
+<p>Vim/Neovimではノーマルモードとインサートモードでカーソルをブロックから線に変更することで
+モードに違いを簡単に認識できる様になっています。</p>
+
+<p>このあたりは設定次第と言うこともあるのですが、Windowsターミナルとかだとその変更ができる状態になっているにも関わらず、
+Hyper上では指定した<code>cursorShape</code>から変わりません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/vercel/hyper/issues/2765">Neovim cursor shape does not change on insert mode · Issue #2765 · vercel/hyper</a></p>
+</blockquote>
+
+<p>このあたり、昔にも問題になって、一度はプラグインの悪さだった的な話もあったみたいですが、
+また今も問題は起きているようです。</p>
+
+<p>一応下のステータスラインですぐにチェックできるようにしていたりするのでそこまで
+絶対というわけではないのですが、やはりできればほしい機能です。</p>
+
+<ul>
+  <li>文字列選択した場合に反転表示にできない？</li>
+</ul>
+
+<p><code>selectionColor</code>という設定があり、この色がマウスで文字列を選択した際に
+背景色として使われます。</p>
+
+<p>一方、他の多くのターミナルではマウスで選択すると背景色と文字色を反転させて表示させます。</p>
+
+<p>背景色を指定してしまうと、仮にその色と文字色が同じだったり似たようなものだと見にくくなってしまいます。</p>
+
+<p>とりあえずはデフォルトの表示が薄い紫の様な色でその色だと大体問題なく見えるので
+そのままにしてありますが、もし可能なら反転状態にさせたいな、と。</p>
+
+<p>これは割とCSSとかの定義で簡単にできそうな気はしていますが、気が向いたらそのうちまた。</p>
+
+<h2 id="macosでは">macOSでは</h2>
+
+<p>HyperはmacOSでも使えるので、色々カスタマイズしていい感じに出来るならMacでも共有して
+使っても良いかな、とは思ってます。</p>
+
+<p>ただ、今の所上の様な問題があって、一方でMacで使っているiTerm2はかなり快適なので
+今のところはMacでHyperを無理に使わなくても良いかな、という感じです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windowsターミナルの起動時の初期ディレクトリ設定]]></title>
+    <link href="https://rcmdnk.com/blog/2021/11/08/computer-windows/"/>
+    <updated>2021-11-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/11/08/computer-windows</id>
+    <content type="html"><![CDATA[<p>Windows 11にしてから<a href="https://github.com/mintty/wsltty">wsltty</a>
+上で日本語が文字化けするようになってしまったので、
+Windows純正のWindowsターミナルを使っているのですが、
+初期ディレクトリの設定が変わった?のか起動時にルートディレクトリ(<strong>/</strong>)開かれる
+様になってしまったため設定変更しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#winodwsターミナル" id="markdown-toc-winodwsターミナル">Winodwsターミナル</a></li>
+  <li><a href="#起動時のディレクトリ設定が変わった" id="markdown-toc-起動時のディレクトリ設定が変わった">起動時のディレクトリ設定が変わった?</a></li>
+  <li><a href="#windowsターミナルの起動時の初期ディレクトリ設定" id="markdown-toc-windowsターミナルの起動時の初期ディレクトリ設定">Windowsターミナルの起動時の初期ディレクトリ設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+  <li><a href="#おまけ1-windows内でのwslのフォルダ" id="markdown-toc-おまけ1-windows内でのwslのフォルダ">おまけ1: Windows内でのWSLのフォルダ</a></li>
+  <li><a href="#おまけ2-フォルダをエクスプローラーで開く" id="markdown-toc-おまけ2-フォルダをエクスプローラーで開く">おまけ2: フォルダをエクスプローラーで開く</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="winodwsターミナル">Winodwsターミナル</h2>
+
+<p>昨年正式リリースされたMicrosoft純正のターミナル。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/05/31/computer-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200531_profiles_120_90.png" width="120" height="90" alt="20200531_profiles_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/05/31/computer-ubuntu-bash/">Windows Terminalを試す</a></div></li></ul>
+
+<p>Windows 11ではデフォルトのターミナルアプリとしてコマンドプロンプトやPowerShellターミナルから移行されています。
+ただし、ターミナル上でコマンドプロンプトやPowerShellも使えるようになっていて
+WSLも使える様になっています。</p>
+
+<p>これまでWSLは<a href="https://github.com/mintty/wsltty">wsltty</a>というターミナルアプリを使って
+操作していましたが、Windows 11になって日本語が化ける状態になってしまって
+まだ直せてないのでWindowsターミナルを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/10/18/computer-windows/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20211018_settingscheck_120_90.jpg" width="120" height="90" alt="20211018_settingscheck_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/10/18/computer-windows/">Windows 11へアップグレード</a></div></li></ul>
+
+<p>ちょっと日本語を変換するときに見にくくなるのが欠点ですが、
+まだ他のアプリとかを探せてないので引き続き使ってます。</p>
+
+<h2 id="起動時のディレクトリ設定が変わった">起動時のディレクトリ設定が変わった?</h2>
+
+<p>Windowsターミナルでは起動時にデフォルトでコマンドプロンプトやPowerShell、もしくはWSLなど
+好きなものを立ち上げられる様に設定できますがWSLのUbuntuを立ち上げる様にしてあります。</p>
+
+<p>多分Windows 11にアップグレードしたタイミングでは起動時にきちんと
+UbuntuのHOMEディレクトリに入っていたと思うのですが、
+最近ルートディレクトリで開く様になってしまっていました。
+(もしかしたら記憶が曖昧なだけで11への変更がきっかけかもしれません。)</p>
+
+<p><code>cd</code>すると普通にHOMEディレクトリに移動できて、シェル変数なども特におかしな部分は
+ないのですがターミナルから開くと何故かルートディレクトリに。</p>
+
+<h2 id="windowsターミナルの起動時の初期ディレクトリ設定">Windowsターミナルの起動時の初期ディレクトリ設定</h2>
+
+<p>というわけで、設定を調べてみます。</p>
+
+<p>Windowsターミナルを開いて<i class="key">Ctrl</i>-<i class="key">,</i>を押すかタブが開いていればその右側にある下三角ボタンから設定を開きます。</p>
+
+<p>プロファイルにあるUbuntuなどをエンタクして<strong>ディレクトリの開始</strong>の項目をチェック。</p>
+
+<p>するとこんな感じになっていました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20211108_wslsettings.jpg" alt="20211108_wslsettings.jpg" class="pic" /></p>
+
+<p><strong>ディレクトリの開始</strong>には</p>
+
+<pre><code>//wsl$/Ubuntu/home/&lt;User&gt;
+</code></pre>
+
+<p>といった内容が。
+これがおかしいっぽい。</p>
+
+<p>結論としてはスラッシュになってるのをバックスラッシュに置き換えてあげれば治りました。</p>
+
+<p>調べる方法としてWindowsターミナルでUbuntuを開いて、ホームディレクトリに移動して</p>
+
+<pre><code>$ explorer.exe .
+</code></pre>
+
+<p>を実行すればホームディレクトリがエクスプローラーで表示できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20211108_explorer.jpg" alt="20211108_explorer.jpg" class="pic" /></p>
+
+<p>するとこんな感じで開けるので左上の表示やアドレスバーのところをクリックしてパスを表示させてあげれば確認できます。</p>
+
+<pre><code>\\wsl.localhost\Ubuntu\home\&lt;User&gt;
+</code></pre>
+
+<p><strong>wsl.localhost</strong>となっていますが、これは<strong>wsl$</strong>と同じです。</p>
+
+<p>なので上との違いはスラッシュかバックスラッシュか。</p>
+
+<p><strong>ディレクトリの開始</strong>をこれに書き換えて上げると起動時にちゃんとHOMEディレクトリになるようになりました。
+また、ルートディレクトリにあるディレクトリの確認に時間がかかるものがあるので
+起動もだいぶ速くなりました。(変更前は数秒かかってたけど変更後は一瞬で立ち上がる）</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>立ち上がりの速度も変わってなんか遅いな、と最近感じていたので、やはりWindows 11に変更した段階で変わっていたということは多分無いと思ってます。</p>
+
+<p>10の時はだいぶ前に触ったまましばらく触っていなかったので、最初色々不具合がないか
+結構見たつもりですし。</p>
+
+<p>逆にこれがなんで突然変わったのかはもっと不明ですが。</p>
+
+<p>いずれにしろ設定自体は上の様にあるのでなにかあれば調べてみれば、と。</p>
+
+<h2 id="おまけ1-windows内でのwslのフォルダ">おまけ1: Windows内でのWSLのフォルダ</h2>
+
+<p>ベータ版の頃のWSL1では</p>
+
+<pre><code>C:\Users\&lt;WindowsUserName&gt;\AppData\Local\lxss\rootfs
+</code></pre>
+
+<p>の中にLinuxのファイルがあって、ただし<strong>/home/</strong>の下は何もない状態。
+実質的に別のファイルシステムでWindows側からファイルを直接共有することはできませんでした。</p>
+
+<p>Linux側からは<strong>/mnt/c/</strong>からWindows側にアクセスすることができました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/">Windowsに採用されたBash (Ubuntu)を試してみる</a></div></li></ul>
+
+<p>その後正式リリース後(?)</p>
+
+<pre><code>C:\Users\&lt;WindowsUserName&gt;\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState\rootfs
+</code></pre>
+
+<p>といったフォルダに変更されていました。(Linuxのディストリビューション毎に違うフォルダ)</p>
+
+<p>そしてWSL2になったあとは上記の<strong>LocalStete</strong>までのフォルダはありますが、
+その中には<strong>ext4.vhdx</strong>というLinuxのディスクファイルがあってこれはダブルクリックとかしても開けないものになっています。</p>
+
+<p>一方で</p>
+
+<pre><code>\\wsl$\...
+</code></pre>
+
+<p>からネットワーク越しの様な形でファイルにアクセス出来る形になっています。</p>
+
+<h2 id="おまけ2-フォルダをエクスプローラーで開く">おまけ2: フォルダをエクスプローラーで開く</h2>
+
+<p>上にも書いたように、WSL内では<code>explorer.exe</code>というコマンドが使えて
+ディレクトリを引数として渡すことでそのディレクトリを
+Windows側のエクスプローラーで表示することができます。</p>
+
+<p>同様に</p>
+
+<pre><code>$ powershell.exe /c start .
+</code></pre>
+
+<p>とやっても開くことができます。</p>
+
+<p>これらを使って、jpgやpdfファイルなどを指定しても適宣アプリを使って開いてくれます。</p>
+
+<p>ただし、<code>explorer.exe</code>の方だと何故か?必ず返り値が1でエラー終了になります。</p>
+
+<p>コマンドラインで叩く際には特に気にしなければ問題ありませんし、コマンドも短いので<code>explorer.exe</code>のほうが便利ですが、ちょっと微妙。</p>
+
+<p>2つでもしかしたら開けるものとかに差異があるかもしれませんが同じだと思うと
+正常終了してくれてたほうがうれしいです。</p>
+
+<p>で、話はちょっと変わってmacOSには<code>open</code>という便利コマンドがあって
+これを使うとディレクトリをFinderで表示したりファイルを適当なアプリで開いたりしてくれます。</p>
+
+<p>短いですし便利なので、WSLでも同じコマンドで使えるように<strong>.bashrc</strong>なんかに</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span> <span class="nb">type</span> open &gt;<span class="p">&amp;</span> /dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line">  <span class="k">if</span> <span class="nb">type</span> powershell.exe &gt;<span class="p">&amp;</span> /dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line">    <span class="nb">alias</span> <span class="nv">open</span><span class="o">=</span><span class="s2">&quot;powershell.exe /c start&quot;</span>
+</span><span class="line">  <span class="k">fi</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな設定を書いておけばmacOSでもWSLでも同じ様な感覚で<code>open</code>コマンドを使う事が出来るようになります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windows 11へアップグレード]]></title>
+    <link href="https://rcmdnk.com/blog/2021/10/18/computer-windows/"/>
+    <updated>2021-10-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/10/18/computer-windows</id>
+    <content type="html"><![CDATA[<p>Windows 11が正式に配布され始めたということで
+手元のWindows 10の端末をWindows 11にアップグレードしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#環境チェック" id="markdown-toc-環境チェック">環境チェック</a></li>
+  <li><a href="#tpm20の有効化" id="markdown-toc-tpm20の有効化">TPM2.0の有効化</a></li>
+  <li><a href="#windows-11をインストール" id="markdown-toc-windows-11をインストール">Windows 11をインストール</a></li>
+  <li><a href="#アップデート後の設定" id="markdown-toc-アップデート後の設定">アップデート後の設定</a></li>
+  <li><a href="#アップデート後に気づいたこと不具合" id="markdown-toc-アップデート後に気づいたこと不具合">アップデート後に気づいたこと、不具合</a>    <ul>
+      <li><a href="#ショートカットキー" id="markdown-toc-ショートカットキー">ショートカットキー</a></li>
+      <li><a href="#タスクバーの位置を変更できない" id="markdown-toc-タスクバーの位置を変更できない">タスクバーの位置を変更できない</a></li>
+      <li><a href="#タスクバー上でアプリのウィンドウを別々に表示できない" id="markdown-toc-タスクバー上でアプリのウィンドウを別々に表示できない">タスクバー上でアプリのウィンドウを別々に表示できない</a></li>
+      <li><a href="#スタートアップのピン留めがグループ分けできない" id="markdown-toc-スタートアップのピン留めがグループ分けできない">スタートアップのピン留めがグループ分けできない</a></li>
+      <li><a href="#alt-tabが全画面表示になる" id="markdown-toc-alt-tabが全画面表示になる">Alt-Tabが全画面表示になる</a></li>
+      <li><a href="#スタートメニュー右クリックにwindowsターミナルが" id="markdown-toc-スタートメニュー右クリックにwindowsターミナルが">スタートメニュー右クリックにWindowsターミナルが</a></li>
+      <li><a href="#wslttyで日本語が化ける" id="markdown-toc-wslttyで日本語が化ける">wslttyで日本語が化ける</a></li>
+    </ul>
+  </li>
+  <li><a href="#やってみたいこと" id="markdown-toc-やってみたいこと">やってみたいこと</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="環境チェック">環境チェック</h2>
+
+<p>すでに11へのアップデートのチェックが行われていると(?)、
+<strong>設定</strong><i class="fa fa-arrow-right"></i><strong>Windows Update</strong>に行くと、
+要件を満たしていない場合この様な感じの表示が出ます。</p>
+
+<pre><code>このPCがは現在、Windows 11のうべてのシステム要件を満たしていません
+詳細を取得し、PC正常性チェックアプリで対応できる項目があるかどうかを確認します。
+</code></pre>
+
+<p><img src="https://rcmdnk.com/images/post/20211018_settingscheck.jpg" alt="20211018_settingscheck.jpg" class="pic" /></p>
+
+<p>ここの<a href="https://www.microsoft.com/ja-jp/windows/windows-11?ocid=wu_windows_app_omc_win#pchealthcheck">PC正常性チェックを受ける</a>
+のリンクに行くと
+PC 正常性チェック アプリのダウンロード、というところからチェックアプリをダウンロードできるのでそれを使ってチェックしてみます。</p>
+
+<p>と、やはり対応できていない模様。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20211018_check.jpg" alt="20211018_check.jpg" class="pic" /></p>
+
+<pre><code>TPM 2.0がこのPCでサポートされ、有効になっている必要があります。
+TPM 2.0の中効果に関する詳細
+TPM TPMは検出されませんでした。
+</code></pre>
+
+<p>と、TPM(Trusted Platform Module)2.0が有効になってないとのことでした。</p>
+
+<ul>
+  <li><a href="https://support.microsoft.com/ja-jp/windows/pc-%E3%81%A7-tpm-2-0-%E3%82%92%E6%9C%89%E5%8A%B9%E3%81%AB%E3%81%99%E3%82%8B-1fd5a332-360d-4f46-a1e7-ae6b0c90645c">PC で TPM 2.0 を有効にする</a></li>
+</ul>
+
+<p>とかを参考にどうするか見てみます。</p>
+
+<p>2015年以降に発売された出荷されたPCであれば殆どは対応している可能性があるようです。
+ただし、無効にされていることが多いようです。</p>
+
+<p>ということで、有効にすれば良いわけですが、有効にするにはBIOS設定メニューなどから変更する必要があります。</p>
+
+<h2 id="tpm20の有効化">TPM2.0の有効化</h2>
+
+<p>ASUSとかだと以下のもの。</p>
+
+<ul>
+  <li><a href="https://www.asus.com/jp/support/FAQ/1046215/">[Motherboard] ASUS マザーボードに Windows 11 をインストールする方法は?  サポート 公式  ASUS 日本</a></li>
+</ul>
+
+<p>まず、現環境ですが、</p>
+
+<ul>
+  <li>マザーボード: H370-Plus</li>
+  <li>CPU: Intel i7-9700K CPU</li>
+  <li>Windows: Windows 10 Home, 21H1, 2020/05/27, 19043.1288</li>
+</ul>
+
+<p>ということで、上のページによると対応しているようです。</p>
+
+<p>上のページの説明と違ったところとして、</p>
+
+<ul>
+  <li>Advanced &gt; PCH-FW Configuration</li>
+</ul>
+
+<p>のところが、<strong>Disable</strong>、<strong>Enable</strong>ではなく、<strong>dTPM</strong>(Discrete TPM)、<strong>PTT</strong>(Intel Platform Trust Technology)の選択になっていましたが、<strong>PTT</strong>を選択することでTPM 2.0を有効に出来ます。</p>
+
+<p><strong>fTPM</strong>(Firmware TPM)という項目になっている場合もあるようです。</p>
+
+<blockquote>
+  <p><a href="https://pc.watch.impress.co.jp/docs/topic/feature/1334277.html">【特集】Windows 11で必須になった「TPM 2.0」って何？TPMの役割や確認方法を紹介 - PC Watch</a></p>
+</blockquote>
+
+<p>ということで、この変更をして再起動します。</p>
+
+<p>設定変更する際に、データが消えるかも、Windowsが消えるかも、的なwarningが出ますが、
+重要なデータなどがある場合はきちんとバックアップを取ってから行った方が良いです。</p>
+
+<p>基本的に必要なデータとかはクラウド上にあるのと、バックアップデータみたいなものは
+別のストレージにあるので特に気にせず再起動。</p>
+
+<p>再起動後、
+<strong>Windows Update</strong>に行くと、まだ</p>
+
+<pre><code>このPCがは現在、Windows 11のうべてのシステム要件を満たしていません
+</code></pre>
+
+<p>が出ていました。</p>
+
+<p>ただ、チェックアプリで見てみるとうれしいお知らせが得ていました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20211018_check2.jpg" alt="20211018_check2.jpg" class="pic" /></p>
+
+<pre><code>このPCはWindows 11の要件を満たしています
+</code></pre>
+
+<p><strong>Windows Update</strong>の方は何か定期的なチェックが行われていて内容が更新されてないだけなのか
+分かりませんが必要な部分は満たせたようなのでWindows 11をインストールしてみます。</p>
+
+<h2 id="windows-11をインストール">Windows 11をインストール</h2>
+
+<p>もしWindowsの更新が残ってる場合には最新版にアップデートしておきます。</p>
+
+<p>現状ではWindows 11が更新として来ている状態ではなかったので、
+インストーラー(インストールアシスタント)を取ってきてインストールします。</p>
+
+<ul>
+  <li><a href="https://www.microsoft.com/ja-jp/software-download/windows11">Windows 11 をダウンロードする</a></li>
+</ul>
+
+<p>インストールは指示にしたがって。</p>
+
+<p>Windows 11のインストールは、インストールの作業の間もWindowsが使える状態になっていました。</p>
+
+<ul>
+  <li>ダウンロードとインストールで大体30分程度。</li>
+  <li>その後、再起動になって使えるようになるまでに5分~10分程度。</li>
+</ul>
+
+<p>でした。</p>
+
+<p>なのでよほど急ぎの様がある場合でなければアップデート可能です。</p>
+
+<p>Macだと最近マイナーアップデートでも再起動で30分位使えなくなるのでそれに比べると
+メジャーアップデートでも裏でうまくやってくれる様でdead timeが非常に短くなっていて
+快適にアップデートできるな、と思いました。</p>
+
+<h2 id="アップデート後の設定">アップデート後の設定</h2>
+
+<p>Windows 10からアップデートした場合には、引き継げる設定は引き継がれた状態になっています。</p>
+
+<p>設定項目も見た目が変わってたりする部分も多いですが、それ程新しいものが目に付く感じでは無かったです。</p>
+
+<p>大きく違うのはスタートメニューとタスクバー。</p>
+
+<p>それぞれに対して設定から以下のような変更を。</p>
+
+<ul>
+  <li><strong>個人設定</strong><i class="fa fa-arrow-right"></i><strong>スタート</strong>
+    <ul>
+      <li><strong>フォルダー</strong>から、設定、ダウンロード、個人用フォルダーを表示に</li>
+    </ul>
+  </li>
+  <li><strong>個人設定</strong><i class="fa fa-arrow-right"></i><strong>タスクバー</strong>
+    <ul>
+      <li>タスクバー項目
+        <ul>
+          <li><strong>ウィジェット</strong>、<strong>チャット</strong>をオフに</li>
+        </ul>
+      </li>
+      <li>タスクバーコーナーのオーバーフロー
+        <ul>
+          <li>Evernote、Slack、AutoHotkey、CLCL辺りを常時表示させる様に</li>
+        </ul>
+      </li>
+      <li>タスクバーの動作
+        <ul>
+          <li>デスコトップを表示するには、タスクバーの隅を選択します、のチェックをはずす
+            <ul>
+              <li>タスクバーの右端をクリックするとすべてのウィンドウが隠されるが、使わないし誤作動されると面倒なのでdisable</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>あとは言語設定に関して、IMEがMicrosoft IMEになっていたので
+言語設定からMicrosoft IMEを削除(Google 日本語入力も有効にはなっていて２つが有効な状態だった)。</p>
+
+<p>もう一つ、PowerShellを立ち上げたところ文字化けしていました。
+これは
+プロパティからフォントをConsolasからMSゴシックへ変更することで日本語の文字化けを直すことが出来ました。</p>
+
+<p>その他、アプリなどに関しては下に書くwsltty以外は特に問題なく使える状態で、設定のアップデートなども特に必要なく、大きな問題は起こっていません。</p>
+
+<p>その他、CortanaがなくなったりInternet Explorerが廃止になったり
+<a href="https://www.microsoft.com/ja-jp/windows/windows-11-specifications">削除された機能</a>
+がありますが、基本的には使ってないものばかりだったので気になってません。</p>
+
+<h2 id="アップデート後に気づいたこと不具合">アップデート後に気づいたこと、不具合</h2>
+
+<h3 id="ショートカットキー">ショートカットキー</h3>
+
+<p>基本的にはWindows 10と同じですが、微妙に違う部分もあるようです。</p>
+
+<ul>
+  <li><a href="https://support.microsoft.com/ja-jp/windows/windows-%E3%81%AE%E3%82%AD%E3%83%BC%E3%83%9C%E3%83%BC%E3%83%89-%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88%E3%82%AB%E3%83%83%E3%83%88-dcc61a57-8ff0-cffe-9796-cb9706c75eec#WindowsVersion=Windows_11">Windows のキーボード ショートカット</a></li>
+</ul>
+
+<p><i class="key">Win</i>-<i class="key">C</i>が無くなったCortanaに変わってMicrosoft Teamsからチャットを開く、になっていたり。</p>
+
+<p>よく使うようなものはあまり変わってないとは思います。</p>
+
+<h3 id="タスクバーの位置を変更できない">タスクバーの位置を変更できない</h3>
+
+<p>Windows 11ではスタートメニューとタスクバーが大きく変わりました。</p>
+
+<p>今まで左下にあったスタートメニューが他のランチャーや起動中のアプリと集めて
+中央揃えで表示されるようになりました。</p>
+
+<p>まるでmacOSのよう。。。</p>
+
+<p>この設定自体は設定から左揃えにすることが出来、そうするとある意味昔ながらのWindowsっぽくはなります。</p>
+
+<p>一方で、以前までだとタスクバーは左右上下どこにでも設置することが出来ましたが、
+Windows 11では変更できないようになっています。</p>
+
+<p>レジストリーを直接いじることで上側に移すことは出来るようですが、
+左右に無理やり変更するとExplorerがクラッシュしてしまうそうです。。。</p>
+
+<blockquote>
+  <p><a href="http://www.softwareok.com/?seite=faq-Windows-11&amp;faq=115">Why can’t I align /docking the Windows 11 taskbar: left, right?</a></p>
+</blockquote>
+
+<p>横長のスクリーンを使っている関係上、タスクバーを左側に表示させたいという気持ちがあるのですが、
+それは敵わないようです。</p>
+
+<p>まあ、macOSでも上側に固定しているので別に良いかという気持ちもありますが、
+なんで変更できなくしたのかが謎。
+(起動中のアプリとかの表示がうまく出来ない？)</p>
+
+<h3 id="タスクバー上でアプリのウィンドウを別々に表示できない">タスクバー上でアプリのウィンドウを別々に表示できない</h3>
+
+<p>Windowsではもともとタスクバーにウィンドウを仕舞うとウィンドウ毎に表示されていました。</p>
+
+<p>Windows 10では<strong>タスクバーボタンを結合する</strong>というオプションに対して
+<strong>結合しない</strong>という選択肢がってまとめずにウィンドウごとの表示も出来ましたが、
+逆にWindows 11ではまとめて表示のみになったようです。
+(設定にその辺のオプションが見当たらない。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20211018_taskbar.jpg" alt="20211018_taskbar.jpg" class="pic" /></p>
+
+<p>マウスオーバーすると起動中のウィンドウのサムネイルが表示されて選択することは出来ますが、
+分けたい気持ちも。</p>
+
+<p>これもmacOSっぽい。。。</p>
+
+<h3 id="スタートアップのピン留めがグループ分けできない">スタートアップのピン留めがグループ分けできない</h3>
+
+<p>Windows 11ではスタートアップにピン留めすると、
+そのなかでブロックごとに分けたり配置を色々と設定することが出来ました。</p>
+
+<p>Windows 11ではそのようなことは出来ず、表示の順番は変更できますが
+詰めて順に表示させるだけです。</p>
+
+<p>整理して表示したい。。。</p>
+
+<h3 id="alt-tabが全画面表示になる">Alt-Tabが全画面表示になる</h3>
+
+<p>これまで<i class="key">Alt</i>-<i class="key">Tab</i>は現在の画面の上にオーバーラップするような形で
+ウィンドウ一覧が表示されていました。</p>
+
+<p>最新のものをきちんと覚えてませんが、<a href="https://duckduckgo.com/?q=alt+tab+windows+10&amp;atb=v278-1&amp;iax=images&amp;ia=images&amp;iai=https%3A%2F%2Fwww.windowslatest.com%2Fwp-content%2Fuploads%2F2020%2F07%2FWindows-10-Alt-Tab.jpg">画像検索</a>を見る限り多分そうだったはず。</p>
+
+<p>これが、Windows 11では全画面に強いモザイクがかけられた状態になり、
+その上にいっぱいにWindow一覧が表示されます。</p>
+
+<p>ちょくちょく<i class="key">Alt</i>-<i class="key">Tab</i>を使ってると
+画面転換が激しすぎてちょっと気持ち悪い感じに。</p>
+
+<p>前に開いていたWindowに一瞬で動く場合にはこれが表示されずに済みますが、
+これが結構シビアでちょっとでも時間がかかると一瞬全画面が切り替わるので
+結構目に来る感じがしています。</p>
+
+<p>この辺の変換時に全画面を表示させないしきい値や、以前の様な
+真ん中辺に小さく一覧を表示させるだけの様な形に戻せたら嬉しいな、とは思ってます。</p>
+
+<p>これは慣れの問題というより、目には悪いと思うのでなんとか変更できる方法があればやりたいところ。</p>
+
+<h3 id="スタートメニュー右クリックにwindowsターミナルが">スタートメニュー右クリックにWindowsターミナルが</h3>
+
+<p>スタートメニューを右クリックして出てくるメニューの中に以前は
+<a href="https://duckduckgo.com/?q=%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%88%E3%83%9C%E3%82%BF%E3%83%B3+%E5%8F%B3%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF%E3%83%A1%E3%83%8B%E3%83%A5%E3%83%BC+%E3%82%A6%E3%82%A3%E3%83%B3%E3%83%89%E3%82%A6%E3%82%BA&amp;atb=v278-1&amp;iax=images&amp;iai=https%3A%2F%2Fwin-plus.net%2Fwp-content%2Fuploads%2F2018%2F12%2F01-7.jpg&amp;ia=images">Windows PowerShell</a>がありました。</p>
+
+<p>さらに前にはコマンドプロンプトでした。</p>
+
+<p>これがWindows 11では<strong>Windowsターミナル</strong>になっています。</p>
+
+<p>もしかすると事前にインストールしていた場合のみかもしれませんが、
+もしくはWindows 11ではWindows Terminalがデフォルトで入っているのかもしれません。</p>
+
+<p>いずれにしろ、Terminalは違いますが、デフォルトではPowerShellが実行される
+ターミナルが立ち上がります。</p>
+
+<p>WSLのUbuntuなどに設定してあればそれが立ち上がります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/05/31/computer-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200531_profiles_120_90.png" width="120" height="90" alt="20200531_profiles_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/05/31/computer-ubuntu-bash/">Windows Terminalを試す</a></div></li></ul>
+
+<p>上で見たのは1年以上前なので結構変わっているところもありますが、
+一番大きな違いは、以前は設定変更がすべてJSONファイルを直接書き換えるものだったのが、
+ちゃんとGUIの変更メニューが出来てました。</p>
+
+<p>ただUIの設定ではフォントの設定などはなく、
+これらはまだJSONファイルを直接いじる必要がある模様。</p>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/en-us/windows/terminal/customize-settings/profile-appearance">Windows Terminal Appearance Profile Settings  Microsoft Docs</a></li>
+</ul>
+
+<p>デフォルトはフォントはCascadia Monoになってるなっている模様ですが、
+この設定で日本語も問題なく表示されます。</p>
+
+<p>このスタートメニューから出てくるものがWSLになってしまうと
+もはやWindowsのスタートメニューからのもの(なんとなくWindowsの設定に深く関わるものだと思っている)として相応しいのか疑問なところも。</p>
+
+<p>ただこのWindows TerminalはMicrosoftイチオシ、ということでしょうか?</p>
+
+<p>久しぶりに使ってみた感じとしては</p>
+
+<ul>
+  <li>カーソルが点滅しない</li>
+  <li>Vim上でもカーソルが変化しない</li>
+  <li>日本語の変換時にカーソルが左端にとどまったままになってちょっと戸惑う
+    <ul>
+      <li>これは慣れればわかりやすい、のか…?</li>
+    </ul>
+  </li>
+  <li>上に関連して、文章の途中から日本語を入力すると後ろの文字と被る</li>
+  <li>画面右端から書き始めて日本語変換しようとすると、カーソルより右側だけに変換前の文字をつめようとしておかしなことになる。(変換を決定するとちゃんと一列に戻る。)</li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20211018_terminaljapanese.jpg" alt="20211018_terminaljapanese.jpg" class="pic" /></p>
+
+<ul>
+  <li>起動モード、で、決まったサイズのウィンドウか最大とかしか選べない
+    <ul>
+      <li>前回と同じ大きさ、ということが出来ない</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言ったところ。</p>
+
+<p>やはり日本語の入力でちょっとストレスに感じる部分が残っています。</p>
+
+<p>また、カーソルが思ったとおりに表示されません。</p>
+
+<p>よく使う設定ではブロック状で点滅する設定にしておきます。
+Vim上ではVimがInsertモード時にbar、Normalモードではblockの様に替えてくれます。</p>
+
+<p>が、Windows terminalだとカーソルはVim内でも変更されません。</p>
+
+<p>また、点滅のon/offの設定が見つからないのですが、今の環境だと点滅しません。</p>
+
+<p>ただ上のProfile Settingsのページ内の絵とかでも点滅してたりするので
+通常はむしろ点滅するもの？</p>
+
+<p>GitHubのIssueなどを見ると<strong>キーボードのプロパティ</strong>を見ろ、とかもりましたが、
+そこでは<strong>カーソルの点滅速度</strong>はちゃんと0よりは大きくなっていて、
+実際メモ帳などでカーソルはちゃんと点滅します。</p>
+
+<p>あと、ウィンドウの大きさを毎回起動時に修正することになって結構ストレス。
+適当によく使う大きさを設定しておいても良いのですが、
+別のディスプレイとかにしたときにはやはりいちいち変更したりする必要があって面倒です。</p>
+
+<p>ちょっと色々とまだかゆいところが多い感じです。</p>
+
+<h3 id="wslttyで日本語が化ける">wslttyで日本語が化ける</h3>
+
+<p>まず、Windows 11にアップデート後、wslttyが立ち上がりませんでした。</p>
+
+<p>一瞬ウィンドウっぽいものが出て終了するような状態。</p>
+
+<ul>
+  <li>https://github.com/mintty/wsltty/releases</li>
+</ul>
+
+<p>から入れ直したら動きました。
+(古いバージョンがWindows 11に対応してなかっただけなのかもしれません。)</p>
+
+<p>ただ日本語が化けてます。</p>
+
+<p><code>cat</code>とかで標準出力したりVimで表示させても化けています。</p>
+
+<p>同じものをWindows Terminalからだと問題なく見れる状態です。</p>
+
+<p>設定からフォントを
+ConsolasからMSゴシックに変えても、他のフォントを試してみてもだめでした。</p>
+
+<p>Windows Terminalが色々と日本語でかゆいところがあるので
+やはりwslttyが使いたいな、と思ってたんですが、
+今の所この文字化け問題が解決できず、使えない状態です。</p>
+
+<p>なので今は仕方なくWindows Terminalを使っています。</p>
+
+<h2 id="やってみたいこと">やってみたいこと</h2>
+
+<p>Windows 11にしてなにかやりたいことがあるのか、と言われると実は特になくて、
+新しく使えるようになったから使ってみたい、というのが主。</p>
+
+<p>ちょっとやってみたいこととしてはPower Automate Desktopを使って何か作ってみたいな、とは思ってます。</p>
+
+<ul>
+  <li><a href="https://pc.watch.impress.co.jp/docs/topic/feature/1358679.html">【特集】Windows 11の業務自動化ツールでラクがしたい！純正アプリ「Power Automate Desktop」の使い方 - PC Watch</a></li>
+</ul>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Windows 11にアップデートしてみましたが思ったより違いは感じてません。</p>
+
+<p>アップデート自体はバックグラウンドでのインストールのおかげてほとんど
+使えなくなる時間が生まれないまま出来ました。</p>
+
+<p>アップデート後もそれ程大きな問題は起こっておらずそのまま使えています。</p>
+
+<p>ただ、Windows 11でどうしても使いたいものがあるわけでも無かったので
+アップデートする意味があったかと言われると微妙。</p>
+
+<p>慣れのせいもあるとは思いますが、正直Windows 10のが良かったな、と思う点が多いです。
+まあとはいえ11を使い続けるつもりですが。</p>
+
+<p>加えてwslttyが使えない状態になっているのが結構面倒だな、と思っていて、
+もう少し文字化けの問題を調べるか、いっそまた別のターミナルを試してみるか、そのうち。</p>
+]]></content>
+  </entry>
+  
+</feed>

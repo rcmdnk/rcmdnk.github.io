@@ -1,0 +1,1057 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: JavaScript | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/javascript/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Facebookのシェア数の獲得方法のアップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2016/09/14/blog-octopress-javascript/"/>
+    <updated>2016-09-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/09/14/blog-octopress-javascript</id>
+    <content type="html"><![CDATA[<p>ちょっと前にFacebookのAPIの変更でシェア数の獲得方法が変更されたので
+このOctopressブログ用のものもアップデートしてみたんですが、
+ちょっと色々問題があったのでアップデートしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#変更点と問題点" id="markdown-toc-変更点と問題点">変更点と問題点</a></li>
+  <li><a href="#解決法" id="markdown-toc-解決法">解決法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="変更点と問題点">変更点と問題点</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/08/22/blog-octopress-javascript/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150608_facebook_120_90.jpg" width="120" height="90" alt="20150608_facebook_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/08/22/blog-octopress-javascript/">FacebookのAPIが変更されシェア数の取り方が変わった</a></div></li></ul>
+
+<p>シェア数を取ってくるには、以下の様なURLで最後の<code>id</code>以下の部分を自分が
+知りたいURLにしてAPIを叩きます。</p>
+
+<blockquote>
+  <p><a href="http://graph.facebook.com/?id=http://rcmdnk.github.io/blog/2014/02/19/computer-markdown/">http://graph.facebook.com/?id=http://rcmdnk.github.io/blog/2014/02/19/computer-markdown/</a></p>
+</blockquote>
+
+<p>すると、以前は下の様なJSONが帰って来ました。</p>
+
+<pre><code>{
+  "id": "&lt;URL&gt;",
+  "shares": 37
+}
+</code></pre>
+
+<p>これがこの前から以下のように変更されています。</p>
+
+<pre><code>{
+  "og_object": {
+    ...
+  },
+  "share": {
+    "comment_count": 0,
+    "share_count": 37
+  },
+  "id": "http://rcmdnk.github.io/blog/2014/02/19/computer-markdown/"
+}
+</code></pre>
+
+<p>実際にはAPIにいくつかバージョンが合って、
+バージョン指定しないと使える最も古いものを使うのですが、
+今回の変更で上の様なJSONを返していた部分を持っていたバージョンが削除され
+下のような物を返すようになった、ということ。
+(なので以前でも下の様な形で取ることは可能でした。)
+最新のバージョンまでこれに関しては変更は今のところありません。</p>
+
+<p>シェア数を取るには
+<code>json_data["shares"]</code>みたいにしてたのを<code>json_data["share"]["share_count"]</code>に変更すればOK。</p>
+
+<p>これで差し当たりぱっと取ってこれる事は出来るのですが、
+新しくなってから、短期間で大量に取得しようとすると</p>
+
+<pre><code>(#4) Application request limit reached"
+</code></pre>
+
+<p>といったエラーを返す様になりました。
+これはメッセージ通り回数制限にひっかかってしまっている状態で、
+大体1分位で20~50回ほど一気に取ろうとすると引っかかる感じでした。</p>
+
+<p>それでも5分くらいするとこの制限は解除される感じだっったので、
+引っかかったらしばらく待機してまた取り始める、
+みたいなことをやってみました。</p>
+
+<p>と、スクリプトを流していると数時間終わらない様な状態だったので見てみると、
+今度は<strong>403 Forbidden</strong>を返していました。
+何か書き間違えたか、でも最初の方は取れてたし、みたいなことを考えながら
+直接ブラウザで開いたりしてみると常にこの状態。</p>
+
+<p><strong>https://google.com</strong>などもだめ。ちょっと他の端末でみてみたところ
+普通に見えました。</p>
+
+<p>どうも短期間に大量に繰り返したため、制限を超えてブラックリスト入りみたいになって
+端末ごとアクセスを拒否される様になってしまったようです。
+ブラウザを変えたりしてもダメ。</p>
+
+<p>この状態は結局2、3週間続いてやっと治りましたが、
+何度もこの状態になったらずっと解除されないかも。</p>
+
+<h2 id="解決法">解決法</h2>
+
+<p>というわけで、制限を回避する方法を探してみましたが、
+どうも簡単にはいかないようで、最終的にちょっとずつ取ってくる、という方法に。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/octopress-share-numbers/blob/master/plugins/share-numbers.rb">octopress-share-numbers/share-numbers.rb</a></p>
+</blockquote>
+
+<p>上のプラグインの中でやっていることですが、</p>
+
+<ul>
+  <li>全てのページのURLリストを取ってきてソートして順にシェア数を獲得していく。</li>
+  <li>URLがキーで値が0のハッシュを作る。</li>
+  <li>各URLについて1つずつチェックしていって値をアップデート。</li>
+  <li>errorが帰って来たらそこで終了。</li>
+  <li>どのURLのところで終了したか保存。</li>
+  <li>値は各ページで使用出来るように<code>site.config</code>へ保存。</li>
+  <li>別途JSON形式に直したものも保存しておく。</li>
+  <li>JSONの方は
+こんなファイルで出力させてページ作っておく。</li>
+</ul>
+
+<figure class="code"><figcaption><span>source/facebook_shares.html </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span>---
+</span><span class="line">layout: raw
+</span><span class="line">---
+</span><span class="line">{{ site.facebook_shares_json }}
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li>ここでの<code>raw</code>は以下の様にそのまま出力するようなレイアウト。</li>
+</ul>
+
+<figure class="code"><figcaption><span>source/_layouts/raw.html </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span>{{ content | expand_urls: root_url }}
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li>2回目以降は<strong>facebook_shares.html</strong>をWebから取ってきて
+ハッシュを初期化。前回最後のURLもあるので、作成中のURLリストの
+中でそのURLの所から始める。</li>
+</ul>
+
+<p>と言った感じ。</p>
+
+<p>Webでわざわざ公開してそこから持ってくる、みたいなちょっと面倒なことしてますが、
+これはブログをビルド時に全て関連のことをやりたかったことと、
+ビルドはwerckerを使ってHTMLになったものだけ
+送る様になっているため、
+ソースのレポジトリに残す、みたいなことが簡単に出来ないためです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p>これだとたとえ1回50個のURLをアップデートしたとしても
+ブログポストだけで500位あると全部アップデートするのに10日もかかってしまいます。
+が、まあとりあえずその程度でも良いかな。</p>
+
+<p>もしもっと頻繁にアップデートしたかったら、
+一日になんどもビルドするようにコミットし直す様にするか、
+数のリストを作る作業を別途外部スクリプトにして
+どこかのマシンで定期的に実行してソースのレポジトリに保存して
+ビルド時にはそれを使う、みたいな事をすることも出来ます。</p>
+
+<p>ただ、頻繁にやりたくても10分間隔とかだと確実にブラックリスト入するので
+もっと間隔を空ける必要がありますが、
+1時間位だと大丈夫かどうか、ちょっと試してみないと分からないところです。
+(一度入ってしまうとかなり長い期間使えなくなるので慎重に。。。)</p>
+
+<p>色々見てるとWebサーバーサイドで直接コマンド打てる様な環境で、
+5分おきにチェック、みたいのがあったりとかして、
+この変更があってからは<strong>すぐにやっても意味が無いから感覚を伸ばしてチェック</strong>(それでも1時間とかではなく10分程度)、
+みたいなことが書いてあるものをいくつか見ましたが、
+そういう人達で既にブラックリスト入りしてる人はたくさんいるんだろうな、と。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[FacebookのAPIが変更されシェア数の取り方が変わった]]></title>
+    <link href="https://rcmdnk.com/blog/2016/08/22/blog-octopress-javascript/"/>
+    <updated>2016-08-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/08/22/blog-octopress-javascript</id>
+    <content type="html"><![CDATA[<p>このブログでは各ポストにTwitterやらFacebookのシェアカウントを付けてますが、
+FacebookのAPIの仕様がちょっと変更されて正しく取れなくなっていたのでアップデート。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#facebookのシェア数取得方法" id="markdown-toc-facebookのシェア数取得方法">Facebookのシェア数取得方法</a></li>
+  <li><a href="#api-level-rate-limiting" id="markdown-toc-api-level-rate-limiting">API Level Rate Limiting</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="facebookのシェア数取得方法">Facebookのシェア数取得方法</h2>
+
+<p>Facebookのシェア数は
+<a href="https://developers.facebook.com/docs/graph-api">Graph API</a>
+と呼ばれるAPIを使って</p>
+
+<pre><code>http://graph.facebook.com/?id=&lt;URL&gt;
+</code></pre>
+
+<p>というURLを呼ぶとシェア数の入ったJSONを返してきます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/12/15/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20141215_socialbuttons_120_90.jpg" width="120" height="90" alt="20141215_socialbuttons_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/12/15/blog-octopress/">ソーシャルボタンを自作に変更</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/06/08/blog-octopress-javascript/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150608_facebook_120_90.jpg" width="120" height="90" alt="20150608_facebook_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/08/blog-octopress-javascript/">Facebookのカウント取得を改善</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B005YWUMG6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B005YWUMG6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71BdtByN4EL._SS90_CR0,0,120,90_.jpg" alt="ソーシャル・ネットワーク [DVD]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/15/blog-octopress/">ソーシャルボタンの数をビルド時に取ってくる</a></div></li></ul>
+
+<p>これが、以前は</p>
+
+<pre><code>{
+  "id": "&lt;URL&gt;",
+  "shares": 37
+}
+</code></pre>
+
+<p>みたいな形だったんですが、今は</p>
+
+<pre><code>{
+  "id": "&lt;URL&gt;",
+  "share": {
+    "comment_count": 0,
+    "share_count": 37
+  }
+}
+</code></pre>
+
+<p>こんな感じになっています。</p>
+
+<blockquote>
+  <p><a href="http://graph.facebook.com/?id=http://rcmdnk.github.io/blog/2014/02/19/computer-markdown/">http://graph.facebook.com/?id=http://rcmdnk.github.io/blog/2014/02/19/computer-markdown/</a></p>
+</blockquote>
+
+<p>従って、これまでJavaScriptとかだと、
+取ってきた<code>data</code>に対して、</p>
+
+<pre><code>var n = data.shares;
+</code></pre>
+
+<p>みたいな感じでアクセスしてたのを</p>
+
+<pre><code>var n = data.share.share_count;
+</code></pre>
+
+<p>の様に変更してあげればOK。</p>
+
+<p>もしくは</p>
+
+<pre><code>data["shares"];
+</code></pre>
+
+<p>みたいになってる所を</p>
+
+<pre><code>data["share"]["share_count"];
+</code></pre>
+
+<p>に。</p>
+
+<p>これで今まで通りシェア数が取れます。</p>
+
+<p>上の形はversion 2.0のもので、version 2.1から下の様になったようです。</p>
+
+<p>現在の最新バージョンは2.7です。</p>
+
+<blockquote>
+  <p><a href="https://developers.facebook.com/docs/apps/changelog">更新履歴 - Graph API</a></p>
+</blockquote>
+
+<p>が、バージョン指定しない状態で呼ぶと今使える最も古いものが呼ばれるということで、
+これまでは2.0のものが呼ばれてたのですが、
+2016年8月7日にこれが廃止され、現状呼んでるものは2.1になっています。</p>
+
+<blockquote>
+  <p><a href="https://developers.facebook.com/docs/apps/versions">Versioning - アプリ開発</a></p>
+</blockquote>
+
+<p>バージョン指定して呼ぶには</p>
+
+<pre><code>http://graph.facebook.com/v2.7/?id=&lt;URL&gt;,access_token=&lt;access_token&gt;
+</code></pre>
+
+<p>の様な感じで<code>id</code>等の指定の前にバージョンディレクトリを挟んでやれば良いのですが、
+アクセストークンが要求されるのでちょっと面倒です。</p>
+
+<p>現在は2.1から2.7までこのシェア数に関するものは同等なので特に気にしなくて大丈夫そうですが。</p>
+
+<p>また、以前まであったFQL (Facebook Query Language)やREST APIといったものが
+2.1から廃止されています。</p>
+
+<pre><code>http://graph.facebook.com/fql?q=SELECT%20total_count%20FROM%20link_stat%20WHERE%20url=&lt;URL&gt;
+</code></pre>
+
+<p>以前はこんな感じの呼び出しができていましたが、今やると</p>
+
+<pre><code>"message": "(#12) fql is deprecated for versions v2.1 and higher",
+</code></pre>
+
+<p>というエラーが返ってきます。</p>
+
+<p>各バージョン間のアップグレードに関して以下の様なイントロダクションページがあるのですが、
+2.0は既に廃止になったからか既にv2.0 to v2.1のものが無いのでちょっと不便。</p>
+
+<blockquote>
+  <p><a href="https://developers.facebook.com/docs/apps/upgrading/#v2tov21">Upgrade Guide - アプリ開発</a></p>
+</blockquote>
+
+<h2 id="api-level-rate-limiting">API Level Rate Limiting</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2016/08/30 </strong></p>
+
+  <p>このブログでシェア数を表示させるに辺り、
+毎回Octopressビルド時に全ての数を取ってきて置いてありました。</p>
+
+  <p>が、上の新しい仕様になった後、全部のページの情報を一気に取ろうとしたら、一定数のページ分を取得後、
+その後の分で</p>
+
+  <pre><code>{
+   "error": {
+      "message": "(#4) Application request limit reached",
+      "type": "OAuthException",
+      "is_transient": true,
+      "code": 4,
+      "fbtrace_id": "HsHyTwUZeDn"
+   }
+}
+</code></pre>
+
+  <p>と言った返答が来る様になってしまいました。</p>
+
+  <p>どうも使用数の制限があるらしく、一定時間内に沢山使うと
+制限がかかってしまうようです。
+以前は何故大丈夫だったのか。</p>
+
+  <blockquote>
+    <p><a href="https://developers.facebook.com/docs/graph-api/advanced/rate-limiting">Rate Limiting - Graph API</a></p>
+  </blockquote>
+
+  <blockquote>
+    <p><a href="https://developers.facebook.com/docs/marketing-api/api-rate-limiting">Graph and Ads API Rate Limiting - Marketing API</a></p>
+  </blockquote>
+
+  <blockquote>
+    <p><a href="http://stackoverflow.com/questions/14092989/facebook-api-4-application-request-limit-reached">Facebook api: (#4) Application request limit reached - Stack Overflow</a></p>
+  </blockquote>
+
+  <p>正確な数字はFacebookが出してないみたいですが、
+やってみた感じでは大体1分位の間に40回位呼ぶとそれ以降上のエラーが出る感じです。</p>
+
+  <p>その後、数分すると割とすぐにまた使える様になります。</p>
+
+  <p>デベロッパー的な設定をしてアクセストークンとかの設定をすれば回避出来るのかもしれませんが、
+そこまですることもないのでローカルで何度かに分けて数を取ってきておいて、
+それを渡すようにすれば良いか、と思いそんなスクリプトを作って試してみました。</p>
+
+  <p>ですが、上の様なエラーが返ってきたら数分待って試行する、みたいなことをやってみたんですが、
+500ページ位を取ってくるのに半日位かかってそこでスクリプトが何故か止まってしまって上手く行かず。</p>
+
+  <p>もう一度走らせてみようとした所今度は全然取ってこれないので
+手動で見てみると</p>
+
+  <pre><code>$ wget http://graph.facebook.com/?id=http://google.com -O -
+--2016-08-30 xx:xx:xx--  http://graph.facebook.com/?id=http://google.com
+Resolving graph.facebook.com (graph.facebook.com)... 31.13.95.8, 2a03:2880:f002:109:face:b00c::2
+Connecting to graph.facebook.com (graph.facebook.com)|31.13.95.8|:80... connected.
+HTTP request sent, awaiting response... 403 Forbidden
+2016-08-30 xx:xx:xx ERROR 403: Forbidden.
+</code></pre>
+
+  <p>みたいなのが返ってきてました。。。</p>
+
+  <p>全く同じコマンドを他の端末で見ると普通に取ってこれるので
+どうも端末のIPか何かがブラックリスト入りして接続を拒否られる様になってしまったようです。</p>
+
+  <p>これ、数日前になってからずっと同じ状態でどれくらいしたら解除されるのかも分かりません。</p>
+
+  <p>ということで、これまでと同じようなやり方でまとめて
+シェア数を取得するというのはどうも無理みたいです。</p>
+
+  <p>その上、一度ブロックされると最早普通にすら使えなくなっていつ解除されるかも分からないので
+注意が必要です。。。</p>
+
+  <p>ちょっとどうすればよいか試行中ですが、
+差し当たり、Travis CIでビルドしているので
+その際に上のアクセス制限が来るまでは探してその後は単に0にしてしまうようにしています。</p>
+
+  <p>全部のページを取り敢えずでも取得したければFacebookの部分だけでも
+その場でJavaScriptで取得、ということもありですが、
+Archiveページとかでボタンを設置してあるページもそうしてしまうと
+そのページを開いた人の端末がバンされてしまって他のページを見ても今後一切見れない状況になってしまうかも。。。</p>
+
+  <p>実際そういうこといくらでも起こってそうなんですが、どうなんでしょうか？</p>
+
+  <p>まあこのブログはFacebookでシェアされることは少ないのでどうでもよいといえば良いのですが、
+上手く出来ないと気持ち悪いのでなんとかしたいところではあります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[google-api-ruby-clientが非互換なアップデートされた]]></title>
+    <link href="https://rcmdnk.com/blog/2016/01/17/blog-octopress-javascript-analytics/"/>
+    <updated>2016-01-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/01/17/blog-octopress-javascript-analytics</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B019PO1B7M?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B019PO1B7M&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510XtDWsFpL._SS200_.jpg" alt="Analytics: Data Science, Data Analysis and Predictive Analytics for Business (Algorithms, Business Intelligence, Statistical Analysis, Decision Analysis, ... Data Mining, Big Data) (English Edition)" /></a>
+</div>
+
+<p>GoogleのRuby用APIライブラリの
+<a href="https://github.com/google/google-api-ruby-client">google-api-ruby-client</a>
+がアップデートされ、
+ちょっと仕様が変更されていたのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#google-api-clientのアップデート" id="markdown-toc-google-api-clientのアップデート">Google API Clientのアップデート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="google-api-clientのアップデート">Google API Clientのアップデート</h2>
+
+<div class="github-widget" data-repo="google/google-api-ruby-client"></div>
+
+<p>GoogleのAPIを色々使うためのRuby用ライブラリですが、
+これまで0.8.6だったバージョンが0.9にアップデートされ、
+それらの間で互換性が無いのでちょっと問題が起こりました。</p>
+
+<p>このOctopressのサイトではビルド時にページビュー数を取ってきて
+リストを作ったりしてますが、
+その際にAnalyticsのAPIを使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150210_popularlist_120_90.jpg" width="120" height="90" alt="20150210_popularlist_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/">Google AnalyticsのView数を取ってきてランキングを作る</a></div></li></ul>
+
+<p>以下のプラグインを使っています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octopress-page-view"></div>
+
+<p>この中で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/api_client&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を使ってますが、これが0.9ではなくなっています。</p>
+
+<p>0.9では</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/apis/analytics_v3&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで各サービスごとに読み込む様になっています。
+書くサービスの名前やバージョンは以下のディレクトリを見ることで分かります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/google-api-ruby-client/tree/master/generated/google/apis">google-api-ruby-client/generated/google/apis at master · google/google-api-ruby-client</a></p>
+</blockquote>
+
+<p>また、認証の仕方にはAPI Keyを用いていましたが、
+今後、<a href="https://github.com/google/google-auth-library-ruby">googleauth</a>
+というOAuth 2.0認証を使った方法に変えていくべきだ、とのこと
+がIssueで言われています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/google/google-api-ruby-client/issues/252">Missing loading pkcs keys · Issue #252 · google/google-api-ruby-client</a></p>
+</blockquote>
+
+<p>ただ、今のところ、取り敢えずAPI Keyを使うためのKeyUtilsが残される事になったので、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="nb">require</span> <span class="s1">&#39;google/api_client/auth/key_utils&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を読み込むことで今までのようにAPI Keyを使って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="n">key</span> <span class="o">=</span> <span class="no">Google</span><span class="o">::</span><span class="no">APIClient</span><span class="o">::</span><span class="no">KeyUtils</span><span class="o">.</span><span class="n">load_from_pkcs12</span><span class="p">(</span><span class="n">pv</span><span class="o">[</span><span class="s1">&#39;key_file&#39;</span><span class="o">]</span><span class="p">,</span> <span class="n">pv</span><span class="o">[</span><span class="s1">&#39;key_secret&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span class="line"><span class="n">client</span><span class="o">.</span><span class="n">authorization</span> <span class="o">=</span> <span class="no">Signet</span><span class="o">::</span><span class="no">OAuth2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class="line">  <span class="ss">:token_credential_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:audience</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:scope</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://www.googleapis.com/auth/analytics.readonly&#39;</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:issuer</span> <span class="o">=&gt;</span> <span class="n">pv</span><span class="o">[</span><span class="s1">&#39;service_account_email&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line">  <span class="ss">:signing_key</span> <span class="o">=&gt;</span> <span class="n">key</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな事をすることは出来ます。</p>
+
+<p>OAuth 2.0だとUIが必要なので、werckerに投げてそこで実行、的な事は出来ません。</p>
+
+<p>なので、ローカルで認証して認証情報ファイル自体をBitbucket等に送る事も出来ない
+わけではないですが、認証が切れる度に手動で行わなくてはならないし、
+そもそもそのようなファイルを送るならAPI Keyで良いと。</p>
+
+<p>ということで取り敢えずサポートされてる間はAPI Keyを使った形で使っていきます。</p>
+
+<p>使っている
+<a href="https://github.com/rcmdnk/octopress-page-view/blob/master/plugins/page_view.rb">octopress-page-view</a>
+という中のプラグインの変更は以下の様な感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span> require &#39;jekyll&#39;
+</span><span class="line"> require &#39;jekyll/post&#39;
+</span><span class="line"> require &#39;rubygems&#39;
+</span><span class="line"><span class="gd">-require &#39;google/api_client&#39;</span>
+</span><span class="line"><span class="gi">+require &#39;google/apis/analytics_v3&#39;</span>
+</span><span class="line"><span class="gi">+require &#39;google/api_client/auth/key_utils&#39;</span>
+</span><span class="line"> require &#39;chronic&#39;
+</span><span class="line">
+</span><span class="line"> module Jekyll
+</span><span class="line">...
+</span><span class="line">         pv[&#39;name&#39;][i] = &#39;_pv_&#39; + pv[&#39;start&#39;][i].gsub(&#39; &#39;, &#39;-&#39;)+&#39;-to-&#39;+pv[&#39;end&#39;][i].gsub(&#39; &#39;,&#39;-&#39;)
+</span><span class="line">       end
+</span><span class="line">
+</span><span class="line"><span class="gd">-      # API client</span>
+</span><span class="line"><span class="gd">-      client = Google::APIClient.new(</span>
+</span><span class="line"><span class="gd">-        :application_name =&gt; &#39;octopress-page-view&#39;,</span>
+</span><span class="line"><span class="gd">-        :application_version =&gt; &#39;1.0&#39;,</span>
+</span><span class="line"><span class="gd">-      )</span>
+</span><span class="line"><span class="gi">+      # Analytics service</span>
+</span><span class="line"><span class="gi">+      service = Google::Apis::AnalyticsV3::AnalyticsService.new</span>
+</span><span class="line">
+</span><span class="line">       # Load our credentials for the service account
+</span><span class="line">       key = Google::APIClient::KeyUtils.load_from_pkcs12(pv[&#39;key_file&#39;], pv[&#39;key_secret&#39;])
+</span><span class="line"><span class="gd">-      client.authorization = Signet::OAuth2::Client.new(</span>
+</span><span class="line"><span class="gi">+      service.authorization = Signet::OAuth2::Client.new(</span>
+</span><span class="line">         :token_credential_uri =&gt; &#39;https://accounts.google.com/o/oauth2/token&#39;,
+</span><span class="line">         :audience =&gt; &#39;https://accounts.google.com/o/oauth2/token&#39;,
+</span><span class="line"><span class="gd">-        :scope =&gt; &#39;https://www.googleapis.com/auth/analytics.readonly&#39;,</span>
+</span><span class="line"><span class="gi">+        :scope=&gt; Google::Apis::AnalyticsV3::AUTH_ANALYTICS_READONLY,</span>
+</span><span class="line">         :issuer =&gt; pv[&#39;service_account_email&#39;],
+</span><span class="line">         :signing_key =&gt; key)
+</span><span class="line"><span class="gd">-      analytics = client.discovered_api(&#39;analytics&#39;,&#39;v3&#39;)</span>
+</span><span class="line">
+</span><span class="line">       # Request a token for our service account
+</span><span class="line"><span class="gd">-      client.authorization.fetch_access_token!</span>
+</span><span class="line"><span class="gi">+      service.authorization.fetch_access_token!</span>
+</span><span class="line">
+</span><span class="line">       for i in 0..(pv[&#39;start&#39;].size-1)
+</span><span class="line"><span class="gd">-        params = {</span>
+</span><span class="line"><span class="gd">-          &#39;ids&#39; =&gt; pv[&#39;profileID&#39;],</span>
+</span><span class="line"><span class="gd">-          &#39;start-date&#39; =&gt; Chronic.parse(pv[&#39;start&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gd">-          &#39;end-date&#39; =&gt; Chronic.parse(pv[&#39;end&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gd">-          &#39;dimensions&#39; =&gt; &quot;ga:pagePath&quot;,</span>
+</span><span class="line"><span class="gd">-          &#39;metrics&#39; =&gt; pv[&#39;metric&#39;],</span>
+</span><span class="line"><span class="gd">-          &#39;max-results&#39; =&gt; 100000,</span>
+</span><span class="line"><span class="gd">-        }</span>
+</span><span class="line"><span class="gd">-        if pv[&#39;segment&#39;]</span>
+</span><span class="line"><span class="gd">-          params[&#39;segment&#39;] = pv[&#39;segment&#39;]</span>
+</span><span class="line"><span class="gd">-        end</span>
+</span><span class="line"><span class="gd">-        if pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gd">-          params[&#39;filters&#39;] = pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gd">-        end</span>
+</span><span class="line"><span class="gd">-</span>
+</span><span class="line"><span class="gd">-        response = client.execute(:api_method =&gt; analytics.data.ga.get, :parameters =&gt; params)</span>
+</span><span class="line"><span class="gd">-        results = Hash[response.data.rows]</span>
+</span><span class="line"><span class="gi">+        response = service.get_ga_data(</span>
+</span><span class="line"><span class="gi">+          pv[&#39;profileID&#39;],</span>
+</span><span class="line"><span class="gi">+          Chronic.parse(pv[&#39;start&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gi">+          Chronic.parse(pv[&#39;end&#39;][i]).strftime(&quot;%Y-%m-%d&quot;),</span>
+</span><span class="line"><span class="gi">+          pv[&#39;metric&#39;],</span>
+</span><span class="line"><span class="gi">+          dimensions: &quot;ga:pagePath&quot;,</span>
+</span><span class="line"><span class="gi">+          max_results: 100000,</span>
+</span><span class="line"><span class="gi">+          segment: pv[&#39;segment&#39;],</span>
+</span><span class="line"><span class="gi">+          filters: pv[&#39;filters&#39;]</span>
+</span><span class="line"><span class="gi">+        )</span>
+</span><span class="line"><span class="gi">+        results = Hash[response.rows]</span>
+</span><span class="line">
+</span><span class="line">         site.config[pv[&#39;name&#39;][i]] = 0
+</span></code></pre></td></tr></table></div></figure>
+
+<p><strong>analytics_v3</strong>と<strong>key_utils</strong>を<strong>api_client</strong>*の代わりに<code>require</code>し、
+中ではAPIClientオブジェクトを作る代わりにAnalyticsService
+を使っています。</p>
+
+<p>認証の所は基本、同じですが、親が上の様に変わっているのと、
+<strong>Google::Apis::AnalyticsV3::AUTH_ANALYTICS_READONLY</strong>
+という値がAPIの中で定義されていて、これは
+<strong>https://www.googleapis.com/auth/analytics.readonly</strong>
+になっています。</p>
+
+<p>なので、そこ変数を使うように。</p>
+
+<p>後は、結果を取ってくる関数とかがちょっと変わってきますが、
+基本的には同じような引数を渡してあげれば同じような回答が帰ってきます。</p>
+
+<p>ただし、<code>get_ga_data</code>という関数は
+<code>ids</code>, <code>start_date</code>, <code>end_date</code>, <code>metrics</code>という引数を必ず取り、
+後はオプションで渡す形になります。</p>
+
+<p>取り敢えずGoogleでAPI Keyを使って情報にアクセスしている場合なんかは
+こんな感じでアップデートすればGoogle API Client 0.9でも
+使える様になる感じです。</p>
+
+<p>もしくは<strong>Gemfile</strong>に</p>
+
+<pre><code>gem 'google-api-client', '~&gt; 0.8.6'
+</code></pre>
+
+<p>とでも書いて古いバージョンを使う、と言う手もありますが。
+(今のGemfileでは<strong>google-api-client</strong>のバージョン指定をしてません。)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[gotty: ターミナル操作をWebブラウザに表示/ブラウザから操作する]]></title>
+    <link href="https://rcmdnk.com/blog/2015/11/13/computer-go-javascript-remote/"/>
+    <updated>2015-11-13T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/11/13/computer-go-javascript-remote</id>
+    <content type="html"><![CDATA[<p>ターミナル操作をブラウザに表示したり、
+逆にブラウザからターミナル操作を行う事を可能にする
+<a href="https://github.com/yudai/gotty">GoTTY</a>
+というアプリケーションがなかなか面白いです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gotty" id="markdown-toc-gotty">gotty</a></li>
+  <li><a href="#他のもの" id="markdown-toc-他のもの">他のもの</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gotty">gotty</h2>
+
+<div class="github-widget" data-repo="yudai/gotty"></div>
+
+<p>GoTTYはGoで作られたアプリケーションで、
+コマンドライン操作をブラウザに表示したり、
+ブラウザ自体をターミナル化してコンピューターを操作を可能にする事が出来ます。</p>
+
+<p>GoTTYサーバーを立ち上げてブラウザからアクセスする形なので、
+ネットワークさえ通っていれば他の端末のターミナルを見たり、
+逆に他の端末をブラウザから操作することも可能になります。</p>
+
+<p>インストールはMacのHomebrewで</p>
+
+<pre><code>$ brew install yudai/gotty/gotty
+</code></pre>
+
+<p>とするか<code>go get</code>で</p>
+
+<pre><code>$ go get github.com/yudai/gotty
+</code></pre>
+
+<p>使い方としては<code>gotty</code>コマンドに表示させたいコマンドを引数として与えてあげればOK。</p>
+
+<pre><code>$ gotty top
+</code></pre>
+
+<p>とすると<code>top</code>コマンドが走るGoTTYサーバーが立ち上がるので、
+ブラウザから
+<a href="http://127.0.0.1:8080/">http://127.0.0.1:8080/</a>
+(デフォルトではポートは8080に設定されてるのでローカルホストの8080にアクセス)
+に接続すれば<code>top</code>コマンドの表示を見ることが出来ます。</p>
+
+<p>この状態だとブラウザの方からは操作できない状態ですが、
+<code>-w</code>を与えるとブラウザからも操作できる様になります。</p>
+
+<p>普通のターミナル操作をさせたいのであれば<code>bash</code>や<code>zsh</code>を与えてあげて</p>
+
+<pre><code>$ gotty -w bash
+</code></pre>
+
+<p>とすると、ブラウザ内で普通のターミナルが立ち上がる様な状態になり、
+そこから実際に操作することが出来ます。</p>
+
+<p>このコマンドを起動させておけば、IPアドレスが分かる端末であれば
+どこからでもブラウザ一つでターミナル操作が出来るようになる、というかなり強力なものです。</p>
+
+<p>ので、これを安易に行うとIPアドレスを知られてる人に
+直接コマンド操作される様な状態になってしまって
+結構危険なのでちょっと気をつけないといけません。</p>
+
+<p>ポート管理をしたり色々プロテクトすべき所もありますが、
+GoTTYの中でも<code>-c &lt;user&gt;:&lt;password&gt;</code>としてパスワードをかけたり、
+また<code>-r</code>を与えるとURLにランダムな文字列を加えたりすること(<code>http://127.0.0.1:8080/fu2quvbl</code>みたいな感じ)も出来ます。
+また、SSL/TLSを使った認証を使うことも出来ます。</p>
+
+<p>さらに面白い使い方としては、
+実際に作業している所を皆に見せる様なことも出来ます。</p>
+
+<p>普通にGoTTYを立ち上げるとブラウザで開くたびに
+そのコマンドを新たに実行するサブプロセスが起動してしまうので
+同じ画面を見ることは出来ません。</p>
+
+<p>そこでGoTTYのREADMEではtmuxを使う方法が書かれています。
+そこには<code>top</code>コマンドを表示することが書かれてますが、
+普通に操作を見せたいのであれば、まず、</p>
+
+<pre><code>$ tmux new -A -s gotty
+</code></pre>
+
+<p>として<code>gotty</code>という普通にシェルを立ち上げる新しいtmuxのセッションを作ります。
+(この時に<code>gotty</code>というセッションが既に存在すればそれをアタッチ。)</p>
+
+<p>次に、他のターミナルで</p>
+
+<pre><code>$ gotty tmux new -A -s gotty
+</code></pre>
+
+<p>として<code>gotty</code>セッションをアタッチするコマンドを行う
+GoTTYサーバーを立ち上げてあげれば
+ブラウザから開くと最初の端末で行われている作業を見ることが出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20151113_gottytmux.gif" alt="20151113_gottytmux.gif" class="pic" /></p>
+
+<p><code>-w</code>を与えなければ見ることだけが出来る状態です。</p>
+
+<p>この場合は先にブラウザで開いてしまった後に</p>
+
+<pre><code>$ tmux new -A -s gotty
+</code></pre>
+
+<p>を行って操作を開始しても問題ありません。</p>
+
+<p>同様の事をGNU screenで行おうとすると、
+まず、</p>
+
+<pre><code>$ screen -S gotty
+</code></pre>
+
+<p>として<code>gotty</code>という名のセッションを作って</p>
+
+<pre><code>$ gotty screen -x gotty &gt;&amp; /dev/null
+</code></pre>
+
+<p>でブラウザからアタッチ、と言う感じですが、
+この場合は最初の端末で先にセッションを作っておかないと
+ブラウザからは見れません
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>ちょっとややこしいのでこの場合はtmuxを使ったほうが便利です。</p>
+
+<h2 id="他のもの">他のもの</h2>
+
+<p>他にも
+<a href="https://github.com/IonicaBizau/web-term">IonicaBizau/web-term</a>
+と言ったJavaScript製のものもありました。
+こちらも同じような動作をしますが、
+上に書いたtmuxを使った画面シェアの仕方、みたいな方法は上手く行きませんでした。
+(実行コマンドに引数を与えることが無理っぽい?)</p>
+
+<p>またGoTTYも元々
+<a href="https://github.com/krishnasrinivas/wetty">krishnasrinivas/wetty</a>
+というJavaScript製の物を参考にして作っているとのことです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ということでGoTTYというアプリケーションをちょっと使ってみましたが
+ブラウザからのターミナル操作もかなり快適に普通に使えて驚きました。</p>
+
+<p>セキュリティーの問題さえきちんと気をつけられれば
+どこからでもブラウザだけでターミナル操作出来る環境を作れるのは結構すごいです。</p>
+
+<p>現実的には作業する時に手元にターミナル環境が無いことはまず無いので
+セキュリティーを頑張ってまでターミナルサーバーとして使うか、と言うと
+あまり無いかもしれませんが。</p>
+
+<p>一方でブラウザを通じて作業を表示する方法は色々な場面で使えそうです。
+同じサーバーに入って作業できるのであれば
+tmuxやscreenのみを使ってターミナル同士で見せ合うことも出来ますが、
+この方法であれば、操作する人のIPアドレスさえ分かれば
+(同一LAN内とかならローカルアドレスでもOK)
+自分の端末のブラウザから見ることが出来るので
+非常に簡単に出来ます。</p>
+
+<p>後は昨日紹介したターミナル上でのリッチモニターなんかも
+この方法を使えばそのままブラウザを通じて外から見ることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20151112_dashbord.gif" width="120" height="90" alt="20151112_dashbord" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/">ターミナルにリッチなモニターを表示させる</a></div></li></ul>
+
+<p>まあ、その場合は普通にHTMLとかで表示するの作れば良いじゃん、と言う所もありますが。。。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ターミナルにリッチなモニターを表示させる]]></title>
+    <link href="https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/"/>
+    <updated>2015-11-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2015/11/12/computer-javascript-go</id>
+    <content type="html"><![CDATA[<p>以前、
+<a href="https://rcmdnk.com/blog/2015/05/19/computer-bash/">spark</a>という
+シェルスクリプトで棒グラフを表示するコマンドを紹介しましたが、
+さらに複雑なグラフや地図などもターミナルに表示してしまおうと言う
+プロジェクトの紹介。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#blessed-contrib" id="markdown-toc-blessed-contrib">blessed-contrib</a></li>
+  <li><a href="#termui" id="markdown-toc-termui">termui</a></li>
+  <li><a href="#wopr" id="markdown-toc-wopr">wopr</a></li>
+  <li><a href="#ブラウザに表示させる" id="markdown-toc-ブラウザに表示させる">ブラウザに表示させる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="blessed-contrib">blessed-contrib</h2>
+
+<div class="github-widget" data-repo="yaronn/blessed-contrib"></div>
+
+<p>nodeがインストールされている必要がありますが、
+nodeが入っているなら取り敢えず</p>
+
+<pre><code>$ git clone https://github.com/yaronn/blessed-contrib.git
+$ cd blessed-contrib
+$ npm install
+$ node ./examples/dashboard.js
+</code></pre>
+
+<p>を実行してみてください。</p>
+
+<p>ターミナル上に
+こんな感じのものが表示されると思います。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20151112_dashbord.gif" alt="20151112_dashbord.gif" class="pic" /></p>
+
+<div class="postscript">
+  <p><strong>追記: 2015/11/30 </strong></p>
+
+  <p>上のgifはGNU screenを立ち上げてその上で実行したものですが、
+screen上だとフォントの関係か、枠線が<code>x</code>と<code>q</code>で構成されていてちょっと
+ださくなっています。</p>
+
+  <p>普通にターミナル(iTerm2, Mac)でそのまま見ると</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20151112_dashbordnormal.jpg" alt="20151112_dashbordnormal.jpg" class="pic" /></p>
+
+  <p>こんな風に枠がきちんと線で見えて見栄えが良くなります。</p>
+
+  <p>以前、きちんとこういった線になってた気がして、
+レポジトリの絵も線になってるので、なぜか<code>x</code>や<code>q</code>でおかしいな、
+と思いながらそのまま載せてましたが、
+どうもscreenが悪かった様です。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>すごいな、と思ったのは左下の<code>Servers Location</code>(Map)とかの部分で、
+世界地図が細かい点で表示されていますが、これは
+<a href="https://ja.wikipedia.org/wiki/%E7%82%B9%E5%AD%97">ブライユ点字法パターン</a>
+と呼ばれるUnicodeのU+2800からU+28FFに当たる文字を使っている様です。</p>
+
+<p>ブライユ点字法パターンでは横2列、縦4行の全8つの点を
+存在/非存在させることによって文字を表現しますが、
+これを上手く組み合わせることで、ansiアートが文字1幅分から8倍に増える、と言う感じになっています。</p>
+
+<p>sparkでもブロック要素と呼ばれる高さの違うブロックの文字列を
+組み合わせて棒グラフを作っていましたが、
+この点字の文字列を使うことによって格段と表現の幅が広がっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/05/19/computer-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20150519_cpuspark.gif" width="120" height="90" alt="20150519_cpuspark" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/05/19/computer-bash/">spark: シェルスクリプトで棒グラフ表示</a></div></li></ul>
+
+<p>blessed-contribでは13のWidgetsが用意されていて、
+上の様に色々な形で情報を表示させる事が出来ます。</p>
+
+<p><a href="https://github.com/yaronn/blessed-contrib#picture">Picture</a>
+という画像を表示させる様なものもあります。</p>
+
+<p>また、
+<a href="https://github.com/yaronn/blessed-contrib#tree">Tree</a>
+と言ったインタラクティブに操作できるWidgetもあります。</p>
+
+<p>JavaScript製でインプットファイルもJavaScriptで用意します。</p>
+
+<p>examplesの中に、上のdashboard.jsを始め、
+色々な例が入っているので結構簡単に使えました。</p>
+
+<p>Macでこれと<a href="https://rcmdnk.com/blog/tags/geektool/">GeekTool</a>を組み合わせれば
+デスクトップ上に色々なリッチなモニター表示をさせることも可能になります。</p>
+
+<h2 id="termui">termui</h2>
+
+<div class="github-widget" data-repo="gizak/termui"></div>
+
+<p>blessed-contribはJavaScript製でしたが、termuiはこれをGoに移植したものです。
+Goに慣れてる人はこちらがお勧め。</p>
+
+<h2 id="wopr">wopr</h2>
+
+<div class="github-widget" data-repo="yaronn/wopr"></div>
+
+<p>woprはblessed-contribのインプットをXML形式で簡単に書ける様にしたもの。</p>
+
+<p><code>wopr</code>コマンドをインストールしてXMLファイルを渡すか、
+もしくは<a href="http://tty.zone">tty.zone</a>というサーバー<code>curl</code>を使ってに渡すことでも使えます。</p>
+
+<pre><code>$ curl -N tty.zone/\[0-2\]\?auto\&amp;cols=$((COLUMNS))
+</code></pre>
+
+<p>とすると(何も入力なし)取り敢えずの例が見れます。
+この場合は勿論node等インストールしてなくても見れます。</p>
+
+<h2 id="ブラウザに表示させる">ブラウザに表示させる</h2>
+
+<p><a href="https://rcmdnk.com/blog/2015/11/13/computer-go-javascript-remote/">gotty</a>
+というコマンドを使えばターミナル出力がブラウザで見れるので、
+このモニターをブラウザに表示させることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/11/13/computer-go-javascript-remote/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/20151113_gottytmux.gif" width="120" height="90" alt="20151113_gottytmux" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/11/13/computer-go-javascript-remote/">gotty: ターミナル操作をWebブラウザに表示/ブラウザから操作する</a></div></li></ul>
+]]></content>
+  </entry>
+  
+</feed>

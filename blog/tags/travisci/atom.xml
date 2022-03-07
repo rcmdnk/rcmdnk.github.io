@@ -1,0 +1,882 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: TravisCI | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/travisci/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2022-03-07T00:51:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Travis CIでのantが使えなくなっていたので設定アップデート]]></title>
+    <link href="https://rcmdnk.com/blog/2019/08/07/blog-travisci/"/>
+    <updated>2019-08-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/08/07/blog-travisci</id>
+    <content type="html"><![CDATA[<p>このブログはビルドはWerckerを使っていますが、
+その後リンクのチェックなどをするためにもう一度Travis CIでチェックを行っています。</p>
+
+<p>その中で2週間ほど前からチェックするジョブが失敗していたので修復。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#現在のブログのworkflow" id="markdown-toc-現在のブログのworkflow">現在のブログのworkflow</a></li>
+  <li><a href="#travis-ciで起こったエラー" id="markdown-toc-travis-ciで起こったエラー">Travis CIで起こったエラー</a></li>
+  <li><a href="#xenialに対応antを入れる" id="markdown-toc-xenialに対応antを入れる">xenialに対応(antを入れる)</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="現在のブログのworkflow">現在のブログのworkflow</h2>
+
+<p>このブログはOctopressを使っていてGitHub Pagesで公開しています。</p>
+
+<p>その際に元のOctopressで書いている部分はBitBucketのプライベートレポジトリを使って
+管理しています。
+下書きとか特に出して困るものでも無いのですが無駄に公開するのもあれなので。</p>
+
+<p>BitBucketを使っているのは以前はGitHubでは無料でプライベートレポジトリを使えなかったからですが、</p>
+
+<p>そのBitBucketにpushしたコードをCIサービスのWerckerでビルドします。
+ここでWerckerを使ってる理由はWerckerだとプライベートレポジトリでも無料で使えるからです(BitBucketでもGitHubでも)。</p>
+
+<p>その後、出来上がっったHTML達はGitHubにpushされGitHub Pagesの機能を使って公開されます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150225_werckerapp_120_90.jpg" width="120" height="90" alt="20150225_werckerapp_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/25/blog-octopress/">werckerを使ってBitbucketのプライベートレポジトリからOctopressを自動デプロイする</a></div></li></ul>
+
+<p>これでブログの公開までは出来ますが、さらにGitHubにpushされたら
+それをTravis CIが受け取ってリンク切れなどのチェックを行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00JBGC8PY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00JBGC8PY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Oo-NwAK-L._SS90_CR0,0,120,90_.png" alt="Link Check Free 1.3" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/11/22/blog-octopress-travisci/">Travis CIを使ってブログのリンクチェックを自動化する</a></div></li></ul>
+
+<p>その後でもう一度GitHubにpushし直していますが、
+これは管理用のページに結果を足して自分で見やすくしているだけです。</p>
+
+<p>まとめるとこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20190807_workflow.png" alt="20190807_workflow.png" class="pic" /></p>
+
+<p>BitBucket/GitHub、Wercker/Travis CIと同じ様なサービスを２つずつ使っているのが微妙ですが、
+BitBucketやWerckerは今はここでしか触ってないのでサービスを知っておく機会としても残しておこうかな、と思ってます。</p>
+
+<p>あとはいい加減Octopressを使い続けるのもどうかな、とは常々。
+もう3.0に向けての開発も進んで無いようですし、今後アップデートは期待できません。</p>
+
+<p>ちょっと工夫してビルド時間はこのポスト数でもまともに使えるレベルには出来ていますが、
+普通にビルドしたら1時間じゃ済まないレベルです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003MY4UH0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003MY4UH0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZPJum6cCL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp： Speed Up (With Remixes) [Explicit]: Matt Harder: デジタルミュージック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/18/blog-octopress/">Octopressのgenerateを劇的にスピードアップする</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>そういった事もあって多くの人はHugoに移行している様に見えます。</p>
+
+<p>あとはRubyからGoに移る、というのも個人的にはやりたいかな、と思う理由の一つです。
+Goを触る機会がないのでこれを機に使う様になりたい。</p>
+
+<p>簡単な移行スクリプトでHugoのプロジェクトを作ってビルドしてみたところ確かにビルドのスピードは圧倒的に早かったです。
+上の様な工夫をしなくても数分レベル。</p>
+
+<p>ただプラグインなどを全て使えるようにするのが大変なのでまだ出来ていません。。。
+(何回かトライしようとしては途中で挫折する繰り返し。。。)</p>
+
+<p>これはそのうち。</p>
+
+<p>ちなみにさらに関係のない話になりますが、WerckerがOracleに買収されていて
+<a href="https://wercker.com">https://wercker.com</a>に行くと
+<a href="https://www.oracle.com/corporate/acquisitions/wercker/">Oracle Buys Wercker</a>
+というページに飛ばされる様になっていてちょっとびっくり。
+Werckerは<a href="https://app.wercker.com/">https://app.wercker.com/</a>
+と、<code>app</code>のついたURLからアプリケーションが使える様になっています。
+(Oracleのページってシンプルなので逆に何かフィッシングサイト系な感じに見えてWerckerに行ったはずなのにこのページが出るとちょっとビビる。。。)</p>
+
+<h2 id="travis-ciで起こったエラー">Travis CIで起こったエラー</h2>
+
+<p>話が逸れましたが、上の最後のTravis CIでのリンクチェックなどをしているジョブのセットアップのところで失敗する様になっていました。</p>
+
+<ul>
+  <li>最後に成功したもの: <a href="https://travis-ci.org/rcmdnk/rcmdnk.github.io/builds/562953824">Build #2418 - rcmdnk/rcmdnk.github.io - Travis CI</a></li>
+  <li>失敗が始まったもの: <a href="https://travis-ci.org/rcmdnk/rcmdnk.github.io/builds/563897498">Build #2419 - rcmdnk/rcmdnk.github.io - Travis CI</a></li>
+</ul>
+
+<p>エラーとしては</p>
+
+<pre><code>The program 'ant' is currently not installed. To run 'ant' please ask your administrator to install the package 'ant'
+</code></pre>
+
+<p>というのが出ています。</p>
+
+<p>上の２つのビルドを比べると環境として
+成功したものが</p>
+
+<pre><code>Operating System Details
+Distributor ID:  Ubuntu
+Description:  Ubuntu 14.04.5 LTS
+Release:  14.04
+Codename:  trusty
+</code></pre>
+
+<p>なのに対して失敗したものが</p>
+
+<pre><code>Operating System Details
+Distributor ID:  Ubuntu
+Description:  Ubuntu 16.04.6 LTS
+Release:  16.04
+Codename:  xenial
+</code></pre>
+
+<p>となっていました。</p>
+
+<p>で、Travis CIのJavaプロジェクトのの説明ページを見てみると</p>
+
+<blockquote><p>Because there is no single standard way of installing project dependencies with Ant, you need to specify the exact command to run using install: key in your .travis.yml, for example:</p><footer><strong>Building a Java project - Travis CI</strong> <cite><a href="https://docs.travis-ci.com/user/languages/java/">docs.travis-ci.com/user/java/&hellip;</a></cite></footer></blockquote>
+
+<p>と書いてありました。</p>
+
+<p>ということで原因はTravis CIでデフォルトのLinux環境がUbuntu 14.04.5 trustyからUbuntu 16.04.6 xenialに変わったことで
+antが最初から入っていない状態になっていたからでした。</p>
+
+<p>ちなみにこのチェック用のプロジェクトはJavaではなくて</p>
+
+<pre><code>language: python
+python: 2.7
+</code></pre>
+
+<p>と言った形(.travis.yaml)のPythonのプロジェクトになっていました。
+それでもtrustyだとJavaおよびantは入っていたようです。</p>
+
+<h2 id="xenialに対応antを入れる">xenialに対応(antを入れる)</h2>
+
+<p>ということでantを入れればよいわけですが、Pythonを使いたいのでとりあえずそのままJavaを入れようとすると</p>
+
+<pre><code>addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+</code></pre>
+
+<p>と.travis.yamlに書けば良いような感じなのですが、</p>
+
+<pre><code>E: Package 'oracle-java8-installer' has no installation candidate
+</code></pre>
+
+<p>みたいなエラーが出て駄目。他に古い?記事などで
+<code>oracle-java8-set-default</code>や
+<code>oracle-java8-set-installer</code>
+といったものも見かけたのでやってみるとこれらも</p>
+
+<pre><code>E: Unable to locate package oracle-java8-set-installer
+
+
+E: Unable to locate package oracle-java8-set-default
+</code></pre>
+
+<p>とか出てだめ。ただこれらはあるにはあるみたいなのでなんか設定がおかしいみたいです。</p>
+
+<p>で、特にJavaを他で使ってるわけでもないので動けば良い、ということで
+プロジェクトをJavaにしてPythonは横から入れるようにしました。</p>
+
+<p><code>language</code>などの設定を</p>
+
+<pre><code>dist: xenial
+language: java
+addons:
+  apt:
+    packages:
+      - ant
+</code></pre>
+
+<p>とします。一応今後突然default OSが変わっても良いようにOSも指定。</p>
+
+<p>逆にいうと今ならtrustyを指定すれば元のママ動くのですがそのうち使えなくなるかもしれないのでxenialで動くようにしました。</p>
+
+<p><code>language</code>をJavaにしてantを<code>addons</code>で入れます。</p>
+
+<p>これで試しにやってみると、環境としてPython 2.7が入っているようなのでPythonを別途入れる必要はなさそう。</p>
+
+<p>ただ、<code>pip</code>などでパッケージをインストールしている箇所で</p>
+
+<pre><code>ERROR: Could not install packages due to an EnvironmentError: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/xdg'
+Consider using the `--user` option or check the permissions.
+</code></pre>
+
+<p>みたいなエラーが出てしまいました。</p>
+
+<p>今まであまり意識してませんでしたが、どうも<code>language</code>に指定した言語に関しては
+システム領域の管理権限を持った状態で作業が進められる一方、
+他の部分は通常ユーザーとしていじれない様になっているみたいです。
+(少なくともPythonは。)</p>
+
+<p>特にシステム領域に入れたい理由もないので<code>pip install --user &lt;package&gt;</code>
+みたいな感じで<code>--user</code>を足してユーザー領域に入れるようにしてあげればOK。</p>
+
+<p>最終的に以下の様な変更で動くようになりました。</p>
+
+<figure class="code"><figcaption><span>.travis.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="diff"><span class="line"><span></span><span class="gh">diff --git a/source/.travis.yml b/source/.travis.yml</span>
+</span><span class="line"><span class="gh">index 29144a7a..9f348ba1 100644</span>
+</span><span class="line"><span class="gd">--- a/source/.travis.yml</span>
+</span><span class="line"><span class="gi">+++ b/source/.travis.yml</span>
+</span><span class="line"><span class="gu">@@ -1,9 +1,9 @@</span>
+</span><span class="line"><span class="gd">-language: python</span>
+</span><span class="line"><span class="gd">-python: 2.7</span>
+</span><span class="line"><span class="gd">-#addons:</span>
+</span><span class="line"><span class="gd">-#  apt:</span>
+</span><span class="line"><span class="gd">-#    packages:</span>
+</span><span class="line"><span class="gd">-#      - oracle-java8-set-default</span>
+</span><span class="line"><span class="gi">+dist: xenial</span>
+</span><span class="line"><span class="gi">+language: java</span>
+</span><span class="line"><span class="gi">+addons:</span>
+</span><span class="line"><span class="gi">+  apt:</span>
+</span><span class="line"><span class="gi">+    packages:</span>
+</span><span class="line"><span class="gi">+      - ant</span>
+</span><span class="line"> env:
+</span><span class="line">   global:
+</span><span class="line">     - GIT_COMMITTER_NAME=rcmdnk
+</span><span class="line"><span class="gu">@@ -23,10 +23,10 @@ install:</span>
+</span><span class="line">   - cd ../
+</span><span class="line">   - git clone https://github.com/linkcheck/linkchecker.git
+</span><span class="line">   - cd linkchecker
+</span><span class="line"><span class="gd">-  - pip install -r requirements.txt</span>
+</span><span class="line"><span class="gd">-  - python setup.py install</span>
+</span><span class="line"><span class="gi">+  - pip install --user -r requirements.txt</span>
+</span><span class="line"><span class="gi">+  - python setup.py install --user</span>
+</span><span class="line">   - cd $curdir
+</span><span class="line"><span class="gd">-  - pip install html5validator</span>
+</span><span class="line"><span class="gi">+  - pip install --user html5validator</span>
+</span><span class="line">   - git clone https://github.com/w3c/css-validator.git
+</span><span class="line">   - cd css-validator
+</span><span class="line">   - ant jar
+</span></code></pre></td></tr></table></div></figure>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Linkcheckerが動かなくなっていたので取り敢えずの処置]]></title>
+    <link href="https://rcmdnk.com/blog/2017/01/07/blog-travisci/"/>
+    <updated>2017-01-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/01/07/blog-travisci</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00JBGC8PY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00JBGC8PY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Oo-NwAK-L._SS200_.jpg" alt="Link Check Free 1.3" /></a>
+</div>
+
+<p>このブログはビルドした後に、Travis CIで
+<a href="http://wummel.github.io/linkchecker/">LinkChecker</a>
+というツールを使ってリンク切れ等が無いかチェックしています。</p>
+
+<p>Travis CIでは当然毎回Linkcheckerをインストールしてるわけですが、
+最近のビルドからエラーが出てチェック出来なくなっていたので
+取り敢えずの処置を入れました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#linchecker" id="markdown-toc-linchecker">Linchecker</a></li>
+  <li><a href="#linkcheckerの問題" id="markdown-toc-linkcheckerの問題">Linkcheckerの問題</a>    <ul>
+      <li><a href="#依存モジュールのバージョンチェックに失敗する" id="markdown-toc-依存モジュールのバージョンチェックに失敗する">依存モジュールのバージョンチェックに失敗する</a></li>
+      <li><a href="#インストール時にドキュメントが足りなくてエラーが出る" id="markdown-toc-インストール時にドキュメントが足りなくてエラーが出る">インストール時にドキュメントが足りなくてエラーが出る</a></li>
+    </ul>
+  </li>
+  <li><a href="#linkcheckerの現状" id="markdown-toc-linkcheckerの現状">Linkcheckerの現状</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="linchecker">Linchecker</h2>
+
+<p><a href="http://wummel.github.io/linkchecker/">LinkChecker</a>
+は指定ページや指定サイトにあるリンクを一つ一つチェックして、
+リンク切れなどをチェックしてくれるツールです。</p>
+
+<p>このブログは、BitBucketにあるソースをアップデートすると
+werckerを使ってOctopressなビルドを行って
+GitHubに出来上がったものを送ってGitHub Pagesで公開していますが、
+GitHubのレポジトリに送られると今度はTravis CIでLinkcheckerを走らせて、
+リンクチェックをするようにしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00JBGC8PY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00JBGC8PY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Oo-NwAK-L._SS90_CR0,0,120,90_.png" alt="Link Check Free 1.3" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/11/22/blog-octopress-travisci/">Travis CIを使ってブログのリンクチェックを自動化する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/05/29/blog-travisci/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150529_linkchecker_120_90.jpg" width="120" height="90" alt="20150529_linkchecker_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/05/29/blog-travisci/">ブログのリンクチェックを行うlinkcheckerの特定のエラーを無視する</a></div></li></ul>
+
+<p>BitBucketでソースを管理しているのはBitBucketだとプライベートレポジトリが無料で使えるからです。
+公開前のドラフトなどは余り見える所に置きたくないので。
+Travis CIではプライベートレポジトリで走らせるのは有料になるのでビルドはwerckerにしています。</p>
+
+<p>その後、最後にLinkcheckerはwerckerでも良いのですが、
+以前からTravis CIを使ってたのと、失敗したりFixしたりした時の
+メールの送信設定が多少Travis CIのが賢いのでこんな形になっています。</p>
+
+<h2 id="linkcheckerの問題">Linkcheckerの問題</h2>
+
+<h3 id="依存モジュールのバージョンチェックに失敗する">依存モジュールのバージョンチェックに失敗する</h3>
+
+<p>LinkcheckerはPython製のプログラムで<code>pip</code>でインストール出来るのですが、
+インストール時に<code>requests</code>モジュールを要求してインストールされて無ければインストールします。</p>
+
+<p>インストール後、実際走らせてみると</p>
+
+<pre><code>$ linkchecker
+This program requires Python requests 2.2.0 or later.
+</code></pre>
+
+<p>みたいなエラーが出るときがあります。
+<code>requests</code>のインストールに失敗したかな、と思って見てみると</p>
+
+<pre><code>$ pip list 2&gt;/dev/null |grep requests
+requests (2.12.4)
+requests-cache (0.4.11)
+</code></pre>
+
+<p>こんな感じでversion 2.12.4がちゃんとインストールされています。2.2.0より新しいバージョン。</p>
+
+<p>なんですが、実はLinkcheckerの中で、バージョンをチェックする時に
+バージョンを文字列として比較しているので、
+<code>"2.3.0" &gt; "2.2.0"</code>なのですが、<code>"2.12.0" &lt; "2.2.0"</code>なので(全体の文字列で比較するので3文字目の<code>1</code>と<code>2</code>を比較してるので)
+上のバージョンだと要求を満たしてないとみなされてしまいます。</p>
+
+<p>ちょっとあれな実装ですが、勿論簡単に解決出来て、
+各段階毎に分けてチェックすれば良いわけで(というか普通そうするわけで)、
+大分前にレポジトリのコードは直されています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/wummel/linkchecker/issues/649">Linkchecker does not work with requests 2.10.0 (fails with This program requires Python requests 2.2.0 or later.) · Issue #649 · wummel/linkchecker</a></p>
+</blockquote>
+
+<h3 id="インストール時にドキュメントが足りなくてエラーが出る">インストール時にドキュメントが足りなくてエラーが出る</h3>
+
+<p>レポジトリ上では直されているので、レポジトリにあるものを直接取ってきて
+ビルドしてインストールしてみました。</p>
+
+<p>すると、</p>
+
+<pre><code>$ python setup.py install
+...
+creating build/bdist.macosx-10.12-x86_64/egg/share/linkchecker
+copying config/linkcheckerrc -&gt; build/bdist.macosx-10.12-x86_64/egg/share/linkchecker
+error: can't copy 'doc/html/lccollection.qhc': doesn't exist or not a regular file
+</code></pre>
+
+<p>こんな感じのエラーで止まってしまいます。
+実際に<strong>doc</strong>ディレクトリに<strong>html</strong>というディレクトリは無いし、
+このファイルを生成するようなコマンドも無いように見えるんですが。</p>
+
+<blockquote>
+  <p><a href="https://github.com/wummel/linkchecker/issues/272">error: can’t copy ‘doc/html/lccollection.qhc’ on OSX · Issue #272 · wummel/linkchecker</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/wummel/linkchecker/issues/243">Error during install · Issue #243 · wummel/linkchecker</a></p>
+</blockquote>
+
+<p>この辺見ても該当するmakeのコマンドもMakefileの中に無いし
+作成できません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/wummel/linkchecker/pull/694">fix Travis tests (#681) by PetrDlouhy · Pull Request #694 · wummel/linkchecker</a></p>
+</blockquote>
+
+<p>みたいなPull Requestもありましたが、
+<a href="https://github.com/wummel/linkchecker/blob/master/.travis.yml">Travis CIの設定</a>を見るとそもそもinstall等のチェックはしてないので
+これとはまた別の話な模様。</p>
+
+<p>ということで、取り敢えずドキュメントら辺だけの問題っぽいので、
+setup.pyの中で該当の部分を削除した所、取り敢えず自前でビルド＆インストールは
+出来る様になりました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/linkchecker/commit/de12c0111d38a8ead7cc31f294adc06ddc7365ec">removed docs · rcmdnk/linkchecker@de12c01</a></p>
+</blockquote>
+
+<pre><code>$ git clone https://github.com/rcmdnk/linkchecker
+$ cd linkchecker
+$ pip install -r requirements.txt
+$ python setup.py install
+</code></pre>
+
+<p>でインストール出来るはずです。
+最後の所はroot権限が必要なら<code>sudo</code>で。もしくは<code>--prefix</code>オプションなどを使って
+インストールできる場所の指定をしてください。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/rcmdnk.github.io/blob/master/.travis.yml">rcmdnk.github.io/.travis.yml at master · rcmdnk/rcmdnk.github.io</a></p>
+</blockquote>
+
+<p>今使ってるのはこんな感じのTravis CI設定。</p>
+
+<h2 id="linkcheckerの現状">Linkcheckerの現状</h2>
+
+<p>バージョンチェックのコミットは昨年6月に行われてますが、
+作者の人がLinkcheckerについてアクティブさを失ったのか、
+<a href="https://pypi.python.org/pypi/LinkChecker">PyPIへの登録</a>や<a href="http://wummel.github.io/linkchecker/">Homepage</a>
+に載せてるバージョンのアップデートがまだ行われてません。</p>
+
+<p>元々古いバージョンの9.3は2014年にアップされたものでそれ以降
+バージョンアップデートは無いわけですが、
+レポジトリの更新も昨年の6月のfixコミットで最後になっています。</p>
+
+<p>で、ちょっとissueとかを見ていったらこんなエントリーが。</p>
+
+<blockquote>
+  <p><a href="https://github.com/wummel/linkchecker/issues/686">new organisation to welcome maintainers · Issue #686 · wummel/linkchecker</a></p>
+</blockquote>
+
+<p>作者の人に連絡したりしてメンテナンスを皆でやっていこう、という話ですが、
+どうも作者の人には連絡がついてないみたいで、このままだと別にフォークして
+そこでやっていこうかな、というような話に。</p>
+
+<p>メンテナーの募集もしてるのでもしPythonに詳しくてLinkcheckerを使ってる人が居たら是非、と言う感じです。</p>
+
+<p>上で無理やりfixしたドキュメントの所はそのままPull Requestとか出来ないですが、
+その辺ちゃんと見て、直したり出来そうならその辺から初めて
+出来ればLinkcheckerの手助けもしていきたいな、とも思ってます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Travis CIでのMacのOS環境を変更する設定]]></title>
+    <link href="https://rcmdnk.com/blog/2016/09/30/computer-mac-travisci/"/>
+    <updated>2016-09-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/09/30/computer-mac-travisci</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01AHD2AI4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01AHD2AI4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/710zwShX1VL._SS200_.jpg" alt="Everything At Once" /></a>
+</div>
+
+<p>Travis CIではデフォルトではUbuntuでテストが実行されますが
+Macの環境も使うことが出来ます。
+さらにOSのバージョンも変更出来ます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#travis-ciのmacのos環境について" id="markdown-toc-travis-ciのmacのos環境について">Travis CIのMacのOS環境について</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="travis-ciのmacのos環境について">Travis CIのMacのOS環境について</h2>
+
+<p>Travis CIでは</p>
+
+<pre><code>os: osx
+</code></pre>
+
+<p>と<code>os</code>に<code>osx</code>を指定するか</p>
+
+<pre><code>language: objective-c
+</code></pre>
+
+<p>と、言語に<code>objective-c</code>を指定するとMacの環境でのテストになります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00D1B8UPC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00D1B8UPC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41NoHFUTuaL._SS90_CR0,0,120,90_.jpg" alt="ザ・マン・フー" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/14/computer-mac-travisci/">Travis CIでのOS X環境について(+Linux環境についても)</a></div></li></ul>
+
+<p>ただし、デフォルトだとOS X 10.9(Mavericks)と随分古いものになっています。</p>
+
+<p>新しいものを使いたい場合には<code>osx_image</code>と言う値を設定します。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/osx-ci-environment/">The OS X Build Environment - Travis CI</a></p>
+</blockquote>
+
+<p>OS Xのバージョン番号とかではなく、<code>xcode8</code>等、Xcodeのバージョン指定で
+バージョン毎にOS Xへの対応バージョンが決まっていて
+該当するOS Xが使われます。</p>
+
+<p>最新版の8を指定すると</p>
+
+<pre><code>osx_image: xcode8
+</code></pre>
+
+<p>OS X 10.11 (El Capitan)が使われます。</p>
+
+<p>残念ならがまだmacOS Sierraは用意されていませんが
+そのうち使える様になると思います。
+(履歴を見る感じXcode 8.1が出る時に<code>xcode8.1</code>がSierraに対応するものとして採用されそうです。)</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M0FFLYH?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M0FFLYH&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZUix6JwPL._SS90_CR0,0,120,90_.jpg" alt="macOS Sierra (English Edition) 電子書籍: Chris Kennedy" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/23/computer-mac/">macOS Sierraにアップグレードしてみて取り敢えずの状況</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Travis CIで複数の暗号化ファイルを使う方法]]></title>
+    <link href="https://rcmdnk.com/blog/2016/04/13/computer-github-travisci/"/>
+    <updated>2016-04-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/04/13/computer-github-travisci</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4087491757?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4087491757&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31A1W8Z49EL._SS200_.jpg" alt="絢爛たる暗号―百人一首の謎を解く (集英社文庫)" /></a>
+</div>
+
+<p>Travis CIを使っていて、テストジョブ内で他のGitHubレポジトリに
+<code>push</code>したりするため、
+それ用の鍵を暗号化してレポジトリに置いてたりするんですが、
+そのような暗号化したファイルを複数使いたいと思った時に
+ちょっと躓いたのでその辺について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#travis-ci用の暗号化ファイルを使う" id="markdown-toc-travis-ci用の暗号化ファイルを使う">Travis CI用の暗号化ファイルを使う</a></li>
+  <li><a href="#2つ以上の暗号化ファイルを使う" id="markdown-toc-2つ以上の暗号化ファイルを使う">2つ以上の暗号化ファイルを使う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="travis-ci用の暗号化ファイルを使う">Travis CI用の暗号化ファイルを使う</h2>
+
+<p>Travis CIでのテスト中に他のGitHubレポジトリ等に<code>push</code>をしたい場合、
+<code>push</code>の権限を持つ秘密鍵が必要になります。</p>
+
+<p>普段使っているようなアカウント全体用の鍵を登録しても可能ですが、
+それだと鍵が漏れた時に大変なので、
+各レポジトリ専用の鍵を使います。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4314009071?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4314009071&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZRZ62WKCL._SS90_CR0,0,120,90_.jpg" alt="暗号化 プライバシーを救った反乱者たち" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/10/09/computer-github-travisci/">Travis CIのテストの中でGitHubのレポジトリへpushする</a></div></li></ul>
+
+<p>これがその辺の話。</p>
+
+<p>この際、秘密鍵を<code>travis encrypt-file</code>コマンドを使って作業するレポジトリに結びつけて
+暗号化し、作業レポジトリに置きます。</p>
+
+<h2 id="2つ以上の暗号化ファイルを使う">2つ以上の暗号化ファイルを使う</h2>
+
+<p>ここで、例えば2つ以上のテストマトリックスがあったりして、
+それぞれ別のレポジトリをテスト用の<code>push</code>レポジトリにしたいとした時、
+鍵をそれぞれに用意しないといけません。
+(同じ公開鍵を別のレポジトリに登録しようとすると、既に使われている、と言うエラーが出ます。)</p>
+
+<p>なので2つ鍵を用意して、それぞれを<code>travis encrypt-file</code>して。。。
+とか思ってたんですが、これだと上手く行きません。</p>
+
+<p>暗号化する際、毎回暗号化を変更しそれを使うので、
+最初に行った暗号の方は復元出来ず、</p>
+
+<pre><code>bad decrypt
+</code></pre>
+
+<p>なエラーが出ます。</p>
+
+<p>今のところ複数の暗号化ファイルを直接取り扱う方法というのは実は無くて、
+複数使うたい場合は、一度一つのファイルにまとめて、そのファイルを暗号化し、
+使う際にはそれを解いて中身を抽出して、みたいなことをする必要があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/travis-ci/travis.rb/issues/239"><code>encrypt-file</code> cannot be used for multiple files · Issue #239 · travis-ci/travis.rb</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/encrypting-files/#Encrypting-multiple-files">Encrypting Files - Travis CI</a></p>
+</blockquote>
+
+<p>上にあるままですが、<strong>.travis_rsa_1</strong>、<strong>.travis_rsa_2</strong>という2つのファイルを使いたい時、</p>
+
+<pre><code>$ tar cvf .travis_rsa.tar .travis_rsa_1 .travis_rsa_2
+$ travis encrypt-file -r rcmdnk/travis-test .travis_rsa.tar
+</code></pre>
+
+<p>として<strong>.travis_rsa.tar.enc</strong>というまとめた暗号化ファイルを作りこれを
+レポジトリに置いて、<strong>.travis.yml</strong>の中で、</p>
+
+<pre><code>- openssl aes-256-cbc -K $encrypted_ee14946e6582_key -iv $encrypted_ee14946e6582_iv -in .travis_rsa.tar.enc -out .travis_rsa.tar -d
+- tar xvf .travis_rsa.tar
+</code></pre>
+
+<p>と言った具合にdecryptして展開してあげて使えばOK。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Travis CIでのOS X環境について(+Linux環境についても)]]></title>
+    <link href="https://rcmdnk.com/blog/2016/02/14/computer-mac-travisci/"/>
+    <updated>2016-02-14T12:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/02/14/computer-mac-travisci</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00D1B8UPC?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00D1B8UPC&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41NoHFUTuaL._SS200_.jpg" alt="ザ・マン・フー" /></a>
+</div>
+
+<p>GitHubに置いてあるコードを
+<a href="https://rcmdnk.com/blog/tags/travisci/">Travis CI</a>
+を使ってテストを行っていますが、
+Travis CIでは通常Linux環境ですが、
+OS X環境も使うことが出来ます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#travis-ciのos-x環境" id="markdown-toc-travis-ciのos-x環境">Travis CIのOS X環境</a></li>
+  <li><a href="#travis-ciのlinux環境" id="markdown-toc-travis-ciのlinux環境">Travis CIのLinux環境</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="travis-ciのos-x環境">Travis CIのOS X環境</h2>
+
+<p>Travis CIの設定ファイルで</p>
+
+<pre><code>os:
+    - linux
+    - osx
+</code></pre>
+
+<p>の様に、<code>os</code>という値に<code>linux</code>または<code>osx</code>という値を与えることが出来ます。
+これによって
+<code>$TRAVIS_OS_NAME</code>という値にこの値が入り使うOSが決まります。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/multi-os/">Testing Your Project on Multiple Operating Systems - Travis CI</a></p>
+</blockquote>
+
+<p>何も指定しなければ<code>linux</code>ですが、上の様に書けば両方の環境で
+1回ずつテストすることになります。</p>
+
+<p>また、</p>
+
+<pre><code>language: objective-c
+</code></pre>
+
+<p>と、<code>language</code>に<code>objective-c</code>を指定した場合にも<code>osx</code>になります。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/workers/os-x-infrastructure/">Running jobs on Mac OS X infrastructure - Travis CI</a></p>
+</blockquote>
+
+<p>もし<code>os</code>に<code>linux</code>を設定して<code>language</code>に<code>objective-c</code>を指定した場合には
+<code>$TRAVIS_OS_NAME</code>の値は<code>linux</code>になりますが環境自体はOS Xになります。</p>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/109040610">Job #164.1 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>以前、これを使おうとした時、<code>os</code>の設定が反映されず、
+<code>osx</code>を使うときには<code>language</code>で指定するしかありませんでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/09/08/computer-github-travis/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/09/08/computer-github-travis/">Travis CIを使ってみた: GitHubのレポジトリにバッジを貼りたかったから</a></div></li></ul>
+
+<p>ですが、どうやら最近は<code>os</code>の値でも使える様になったみたいです。
+上のTravis CIのドキュメントでも、<code>os</code>の説明のページは</p>
+
+<pre><code>The feature described in this document is considered beta. Some features may not work as described.
+</code></pre>
+
+<p>となってるのでまだそのうち使えなくなるかもしれません。</p>
+
+<p>で、このOS Xの環境ですが、
+ちょっと古くてOS X 10.9.5 (Mavericks)です。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/osx-ci-environment/">The OS X Build Environment - Travis CI</a></p>
+</blockquote>
+
+<p>実際見てみると</p>
+
+<pre><code>$ uname -a
+Darwin Traviss-Mac-431.local 13.4.0 Darwin Kernel Version 13.4.0: Sun Aug 17 19:50:11 PDT 2014; root:xnu-2422.115.4~1/RELEASE_X86_64 x86_64
+$ if [ "$TRAVIS_OS_NAME" == "osx" ]; then sw_vers; fi
+ProductName:Mac OS X
+ProductVersion:10.9.5
+BuildVersion:13F34
+</code></pre>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/108961790">Job #160.2 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>こんな感じになってます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2016/02/15 </strong></p>
+
+  <p>ちなみにMacのバージョンは<code>sw_vers</code>というコマンド等を使って取ってこれます。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4839958289" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mi81eUjyL._SS90_CR0,0,120,90_.jpg" alt="はじめてのマック2016 ~Windowsとは違うMacのキホン~ (Mac Fan Special)" /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/15/computer-mac/">OS Xでバージョンをコマンドラインから確認する方法</a></div></li></ul>
+
+  <p>Linuxの場合にはTravis CIではログの最初の方の
+<code>Build system information</code>の所詳しく情報が載るんですが、
+OS Xだとバージョンすら情報が無いので調べるに直接コマンドで見るしかなかったもので。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>ちょっと古いので注意が必要です。
+下の記事でも古いのが原因かTravis CIの特殊な環境があるのか定かではありませんが、
+手元のEl Capitanの環境にはあるライブラリが見つからなかったりしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4526064025?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4526064025&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51%2BB1F4YO2L._SS90_CR0,0,120,90_.jpg" alt="新・実践自動化機構図解集―ものづくりの要素と機械システム" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/13/computer-mac-homebrew-brew-file/">Brew-fileでApp Storeのアプリも含めてMacを完全自動初期化</a></div></li></ul>
+
+<div class="postscript">
+  <p><strong>追記: 2016/09/29 </strong></p>
+
+  <p>デフォルトではOS X 10.9になりますが、
+それを変更する方法があります。</p>
+
+  <p>現時点で10.11 (El Capitan)まで使うことが出来ます。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01AHD2AI4" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/710zwShX1VL._SS90_CR0,0,120,90_.jpg" alt="Everything At Once" /></a>
+</div>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/30/computer-mac-travisci/">Travis CIでのMacのOS環境を変更する設定</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="travis-ciのlinux環境">Travis CIのLinux環境</h2>
+
+<p>Linuxの方もデフォルトで見てみると</p>
+
+<pre><code>$ uname -a
+Linux testing-gce-82889a3e-b1b0-436e-a14e-0347ac821f2b 3.13.0-63-generic #104~precise1-Ubuntu SMP Tue Aug 18 17:03:03 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+$ if [ "$TRAVIS_OS_NAME" == "linux" ]; then cat /etc/issue; fi
+Ubuntu 12.04.5 LTS \n \l
+</code></pre>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/109040879">Job #165.1 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>こんな感じになっています。</p>
+
+<p>デフォルトのOS環境は現在は
+Ubuntu 12.04.5になってます。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/ci-environment/">The Build Environment - Travis CI</a></p>
+</blockquote>
+
+<p><code>language</code>を<code>ovjective-c</code>とタイポしたところ14.04.3が使われた。</p>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/109039679">Job #161.1 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>試しに<code>aaa</code>とかしてみると</p>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/109044409">Job #170.1 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>こちらもやはり14.04.3。</p>
+
+<p>通常、この14.04.3(Trusty Tahr)を使いたい場合には</p>
+
+<pre><code>dist: trusty
+</code></pre>
+
+<p>を指定しておきます。</p>
+
+<blockquote>
+  <p><a href="https://docs.travis-ci.com/user/trusty-ci-environment/">The Trusty beta Build Environment - Travis CI</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://travis-ci.org/rcmdnk/travis-test/jobs/109045012">Job #171.1 - rcmdnk/travis-test - Travis CI</a></p>
+</blockquote>
+
+<p>なのですが、何故か間違った<code>language</code>指定をした場合にも
+trusty化してしまうようです。(バグ?)</p>
+]]></content>
+  </entry>
+  
+</feed>
