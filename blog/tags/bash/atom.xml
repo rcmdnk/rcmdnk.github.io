@@ -1,0 +1,1411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Bash | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/bash/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2024-03-28T00:49:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでgetoptsで解析する引数をポジショナルな引数と混合して使えるようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2023/11/01/computer-bash/"/>
+    <updated>2023-11-01T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/11/01/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5512569740?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5512569740&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/613QxkRKIfL._SS200_.jpg" alt="Getopts" /></a>
+</div>
+
+<p>シェルスクリプトで<code>getopts</code>を使うと簡単に引数のオプションが解析が出来ますが、
+ポジショナルな引数と一緒に使おうと思うと
+解析部分が途中で終わってしまったりうまく行かないことがあります。</p>
+
+<p>ただ使う側としては位置を気にせず使えたほうが便利なことが多いので
+それを実装する方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#getoptsを使ったオプション解析" id="markdown-toc-getoptsを使ったオプション解析">getoptsを使ったオプション解析</a></li>
+  <li><a href="#ポジショナルな引数をオプションの前や間にも入れられるようにする" id="markdown-toc-ポジショナルな引数をオプションの前や間にも入れられるようにする">ポジショナルな引数をオプションの前や間にも入れられるようにする</a></li>
+  <li><a href="#オプションでない-で始まる引数をポジショナルなものとして扱う" id="markdown-toc-オプションでない-で始まる引数をポジショナルなものとして扱う">オプションでない<code>-</code>で始まる引数をポジショナルなものとして扱う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="getoptsを使ったオプション解析">getoptsを使ったオプション解析</h2>
+
+<p>よくある感じはこんなの。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="se">\?</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Invalid option.&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line"><span class="nb">shift</span><span class="w"> </span><span class="k">$((</span><span class="nv">OPTIND</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="k">))</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>getopts</code>の後に<code>-</code>始まりで使いたいオプションとして使いたいアルファベットを書きますが、
+値を持つものに関しては<code>:</code>を後ろにつけます。</p>
+
+<p>このオプションのアルファベットが<code>OPT</code>に入り、
+値持ちの場合は<code>OPTARG</code>にこの値が入ります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>それぞれのオプションに関して<code>case</code>文でそれぞれに対しての処置を設定します。
+もし<code>-</code>付きの引数で<code>getopt</code>に定義されてないものがくると<code>OPT</code>には<code>?</code>が入るのでそれに対する処置も追加しておきます。(エスケープ(<code>\?</code>)が必要。)</p>
+
+<p>解析が一通り終わった後、解析に使われなかった残りの引数を取得するために
+解析に使われた分(<code>OPTIND - 1</code>)<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+だけ<code>shift</code>で削除して残りをポジショナルな引数(<code>$1</code>, <code>$2</code>, …)として使えるような形にしています。</p>
+
+<p>実行してみると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">
+</span><span class="line">$ ./arg.sh -a -b yyy -c zzz abc def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">zzz
+</span><span class="line">abc def
+</span><span class="line">$ ./arg.sh -b yyy -a -c zzz -c ZZZ abc def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">ZZZ
+</span><span class="line">abc def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じになります。
+オプション部分に関しては順番は入れ替わっても大丈夫ですし、
+複数回同じオプションを使ってもその度に解析されるので、
+上の例だとただ値を入れてるだけなので<code>-c zzz -c ZZZ</code>みたいにした場合は後の方が残っています。</p>
+
+<p>ただ、これをオプションより前にポジショナルな引数を与えてしまうと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh abc -a -b yyy -c zzz def
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">abc -a -b yyy -c zzz def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じで解析されません。</p>
+
+<p>また、<code>a</code>は値を持たないオプションですが、<code>-a</code>の後ろに引数を置くとポジショナルな引数としてそこで解析が終わるので、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -a abc -b yyy -c zzz def
+</span><span class="line">xxx
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">abc -b yyy -c zzz def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じに<code>-a</code>の解析だけ行われて終了してしまいます。</p>
+
+<h2 id="ポジショナルな引数をオプションの前や間にも入れられるようにする">ポジショナルな引数をオプションの前や間にも入れられるようにする</h2>
+
+<p>これに関してはstackoverflowに10年以上前の質問がありました。</p>
+
+<ul>
+  <li><a href="https://stackoverflow.com/questions/11742996/is-mixing-getopts-with-positional-parameters-possible">bash - Is mixing getopts with positional parameters possible? - Stack Overflow</a></li>
+</ul>
+
+<p>一番voteされてるのは普通の<code>getopts</code>の説明で答えになってない感じではあるんですが、
+8年経って投稿された答えがいい感じに解決してくれてます。</p>
+
+<p>上のスクリプトを下のように書き換えてみます。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">positional</span><span class="o">=()</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OPTIND</span><span class="s2">&quot;</span><span class="w"> </span>-le<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$#</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="se">\?</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Invalid option.&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="k">esac</span>
+</span><span class="line"><span class="w">  </span><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">!OPTIND</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">    </span><span class="o">((</span>OPTIND++<span class="o">))</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">positional</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -a abc -b yyy -c zzz def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">zzz
+</span><span class="line">abc def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じでオプション解析に使われてないものが
+<code>positional</code>に入れられてそれを順に使えるような状態が出来ます。</p>
+
+<p>ここでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">while [ "$OPTIND" -le "$#" ];do
+</span><span class="line">  if getopts ab:c:h OPT;then</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の組み合わせにすることで<code>getopts</code>で1つずつ解析していき、
+かつ<code>-</code>始まりでないポジショナルな引数が来たらこの2段目がfalseになるので、
+そこでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">positional+=("${!OPTIND}")
+</span><span class="line">((OPTIND++))</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>として<code>positional</code>変数にその値を追加しています
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。
+この場合は<code>getopts</code>での<code>OPTIND</code>のインクリメントが行われないので
+手動で1つ値を加えておきます。</p>
+
+<p>こうすることで最後までオプション引数があれば解析してその他はポジショナルな引数として扱うことが出来ます。</p>
+
+<h2 id="オプションでない-で始まる引数をポジショナルなものとして扱う">オプションでない<code>-</code>で始まる引数をポジショナルなものとして扱う</h2>
+
+<p>上のスクリプトでオプションとして設定していない文字を<code>-</code>付きで与えると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -d
+</span><span class="line">./arg.sh: illegal option -- d
+</span><span class="line">Invalid option.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じのエラーを出します。</p>
+
+<p>このような設定していないものはそのままポジショナルな引数として使いたい、といったことがある場合は以下のようにすることで扱えます。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">positional</span><span class="o">=()</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OPTIND</span><span class="s2">&quot;</span><span class="w"> </span>-le<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$#</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>:ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="se">\?</span><span class="o">)</span><span class="w"> </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;-</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="o">)</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="k">esac</span>
+</span><span class="line"><span class="w">  </span><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">!OPTIND</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">    </span><span class="o">((</span>OPTIND++<span class="o">))</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">positional</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>変わったところは<code>getopts</code>の引数の最初に<code>:</code>が追加され、<code>?</code>の場合に
+<code>positional</code>に<code>-</code>を加えた<code>OPTARG</code>を追加している部分。</p>
+
+<p><code>getopts</code>の第一引数の文字列で一番最初に<code>:</code>を入れると
+<code>-</code>から始まる引数が指定のオプションでない場合はエラーにせずに
+その文字を<code>OPTARG</code>に入れる、という仕組みがあります。</p>
+
+<p>この場合も<code>OPT</code>に入るのは<code>?</code>です。</p>
+
+<p>これを使って<code>-$OPTARG</code>を<code>positional</code>に加えることでオプション指定していない<code>-</code>引数をポジショナルな引数として扱っています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -d
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">-d</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じ。</p>
+
+<p>引数の一部を解析した上で
+さらに別の関数にそのまま渡したい、とか言う場合に使えそうです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでgitとかみたいなサブコマンドを作る]]></title>
+    <link href="https://rcmdnk.com/blog/2023/05/04/computer-bash/"/>
+    <updated>2023-05-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/05/04/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00005ON6M?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00005ON6M&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/216K2PBF7FL._SS200_.jpg" alt="Sub Command" /></a>
+</div>
+
+<p>シェルスクリプトで<code>git</code>とかみたいなサブコマンドを持ったコマンドツールを作る。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#サブコマンドを使えるコマンド" id="markdown-toc-サブコマンドを使えるコマンド">サブコマンドを使えるコマンド</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="サブコマンドを使えるコマンド">サブコマンドを使えるコマンド</h2>
+
+<p><code>git</code>などのコマンドは<code>git &lt;subcommand&gt; [options]</code>的な感じで
+サブコマンドによって<code>git</code>のどの様な操作をするか、を指定しますが、
+このサブコマンドを自作することも簡単にできます。</p>
+
+<p>自作コマンドは<code>PATH</code>の通ったディレクトリに<code>git-&lt;command&gt;</code>のように
+<code>git-</code>から始まるコマンドを置けば<code>git &lt;command&gt;</code>のように使えるようになります。</p>
+
+<p>これみたいなことをシェルスクリプトでやってみます。</p>
+
+<p><code>mycmd</code>というコマンドを作って、<code>mycmd-&lt;command&gt;</code>というスクリプトなどを<code>mycmd &lt;command&gt;</code>の形で実行できるようにします。</p>
+
+<div><script src="https://gist.github.com/8dd36fcf603bec9ae79080c2a24d73e8.js"></script>
+<noscript><pre><code>#!/usr/bin/env bash
+
+# mycmd: command wrapper for functions and executables
+
+PREFIX=&quot;$(basename &quot;$0&quot;)-&quot;
+
+get_commands () {
+  local array
+  local cmd_cand=()
+
+  # get functions
+  IFS=&#39; &#39; read -ra array &lt;&lt;&lt; &quot;$(declare -F |grep &quot;declare -f $PREFIX&quot;|cut -d&#39; &#39; -f3 | tr $&#39;\n&#39; &#39; &#39;)&quot;
+  cmd_cand=(&quot;${cmd_cand[@]}&quot; &quot;${array[@]}&quot;)
+
+  # get executables
+  local pathes
+  IFS=&#39;:&#39; read -ra pathes &lt;&lt;&lt; &quot;$PATH&quot;
+  local p
+  local f
+  local cmd
+  for p in &quot;${pathes[@]}&quot;;do
+    if [ ! -d &quot;$p&quot; ];then
+      continue
+    fi
+    while read -r f;do
+      if [ -x &quot;$f&quot; ];then
+        cmd=&quot;${f##*/}&quot;
+        cmd_cand+=(&quot;$cmd&quot;)
+      fi
+    done &lt; &lt;(find  &quot;$p&quot; -maxdepth 1 -name  &quot;${PREFIX}*&quot;)
+  done
+
+  local commands=()
+  for cmd in &quot;${cmd_cand[@]}&quot;;do
+    if [ &quot;$cmd&quot; = &quot;&quot; ];then
+      continue
+    fi
+    c=${cmd/$PREFIX/}
+    commands+=(&quot;$c&quot;)
+  done
+  echo &quot;${commands[*]}&quot;
+}
+
+mycmd-help () {
+  echo &quot;Usage: mycmd &lt;sub-commands&gt;&quot;
+  echo &quot;Sub commands: $(get_commands)&quot;
+}
+
+mycmd-commands () {
+  get_commands
+}
+
+mycmd-test () {
+  echo &quot;This is mycmd-test&quot;
+  for arg in &quot;$@&quot;;do
+    echo &quot;arg: $arg&quot;
+  done
+}
+
+if [ $# -eq 0 ];then
+  mycmd-help
+  exit
+fi
+
+cmd=&quot;$1&quot;
+shift
+if [[ &quot;$cmd&quot; = &quot;commands&quot; ]];then
+  mycmd-commands
+  exit
+fi
+
+if ! type -t &quot;$PREFIX$cmd&quot; &gt;&amp;/dev/null;then
+  echo &quot;Unknown command: $cmd&quot;
+  mycmd-help
+  exit 1
+fi
+&quot;$PREFIX$cmd&quot; &quot;$@&quot;
+</code></pre></noscript></div>
+
+<p>こんな感じのスクリプト。
+PREFIXはコマンドフィアルの名前にしています。
+もしこれがシンボリックリンクなどで別の名前に貼られるとそっちがPREFIXとして使われるので注意。
+(もしそれが想定されてないなら中で<code>PREFIX="mycmd-"</code>のようにしてしまう。)</p>
+
+<p>外部コマンドと中で使う関数に関して<code>mycmd-</code>と付くものを使えるようにしてあります。</p>
+
+<p>関数は<strong>.bashrc</strong>などで定義してログインシェル上で定義されていてもスクリプトの中には引き継がれないので使えません。
+使うのであればスクリプトの中で<code>source .bashrc</code>とかする必要があります。</p>
+
+<p>スクリプトの中で</p>
+
+<ul>
+  <li>関数: mycmd-help, mycmd-commands, mycmd-test</li>
+</ul>
+
+<p>が設定されています。別途、<code>PATH</code>の通っているディレクトリに</p>
+
+<figure class="code"><figcaption><span>mycmd-script </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span>mycmd-script
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;arg: </span><span class="nv">$arg</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といったスクリプトを実行権限を与えて置いておきます。</p>
+
+<p>これで使ってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ mycmd
+</span><span class="line">Usage: mycmd &lt;sub-commands&gt;
+</span><span class="line">Sub commands: commands help test script</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じで引数なしだと<code>help</code>が呼ばれるようになっているのでこのような表示で、
+定義しているコマンドが全て見えています。</p>
+
+<p>あとは各種コマンドも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ mycmd test a "b c" d
+</span><span class="line">This is mycmd-test
+</span><span class="line">arg: a
+</span><span class="line">arg: b c
+</span><span class="line">arg: d
+</span><span class="line">$ mycmd script a "b c" d
+</span><span class="line">mycmd-script
+</span><span class="line">arg: a
+</span><span class="line">arg: b c
+</span><span class="line">arg: d</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>`</p>
+
+<p>このように使え、引数もきちんと渡されています。</p>
+
+<p><code>get_commands</code>という関数が少し長いですが、
+これは全ての定義されたものを探すだけの関数なので、もし渡されたコマンドがなければエラーを返すだけで良いなら
+この関数は除いても良くて、
+最小版だと以下のような感じ。</p>
+
+<figure class="code"><figcaption><span>mycmd </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="o">}</span>-<span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">cmd=&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">shift</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">if ! type -t &quot;</span><span class="nv">$PREFIX$cmd</span><span class="s2">&quot; &gt;&amp;/dev/null;then</span>
+</span><span class="line"><span class="s2">  echo &quot;</span>Unknown<span class="w"> </span>command:<span class="w"> </span><span class="nv">$cmd</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">  exit 1</span>
+</span><span class="line"><span class="s2">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;</span><span class="nv">$PREFIX$cmd</span><span class="s2">&quot; &quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで適当な名前のファイルに保存して置いて、後はサブコマンドをPATHの下に置いていけば
+自由にサブコマンド付きのコマンドが作れます。</p>
+
+<p>上では関数とPATH下の外部実行ファイルのみを探していますが、
+もし、aliasも使いたい場合は
+aliasは通常はインタラクティブなシェルでのみ有効でスクリプト中だと定義しても無視されてしまうため、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">shopt -s expand_aliases</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のオプション設定を最初に実行する必要があります。</p>
+
+<p>また、<code>get_commands</code>の中で、関数に加えて、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span><span class="c1"># get functions</span>
+</span><span class="line"><span class="w">  </span><span class="nv">IFS</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-ra<span class="w"> </span>array<span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">declare</span><span class="w"> </span>-F<span class="w"> </span><span class="p">|</span>grep<span class="w"> </span><span class="s2">&quot;declare -f </span><span class="nv">$PREFIX</span><span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f3<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">$&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">cmd_cand</span><span class="o">=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">cmd_cand</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">array</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># get aliases</span>
+</span><span class="line"><span class="w">  </span><span class="nv">IFS</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-ra<span class="w"> </span>array<span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">alias</span><span class="w"> </span><span class="p">|</span>grep<span class="w"> </span><span class="s2">&quot;^alias </span><span class="nv">$PREFIX</span><span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f2<span class="p">|</span>cut<span class="w"> </span>-d<span class="o">=</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">$&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">cmd_cand</span><span class="o">=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">cmd_cand</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">array</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにaliasも探すようにします。</p>
+
+<p>最後の実行部分でも、このままだと<code>alias</code>は見つけられないので、<code>eval</code>を使い、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">eval "$PREFIX$cmd" "$@"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書き直す必要があります。</p>
+
+<p>ただし、これだと引数の囲いが意味なくなるので、上の<code>mycmd test a "b c" d</code>の結果とかは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ mycmd test a "b c" d
+</span><span class="line">This is mycmd-test
+</span><span class="line">arg: a
+</span><span class="line">arg: b
+</span><span class="line">arg: c
+</span><span class="line">arg: d</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように引数の中にスペースがあるとそれも分けて見てしまいます。</p>
+
+<p>他にもエスケープ文字とかが入ってたりするとちょっと動作が変わることもあるので、
+どうしても必要でない限りはaliasは無理に使う必要はないかと思います。
+（ほぼほぼ関数で代用できるので。)</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトで二重括弧による計算を行う際の0Xな数字に関する注意]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/29/computer-bash/"/>
+    <updated>2023-04-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/29/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00ATQPK0K?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00ATQPK0K&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31uNpvI14RL._SS200_.jpg" alt="カエルの世界はきっと８進数" /></a>
+</div>
+
+<p>最近のBashなどのシェルスクリプトでは
+二重括弧を使うことで数字の足し算などが出来ますが、
+おもったよりも賢い点が逆にバグを生んだ話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#二重括弧による計算" id="markdown-toc-二重括弧による計算">二重括弧による計算</a></li>
+  <li><a href="#0xな数字を二重括弧で計算する" id="markdown-toc-0xな数字を二重括弧で計算する">0Xな数字を二重括弧で計算する</a></li>
+  <li><a href="#二重括弧での数字" id="markdown-toc-二重括弧での数字">二重括弧での数字</a></li>
+  <li><a href="#exprでは単に無視する" id="markdown-toc-exprでは単に無視する">exprでは単に無視する</a></li>
+  <li><a href="#ということで" id="markdown-toc-ということで">ということで</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="二重括弧による計算">二重括弧による計算</h2>
+
+<p>Bashなどでは、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ a=1
+</span><span class="line">$ x=$(( a + 2 ))
+</span><span class="line">$ echo $x
+</span><span class="line">3</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで二重括弧の中で数式を書くことで計算することが出来ます。</p>
+
+<p>実際には数字を代入したりすることも含めていろいろな事ができます。</p>
+
+<p><a href="https://www.gnu.org/software/bash/manual/html_node/Arithmetic-Expansion.html">Arithmetic Expansion (Bash Reference Manual)</a></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B089LT89F2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B089LT89F2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41RA8g-PRFL._SS90_CR0,0,120,90_.jpg" alt="江崎グリコ クリームコロン(大人のチョコミント) 48g ×10個" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/11/13/computer-bash-colon/">Bashでのコロンコマンドや二重括弧について</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/475714265X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=475714265X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/315aKiz95ML._SS90_CR0,0,120,90_.jpg" alt="括弧の意味論" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/08/16/computer-bash-zsh/">Bash/Zshで二重括弧インクリメントを使う時の注意</a></div></li></ul>
+
+<h2 id="0xな数字を二重括弧で計算する">0Xな数字を二重括弧で計算する</h2>
+
+<p>ファイル名などで、数字をインクリメントして名前をつけていきたい、
+10個以上になることもあるので10の位をゼロ埋めした状態にしたい、ということがある場合。</p>
+
+<p>01, 02, 03….</p>
+
+<p>みたいな感じにするために</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="m">01</span>
+</span><span class="line"><span class="nv">f1</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f2</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f3</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにしていくと、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">file-01
+</span><span class="line">file-02
+</span><span class="line">file-03</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じのファイル名が出来上がります。</p>
+
+<p><code>$(())</code>の中で<code>01</code>とかでも足し算で<code>2</code>とかにしてくれるので一見これで良いような。</p>
+
+<p><code>n</code>を分けて、ファイル名にする方だけで<code>printf</code>して<code>02</code>のような形も出来ますし、
+この場合はそれでもあまり変わらないのですが、
+場合によっては直接suffixとして変更していったほうがわかりやすいこともあるかと思います。</p>
+
+<p>問題は<code>n</code>が8を超えた時、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="m">01</span>
+</span><span class="line"><span class="nv">f1</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f2</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f3</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f4</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f5</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f6</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f7</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f8</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">)))</span>
+</span><span class="line"><span class="nv">f9</span><span class="o">=</span>file-<span class="nv">$n</span>
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると、最後の足し算のところで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">08: value too great for base (error token is "08")</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったエラーが起こります。</p>
+
+<p>これは<code>n</code>が<code>08</code>の時ですが、<code>01 + 1</code>というのは実は普通の<code>1 + 1</code>ではなくて、
+前者を8進数の<code>1</code>として解釈して10進数の<code>1</code>と足して10進数での2になってそれを表示しています。</p>
+
+<p><code>01</code>~<code>07</code>は10進数でも<code>1</code>~<code>7</code>になるので小さい数字だけでチェックすると問題を見落とします。</p>
+
+<p>8進数なので<code>9</code>という数は存在せずエラーになります。</p>
+
+<h2 id="二重括弧での数字">二重括弧での数字</h2>
+
+<p>他の言語とかでも<code>0</code>が<code>0</code>が先頭なら8進数、<code>0x</code>なら16進数、
+また、<code>0b</code>だと2進数とするものがあります。</p>
+
+<p>Bashなどの<code>(())</code>の計算では、<code>0</code>から始まるものは8進数、<code>0x</code>なら16進数として扱われます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ echo $(( 011 ))
+</span><span class="line">9
+</span><span class="line">$ echo $(( 0x11 ))
+</span><span class="line">17</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>加えて、64までであれば自由な数字で進数を作ることが出来ます。
+ベースとなる数字を<code>#</code>の前に書けば、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ echo $(( 2#11 ))
+</span><span class="line">3
+</span><span class="line">$ echo $(( 7#1 ))
+</span><span class="line">8
+</span><span class="line">$ echo $(( 64#1 ))
+</span><span class="line">65</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じに64進数まで使えます。</p>
+
+<p><a href="https://www.gnu.org/software/bash/manual/html_node/Shell-Arithmetic.html">Shell Arithmetic (Bash Reference Manual)</a></p>
+
+<p>64までは、<code>0</code>~<code>9</code>の数字、<code>a</code>~<code>z</code>で<code>10</code>~<code>35</code>、<code>A</code>~<code>Z</code>で<code>36</code>~<code>61</code>、残り<code>@</code>、<code>_</code>が<code>62</code>、<code>63</code>を表します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ echo $(( 64#Z ))
+</span><span class="line">61
+</span><span class="line">$ echo $(( 64#@ ))
+</span><span class="line">62
+</span><span class="line">$ echo $(( 64#_ ))
+</span><span class="line">63</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これらで使われる文字が表す数字がベースの数字以上になるとエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ echo $(( 63#_ ))
+</span><span class="line">bash: 63#_: value too great for base (error token is "63#_")</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="exprでは単に無視する">exprでは単に無視する</h2>
+
+<p>シェルスクリプトで簡単に計算しようと思うと<code>expr</code>というコマンドがありますが、
+こちらでは<code>08</code>も<code>8</code>も同じように<code>0</code>がないものとして扱われます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ expr 08 + 1
+</span><span class="line">9</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>単に左にある0を無視するだけなので、<code>0xa</code>のような16進数のようなものは使えません。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ expr 0xa + 01
+</span><span class="line">expr: non-integer argument</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>この辺ちゃんとそれぞれ分かっていれば良いのですが、
+書き換えとかで同じようにしてしまうと間違えてしまうかも。</p>
+
+<p>この<code>expr</code>ですが現在では
+<a href="https://www.shellcheck.net/">ShellCheck</a>
+とかで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">^--^ SC2003 (style): expr is antiquated. Consider rewriting this using $((..)), ${} or [[ ]].</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった忠告を出すようになっていて二重括弧による計算が推奨されています。</p>
+
+<h2 id="ということで">ということで</h2>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="m">1</span>
+</span><span class="line"><span class="nv">f1</span><span class="o">=</span>file-<span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="nv">$n</span><span class="k">)</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">))</span><span class="o">)</span>
+</span><span class="line"><span class="nv">f2</span><span class="o">=</span>file-<span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="nv">$n</span><span class="k">)</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="k">$((</span><span class="nv">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="k">))</span><span class="o">)</span>
+</span><span class="line"><span class="nv">f3</span><span class="o">=</span>file-<span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%02d&quot;</span><span class="w"> </span><span class="nv">$n</span><span class="k">)</span>
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように素直に数字は数字でインクリメントしてファイル名などに埋める時に0埋めするべきだと。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでは`-e`, `-n`の引数は使えない(ということはない)]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/25/computer-bash/"/>
+    <updated>2023-04-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/25/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1788990552?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1788990552&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51NrtN0jtJL._SS200_.jpg" alt="Mastering Linux Shell Scripting: A practical guide to Linux command-line, Bash scripting, and Shell programming, 2nd Edition" /></a>
+</div>
+
+<p>ちょっと勘違いしてしばらく悩んだ話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シェルスクリプトの引数" id="markdown-toc-シェルスクリプトの引数">シェルスクリプトの引数</a></li>
+  <li><a href="#echoの引数なだけ" id="markdown-toc-echoの引数なだけ">echoの引数なだけ</a></li>
+  <li><a href="#bsdなecho" id="markdown-toc-bsdなecho">BSDなecho</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シェルスクリプトの引数">シェルスクリプトの引数</h2>
+
+<p>シェルスクリプトを書いている時に、引数をチェックするために</p>
+
+<figure class="code"><figcaption><span>test.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなことをして引数をチェックしていたら<code>-e</code>や<code>-n</code>が消えている？
+とわからなくなってちょっと試してみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ for v in a b e f g n u v w x y z;do ./test.sh -$v XXX;done
+</span><span class="line">-a XXX
+</span><span class="line">-b XXX
+</span><span class="line">XXX
+</span><span class="line">-f XXX
+</span><span class="line">-g XXX
+</span><span class="line">XXX-u XXX
+</span><span class="line">-v XXX
+</span><span class="line">-w XXX
+</span><span class="line">-x XXX
+</span><span class="line">-y XXX
+</span><span class="line">-z XXX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>起こっている情況としては、</p>
+
+<ul>
+  <li><code>-e</code>が消えている</li>
+  <li><code>-n</code>も消えている。かつ改行がなくなって次の<code>-u</code>が同じ行に出力されている。</li>
+</ul>
+
+<p>という状態。</p>
+
+<p>シェルスクリプトにこんな仕様があるのかとちょっと検索しても出てこなくて
+ChatGPTに聞いたら
+<code>-e</code>は<code>set -e</code>で<code>errexit</code>のオプション、<code>-n</code>は<code>set -n</code>で<code>noexec</code>のオプションだからそうなっているし、
+正しくはスクリプトの中で<code>set -e</code>とかしなさい、とのこと。</p>
+
+<p>でもよく使う<code>-u</code>(<code>nnounset</code>)や<code>-a</code>(<code>allexport</code>)とかも同様では?</p>
+
+<p>また、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./test.sh -a XXX -e YYY
+</span><span class="line">-a XXX -e YYY</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と最初に来なければ見えている状態。</p>
+
+<p>さらに、</p>
+
+<figure class="code"><figcaption><span>test2.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="nv">INPUT</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./test2.sh -e XXX
+</span><span class="line">INPUT=-e XXX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>見えた。。。</p>
+
+<h2 id="echoの引数なだけ">echoの引数なだけ</h2>
+
+<p>勘違いしてたのは単に<code>echo</code>のオプションとして<code>-e</code>がbackslashによるエスケープシーケンスをを有効にするオプションで、<code>-n</code>が最後を改行なしにするオプション、というだけ。</p>
+
+<p><code>$@</code>で渡しているので一つ一つ分けて順に<code>echo</code>に渡されるわけで、最初に<code>-e</code>や<code>-n</code>が渡されればオプションとして使われていただけです。</p>
+
+<p>エスケープシーケンスなどはないので<code>-e</code>が渡されれば単にそのオプション分は表示されず、
+<code>-n</code>が渡されれば<code>-n</code>はオプションとして消化されて表示されずさらに改行なしになるだけです。</p>
+
+<p>なので<code>$@</code>自体にはこれらはちゃんと入ってますし使えます。</p>
+
+<h2 id="bsdなecho">BSDなecho</h2>
+
+<p>BSDな<code>/bin/echo</code>は<code>-e</code>オプションが無いので、macOSとかで</p>
+
+<figure class="code"><figcaption><span>test3.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">/bin/echo<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というスクリプトを作ると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ for v in a b e f g n u v w x y z;do ./test3.sh -$v XXX;done
+</span><span class="line">-a XXX
+</span><span class="line">-b XXX
+</span><span class="line">-e XXX
+</span><span class="line">-f XXX
+</span><span class="line">-g XXX
+</span><span class="line">XXX-u XXX
+</span><span class="line">-v XXX
+</span><span class="line">-w XXX
+</span><span class="line">-x XXX
+</span><span class="line">-y XXX
+</span><span class="line">-z XXX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、<code>-e</code>でも通常通り表示されます。</p>
+
+<p>macOSでも普通に<code>echo</code>使うとbashのbuiltinなechoが使われるので<code>-e</code>は有効で消えます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ type -a echo
+</span><span class="line">echo is a shell builtin
+</span><span class="line">echo is /bin/echo</span></code></pre></td></tr></table></div></figure></notextile></div>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでスクリプトの引数をループする方法]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/22/computer-bash-zsh/"/>
+    <updated>2023-04-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/22/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/481440011X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=481440011X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/412-gGfebPL._SS200_.jpg" alt="マスタリングLinuxシェルスクリプト 第2版 ―Linuxコマンド、bashスクリプト、シェルプログラミング実践入門" /></a>
+</div>
+
+<p>今更ながら知ったこと。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#通常の方法" id="markdown-toc-通常の方法">通常の方法</a></li>
+  <li><a href="#in無し" id="markdown-toc-in無し">in無し</a></li>
+  <li><a href="#the-for-loop-posix-shell-command-language" id="markdown-toc-the-for-loop-posix-shell-command-language">The for Loop (POSIX Shell Command Language)</a></li>
+  <li><a href="#の省略" id="markdown-toc-の省略"><code>;</code>の省略</a></li>
+  <li><a href="#man-bash" id="markdown-toc-man-bash">man bash</a></li>
+  <li><a href="#その他の方法" id="markdown-toc-その他の方法">その他の方法</a></li>
+  <li><a href="#参考" id="markdown-toc-参考">参考</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="通常の方法">通常の方法</h2>
+
+<p>bashとかでよくやる方法は</p>
+
+<figure class="code"><figcaption><span>arg1.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とする方法。</p>
+
+<p><code>"$@"</code>はスクリプトの引数を展開し、ダブルクォートしてあると
+引数毎に分けてダブルクォートした状態で展開します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg1.sh a b c
+</span><span class="line">a
+</span><span class="line">b
+</span><span class="line">c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>"$*"</code>とすると同じく展開しますがダブルクォートが全体について
+for文で回すと1つの引数として扱われます。</p>
+
+<p>大概のシェルで同様の動作をします。</p>
+
+<p>これは関数の引数も同じで、</p>
+
+<figure class="code"><figcaption><span>arg2.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">function</span><span class="w"> </span>func<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="k">for</span><span class="w"> </span>arg<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">func<span class="w"> </span>a<span class="w"> </span>b<span class="w"> </span>c
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としても</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg2.sh
+</span><span class="line">a
+</span><span class="line">b
+</span><span class="line">c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となります。</p>
+
+<p>以下も関数でもスクリプトの直接の引数でも同じです。</p>
+
+<h2 id="in無し">in無し</h2>
+
+<p>実はこれがこんな感じで書けます。</p>
+
+<figure class="code"><figcaption><span>arg3.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg<span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでも同じ結果になります。</p>
+
+<p>ここではまず
+<code>in "$@"</code>が消えていて、さらに<code>do</code>の前の<code>;</code>も省略されています。</p>
+
+<p>知らなかったんでbash特有の機能か何かとおも思ったんですが、
+これは逆にPOSIX準拠な手法です。</p>
+
+<h2 id="the-for-loop-posix-shell-command-language">The for Loop (POSIX Shell Command Language)</h2>
+
+<p>POSIXのShell Commnad Languageの中の<strong>The for Loop</strong>の所に書いてあります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">The for Loop
+</span><span class="line">The for loop shall execute a sequence of commands for each member in a list of items. The for loop requires that the reserved words do and done be used to delimit the sequence of commands.
+</span><span class="line">
+</span><span class="line">The format for the for loop is as follows:
+</span><span class="line">
+</span><span class="line">for name [ in [word ... ]]
+</span><span class="line">do
+</span><span class="line">    compound-list
+</span><span class="line">done
+</span><span class="line">
+</span><span class="line">First, the list of words following in shall be expanded to generate a list of items. Then, the variable name shall be set to each item, in turn, and the compound-list executed each time. If no items result from the expansion, the compound-list shall not be executed. Omitting:
+</span><span class="line">
+</span><span class="line">in word...
+</span><span class="line">shall be equivalent to:
+</span><span class="line">
+</span><span class="line">in "$@"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<blockquote>
+  <p><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html">The Open Group Base Specifications Issue 7, 2018 edition: Shell Command Language</a></p>
+</blockquote>
+
+<p>ということで、ここでの定義では<code>do</code>が別行になっている形ですが、
+下の方に<code>in word...</code>を省略した場合は<code>in "$@"</code>と同じ、とあります。</p>
+
+<p>ということで</p>
+
+<figure class="code"><figcaption><span>arg4.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg
+</span><span class="line"><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書くのはPOSIX準拠な書き方で、bash以外でもzshでもfishでもdashでも使えます。</p>
+
+<h2 id="の省略"><code>;</code>の省略</h2>
+
+<p><code>do</code>が別行にある場合、<code>in</code>がある場合でも最初の行に<code>;</code>は不要です。
+ただし同じ行に書く場合には<code>in</code>があれば<code>;</code>は必須です。</p>
+
+<p>これが<code>in</code>がない場合では<code>;</code>を省略できます。</p>
+
+<p>省略でできる、というか、もともとPOSIXでも2016年版までは<code>;</code>なしのもののみだったとのこと。
+また、Bourne shellでは<code>;</code>なしのみサポートされています。</p>
+
+<blockquote>
+  <p><a href="https://unix.stackexchange.com/questions/306940/what-is-the-purpose-of-the-do-keyword-in-bash-for-loops">shell - What is the purpose of the “do” keyword in Bash for loops? - Unix &amp; Linux Stack Exchange</a></p>
+</blockquote>
+
+<h2 id="man-bash">man bash</h2>
+
+<p>bashのマニュアルだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">for name [ [ in [ word ... ] ] ; ] do list ; done
+</span><span class="line">   The  list  of  words following in is expanded, generating a list of items.  The variable name is set to
+</span><span class="line">   each element of this list in turn, and list is executed each time.  If the in word is omitted, the  for
+</span><span class="line">   command  executes  list  once  for  each  positional parameter that is set (see PARAMETERS below).  The
+</span><span class="line">   return status is the exit status of the last command that executes.  If the expansion of the items fol‐
+</span><span class="line">   lowing in results in an empty list, no commands are executed, and the return status is 0.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>このような記述になっていて、ここにも<code>in word</code>がオプションとして扱われなければpositional parameterを使うとあります。</p>
+
+<p>(<code>Positional Parameters</code>以外に<code>special Parameters</code>という項目があり、こちらは<code>*</code>などのさらに展開されてPositional Parametersとして扱われるものなどがあります。)</p>
+
+<h2 id="その他の方法">その他の方法</h2>
+
+<p>上記以外にも</p>
+
+<figure class="code"><figcaption><span>arg5.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg<span class="p">;</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というよに<code>do</code>/<code>done</code>の代わりに<code>{}</code>で囲う書き方もbashやzshで可能です。</p>
+
+<p>zshであればさらに</p>
+
+<figure class="code"><figcaption><span>arg6.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="zsh"><span class="line"><span></span><span class="ch">#!/usr/bin/env zsh</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg<span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、<code>;</code>を抜く事もできます。これはbashではエラーになります。</p>
+
+<figure class="code"><figcaption><span>arg7.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="k">for</span><span class="w"> </span>arg
+</span><span class="line"><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$arg</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように行を分ければbashでも<code>;</code>を省略できます。</p>
+
+<h2 id="参考">参考</h2>
+
+<p>軽く歴史も含め説明があるQA。</p>
+
+<ul>
+  <li><a href="https://unix.stackexchange.com/questions/417292/bash-for-loop-without-a-in-foo-bar-part">shell - Bash “for” loop without a “in foo bar…” part - Unix &amp; Linux Stack Exchange</a></li>
+  <li><a href="https://unix.stackexchange.com/questions/306940/what-is-the-purpose-of-the-do-keyword-in-bash-for-loops">shell - What is the purpose of the “do” keyword in Bash for loops? - Unix &amp; Linux Stack Exchange</a></li>
+</ul>
+
+<p>歴史。</p>
+
+<ul>
+  <li><a href="https://www.in-ulm.de/~mascheck/various/bourne_args/">What does ${1+”$@”} mean?</a></li>
+  <li><a href="https://www.in-ulm.de/~mascheck/bourne/index.html">traditional Bourne shell family / history and development</a></li>
+</ul>
+]]></content>
+  </entry>
+  
+</feed>

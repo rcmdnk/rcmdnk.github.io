@@ -1,0 +1,2555 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2024-03-28T00:49:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ARM用のtkinterdnd2-universal+Nuitkaでdrag and dropでファイルを渡すアプリをPythonで作る]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/29/computer-python/"/>
+    <updated>2024-02-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/29/computer-python</id>
+    <content type="html"><![CDATA[<p>Pythonでファイルをdrag and dropで渡すアプリを作ろうと思った時、
+TkinterとNuiktaを使って作ろうとしたら
+M1 MacなどのARM Mac用を作るのがちょっと面倒だった話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pythonでのguiアプリ開発" id="markdown-toc-pythonでのguiアプリ開発">PythonでのGUIアプリ開発</a></li>
+  <li><a href="#tkinterdnd2" id="markdown-toc-tkinterdnd2">tkinterdnd2</a></li>
+  <li><a href="#tkinterdnd2-universal" id="markdown-toc-tkinterdnd2-universal">tkinterdnd2-universal</a></li>
+  <li><a href="#nuitka" id="markdown-toc-nuitka">Nuitka</a></li>
+  <li><a href="#arm-macでの実行" id="markdown-toc-arm-macでの実行">ARM Macでの実行</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pythonでのguiアプリ開発">PythonでのGUIアプリ開発</h2>
+
+<p><a href="https://docs.python.org/ja/3/library/tkinter.html">tkinter</a>
+はGUIツールに対するPythonの標準インターフェースです。</p>
+
+<p>PythonでGUIアプリを作るには
+<a href="https://flet.dev/">flet</a>
+などのフレームワークを使うこともできますが、
+今回はdrag and dropでファイルを渡すアプリを作ろうと思って、
+fletでは現状サポートされておらず、
+tkinterであればそれようのライブラリが既に存在するのでtkinterを使うことにしました。</p>
+
+<p>tkinterはPythonのインストール状況によってはインストールされておらず、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">&gt;&gt;&gt; import tinker
+</span><span class="line">Traceback (most recent call last):
+</span><span class="line">  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+</span><span class="line">ModuleNotFoundError: No module named 'tinker'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにエラーが出ることがありますが、その場合は別途インストールする必要があります。</p>
+
+<p>MacやLinuxでHomebrewでPythonをインストールしている場合は、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install python-tk@3.11</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>などインストールしているのと同じバージョンのtkinterをインストールします。</p>
+
+<p>Linuxでaptを使ってPythonをインストールしている場合は、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sudo apt install python3-tk</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Windowsなら<a href="https://www.python.org/">Welcome to Python.org</a>からインストーラをダウンロードしてインストールするとデフォルトでtkinterもインストールされます。</p>
+
+<h2 id="tkinterdnd2">tkinterdnd2</h2>
+
+<p><a href="https://pypi.org/project/tkinterdnd2/">tkinterdnd2</a>
+はtkinterの拡張ライブラリで、
+drag and dropをサポートしています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install tkinterdnd2</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でインストールして</p>
+
+<figure class="code"><figcaption><span>drag_and_drop.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/evn python3</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">from</span> <span class="nn">tkinterdnd2</span> <span class="kn">import</span> <span class="n">DND_FILES</span><span class="p">,</span> <span class="n">TkinterDnD</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">drop</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+</span><span class="line">    <span class="n">file_path</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">data</span>
+</span><span class="line">    <span class="n">text</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+</span><span class="line">    <span class="n">file_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+</span><span class="line">    <span class="n">new_width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">*</span> <span class="mi">20</span><span class="p">),</span> <span class="mi">800</span><span class="p">)</span>
+</span><span class="line">    <span class="n">app</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_width</span><span class="si">}</span><span class="s2">x300&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="n">app</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="n">app</span> <span class="o">=</span> <span class="n">TkinterDnD</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+</span><span class="line"><span class="n">app</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s2">&quot;300x300&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">app</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;drag and drop&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">file_label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;ファイルをドロップしてください&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">file_label</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line"><span class="n">app</span> <span class="o">.</span><span class="n">drop_target_register</span><span class="p">(</span><span class="n">DND_FILES</span><span class="p">)</span>
+</span><span class="line"><span class="n">app</span><span class="o">.</span><span class="n">dnd_bind</span><span class="p">(</span><span class="s1">&#39;&lt;&lt;Drop&gt;&gt;&#39;</span><span class="p">,</span> <span class="n">drop</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">app</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなスクリプトを実行するとウィンドウが出てきてそこにファイルを
+ドロップするとファイル名が表示されるようなアプリができます。</p>
+
+<h2 id="tkinterdnd2-universal">tkinterdnd2-universal</h2>
+
+<p>tkinterdnd2はx86_64のMacやWindowsなどで動作しますが、
+ARM Macでは動作しません。</p>
+
+<p>そこで、ARM Macでも動作するようにしたのが
+<a href="https://pypi.org/project/tkinterdnd2-universal/">tkinterdnd2-universal</a></p>
+
+<p>tkinterdnd2
+の代わりに
+tkinterdnd2-universal
+を<code>pip install</code>すると
+上の同じスクリプトでARM Macでも動作するようになります。</p>
+
+<p>ただ、PyPIにはまだ残っているので<code>pip</code>でのインストールは可能で
+ソースコードも直接ダウンロードしたり出来ますが、
+GitHubで作者がアカウント自体を削除したのかレポジトリが残ってません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/blacklein/tkinterdnd2-universal">Page not found · GitHub</a></p>
+</blockquote>
+
+<p>最終リリースは1.7.3で2023/3/21。</p>
+
+<p>tkinterdnd2の方もPyPIにリリースされてるものはそもそもforkされたもので
+0.3.0が2021/6/6にリリースされたのが最後です。</p>
+
+<p>他にも似たようなものはいくつかあって、より良いものもあるかもしれませんが、
+とりあえず今回は見た感じ一番メジャーなこれを使いました。</p>
+
+<h2 id="nuitka">Nuitka</h2>
+
+<p><a href="https://nuitka.net/index.html">Nuitka</a>
+はWindows用のexeやMac用のappを作るツールです。</p>
+
+<p>同様に実行ファイルを作るツールとしては
+<a href="https://pyinstaller.org/en/stable/">PyInstaller</a>
+などがありますが、ほとんどのものはPythonを含めて実行ファイルを作って一時ディレクトリにPythonコードを展開して実行するので
+実行ファイルのサイズが大きくなるのと実行時間が遅い、
+簡単にソースコードが見えてしまうという問題があります。</p>
+
+<p>NuitkaはPythonのコードをC言語に変換してコンパイルするので
+実行ファイルのサイズが比較的小さく、実行時間も速く、
+ソースコードも見えないようになります。</p>
+
+<p>今回も最初PyInstallerを使ってうまくいきましたが、
+Nuiktaで作れればそちらの方が良いかと思い試してみました。</p>
+
+<p>Nuitkaは<code>pip</code>でインストールできます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install nuitka</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>あとはWindowsであれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ python -m nuitka --mingw64 --enable-plugin=tk-inter --follow-imports --onefile --show-progress --assume-yes-for-downloads --disable-console drag_and_drop.py</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにして<code>drag_and_drop.exe</code>ファイルを作ることが出来ます。</p>
+
+<p>Macなら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ python -m nuitka --enable-plugin=tk-inter --follow-imports --standalone --show-progress --assume-yes-for-downloads --disable-console --macos-create-app-bundle  drag_and_drop.py</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<code>drag_and_drop..app</code>ファイルを作ることが出来ます。</p>
+
+<h2 id="arm-macでの実行">ARM Macでの実行</h2>
+
+<p>が、ARM Macで上記コマンドを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FileNotFoundError: [Errno 2] No such file or directory: '...lib/python3.11/site-packages/tkinterdnd2/tkdnd/osx64'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったエラーが出ます。</p>
+
+<p>上にも書いた通り、tkinterdnd2の方をインストールするとここではエラーは出ずアプリは作れますが実行時に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">RuntimeError: Unable to load tkdnd library</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>といったarm用のライブラリではないとエラーが出ます。</p>
+
+<p>tkinterdnd2-universalを使うとスクリプトは実行できますが、
+コンパイル時に上の<code>FileNotFoundError</code>が出ます。</p>
+
+<p>実際に<strong>site-packages</strong>の中を見てみると
+tkinterdnd2の方には<code>osx64</code>と<code>win64</code>と<code>linux64</code>がありますが、</p>
+
+<blockquote>
+  <p><a href="https://github.com/Eliav2/tkinterdnd2/tree/master/tkinterdnd2/tkdnd">tkinterdnd2/tkinterdnd2/tkdnd at master · Eliav2/tkinterdnd2</a></p>
+</blockquote>
+
+<p>tkinterdnd2-universalの方には<strong>osx-arm64</strong>, <strong>osx-osx64</strong>, <strong>linux-arm64</strong>, <strong>linux-x64</strong>, <strong>win-arm64</strong>, <strong>win-x64</strong>があります(PyPIにあるコード参照)。</p>
+
+<p>これに関して、NuitkaではライブラリがPythonコード以外のライブラリなどを含む場合、
+あらかじめ調べておいてコンパイルするようになっているようです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Nuitka/Nuitka/issues/1562">Compile seems to not include tkdnd package needed for tkinterdnd2 · Issue #1562 · Nuitka/Nuitka</a></p>
+</blockquote>
+
+<p>tkinterdnd2も以前は上記のライブラリが入らず実行ファイルを作っても実行できませんでしたが、
+上のIssueで対応されたようです。</p>
+
+<p>が、これはtkinterdnd2の方で対応されたもので、
+同じ名前でいれるtkinterdnd2-universalの方でライブラリのディレクトリ名が違うとうまくインストールできません。</p>
+
+<p><a href="https://github.com/Eliav2/tkinterdnd2/blob/master/tkinterdnd2/TkinterDnD.py">tkinterdnd2/tkinterdnd2/TkinterDnD.py</a>
+の中でも、こちらのtkinterdnd2の方は<code>osx64</code>と<code>win64</code>と<code>linux64</code>というディレクトリ名から選ぶようになっていますが、
+tkinterdnd2-universalの方はアーキテクチャも考慮して<code>osx-arm64</code>, <code>osx-osx64</code>, <code>linux-arm64</code>, <code>linux-x64</code>, <code>win-arm64</code>, <code>win-x64</code>というディレクトリ名から選ぶようになっています。</p>
+
+<p>実際にNuitkaが行うのは必要なライブらいフォルダを実行ファイルの中にコピーすることなので、
+ARM Macで行う場合、tkinterdnd2-universalをインストール後、
+site-packagesの中にある</p>
+
+<ul>
+  <li>tkinterdnd2/TkinterDnD.pyのコードの中の<code>osx-osx64</code>を<code>osx64</code>に変更</li>
+  <li>tkinterdnd2/tkdndの中の<code>osx-osx64</code>ディレクトリを<code>osx64</code>に変更</li>
+</ul>
+
+<p>してやればOK。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ site_packages=$(python -c "import site;print(site.getsitepackages()[0])")
+</span><span class="line">$ cd $site_packages/tkinterdnd2
+</span><span class="line">$ sed -i '' -e 's/osx-osx64/osx64/g' TkinterDnD.py
+</span><span class="line">$ cd $site_packages/tkinterdnd2/tkdnd
+</span><span class="line">$ mv osx-osx64 osx64</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ python -m nuitka --enable-plugin=tk-inter --follow-imports --standalone --show-progress --assume-yes-for-downloads --disable-console --macos-create-app-bundle  drag_and_drop.py</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でARM Mac用のアプリが作れます。</p>
+
+<p>Intel Macで作る場合は
+tkinterdnd2の方をインストールしてNuitkaでコンパイルするだけでOKです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Poetryで管理しているパッケージテストをGitHub ActionsでPoetry及びDockerで行う]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/18/computer-github-python-poetry-docker/"/>
+    <updated>2024-02-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/18/computer-github-python-poetry-docker</id>
+    <content type="html"><![CDATA[<p>Poetryで管理しているPythonのパッケージをGitHub Actionsでテストする方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#poetryで管理しているpythonパッケージのテスト" id="markdown-toc-poetryで管理しているpythonパッケージのテスト">Poetryで管理しているPythonパッケージのテスト</a></li>
+  <li><a href="#poetryで環境を作りテストを行う" id="markdown-toc-poetryで環境を作りテストを行う">Poetryで環境を作りテストを行う</a></li>
+  <li><a href="#docker環境で共通のテストを行う" id="markdown-toc-docker環境で共通のテストを行う">Docker環境で共通のテストを行う</a>    <ul>
+      <li><a href="#dockerfileの準備" id="markdown-toc-dockerfileの準備">Dockerfileの準備</a></li>
+      <li><a href="#テスト部分の共通化" id="markdown-toc-テスト部分の共通化">テスト部分の共通化</a></li>
+      <li><a href="#poetry用actionsファイル" id="markdown-toc-poetry用actionsファイル">Poetry用Actionsファイル</a></li>
+      <li><a href="#docker用actionsファイル" id="markdown-toc-docker用actionsファイル">Docker用Actionsファイル</a></li>
+    </ul>
+  </li>
+  <li><a href="#push時にはpoetryで手動テストでdocker環境も使えるようにする" id="markdown-toc-push時にはpoetryで手動テストでdocker環境も使えるようにする">push時にはpoetryで、手動テストでDocker環境も使えるようにする</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="poetryで管理しているpythonパッケージのテスト">Poetryで管理しているPythonパッケージのテスト</h2>
+
+<p>Poetryで管理しているPythonパッケージで、
+<strong>tests</strong>ディレクトリにテストがあり<code>pytest</code>でテストを行うようなものを考えます。</p>
+
+<p>ルートディレクトリで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">poetry install
+</span><span class="line">poetry run pytest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすればテストを行うことが出来る状態。</p>
+
+<h2 id="poetryで環境を作りテストを行う">Poetryで環境を作りテストを行う</h2>
+
+<p>以下のような<strong>.github/workflows/test.yml</strong>を作成します。</p>
+
+<figure class="code"><figcaption><span>.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Make poetry environment</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run pytest</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poetry run pytest</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで<code>push</code>されたときに<code>poetry</code>で環境を作って<code>pytest</code>を実行することが出来ます。</p>
+
+<p>ちなみにこの辺のPytestはほとんどの場所で共通して使ってるので
+下にあるようなactionを作って共通化して使ってます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B097TJKSWB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B097TJKSWB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71fGbIN3ETL._SS90_CR0,0,120,90_.jpg" alt="ACTION! (初回限定盤B)(DVD付)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/02/computer-python/">python-action: pytestなどを実行するGitHub Action</a></div></li></ul>
+
+<h2 id="docker環境で共通のテストを行う">Docker環境で共通のテストを行う</h2>
+
+<h3 id="dockerfileの準備">Dockerfileの準備</h3>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240217_pythonpoetrydocker_120_90.jpg" width="120" height="90" alt="20240217_pythonpoetrydocker_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker/">Poetryを使ったDocker環境構築について</a></div></li></ul>
+
+<p>でやったPoetryで管理しているプロジェクトの環境構築のDockerfileを使います。</p>
+
+<p><strong>pyrproject.toml</strong>は上のものに加え、テスト用の<code>pytest</code>を
+<code>dev</code>のグループに追加しておきます。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.poetry]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myproject&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.0.1&quot;</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+</span><span class="line"><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;rcmdnk &lt;rcmdnk@gmail.com&gt;&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.dependencies]</span>
+</span><span class="line"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^3.11&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.group.dev.dependencies]</span>
+</span><span class="line"><span class="n">pytest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^8.0.0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[build-system]</span>
+</span><span class="line"><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;poetry-core&gt;=1.0.0&quot;</span><span class="p">]</span>
+</span><span class="line"><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;poetry.core.masonry.api&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.scripts]</span>
+</span><span class="line"><span class="n">hello</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myproject:main&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これに対応するDockerfileは以下のようになります。</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry-plugin-export
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>src<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--with<span class="w"> </span>dev<span class="w"> </span>--without-hashes<span class="w"> </span>--format<span class="o">=</span>requirements.txt<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">RUN<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;./&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span>
+</span><span class="line">RUN<span class="w"> </span>.<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/bin/activate&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line"><span class="c1">#########</span>
+</span><span class="line">
+</span><span class="line">FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>runtime
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv<span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">USER_NAME</span><span class="o">=</span>appuser
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span><span class="nv">$VIRTUAL_ENV</span><span class="w"> </span><span class="nv">$VIRTUAL_ENV</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>useradd<span class="w"> </span>-r<span class="w"> </span>-u<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="nv">$USER_NAME</span>
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">USER<span class="w"> </span><span class="nv">$USER_NAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>変えたのは</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--with<span class="w"> </span>dev<span class="w"> </span>--without-hashes<span class="w"> </span>--format<span class="o">=</span>requirements.txt<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の部分だけで、<code>--with dev</code>が追加されています。
+これで<code>dev</code>のグループに含まれる<code>pytest</code>もインストールされます。</p>
+
+<h3 id="テスト部分の共通化">テスト部分の共通化</h3>
+
+<p>共通のテストにするため、テスト実行部分を別途actionsとして作成します。</p>
+
+<figure class="code"><figcaption><span>.github/actions/test/action.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line"><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">runs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">using</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;composite&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest</span>
+</span><span class="line"><span class="w">      </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで<code>pytest</code>を実行するだけのcomposite actionを作っておきます。</p>
+
+<p>必要であればここで色々と実行するコマンドを追加しておきます。</p>
+
+<p>これでレポジトリをcheckoutした後なら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と指定すると<code>pytest</code>が実行されます。</p>
+
+<h3 id="poetry用actionsファイル">Poetry用Actionsファイル</h3>
+
+<p>上のactionを使って、Poetry用のactionを作ります。</p>
+
+<figure class="code"><figcaption><span>.github/workflows/poetry-test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poetry test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Make poetry environment</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">        </span><span class="no">echo &quot;$(poetry show -v 2&gt;/dev/null|grep &#39;Using virtualenv:&#39;|awk &#39;{print $3}&#39;)/bin&quot; &gt;&gt; $GITHUB_PATH</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初の場合は最後に<code>poetry run</code>で<code>pytest</code>を実行することで仮想環境下での実行を行っていましたが、
+この場合ではtest actionの中ではpoetryを使ってません。</p>
+
+<p>test actionの引数として<code>poetry run</code>を使うかどうか、を指定しても良いかもしれませんが、
+ごちゃごちゃするので、ここでは全体の環境の<code>PATH</code>に
+poetryの仮想環境の<code>bin</code>ディレクトリを追加しています。</p>
+
+<p>あとは最後の
+最後の<code>pytest</code>部分をactionに置き換えるだけです。</p>
+
+<h3 id="docker用actionsファイル">Docker用Actionsファイル</h3>
+
+<figure class="code"><figcaption><span>.github/workflows/docker-test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-build</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span class="line"><span class="w">      </span><span class="nt">packages</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/login-action@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">registry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/setup-buildx-action@v3</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/build-push-action@v5</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span class="line"><span class="w">        </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./Dockerfile</span>
+</span><span class="line"><span class="w">        </span><span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-build</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">container</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">credentials</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">--user root</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>まず、<code>docker-build</code>ジョブでイメージをビルドしています。</p>
+
+<p>GitHubでは
+<a href="https://github.com/features/packages">GitHub Packages</a>
+でContainer registoryが提供されていて、
+<strong>ghcr.io</strong>でアクセス出来るレジストリで
+Dockerイメージを保存したり公開したりすることが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/ja/packages/working-with-a-github-packages-registry/working-with-the-container-registry">コンテナレジストリの利用 - GitHub Docs</a></p>
+</blockquote>
+
+<p>それを使うため、
+<strong>login-action</strong>でログインし、<strong>build-push-action</strong>でイメージをビルドしてpushしています。
+<strong>setup-buildx-action</strong>はDocker Buildxを使うためのもので、
+今回の例では無理に使う必要はないかもしれませんが入れておきました。</p>
+
+<p>これでレポジトリの環境をDockerイメージとしてビルドし、
+Container registoryに登録されます。</p>
+
+<p>次に<code>docker-test</code>ジョブで
+<code>docker-build</code>ジョブでビルドしたイメージを使ってテストを行います。</p>
+
+<p><code>container</code>で作ったイメージを指定して
+後はレポジトリをcheckoutしてテストを実行するだけです。</p>
+
+<p>ここで、イメージ名など共通なので<code>env</code>とかで変数化したいところですが、
+<code>steps</code>内では使えるもののこの上の<code>container</code>などの階層部分では
+<code>Unrecognized named-value: 'env'.</code>なエラーになってしまいます。</p>
+
+<p>レポジトリの設定の
+<strong>Actions secrets and variables</strong>で設定した変数であれば
+<code>vars.&lt;変数名&gt;</code>で使え、これは<code>container</code>の中でも使えるので
+それを設定すればよりきれいに書くことは出来ます。</p>
+
+<p>イメージが複数になるような場合にはそのようなことをした方が良いかもしれません。</p>
+
+<p>テストのステップに関してはまず
+actionsやtestsディレクトリを取得するために
+レポジトリをcheckoutしています。</p>
+
+<p>もしこのDockerfileがGitHub Actions専用であればDockerfileの中で</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>.github
+</span><span class="line">COPY<span class="w"> </span>.github/actions<span class="w"> </span>./.github/
+</span><span class="line">COPY<span class="w"> </span>tests<span class="w"> </span>./
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにしておけば
+<code>docker-test</code>側の<code>checkout</code>は不要になります。</p>
+
+<p>今回はなんらか別に使うものでそのテストも兼ねるということで上のような形でイメージに余計なものを入れないようにしています。</p>
+
+<p>containerの部分で<code>--user root</code>を指定していますが、
+これはGitHub Actionsで<code>checkout</code>を行う際、
+<code>root</code>権限でないとcheckoutできないためです。</p>
+
+<p>今回のDockefileでは<code>USER</code>を指定しているため、
+そのままだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: EACCES: permission denied, open '/__w/_temp/_runner_file_commands/save_state_XXXXXXXX-XXXX-XXXX-XXXX-XXXX[XX](https://github.com/SensoftInc/xxxxxxxxxxxx/actions/runs/xxxxxxxxxx/jobs/xxxxxxxxxx#step:x:xx)xxxxxx'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というエラーが出てしまいます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/actions/checkout/issues/1014">Error: EACCES: permission denied in container on self hosted Linux runner · Issue #1014 · actions/checkout</a></p>
+</blockquote>
+
+<p>これに関しては上のIssueで
+上のように<code>--user root</code>を指定するか、
+中で<strong>/__w</strong>を作って実行するユーザー(もしくは全員)に権限をもたせる方法が
+紹介されていますが、上のIssueにあるような</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>-m<span class="w"> </span><span class="m">1777</span><span class="w"> </span>/__w
+</span></code></pre></td></tr></table></div></figure>
+
+<p>をしても同じエラーになりました。</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>/__w
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/__w
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなのもうまくいきません。</p>
+
+<p>何かおまじないがあるのか…</p>
+
+<p>というわけで、ちょっと環境変えてしまうことにもなってしまいますが
+一旦<code>--user root</code>で対応しています。</p>
+
+<p>実行するコマンドによってはユーザーが誰か、で結果が変わるようなこともあると思うので、
+そういった場合は最初からDockerfileの定義で<code>USER</code>を指定せずに
+rootで実行するようにして正しく動作するように設定したが方が良いです。</p>
+
+<h2 id="push時にはpoetryで手動テストでdocker環境も使えるようにする">push時にはpoetryで、手動テストでDocker環境も使えるようにする</h2>
+
+<figure class="code"><figcaption><span>.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">workflow_dispatch</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">exe_env</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Execution</span><span class="nv"> </span><span class="s">environment.&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">choice</span>
+</span><span class="line"><span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="line"><span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;docker&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">options</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;docker&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;poetry&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-build</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span class="line"><span class="w">      </span><span class="nt">packages</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/login-action@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">registry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/setup-buildx-action@v3</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/build-push-action@v5</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span class="line"><span class="w">        </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./Dockerfile</span>
+</span><span class="line"><span class="w">        </span><span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-build</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">container</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">credentials</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">--user root</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span><span class="line"><span class="w">  </span><span class="nt">poetry-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.12&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">setup poetry</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">        </span><span class="no">echo &quot;$(dirname $(poetry run which python))&quot; &gt;&gt; $GITHUB_PATH</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのGitHub Actionsを作成しておけば、</p>
+
+<ul>
+  <li><code>push</code>時にはpoetryでテスト</li>
+  <li>手動で実行するときには<code>docker</code>か<code>poetry</code>を選択して実行</li>
+</ul>
+
+<p>を行うことが出来ます。</p>
+
+<p>まあこのように手動でテスト出来るようにしておく意味があるかどうかはわかりませんが、
+テストがてら作るときに便利かな、と思ってこうしてみただけです。</p>
+
+<p>以下のレポジトリはこのテストを実際にやってみたもの。</p>
+
+<div class="github-widget" data-repo="rcmdnk/github-action-poetry-docker-test"></div>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Poetryを使ったDocker環境構築について]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker/"/>
+    <updated>2024-02-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker</id>
+    <content type="html"><![CDATA[<p>Dockerに
+Poetryを使って必要なPythonのパッケージをインストールして
+環境を構築する方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#poetrydockerのベストプラクティス" id="markdown-toc-poetrydockerのベストプラクティス">Poetry+Dockerのベストプラクティス</a></li>
+  <li><a href="#パッケージ管理として使う" id="markdown-toc-パッケージ管理として使う">パッケージ管理として使う</a>    <ul>
+      <li><a href="#pyprojecttoml" id="markdown-toc-pyprojecttoml">pyproject.toml</a></li>
+      <li><a href="#poetrylock" id="markdown-toc-poetrylock">poetry.lock</a></li>
+      <li><a href="#dockerfile" id="markdown-toc-dockerfile">Dockerfile</a></li>
+    </ul>
+  </li>
+  <li><a href="#poetryで管理しているプロジェクトの環境構築" id="markdown-toc-poetryで管理しているプロジェクトの環境構築">Poetryで管理しているプロジェクトの環境構築</a>    <ul>
+      <li><a href="#src" id="markdown-toc-src">src</a></li>
+      <li><a href="#pyprojecttoml-1" id="markdown-toc-pyprojecttoml-1">pyproject.toml</a></li>
+      <li><a href="#poetrylock-1" id="markdown-toc-poetrylock-1">poetry.lock</a></li>
+      <li><a href="#dockerfile-1" id="markdown-toc-dockerfile-1">Dockerfile</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他気になることなど" id="markdown-toc-その他気になることなど">その他気になることなど</a>    <ul>
+      <li><a href="#プロジェクトをそのまま使う場合ハッシュも含めてrequirementstxtを作る" id="markdown-toc-プロジェクトをそのまま使う場合ハッシュも含めてrequirementstxtを作る">プロジェクトをそのまま使う場合、ハッシュも含めてrequirements.txtを作る</a></li>
+      <li><a href="#poetryの環境変数設定" id="markdown-toc-poetryの環境変数設定">Poetryの環境変数設定</a></li>
+      <li><a href="#pythonの環境変数設定" id="markdown-toc-pythonの環境変数設定">PYTHONの環境変数設定</a></li>
+      <li><a href="#pipの環境変数設定" id="markdown-toc-pipの環境変数設定">PIPの環境変数設定</a></li>
+      <li><a href="#osのパッケージ管理" id="markdown-toc-osのパッケージ管理">OSのパッケージ管理</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="poetrydockerのベストプラクティス">Poetry+Dockerのベストプラクティス</h2>
+
+<p>PoetryのDiscussionsで以下のような議論があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/orgs/python-poetry/discussions/1879">Document docker poetry best practices · python-poetry · Discussion #1879</a></p>
+</blockquote>
+
+<p>4年くらい前に始まってまだcloseしてないもの。</p>
+
+<p>何がベストか、定まってないのでdocument化もされてませんが、
+見ていくと参考になるものがあります。</p>
+
+<p>この辺も参考にしつつ、</p>
+
+<ul>
+  <li>パッケージ群の管理としてのpoetryを使用する場合</li>
+  <li>poetryで管理している特定のプロジェクトの<strong>pyproject.toml</strong>を使った環境構築</li>
+</ul>
+
+<p>の2つの場合でDockerfileなどを用意する方法について見てみます。</p>
+
+<h2 id="パッケージ管理として使う">パッケージ管理として使う</h2>
+
+<p>特定のパッケージ用の<strong>pyproject.toml</strong>とかではなくて
+実際に何かしらを実行したい環境をPoetryを使って作りたい、という場合、
+以下のようなファイル構成にします。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tree
+</span><span class="line">   |-- Dockerfile
+</span><span class="line">   |-- poetry.lock
+</span><span class="line">   |-- pyproject.toml</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="pyprojecttoml">pyproject.toml</h3>
+
+<p><strong>pyproject.toml</strong>は以下のような感じで。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.poetry]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myenv&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.0.1&quot;</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+</span><span class="line"><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;rcmdnk &lt;rcmdnk@gmail.com&gt;&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.dependencies]</span>
+</span><span class="line"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^3.9&quot;</span>
+</span><span class="line"><span class="n">pandas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^2.2.0&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[build-system]</span>
+</span><span class="line"><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;poetry-core&quot;</span><span class="p">]</span>
+</span><span class="line"><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;poetry.core.masonry.api&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>pandas</code>は依存パッケージのあるただの例です。</p>
+
+<p><strong>requirements.txt</strong>と同じようなものですが、
+<code>poetry</code>の場合は<strong>poetry.lock</strong>を使って依存関係を含めたものを作ることが簡単に出来るので
+細かくバージョン管理したい場合には便利です。</p>
+
+<h3 id="poetrylock">poetry.lock</h3>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">poetry lock</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<strong>pyproject.toml</strong>に書かれた依存関係を含めた<strong>poetry.lock</strong>を作ります。</p>
+
+<p><strong>requirements.txt</strong>で<code>pandas</code>だけ書いて、
+一旦空の仮想環境を作ってから<code>pip install -r requirements.txt</code>でインストールして
+<code>pip freeze &gt; requirements.txt</code>で依存関係を含めたリストを作れば同じようなことになりますが、
+大変なので。</p>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<p>このpython環境をDockerで作るために<strong>pyproject.toml</strong>と<strong>poetry.lock</strong>のあるディレクトリに以下のような<strong>Dockerfile</strong>を用意します。</p>
+
+<figure class="code"><figcaption><span>Dockerfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">POETRY_VIRTUALENVS_IN_PROJECT</span><span class="o">=</span><span class="m">1</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span>install<span class="w"> </span>--no-root
+</span><span class="line">
+</span><span class="line"><span class="c1">#########</span>
+</span><span class="line">
+</span><span class="line">FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>runtime
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv<span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">USER_NAME</span><span class="o">=</span>appuser
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span><span class="nv">$VIRTUAL_ENV</span><span class="w"> </span><span class="nv">$VIRTUAL_ENV</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>useradd<span class="w"> </span>-r<span class="w"> </span>-u<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="nv">$USER_NAME</span>
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">USER<span class="w"> </span><span class="nv">$USER_NAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li>2段階ビルド</li>
+</ul>
+
+<p><code>builder</code>と<code>runtime</code>の2段階ビルドを行います。
+<code>builder</code>で<code>poetry</code>を使ってパッケージをインストールし、
+<code>runtime</code>でその仮想環境だけを持ってきて使うことで
+最終的なイメージを小さくするためです。</p>
+
+<p>ただ、今回は最初のbuild段階でも特にコンパイルなどは行わないので
+<code>runtime</code>で使うのと同じ小さいイメージを使ってますし
+正直このレベルだとわざわざ分けてイメージをクリーンにしなくても良いレベルではあります。
+もしくはpoetryなどインストールしたものをアンインストールしてしまえば
+<code>runtime</code>でやるのと同じサイズを作ることが出来ます。</p>
+
+<p>ただ、<code>slim</code>バージョンだけではライブラリが足りなかったり
+build時には<code>apt-get</code>などで何かしらパッケージをインストールして行う必要がある場合には
+それら不要なものすべてをクリーンにするのは難しいので
+このように2段階ビルドを行うことで簡単にクリーンなイメージを作ることが出来ます。</p>
+
+<p>また、<code>runtime</code>側にCOPYするファイルをちょっと変えるだけ、等の場合には
+<code>builder</code>のキャッシュが残っていれば<code>builder</code>ステージをスキップできるので
+ビルド時間を短縮することが出来ます。</p>
+
+<ul>
+  <li>イメージについて</li>
+</ul>
+
+<p>元のイメージは
+<a href="https://hub.docker.com/_/python">python - Official Image</a>
+の最新のDebianのイメージ。</p>
+
+<p>今回は特にコンパイルとかはしないので
+最小限にするために<code>slim</code>バージョンを使っています。</p>
+
+<p>alpineもありますが、ライブラリの違いなどで一般的なLinuxに比べるとパフォーマンスが悪かったりするので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+Python公式イメージの中から選ぶならDebian系のslimなものを選んでおくのが無難です<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<ul>
+  <li>PIPの環境設定</li>
+</ul>
+
+<p><code>PIP_NO_CACHE_DIR=1</code>はキャッシュを使わない設定。
+ここでは<code>pip</code>では直接的には<code>poetry</code>をインストールしているだけですが、
+Dockerfileの中では基本的に<code>pip</code>で何度も同じパッケージをインストールすることは無いのでキャッシュは意味ないので無効にしています。
+ただbuild側での話なのでキャッシュを作っても最終的なイメージには影響ありません。
+途中段階のイメージがちょっとだけ軽くなる程度。</p>
+
+<p><code>PIP_DISABLE_PIP_VERSION_CHECK=1</code>は<code>pip</code>のバージョンチェックを無効にする設定。
+チェックしてwarningを出されても無視するだけなので。
+pipのバージョンアップがセンシティブな場合にはきちんとチェックするなり<code>pip install -U pip</code>を最初に必ず実行するなりしますが、現状そこまで必要ないと思います。</p>
+
+<ul>
+  <li>Poetryのインストール</li>
+</ul>
+
+<p>ここでは<code>pip install poetry</code>で<code>builder</code>のグローバル環境に入れています。</p>
+
+<p>poetryのバージョンもきちんと管理したい場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">RUN pip install poetry=1.7.1</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにバージョン指定を。</p>
+
+<p>また、もしそのイメージのグローバルのPython環境を直接使うような場合はpoetryの依存パッケージで汚さないように</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と直接いれることも出来ますが、今回はベースイメージでかつ使うのは仮想環境だけなのでよりシンプルにできる<code>pip</code>でグローバルに入れてます。</p>
+
+<ul>
+  <li>Poetryの仮想環境作り</li>
+</ul>
+
+<p>最初の
+<code>builder</code>の方で<code>poetry</code>を使ってパッケージインストールを行い、
+その仮想環境部分(<code>.venv</code>)だけを<code>runtime</code>側に持ってきてその中の<code>bin</code>に<code>PATH</code>を通しています。</p>
+
+<p>これでクリーンな最終的なイメージを作ることが出来ます。</p>
+
+<p>仮想環境の作り方としては
+<code>POETRY_VIRTUALENVS_IN_PROJECT=1</code>でカレントディレクトリ以下に仮想環境を作るようにして、
+今回はもともとプロジェクトを管理しているものではなく<code>dependencies</code>にあるパッケージをインストールしたいだけなので
+インストールは<code>--no-root</code>を使って依存パッケージだけをインストールするようにしています。
+<code>src</code>やプロジェクト名のディレクトリなどのソースディレクトリがなければ
+warningが出るだけで結果的には変わりませんが、
+間違って入れられてしまうものがあったりするのを防ぐためにも付けておくべきです。</p>
+
+<h2 id="poetryで管理しているプロジェクトの環境構築">Poetryで管理しているプロジェクトの環境構築</h2>
+
+<p>Poetryで管理しているプロジェクトをそのままDockerで使いたい場合、
+<code>poetry install</code>で作った仮想環境はそのまま使えません。</p>
+
+<p><code>poetry install</code>では<code>--no-root</code>を付けずに行った場合、
+プロジェクトのルートディレクトリの<code>src</code>またはプロジェクト名のディレクトリがプロジェクト名のパッケージとしてインストールされますが、
+インストールされるのはソースコードのディレクトリへのパスを書いた<code>.pth</code>ファイルだけなので(<code>pip install -e &lt;package path&gt;</code>の状態)、
+それが入った仮想環境ディレクトリだけをコピーしてもコードが見つかりません。</p>
+
+<p>Dockerイメージの中でPythonを起動したらそのプロジェクトがパッケージとして認識されているような状態にするため、以下のようにします。</p>
+
+<p>ファイルの構成としては以下のような状態を想定します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tree
+</span><span class="line">   |-- Dockerfile
+</span><span class="line">   |-- poetry.lock
+</span><span class="line">   |-- pyproject.toml
+</span><span class="line">   |-- src
+</span><span class="line">   |    |-- myproject
+</span><span class="line">   |    |    |-- app.py
+</span><span class="line">   |    |    |-- __init__.py
+</span><span class="line">   |    |    |-- main.py</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="src">src</h3>
+
+<p><code>src</code>ディレクトリにはプロジェクトのソースコードが入っているとします。</p>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.main</span> <span class="kn">import</span> <span class="n">main</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">.app</span> <span class="kn">import</span> <span class="n">hello</span>
+</span><span class="line"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>app.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+</span><span class="line">    <span class="k">return</span> <span class="s2">&quot;Hello, World!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>main.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.app</span> <span class="kn">import</span> <span class="n">hello</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span><span class="line">    <span class="nb">print</span><span class="p">(</span><span class="n">hello</span><span class="p">())</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">main</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで、<code>Hello, World!</code>を出力するプロジェクトを想定します。</p>
+
+<p><code>main</code>の方はcliとして使うことを想定しています。</p>
+
+<h3 id="pyprojecttoml-1">pyproject.toml</h3>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.poetry]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myproject&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.0.1&quot;</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+</span><span class="line"><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;rcmdnk &lt;rcmdnk@gmail.com&gt;&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.dependencies]</span>
+</span><span class="line"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^3.11&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[build-system]</span>
+</span><span class="line"><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;poetry-core&gt;=1.0.0&quot;</span><span class="p">]</span>
+</span><span class="line"><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;poetry.core.masonry.api&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.scripts]</span>
+</span><span class="line"><span class="n">hello</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myproject:main&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>先ほどと<code>name</code>を変えて<code>pandas</code>を消してますが、
+加えて<code>tool.poetry.scripts</code>で<code>hello</code>というコマンドを<code>myproject:main</code>として登録しています。</p>
+
+<p>これで環境が正しくインストールされていれば<code>hello</code>コマンドが使えるようになります。</p>
+
+<h3 id="poetrylock-1">poetry.lock</h3>
+
+<p>先ほど同様<code>poetry lock</code>で作ります。</p>
+
+<h3 id="dockerfile-1">Dockerfile</h3>
+
+<figure class="code"><figcaption><span>Dockerfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry-plugin-export
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>src<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--without-hashes<span class="w"> </span>--format<span class="o">=</span>requirements.txt<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">RUN<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;./&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span>
+</span><span class="line">RUN<span class="w"> </span>.<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/bin/activate&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line"><span class="c1">#########</span>
+</span><span class="line">
+</span><span class="line">FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>runtime
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv<span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">USER_NAME</span><span class="o">=</span>appuser
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span><span class="nv">$VIRTUAL_ENV</span><span class="w"> </span><span class="nv">$VIRTUAL_ENV</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>useradd<span class="w"> </span>-r<span class="w"> </span>-u<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="nv">$USER_NAME</span>
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">USER<span class="w"> </span><span class="nv">$USER_NAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li>2段階ビルド</li>
+</ul>
+
+<p><code>runtime</code>側は先ほどと全く同じです。</p>
+
+<p>一方<code>builder</code>側はだいぶ変わっています。</p>
+
+<ul>
+  <li>poetry-plugin-export</li>
+</ul>
+
+<p>まず、<code>poetry-plugin-export</code>をインストールして
+<code>poetry export</code>で<code>requirements.txt</code>を作ります。</p>
+
+<p><code>poetry export</code>は<code>poetry</code>のサブコマンドで、
+現在は<code>poetry</code>をインストールすれば使えますが、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
+</span><span class="line">In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
+</span><span class="line">To disable this warning run 'poetry config warnings.export false'.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった警告が出るようになっています。</p>
+
+<p><code>poetry-plugin-export</code>をインストールすれば依存関係で<code>poetry</code>もインストールされます。</p>
+
+<ul>
+  <li>コピーするファイル</li>
+</ul>
+
+<p>今回は<strong>pyproject.toml</strong>と<strong>poetry.lock</strong>に加えて<strong>src</strong>ディレクトリもをコピーします。</p>
+
+<ul>
+  <li>poetry export</li>
+</ul>
+
+<p><code>poetry export</code>で<strong>requirements.txt</strong>を作りますが、
+<code>--without-hashes</code>でハッシュを含めないようにしています。</p>
+
+<p>次に<code>./</code>を追加していますが、
+poetryでルートディレクトリで<code>pip install .</code>とすれば
+プロジェクト自体も含めて<code>pyproject.toml</code>に書かれた依存関係を含めたパッケージがインストールされます。</p>
+
+<p>そのままだと各パッケージは<code>^1.0.0</code>など範囲を指定してあるだけのものだったりするものもあるので<strong>poetry.lock</strong>の内容を含めることで毎回同じ環境を作ることが出来ます。</p>
+
+<p><code>./</code>にはハッシュ情報を付けてない状態で
+<strong>requirements.txt</strong>を使った<code>pip install</code>では
+ハッシュを持ったものとそうでないものが混在するとエラーになるので
+この方法だと<code>--without-hashes</code>は必須です。</p>
+
+<ul>
+  <li>仮想環境の作り方</li>
+</ul>
+
+<p>今回は<code>poetry</code>ではなく、<code>venv</code>で仮想環境を作ります。
+<code>poetry</code>で<strong>/app</strong>に<code>IN_PROJECT</code>な状態で作るのと同じ名前になるように</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">VIRTUAL_ENV=/app/.venv</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と仮想環境ディレクトリを指定して作成し、
+activateしてから<strong>requirements.txt</strong>を使ってインストールします。</p>
+
+<p>あとは出来た仮想環境ディレクトリだけを<code>runtime</code>側に持ってきて使います。</p>
+
+<p>これでDockerの中で<code>python</code>を実行すれば<code>import myproject</code>が出来ますし、
+コマンドラインから<code>hello</code>というコマンドを打てば<code>Hello, World!</code>と出力される状態になります。</p>
+
+<h2 id="その他気になることなど">その他気になることなど</h2>
+
+<h3 id="プロジェクトをそのまま使う場合ハッシュも含めてrequirementstxtを作る">プロジェクトをそのまま使う場合、ハッシュも含めてrequirements.txtを作る</h3>
+
+<p>PyPIではパッケージの同じバージョンを再生成することは出来ないので
+ハッシュを含めずとも基本的にはバージョンの指定だけで全く同じ環境を作ることが出来ます(アーキテクチャなどが同じ環境であるならば)。</p>
+
+<p>ただPyPI以外の場所からインストールすることがあったり、より明確にハッシュを含めたい場合、以下のようにすると良いかな、と。</p>
+
+<figure class="code"><figcaption><span>Dockerfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">POETRY_VIRTUALENVS_IN_PROJECT</span><span class="o">=</span><span class="m">1</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>src<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span>install<span class="w"> </span>--no-root
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span>build
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>dist/*.whl
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここでは最初の例のように<code>poetry</code>で仮想環境を作っています。</p>
+
+<p>途中までは<code>src</code>をコピーすること以外は一緒で
+最後にプロジェクトを<code>build</code>してwheelファイルを作り、
+それを<code>pip install</code>でインストールしています。</p>
+
+<p>依存パッケージは既に<code>poetry install --no-root</code>でインストールしてあるので
+<code>--no-deps</code>を付けて<code>myproject</code>に関するものだけをインストールしています。</p>
+
+<p>最初のものとの互換性を考えるとこちらの方がわかりやすいのと
+依存パッケージのハッシュもきちんと管理してるので良いかもしれません。</p>
+
+<p>まあ、好きな方で良いかと。</p>
+
+<h3 id="poetryの環境変数設定">Poetryの環境変数設定</h3>
+
+<p>上で使っているものは<code>POETRY_VIRTUALENVS_IN_PROJECT</code>だけですが、
+poetryを使った環境構築の例を見ると他にもいくつかよく使われているものがあります。</p>
+
+<blockquote>
+  <p><a href="https://python-poetry.org/docs/configuration/">Poetry - Python dependency management and packaging made easy</a></p>
+</blockquote>
+
+<p>ただ、なんとなく、コピペで、で使われているだけのものもあるみたいです<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup></p>
+
+<p>ちょうどこれを書いている時こんな議論が出てきてました。</p>
+
+<blockquote><p>it is not a thing, this is cargo-culting</p><footer><strong>Where is POETRY_NO_INTERACTION documented? · python-poetry · Discussion #8977</strong> <cite><a href="https://github.com/orgs/python-poetry/discussions/8977)">github.com/orgs/python-poetry/&hellip;</a></cite></footer></blockquote>
+
+<p>実際自分も<code>POETRY_NO_INTERACTION</code>をきちんと確認しようとしてドキュメントに無いな、と思いながら探してたらこれを見つけたわけですが、
+実際、<code>POETRY_NO_INTERACTION</code>は存在しないようです。</p>
+
+<p><code>poetry</code>コマンド自体には<code>--no-interaction</code> (<code>-n</code>)というオプションがありますが、これはグローバルオプションでどのサブコマンドに対しても使えるものになっています。</p>
+
+<p>なので</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">poetry --no-interaction help</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、インタラクティブなものがない場合でも使えて当然同じ結果になります。</p>
+
+<p>よくある例のDockerfileで使うのは基本的に<code>poetry install</code>だけですが、
+そもそも<code>poetry install</code>でインタラクティブなものに出くわしたことが無いので意味があるかはわかりません。
+(もしかしたら知らないだけであるかもしれませんが。。。)</p>
+
+<p>あるもの例としては<code>poetry init</code>があります。</p>
+
+<p>なので、これを<code>POETRY_NO_INTERACTION</code>を使って試してみます。</p>
+
+<p>以下のテストはpoetry 1.7.1で行っています。</p>
+
+<p>何も指定しない場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry init
+</span><span class="line">
+</span><span class="line">This command will guide you through creating your pyproject.toml config.
+</span><span class="line">
+</span><span class="line">Package name [tmp]:</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにインタラクティブな作業が始まります。</p>
+
+<p>次に<code>--no-interaction</code>を付けると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry init --no-interaction
+</span><span class="line">$ cat pyproject.toml
+</span><span class="line">[tool.poetry]
+</span><span class="line">name = "tmp"
+</span><span class="line">version = "0.1.0"
+</span><span class="line">description = ""
+</span><span class="line">authors = ["rcmdnk &lt;rcmdnk@gmail.com&gt;"]
+</span><span class="line">readme = "README.md"
+</span><span class="line">
+</span><span class="line">[tool.poetry.dependencies]
+</span><span class="line">python = "^3.11"
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">[build-system]
+</span><span class="line">requires = ["poetry-core&gt;=1.0.0"]
+</span><span class="line">build-backend = "poetry.core.masonry.api"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じに適当な初期値を使った状態で<strong>pyproject.toml</strong>が作られます。</p>
+
+<p>最後に<code>POETRY_NO_INTERACTION</code>を使ってみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ POETRY_NO_INTERACTION=1 poetry init
+</span><span class="line">
+</span><span class="line">This command will guide you through creating your pyproject.toml config.
+</span><span class="line">
+</span><span class="line">Package name [tmp]:</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、<code>POETRY_NO_INTERACTION</code>を使ってもインタラクティブな作業が始まります。</p>
+
+<p>というわけで、
+<strong>it is not a thing, this is cargo-culting.</strong></p>
+
+<h3 id="pythonの環境変数設定">PYTHONの環境変数設定</h3>
+
+<p>同様にPYTHONの環境変数で使われているものも不要だろうと思うものがあります。</p>
+
+<ul>
+  <li>PYTHONDONTWRITEBYTECODE=1</li>
+</ul>
+
+<p>これは設定すると<strong>__pycache__</strong>というディレクトリの中に作る<strong>pyc</strong>といったバイトコードを書かないようになります。</p>
+
+<p>バイトコードはモジュールがimportされた時に作られるもので、
+次回以降のimport時にはそれを使うことで高速になります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/orgs/python-poetry/discussions/1879">Document docker poetry best practices · python-poetry · Discussion #1879</a></p>
+</blockquote>
+
+<p>これの中でも質問されてますが、buildの段階でこれは本当に必要なのか、と。</p>
+
+<p>実際にはbuild時には関係ありません。</p>
+
+<p>関係ない、というか、これを指定してあってもパッケージをインストールするとバイトコードは生成されます。</p>
+
+<p>仮にこれをDockerfileの中で指定するとしたら
+runtime側で使うのであればまだわかります。</p>
+
+<p>複数ファイルからなるスクリプトをコピーして入れておいて
+メインのファイルから他のファイルをimportするようなことをする場合には
+バイトコードが生成されるので、この場合
+<code>PYTHONDONTWRITEBYTECODE=1</code>を使ってバイトコードを書かないようにする、ということは意味があるかもしれません。
+基本的に<code>docker run</code>したらそれで終わりなのでそこで作られたバイトコードは2度と使われることはないので。</p>
+
+<p>ただ、上のように作った環境でやりたいことは通常は何らかインストールされたコマンドを実行したり、
+1つのpythonスクリプトを実行することだと思うのでその際には
+いずれにしろバイトコードは生成されません。</p>
+
+<p>というわけで、<code>PYTHONDONTWRITEBYTECODE=1</code>はきちんと作用はしますが、
+少なくとも<code>build</code>過程で使うことは意味がないし、
+<code>runtime</code>で使う場合にも意味がある場合は限られています。</p>
+
+<p>でも上の議論の中では</p>
+
+<blockquote><p>It still generates the .pyc files but it won't write them to disk. Python will generate them on the fly every time you start your application.</p><p>A few places where I have seen it:</p><p>https://sourcery.ai/blog/python-docker/<br />https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/</p><footer><strong>Document docker poetry best practices · python-poetry · Discussion #1879</strong> <cite><a href="https://github.com/orgs/python-poetry/discussions/1879)">github.com/orgs/python-poetry/&hellip;</a></cite></footer></blockquote>
+
+<p>で議論が終わってしまっていて、
+確かに参考先でも同じように使ってますが、ですが、確かめてはない模様。</p>
+
+<p>実際、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ python -m venv myenv
+</span><span class="line">o@) $ . myenv/bin/activate
+</span><span class="line">(myenv) $ export PYTHONDONTWRITEBYTECODE=1
+</span><span class="line">(myenv) $ pip install pyyaml
+</span><span class="line">Collecting pyyaml
+</span><span class="line">  Using cached PyYAML-6.0.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+</span><span class="line">Using cached PyYAML-6.0.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (757 kB)
+</span><span class="line">Installing collected packages: pyyaml
+</span><span class="line">Successfully installed pyyaml-6.0.1
+</span><span class="line">
+</span><span class="line">[notice] A new release of pip is available: 23.3.1 -&gt; 24.0
+</span><span class="line">[notice] To update, run: pip install --upgrade pip
+</span><span class="line">(myenv) $ ls myenv/lib/python3.11/site-packages/yaml/
+</span><span class="line">composer.py     dumper.py   events.py    nodes.py     reader.py       scanner.py     _yaml.cpython-311-x86_64-linux-gnu.so
+</span><span class="line">constructor.py  emitter.py  __init__.py  parser.py    representer.py  serializer.py
+</span><span class="line">cyaml.py        error.py    loader.py    __pycache__  resolver.py     tokens.py
+</span><span class="line">(myenv) $ ls myenv/lib/python3.11/site-packages/yaml/__pycache__/
+</span><span class="line">composer.cpython-311.pyc     emitter.cpython-311.pyc   loader.cpython-311.pyc  representer.cpython-311.pyc  tokens.cpython-311.pyc
+</span><span class="line">constructor.cpython-311.pyc  error.cpython-311.pyc     nodes.cpython-311.pyc   resolver.cpython-311.pyc
+</span><span class="line">cyaml.cpython-311.pyc        events.cpython-311.pyc    parser.cpython-311.pyc  scanner.cpython-311.pyc
+</span><span class="line">dumper.cpython-311.pyc       __init__.cpython-311.pyc  reader.cpython-311.pyc  serializer.cpython-311.pyc</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という感じに生成されます。</p>
+
+<p>一方、</p>
+
+<figure class="code"><figcaption><span>app.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+</span><span class="line">    <span class="k">return</span> <span class="s2">&quot;Hello, World!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を作ってこの環境下でimportを試してみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">(myenv) $ ls
+</span><span class="line">app.py  myenv
+</span><span class="line">(myenv) $ export PYTHONDONTWRITEBYTECODE=1
+</span><span class="line">(myenv) $ python -c 'from app import hello;print(hello())'
+</span><span class="line">Hello, World!
+</span><span class="line">(myenv) $ ls
+</span><span class="line">app.py  myenv
+</span><span class="line">(myenv) $ unset PYTHONDONTWRITEBYTECODE
+</span><span class="line">(myenv) $ python -c 'from app import hello;print(hello())'
+</span><span class="line">Hello, World!
+</span><span class="line">(myenv) $ ls
+</span><span class="line">app.py  myenv  __pycache__
+</span><span class="line">(myenv) $ ls __pycache__/
+</span><span class="line">app.cpython-311.pyc</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じで<code>PYTHONDONTWRITEBYTECODE=1</code>を使うとバイトコードの生成を制御することが出来ていることがわかります。</p>
+
+<p>なのでおそらく最初は1段階のruntimeのみなDockerfileで使われている例があり、
+それをそのままコピペして最初に書いただけ、が始まりで
+そのまま広く使われてだけだと思います。</p>
+
+<p>ただあまりに多くの場所で当たり前のように使われていて、
+上の議論でも質問があったにもかかわらず(しかも一回食い下がったのに)一蹴されて終わっているのでこれだけ試してみた今でもなにかあるんじゃないかと思ってしまいます。。。</p>
+
+<ul>
+  <li>PYTHONUNBUFFERED=1</li>
+</ul>
+
+<p>これも良くあるもので、Pythonの標準出力をバッファリングしないようにするものです。</p>
+
+<p>ただこれもbuildの段階で使うことは意味がないし、
+逆に必要であればきちんとruntimeで指定しなくてはいけません。</p>
+
+<p>これを指定するのは<code>docker run</code>したときに、何らかの理由でコンテナが落ちてしまった際、バッファリングされた出力が処理されないまま消えてしまうことを防ぐためです。</p>
+
+<p>ただ、現在(python 3.7以降)では通常のテキストレイヤー部はバッファリングされないようになっているので、
+画像を出力するなどの特殊な場合を除いては必要ないです。</p>
+
+<blockquote><p>-u<br />Force the stdout and stderr streams to be unbuffered. This option has no effect on the stdin stream.</p><p>See also PYTHONUNBUFFERED.</p><p>Changed in version 3.7: The text layer of the stdout and stderr streams now is unbuffered.</p><footer><strong>1. Command line and environment — Python 3.12.2 documentation</strong> <cite><a href="https://docs.python.org/3.12/using/cmdline.html#cmdoption-u">docs.python.org/3.12/using/&hellip;</a></cite></footer></blockquote>
+
+<p>いずれにしろこれもbuildでは意味ないし、
+おそらく昔作られたなにかの1段階ビルドのDockerfileのものをコピペして使われているだけだと思います。</p>
+
+<p>特にこちらに関してはやりたいことは確実にruntime側での話なので
+ちょっと影響が出るレベルにもなってくるかと思います。
+(それともなんらかbuildで設定したENVが引き継がれるとかある?少なくともいくつか試した環境のいずれでも引き継がれるようなことはありませんでしたが。)</p>
+
+<h3 id="pipの環境変数設定">PIPの環境変数設定</h3>
+
+<p>PIPの環境設定の</p>
+
+<p><code>PIP_NO_CACHE_DIR=1</code>はbuildステージで実際に効果はありますが、
+これに関しては設定値がちょっと厄介です。</p>
+
+<p>もともとこの値は<code>0</code>, <code>false</code>, <code>off</code>, <code>no</code>が設定されているとキャッシュが無効になるようになっていました。</p>
+
+<p>ただ、<code>NO_CACHE_DIR</code>という名前が<strong>キャッシュディレクトリを作らない</strong>なので、
+これをNOにするということは逆にキャッシュを作る、ということになります。</p>
+
+<p>というわけで理由がわからない、という理由で、<code>1</code>, <code>true</code>, <code>on</code>, <code>yes</code>と指定するとキャッシュを無効化するようにしたいということでそれらを有効にしましたが、
+後方互換性を保つために<code>0</code>などを設定してもキャッシュが無効になるようになっています。</p>
+
+<p>より正確には<code>distutils.util.strtobool</code>が解釈できる文字ならばキャッシュが無効になるようになっています。
+(上記リストに加えて<code>y</code>, <code>t</code>, <code>n</code>, <code>f</code>でも可。)</p>
+
+<blockquote>
+  <p><a href="https://github.com/pypa/pip/issues/5735">PIP_NO_CACHE_DIR and PIP_NO_BUILD_ISOLATION behave opposite to how they read · Issue #5735 · pypa/pip</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/pypa/pip/pull/5884/files">Make PIP_NO_CACHE_DIR behave as it reads, and not crash pip by cjerdonek · Pull Request #5884 · pypa/pip</a></p>
+</blockquote>
+
+<p>なので</p>
+
+<ul>
+  <li><code>PIP_NO_CACHE_DIR=on</code></li>
+  <li><code>PIP_NO_CACHE_DIR=off</code></li>
+</ul>
+
+<p>は正反対のように見えますが、実際にはどちらもキャッシュを無効にします。</p>
+
+<ul>
+  <li><code>PIP_NO_CACHE_DIR=0</code></li>
+  <li><code>PIP_NO_CACHE_DIR=1</code></li>
+</ul>
+
+<p>も。</p>
+
+<p>かといって、たまにある、<strong>何でも良いから変数が空文字以外でとして定義されていれば効果を発揮する</strong>というわけでもなく、
+上位以外の値をいれると<code>strtobool</code>が解釈出来ずにエラーになります。</p>
+
+<p><code>on</code>でも<code>off</code>でも同じならそうだろう、経験ある人ほどそう予測しがちだと思いますが。</p>
+
+<p>この変更は<code>pip</code>の19.0から入っています。</p>
+
+<blockquote>
+  <p><a href="https://pip.pypa.io/en/stable/news/#v19-0">Changelog - pip documentation v19.0</a></p>
+</blockquote>
+
+<p>これより前は上のコードの変更を見るとcallbackを使わずに<code>store_false</code>になっています。</p>
+
+<p><code>store_false</code>, <code>store_true</code>に設定されているオプションは環境変数やconfigでの設定では
+値を<code>strtobool</code>で判定し、その結果が<code>True</code>ならそれぞれ<code>False</code>, <code>True</code>、<code>False</code>なら逆に<code>True</code>, <code>False</code>を
+設定するようになっています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/pypa/pip/blob/76554a48eec96273717fbf87eb6e4a12374ddf4d/src/pip/_internal/cli/parser.py#L227-L235">pip/src/pip/_internal/cli/parser.py at 76554a48eec96273717fbf87eb6e4a12374ddf4d · pypa/pip</a></p>
+</blockquote>
+
+<p><code>PIP_DISABLE_PIP_VERSION_CHECK</code>の方は<code>store_true</code>のオプションになっていて、
+<code>1</code>や<code>on</code>などを設定するとpipのバージョンチェックを無効化し、<code>0</code>や<code>off</code>など、または何も設定しなければ有効になります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/pypa/pip/blob/76554a48eec96273717fbf87eb6e4a12374ddf4d/src/pip/_internal/cli/cmdoptions.py#L890-L898">pip/src/pip/_internal/cli/cmdoptions.py at 76554a48eec96273717fbf87eb6e4a12374ddf4d · pypa/pip</a></p>
+</blockquote>
+
+<h3 id="osのパッケージ管理">OSのパッケージ管理</h3>
+
+<p>今回使っているDebianのイメージでは
+<code>apt</code>や<code>apt-get</code>コマンドでパッケージを管理するシステムになっています。</p>
+
+<p>今回は特に追加のパッケージをインストールしていないので<code>apt-get</code>は使っていませんが、
+よく使うので一応追加で。</p>
+
+<p><code>builder</code>では<code>git</code>を使い、<code>runtime</code>では<code>curl</code>が必要だとする場合、</p>
+
+<figure class="code"><figcaption><span>Dockerfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">POETRY_VIRTUALENVS_IN_PROJECT</span><span class="o">=</span><span class="m">1</span>
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>git
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span>install<span class="w"> </span>--no-root
+</span><span class="line">
+</span><span class="line"><span class="c1">#########</span>
+</span><span class="line">
+</span><span class="line">FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>runtime
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv<span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">USER_NAME</span><span class="o">=</span>appuser
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>curl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span><span class="nv">$VIRTUAL_ENV</span><span class="w"> </span><span class="nv">$VIRTUAL_ENV</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>useradd<span class="w"> </span>-r<span class="w"> </span>-u<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="nv">$USER_NAME</span>
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">USER<span class="w"> </span><span class="nv">$USER_NAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じになります。</p>
+
+<p><code>builder</code>の方は無理にクリーンにしなくても良いということで<code>apt-get clean</code>とかも実行しません。</p>
+
+<p><code>runtime</code>側では<code>apt-get clean</code>に加えて<code>rm -rf /var/lib/apt/lists/*</code>も実行しています。
+これは<code>apt-get update</code>で<code>/var/lib/apt/lists</code>にキャッシュが作られるのでそれを削除しています。</p>
+
+<p>また、<code>apt</code>コマンドが導入されて以降、コマンドラインでは<code>apt-get</code>とかではなく<code>apt</code>(<code>apt get</code>など)を使うことが推奨されていますが、</p>
+
+<blockquote><p>ユーザーは インタラクティブ 用途には apt(8) コマンドを使うことが推奨されますし、シェルスクリプト中ではapt-get(8) や apt-cache(8) コマンドを使うことが推奨されます。</p><footer><strong>第2章 Debian パッケージ管理</strong> <cite><a href="https://www.debian.org/doc/manuals/debian-reference/ch02.ja.html#_literal_apt_literal_vs_literal_apt_get_literal_literal_apt_cache_literal_vs_literal_aptitude_literal">www.debian.org/doc/manuals/&hellip;</a></cite></footer></blockquote>
+
+<p>とのことでDockerfileなどの中では<code>apt-get</code>などを使います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actionsでのsyntax error near unexpected token `(' 回避]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/02/computer-github/"/>
+    <updated>2024-02-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/02/computer-github</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsで変数展開するところで起こったエラーに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#起こった現象" id="markdown-toc-起こった現象">起こった現象</a></li>
+  <li><a href="#問題点" id="markdown-toc-問題点">問題点</a></li>
+  <li><a href="#回避方法" id="markdown-toc-回避方法">回避方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="起こった現象">起こった現象</h2>
+
+<p>Pythonのプロジェクトでpytestを実行した後、
+<a href="https://github.com/MishaKav/pytest-coverage-comment">MishaKav/pytest-coverage-comment</a>
+というactionを使ってカバレッジのレポートを作っていました。</p>
+
+<p>このactionは出力に<code>notSuccessTestInfo</code>という値を持っていて、ここには
+スキップされたテスト項目が入っています。
+<code>pytest.mark.parametrize</code>などを使うと引数部分も入ってそれを囲う記号もはいってきたりすることもありますが、
+その際に問題が起きていたようです。</p>
+
+<p>上記のアクションに<code>coverageComment</code>というidをつけていたとして、下のactionで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="w">    </span>-<span class="w"> </span>name:<span class="w"> </span>Check<span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>coverage
+</span><span class="line"><span class="w">      </span>shell:<span class="w"> </span>bash
+</span><span class="line"><span class="w">      </span>run:<span class="w"> </span><span class="p">|</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Percantage - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.coverage </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Color - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.color </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Warnings - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.warnings </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Errors - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.errors </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Failures - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.failures </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Skipped - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.skipped </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Tests - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.tests </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Time - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.time </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B097TJKSWB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B097TJKSWB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71fGbIN3ETL._SS90_CR0,0,120,90_.jpg" alt="ACTION! (初回限定盤B)(DVD付)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/02/computer-python/">python-action: pytestなどを実行するGitHub Action</a></div></li></ul>
+
+<p>のようにして結果を見ていたのですが、
+この最後のところで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"> /home/runner/work/_temp/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.sh: line 10: syntax error near unexpected token `('</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じのエラーが出るようになったものがありました。</p>
+
+<h2 id="問題点">問題点</h2>
+
+<p>GitHub Actionsのrunの部分ががシェルスクリプトになって実行されていて、shebang部分が加わるので10行目は<code>notSuccessTestInfo</code>のところです。</p>
+
+<p>ここを見ようと思ってもこの行を入れてしまうとエラー終了してしまうので難しいところですが、
+おそらく<code>steps.coverageComment.outputs.notSuccessTestInfo</code>に<code>(</code> が入っていて、それをGitHub Action上での二重括弧構文での展開の後
+通常のシェルとして処理しようとして問題になっている感じ。</p>
+
+<p>この変数部分が最初から完全に文字列として扱われてくれれば良いのですが、このように<code>run</code>の中で展開しようとするとうまく行かないことがあるみたいです。</p>
+
+<h2 id="回避方法">回避方法</h2>
+
+<p>これを回避するには
+<code>env</code>を使って環境変数として登録しておいて<code>run</code>の中から参照するという方法。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="w">    </span>-<span class="w"> </span>name:<span class="w"> </span>Check<span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>coverage
+</span><span class="line"><span class="w">      </span>shell:<span class="w"> </span>bash
+</span><span class="line"><span class="w">      </span>env:
+</span><span class="line"><span class="w">        </span>NOT_SUCCESS_TEST_INFO:<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">      </span>run:<span class="w"> </span><span class="p">|</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Percantage - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.coverage </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Color - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.color </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Warnings - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.warnings </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Errors - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.errors </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Failures - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.failures </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Skipped - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.skipped </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Tests - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.tests </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Time - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.time </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="nv">$NOT_SUCCESS_TEST_INFO</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このようにすると<code>NOT_SUCCESS_TEST_INFO</code>は最初からただの文字列として扱われるので
+<code>echo</code>を使ってそのまま出力することができます。</p>
+
+<p>こんな感じで記号とかを含むActionの出力やあらかじめ登録しておいたActionのVariableやSecretを<code>run</code>で
+シェルスクリプト的に使う際には
+直接使うとエラーになってしまうことがありますが、
+一旦<code>env</code>を使って環境変数に入れれば使えるようになります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Gitで現在のディレクトリのファイルの状況だけをignoreされてるものなども含めて表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/01/08/computer-git/"/>
+    <updated>2024-01-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/01/08/computer-git</id>
+    <content type="html"><![CDATA[<p><code>git ls-files</code>はディレクトリを指定してもそのディレクトリ以下のすべての管理されているファイルを表示します。</p>
+
+<p>シェルで使う<code>ls</code>の様にカレントディレクトリだけを表示したい時はちょっと工夫がいります。</p>
+
+<p>また、ignoreされているファイルやファイルの状態も見たい、ということで
+それを実現するaliasについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#現在のディレクトリで管理されているファイルのみを表示" id="markdown-toc-現在のディレクトリで管理されているファイルのみを表示">現在のディレクトリで管理されているファイルのみを表示</a></li>
+  <li><a href="#管理されてるディレクトリのみ表示" id="markdown-toc-管理されてるディレクトリのみ表示">管理されてるディレクトリのみ表示</a></li>
+  <li><a href="#変更されたファイルignoreされたファイルの表示" id="markdown-toc-変更されたファイルignoreされたファイルの表示">変更されたファイル、ignoreされたファイルの表示</a></li>
+  <li><a href="#空のディレクトリの検出" id="markdown-toc-空のディレクトリの検出">空のディレクトリの検出</a></li>
+  <li><a href="#aliasにまとめる" id="markdown-toc-aliasにまとめる">aliasにまとめる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="現在のディレクトリで管理されているファイルのみを表示">現在のディレクトリで管理されているファイルのみを表示</h2>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/10452962/how-to-git-ls-files-for-just-one-directory-level">how to <code>git ls-files</code> for just one directory level. - Stack Overflow</a></p>
+</blockquote>
+
+<p>上にある答えを使って</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files ':(glob)*'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすれば現在のディレクトリで管理されているファイルのみを表示できます。</p>
+
+<p>一番簡易にはこれで足りることが多いかと思います。</p>
+
+<p>変更したあとに細かく見ようと思うとこれだとチョット足りません。</p>
+
+<p><code>ls-files</code>には<code>-t</code>といった状態を示すオプションもありますが、
+これは引数の状態に合わせて表示されるだけで、
+通常の<code>ls-files</code>であれば全て<code>H</code>(<strong>tracked file that is not either unmerged or skip-worktree</strong>)になります。</p>
+
+<p>変更が入っているファイルだけを表示したければ
+<code>git ls-files -m -t</code>とかすると<code>C</code>と表示され、変更されたものでstagingされてないものだけが表示されます。</p>
+
+<p>ただ、<code>staged</code>な状態で<code>modified</code>とかの状態はわからないので全て何もしてないファイルと同等に見えてしまいます。</p>
+
+<h2 id="管理されてるディレクトリのみ表示">管理されてるディレクトリのみ表示</h2>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/20247389/how-to-git-list-only-the-tracked-directories">How to git list only the tracked directories? - Stack Overflow</a></p>
+</blockquote>
+
+<p>上の最初の答えでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files | xargs -n 1 dirname | uniq</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となってますが、これだと<code>dirname</code>なので下に多階層のディレクトリ構造があると上手くいきません。</p>
+
+<p>直接<code>cut -d '/' -f1</code>とかで良さそう。</p>
+
+<p>そのままやるとカレントディレクトリのファイルも<code>/</code>を含まないですがそのまま表示されてしまうので</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files ':(glob)*/**' | cut -d '/' -f1 | uniq</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすれば必要なものが取得できます。</p>
+
+<p>加えて、各ディレクトリの中に変更があるかどうかも見たい時、<code>git status</code>の結果を見て</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">On branch main
+</span><span class="line">Changes to be committed:
+</span><span class="line">  (use "git restore --staged &lt;file&gt;..." to unstage)
+</span><span class="line">        modified:    a
+</span><span class="line">
+</span><span class="line">Changes not staged for commit:
+</span><span class="line">  (use "git add &lt;file&gt;..." to update what will be committed)
+</span><span class="line">  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+</span><span class="line">        modified:   b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように変更があると<code>staged</code>と<code>unstaged</code>でそれぞれで、</p>
+
+<ul>
+  <li><code>staged</code>: <code>Changes to be committed:</code></li>
+  <li><code>unstaged</code>: <code>Changes not staged for commit:</code></li>
+</ul>
+
+<p>といった出力があります。</p>
+
+<p>これを各ディレクトリ毎に見て、
+以下で見る<code>git status -s</code>の表記と同じになるように</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*/**&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nv">staged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;Changes to be committed:\&quot; &amp;&amp; echo &quot;</span>M<span class="s2">&quot; || echo &quot;</span><span class="w"> </span><span class="s2">&quot;)</span>
+</span><span class="line"><span class="s2">  unstaged=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;Changes not staged for commit:&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; &quot;</span><span class="k">)</span>
+</span><span class="line"><span class="s2">  echo &quot;</span><span class="nv">$staged$unstaged</span><span class="w"> </span><span class="nv">$line</span>/<span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、それぞれ何らか変更があれば<code>M</code>、なければスペースを表示するようにできます。</p>
+
+<p>最近の通常のシェルスクリプトなら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span>...
+</span><span class="line"><span class="k">done</span><span class="w"> </span>&lt;<span class="w"> </span>&lt;<span class="o">(</span>git<span class="w"> </span>ls_files<span class="w"> </span>...<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書くことも可能で、こちらのほうがサブシェルに入らないので色々便利ですが、
+この書き方はgitの中のシェルが理解してくれないのでaliasを書く際には上のようなパイプで繋いだ形でやる必要があります。</p>
+
+<h2 id="変更されたファイルignoreされたファイルの表示">変更されたファイル、ignoreされたファイルの表示</h2>
+
+<p><code>git status -s</code>で現在のレポジトリ内の変更があったファイルに関して、<code>staged</code>, <code>unstaged</code>両方の状態を簡単に見ることができます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">M  a
+</span><span class="line"> M b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかなら<strong>a</strong>は変更された後<code>git add</code>されている状態、<strong>b</strong>は変更されたけど<code>git add</code>されていない状態です。</p>
+
+<p>また、<code>git mv</code>で<code>rename</code>な状態にあると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">R  a -&gt; b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで表示されます。</p>
+
+<p>さらに<code>--ignored</code>オプションを加えると<strong>.gitignore</strong>で指定されている除外ファイルも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">!! x</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>!!</code>な状態として表示されます。</p>
+
+<p>この<code>git stagus</code>でも<code>ls-files</code>同様に<code>:(glob)*</code>を渡すことで現在のディレクトリのみを見ることが可能です。</p>
+
+<p>ただし、1つだけとれないのが別のディレクトリから<code>rename</code>されてきたもの。</p>
+
+<p><strong>c</strong>というファイルが他のディレクトリから<code>git mv</code>で持ってこられるとそのままだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">R  other/c -&gt; c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の様に<code>rename</code>したことがわかりますが、元のファイルのディレクトリを除いた範囲で見てみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">A  c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、単に新しく加えられたファイルのように見えてしまいます。</p>
+
+<p>この<code>rename</code>もきちんと捉えるためと、カレントディレクトリ中でignore、及びまだ追加されていないディレクトリ
+も含めて取得するために以下のようなスクリプトを考えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>git<span class="w"> </span>status<span class="w"> </span>-s<span class="w"> </span>--ignored<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nv">file</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f2<span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="nv">renamed</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f4<span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;^\.\.&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w">  </span><span class="o">([</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renamed</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;^\.\.&quot;</span><span class="o">)</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">continue</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;/.+&quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renamed</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じに、<code>git status</code>では全て表示させ、2列目とrenameがあった場合の4列目
+を見てそれが<code>/</code>を含まない、つまりカレントディレクトリのものであれば見るようなことができます。</p>
+
+<p><code>while IFS=</code>と区切り文字を変更しているのは出力の最初にスペースがある可能性があるので、
+元のIFSのままだとそこが消されてしまうのでそれを防ぐために<code>IFS=</code>として区切り文字をなくすことで
+行ごとにそのまま扱うことができます。</p>
+
+<p>また、各行でも<code>git status -s</code>だと最初にスペースがあるかないか、1列目と2列目で区切りがスペース1個か2個か分かれますが、
+<code>echo $line</code>でquoteしないと最初のスペースは消され、文字列中のスペースが複数あっても全て1つにまとまるので
+後ろで簡単に<code>cut</code>で区切れます。</p>
+
+<p>スクリプトではまずstatusを表示されたファイル(及びディレクトリ)とそれがrenameされたものの場合にはrename先の名前を取得します。</p>
+
+<p>最初のif文はそのどちらもがカレントディレクトリよい上のディレクトリにある場合にskipするもの(<code>../</code>でスタートするものを除く)。</p>
+
+<p>次のif文ではスラッシュが含まれないカレントディレクトリのファイル、及び最後がスラッシュになっているカレントディレクトリにあるディレクトリのみを抜き出して表示しています。</p>
+
+<p>これに引っかからなかった時、rename先のファイルがあり、それがカレントディレクトリのファイルであれば表示しています。</p>
+
+<h2 id="空のディレクトリの検出">空のディレクトリの検出</h2>
+
+<p>空のディレクトリはgitの管理下にはなりませんが、ignoreされてるわけでもunstagedな状態にあるわけでもありません。</p>
+
+<p>なので上の作業では一切出てきませんが、とりあえずカレントディレクトリにあるディレクトリをパット表示するには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>file<span class="w"> </span>*<span class="w"> </span><span class="p">|</span>grep<span class="w"> </span><span class="s2">&quot; directory</span>$<span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;:&quot;</span><span class="w"> </span>-f1<span class="p">|</span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^.git</span>$<span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで。</p>
+
+<p><strong>.git</strong>ディレクトリだけは手動で外します。</p>
+
+<h2 id="aliasにまとめる">aliasにまとめる</h2>
+
+<p>ファイルを表示する
+<code>git ls-files ':(glob)*'</code>には変更があって<code>git status</code>に表示されるものも含まれるので、
+まず<code>git status</code>から一覧を作り、その中にないもので<code>ls-files</code>で見つかったファイルを追加します。</p>
+
+<p><code>git status</code>ではディレクトリはignoreされているもの、まだ追加されていないもののみが表示されるため、
+<code>git ls-files</code>では表示されません。
+したがって上で作ったstatus込のディレクトリはそのまま追加します。</p>
+
+<p>これを<strong>.gitconfig</strong>の<code>[alias]</code>欄に追加出来る様に書き直すと</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>alias<span class="o">][</span>
+</span><span class="line"><span class="w">  </span>ls-here<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {\</span>
+</span><span class="line"><span class="s2">    cd ./</span><span class="si">${</span><span class="nv">GIT_PREFIX</span><span class="si">}</span><span class="s2">;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span>-s<span class="w"> </span>--ignored<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nv">file</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f2<span class="k">)</span><span class="p">;</span><span class="nv">renamed</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f4<span class="k">)</span><span class="p">;</span><span class="k">if</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="se">\\</span>.<span class="se">\\</span>.<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w">  </span><span class="o">([</span><span class="w"> </span>-z<span class="w"> </span><span class="se">\&quot;</span><span class="nv">$renamed</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="se">\\</span>.<span class="se">\\</span>.<span class="se">\&quot;</span><span class="k">)</span><span class="s2">;then continue;fi;if ! echo </span><span class="nv">$file</span><span class="s2"> | grep -q -E \&quot;/.+\&quot;;then echo \&quot;</span><span class="nv">$line</span><span class="s2">\&quot;;elif [ -n \&quot;</span><span class="nv">$renamed</span><span class="s2">\&quot; ]&amp;&amp; ! echo </span><span class="nv">$renamed</span><span class="s2"> | grep -q \&quot;/\&quot;;then echo \&quot;</span><span class="nv">$line</span><span class="s2">\&quot;;fi;done)\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>$<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $4}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>$<span class="se">\&quot;</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w">   </span><span class="nv">$line</span><span class="se">\&quot;</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*/**&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nv">staged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>Changes<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>committed:<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>M<span class="se">\&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w"> </span><span class="se">\&quot;</span><span class="k">)</span><span class="p">;</span><span class="nv">unstaged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>Changes<span class="w"> </span>not<span class="w"> </span>staged<span class="w"> </span><span class="k">for</span><span class="w"> </span>commit:<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>M<span class="se">\&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w"> </span><span class="se">\&quot;</span><span class="k">)</span><span class="p">;</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$staged$unstaged</span><span class="w"> </span><span class="nv">$line</span>/<span class="se">\&quot;</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>ls<span class="w"> </span>-a<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>.<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>..<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>.git<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="k">continue</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-c<span class="w"> </span><span class="m">4</span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>/$<span class="se">\&quot;</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>--<span class="w"> </span><span class="nv">$line</span>/<span class="se">\&quot;</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    echo \&quot;</span><span class="nv">$files</span><span class="s2">\&quot; | sort -k1.4;\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じに。
+<code>while</code>文はパイプを使う形にしているので中で変数を変更しても後で使えないため、<code>echo</code>とかの出力を外側で変数に入れる必要がありますが、
+これをするためにワンライナーにして<code>$()</code>の中に突っ込んで、<code>files</code>という変数の中に入れています。</p>
+
+<p>最初に<code>git status</code>の結果。</p>
+
+<p>次に<code>git ls-files</code>でカレントディレクトリのファイルを追加。
+ここでは<code>files</code>をまず表示して、その中に無いものだけを選ぶように<code>files</code>の出力から<code>awk '{print $2}</code>、及び<code>awk '{print $4}'</code>で
+ファイル部分、rename先を取得してそれらとの比較などを行って重複を除いています。</p>
+
+<p>次に<code>git ls-files</code>を使ってカレントディレクトリないの管理されているディレクトリの追加。</p>
+
+<p>最後に空のディレクトリの追加。ここでは<code>git ls-files</code>の結果で最初のstatusが全部空のものもあるので直接<code>awk</code>ではなく<code>cut -c 4- | print '{print $1}'</code>で文字位置を見て抜き出すようなことをしています。</p>
+
+<p>一番最後はファイル名の部分でソートして出力です。(2文字のstatus, 1文字のスペースがあるので、1番目のfield位置、つまり先頭から4文字目以降でソートする。)</p>
+
+<p>もうちょっときれいな書き方も出来るかもしれませんがとりあえずこれで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-here</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすることで現在のディレクトリのファイルの状態をぱっと見ることができます。</p>
+
+<p>以下のようなテストレポジトリで見てみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ls
+</span><span class="line">a  b  c  d  h  l  m  o  t  u  v  w  y  z
+</span><span class="line">$ echo $(git ls)
+</span><span class="line">.gitignore a c d f h l o v/v z/g z/i z/j z/k
+</span><span class="line">$ git status
+</span><span class="line">On branch main
+</span><span class="line">Changes to be committed:
+</span><span class="line">  (use "git restore --staged &lt;file&gt;..." to unstage)
+</span><span class="line">        modified:   c
+</span><span class="line">        deleted:    e
+</span><span class="line">        renamed:    z/h -&gt; h
+</span><span class="line">        new file:   l
+</span><span class="line">        renamed:    n -&gt; o
+</span><span class="line">        renamed:    g -&gt; z/g
+</span><span class="line">
+</span><span class="line">Changes not staged for commit:
+</span><span class="line">  (use "git add/rm &lt;file&gt;..." to update what will be committed)
+</span><span class="line">  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+</span><span class="line">        modified:   d
+</span><span class="line">        deleted:    f
+</span><span class="line">        modified:   z/i
+</span><span class="line">
+</span><span class="line">Untracked files:
+</span><span class="line">  (use "git add &lt;file&gt;..." to include in what will be committed)
+</span><span class="line">        m
+</span><span class="line">        u/
+</span><span class="line">        y/</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>git ls-here</code>すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-here
+</span><span class="line">   a
+</span><span class="line">!! b
+</span><span class="line">M  c
+</span><span class="line"> M d
+</span><span class="line">D  e
+</span><span class="line"> D f
+</span><span class="line">   .gitignore
+</span><span class="line">R  g -&gt; z/g
+</span><span class="line">A  l
+</span><span class="line">?? m
+</span><span class="line">R  n -&gt; o
+</span><span class="line">-- t/
+</span><span class="line">?? u/
+</span><span class="line">   v/
+</span><span class="line">!! w/
+</span><span class="line">?? y/
+</span><span class="line">MM z/
+</span><span class="line">R  z/h -&gt; h</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+]]></content>
+  </entry>
+  
+</feed>
