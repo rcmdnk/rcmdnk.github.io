@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Windows | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/windows/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2024-07-02T00:12:01+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkで`e`をよりそれっぽく変更]]></title>
+    <link href="https://rcmdnk.com/blog/2023/07/31/computer-windows-autohotkey/"/>
+    <updated>2023-07-31T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/07/31/computer-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>vim_ahkで<code>e</code>の動作がおかしいから、という理由でPRが来てたのですが、
+機能的な制限から敢えてそうしていた部分でした。</p>
+
+<p>ちょっと工夫してより良い感じに出来たのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahkでのeの動作" id="markdown-toc-vim_ahkでのeの動作">vim_ahkでの<code>e</code>の動作</a></li>
+  <li><a href="#カーソル下の文字を見て動作変更" id="markdown-toc-カーソル下の文字を見て動作変更">カーソル下の文字を見て動作変更</a></li>
+  <li><a href="#check-the-character-before-an-actionオプション" id="markdown-toc-check-the-character-before-an-actionオプション"><code>Check the character before an action</code>オプション</a></li>
+  <li><a href="#他の部分でも改善できそうなところ" id="markdown-toc-他の部分でも改善できそうなところ">他の部分でも改善できそうなところ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahkでのeの動作">vim_ahkでの<code>e</code>の動作</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyを使ってWindowsのどこでもVim的なキー操作をできるようにするものです。</p>
+
+<p><a href="https://github.com/rcmdnk/vim_ahk#executable">exeファイル</a>も用意してあるのでAutoHotkeyをインストールしてなくても使えます。</p>
+
+<p>モード変換が出来てノーマルモード時には<i class="key">h</i><i class="key">j</i><i class="key">k</i><i class="key">l</i>で左下上右に動いたり<i class="key">w</i>で単語ごとにジャンプしたり出来ます。</p>
+
+<p><i class="key">e</i>で単語の最後、に飛ぶ動作も実装してあるのですが、これまではこれが、</p>
+
+<p>*<i class="key">Ctrl</i><i class="key">Rgight</i>,  <i class="key">Ctrl</i><i class="key">Right</i>, <i class="key">Left</i></p>
+
+<p>という動作になっていました。</p>
+
+<p><i class="key">Ctrl</i><i class="key">Rgight</i>はWindowsでは次の単語の先頭の位置にジャンプするショートカットキーです。</p>
+
+<p>なぜ二回<i class="key">Ctrl</i><i class="key">Rgight</i>をしているかというと、
+したような場合(<code>|</code>はカーソル位置だとして)
+<i class="key">Ctrl</i><i class="key">Rgight</i>, <i class="key">Left</i>だと同じ位置に戻ってしまうため。</p>
+
+<pre><code>aaa| bbb ccc
+</code></pre>
+
+<p>2回することで、下のような位置に動きます。</p>
+
+<pre><code>aaa bbb| ccc
+</code></pre>
+
+<p>Vimに忠実にするにはほんとは</p>
+
+<pre><code>aaa bb|b ccc
+</code></pre>
+
+<p>の位置なんですが、そうしてしまうとうまく行かないことが色々あるので一番うしろの位置にしています。</p>
+
+<p>これが単語の途中にカーソルがあると、Vim的にはその単語の最後に行ってほしいのですが、
+vim_ahkでは次の単語の最後に行ってしまうようになっていました。</p>
+
+<p>これを治したい、というのが以下のPR。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/pull/85">Fix move for letter “e” by lorenzcat · Pull Request #85 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>このPRでは単に<i class="key">Ctrl</i><i class="key">Rgight</i>を一回にしているのですが、
+これだと上に書いたように単語の最後に予めあると動かなくなります。</p>
+
+<p>従って<code>3e</code>とかやってもその単語の最後に動くだけで、<code>e</code>を連続して押しても動きません。</p>
+
+<p>という制限があるので単語中からのジャンプは次に行ってしまう、という部分は仕方無しとして上のように
+<i class="key">Ctrl</i><i class="key">Rgight</i>2回という方法をとっていました。</p>
+
+<h2 id="カーソル下の文字を見て動作変更">カーソル下の文字を見て動作変更</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/16/computer-windows-autohotkey/">AutoHotkeyでカーソル下の文字を見てアクションを変える</a></div></li></ul>
+
+<p>以前カーソル下の文字を見て動作を変える実装をvim_ahkに導入しました。</p>
+
+<p>上ではノーマルモード時に<code>a</code>を使ってインサートモード時に入る際、行の最後にいる場合でもその行のまま挿入をできるようにしたものです。</p>
+
+<p>この昨日自体はすでに入っているので、あとはこれを使って<code>e</code>の際に</p>
+
+<ul>
+  <li>カーソル下がスペースなら<i class="key">Ctrl</i><i class="key">Rgight</i>2回</li>
+  <li>カーソル下がスペースでないなら<i class="key">Ctrl</i><i class="key">Rgight</i>1回</li>
+</ul>
+
+<p>とすればOK。</p>
+
+<p>ということで
+<a href="https://github.com/rcmdnk/vim_ahk/releases/tag/v0.12.0">v0.12.0</a>
+でこれを導入しました。</p>
+
+<h2 id="check-the-character-before-an-actionオプション"><code>Check the character before an action</code>オプション</h2>
+
+<p>また、これまでは<code>VimCheckChr</code>というオプション(GUI上では<code>Check the character before an action</code>というチェックボックス)
+でこのチェックを有効にしないと使えない機能にしてましたが、
+今回からデフォルトで有効にしてこの設定項目もGUIからは消しました。</p>
+
+<p>クリップボードを使う関係上ちょっとdelay(強制的に合計20msのsleepが入る)が入ってしまうのでオプションにしてましたが、
+<code>e</code>の場合これを入れない場合でまた別の場合分けとかをいれないといけなくなったりして面倒なのと、
+それほど気になるものでもないかな、と実際に使ってみて思ったので。</p>
+
+<p>もし気になる感じであれば教えてください。</p>
+
+<h2 id="他の部分でも改善できそうなところ">他の部分でも改善できそうなところ</h2>
+
+<p>この文字チェックを入れたあとに色々使えそうだな、とは思ってて
+適当にIssueを作ったままになってました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/issues/76">use CheckChr, BlockInput for some places · Issue #76 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>直接<code>e</code>だけを見てないですがword jump系もなんかできるだろうとは思ってましたが真面目に考えてませんでした。</p>
+
+<p>多分他の部分もちょっと考えれば良くなるところはあるはず。</p>
+
+<p>またそのうち。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Windowsで余計な入力言語を削除する方法 2]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/11/computer-windows/"/>
+    <updated>2023-03-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/11/computer-windows</id>
+    <content type="html"><![CDATA[<p>最近のWindowsアップデートによりまた設定の項目が色々変更されたようなのですが、
+再び入力言語に関する設定が変わって余計なものを勝手に加えたり
+簡単に消せないようになっていました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#以前の話" id="markdown-toc-以前の話">以前の話</a></li>
+  <li><a href="#今回起こった問題" id="markdown-toc-今回起こった問題">今回起こった問題</a></li>
+  <li><a href="#試行錯誤" id="markdown-toc-試行錯誤">試行錯誤</a></li>
+  <li><a href="#今回うまく行った方法" id="markdown-toc-今回うまく行った方法">今回うまく行った方法</a></li>
+  <li><a href="#表の設定と裏の設定" id="markdown-toc-表の設定と裏の設定">表の設定と裏の設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="以前の話">以前の話</h2>
+
+<p>2017年ころに
+まだWindows 10だった頃ですが
+<a href="https://answers.microsoft.com/ja-jp/windows/forum/all/windows-10-fall-creators-update/24fa9f34-b4c6-49ce-9048-74039fd1a441">Fall Creators Update</a>
+という大型アップデートが入った後に同じような問題が起こっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/24/computer-windows/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171124_keyboards_120_90.png" width="120" height="90" alt="20171124_keyboards_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/24/computer-windows/">Windowsで余計な入力言語を削除する方法</a></div></li></ul>
+
+<p>問題は</p>
+
+<ul>
+  <li>言語バーに設定していた日本語入力以外のキーボード入力が加わっている</li>
+  <li>設定を見に行ってもこれらの入力は入っていない(ので消しようがない)</li>
+</ul>
+
+<p>という状態でした。</p>
+
+<p>このときは一旦英語を入力言語に加え、該当するキーボード入力を加え、それらを再度削除していくことで消すことが出来ました。</p>
+
+<h2 id="今回起こった問題">今回起こった問題</h2>
+
+<p>現在のシステムバージョンは</p>
+
+<ul>
+  <li>エディション: Windows 11 Home</li>
+  <li>バージョン: 22H2</li>
+  <li>インストール日: 2023/03/10</li>
+  <li>OSビルド: 22621.1265</li>
+  <li>エクスペリエンス: Windows Feature Experience Pack 1000.22638.1000.0</li>
+</ul>
+
+<p>です。インストール日は3/10ですが、
+このバージョンの公開日は2/14だそうです。</p>
+
+<blockquote>
+  <p><a href="https://support.microsoft.com/ja-jp/topic/2023-%E5%B9%B4-2-%E6%9C%88-14-%E6%97%A5-kb5022845-os-%E3%83%93%E3%83%AB%E3%83%89-22621-1265-90a807f4-d2e8-486e-8a43-d09e66319f38">2023 年 2 月 14 日 — KB5022845 (OS ビルド 22621.1265) - Microsoft サポート</a></p>
+</blockquote>
+
+<p>少なくともそれ以降に何度かは再起動した気もしますが、届いたのは結構時間がかかったのか、それとも何か競合してて再起動時のアップデートに失敗していたのか。
+余り気にしてないためあれですが、いずれにしろ現状このバージョンで問題が起こりました。</p>
+
+<p>もしかするともう少し前のアップデートがトリガーになっている可能性もあります。</p>
+
+<p>起こった問題は
+普段はGoogle日本語入力だけを使っている環境で、</p>
+
+<ul>
+  <li>Microsoft IMEが言語バーに加わっている</li>
+  <li>言語入力に関する設定が変わりすぎててGoogle日本語入力が設定されている場所すら発見するのに時間がかかった</li>
+  <li>やっと見つけたもののGoogle日本語入力だけがりすとされておりMicrosoft IMEが削除できない</li>
+</ul>
+
+<p>という、既視感のある内容。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230311_languagebar.png" alt="20230311_languagebar.png" class="pic" /></p>
+
+<p>今回は日本語入力はできるので最初すぐには気づきませんでしたが、
+変換候補とか、そもそも変換の表示とかがぜんぜん違うので何かおかしいと思って言語バーをみたら
+Google日本語入力でないなにかがありました。</p>
+
+<p>最初、アップデートか何かに失敗したりしてGoogle日本語入力を間違って削除したか、と思いましたが、
+見てみるとリストにはあり、Microsoft IMEが別途加わってそっちがデフォルトとして使わているだけでした。</p>
+
+<h2 id="試行錯誤">試行錯誤</h2>
+
+<p>似たようなことだから同じように一度加えて、とかですぐ治るかと思ったら、
+そもそもどこでやるのか全く分からずなんども設定の中を行き来してしまいました。。。</p>
+
+<p>まず言語バーからは<strong>その他キーボードの設定</strong>というページに飛べますが、
+ここは設定の起動ページからは<strong>時刻と言語</strong><i class="fa fa-arrow-right"></i><strong>言語と地域</strong>
+で行ける場所になります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230311_languageandregion.png" alt="20230311_languageandregion.png" class="pic" /></p>
+
+<p>何故か以前は<strong>地域と言語</strong>だったものが<strong>言語と地域</strong>に。。。</p>
+
+<p>ここから目ぼしい場所として<strong>入力</strong><i class="fa fa-arrow-right"></i><strong>キーボードの詳細設定</strong>のページに行き、
+そこに<strong>規定の入力方式の上書き</strong>という項目があったので、
+それを<strong>言語リストを使用します（推奨）</strong>から<strong>日本語 - Google 日本語入力</strong>に変更してみました。</p>
+
+<p>この時点でなぜかここにはMicrosoft IMEは無し。</p>
+
+<p>で、この変更では特に何も起こらず。</p>
+
+<p>この設定自体はWidows10の頃からある設定で、あくまで<strong>既定の入力方式</strong>なので<strong>言語リスト</strong>そのものを変更する必要があります。</p>
+
+<p>同ページから行ける
+言語バーオプションとかに飛んで見ると**入力言語のホットキーで
+Google日本語入力へ、と共にMicrosoft IMEへ、のホットキー設定が何故かありましたが
+ここは変更のためのホットキー設定なので特に関係なし。</p>
+
+<p>ここから<strong>入力</strong>に行って、関係ありそうでクリックして行ける先が他に<strong>言語と地域</strong>しかないのでそれを押すと
+元のページに戻るという。。。</p>
+
+<p>何度か行ったり来たり、
+再び言語バーから設定を開き最初の<strong>言語と地域</strong>に戻ったり。</p>
+
+<p>以前は<strong>地域と言語</strong>の言語の部分にある日本語とかのブロックをクリックするとその設定ページに行けていたし(多分)、
+今でも他のブロックは基本的にそのブロックをクリックすると次の設定項目ページに行けるので、
+<strong>言語と地域</strong>にある<strong>日本語</strong>のブロックをクリックするも何も反応せず、でどこか他に何か設定があるのではないかと探していました。</p>
+
+<p>結局何も見つからないわけですが、この<strong>日本語</strong>のブロックをよく見ると右側に3点リーダーがあり、ここをクリックすると
+<strong>言語のオプション</strong>というページへのリンクが。。。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230311_languageandregion2.png" alt="20230311_languageandregion2.png" class="pic" /></p>
+
+<h2 id="今回うまく行った方法">今回うまく行った方法</h2>
+
+<p><strong>設定</strong><i class="fa fa-arrow-right"></i><strong>時刻と言語</strong><i class="fa fa-arrow-right"></i><strong>言語と地域</strong>
+<i class="fa fa-arrow-right"></i><strong>日本語</strong>ブロックの右の3点リーダーをクリックして表示される<strong>言語のオプション</strong>
+へ行きます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230311_languageoption.png" alt="20230311_languageoption.png" class="pic" /></p>
+
+<p>ここに<strong>キーボード</strong>設定があり、インストールされているキーボードとして<strong>Google日本語入力</strong>がありました。</p>
+
+<p>再びここにも<strong>Microsoft IME</strong>はないわけですが、<strong>キーボードの追加</strong>を見てみると<strong>Microsoft IME</strong>があり、
+一回追加して、右側の3点リーダーから<strong>削除</strong>を選んでやると
+言語バーからも<strong>Microsoft IME</strong>を削除することが出来ました!</p>
+
+<h2 id="表の設定と裏の設定">表の設定と裏の設定</h2>
+
+<p>ちなみに<strong>Microsoft IME</strong>削除後は<strong>言語バーオプション</strong>からも消えていました。</p>
+
+<p><strong>設定</strong>から見える表向きの設定項目と
+裏で実際に動いている部分に差があるというバグは明らかなんですが、
+どうやら昔のコントロールパネル的な部分はWindowsの現状の状態にリンクして
+項目が表示されることもあるようです。</p>
+
+<p><strong>設定</strong>のページはモダンな感じで、以前のコントロールパネルに比べるとUI的な意味では
+取っつきやすい感じにはなっていますが、どうも色々とラップしてる段階で
+うまく実際の状態と剥離してしまうこともあるみたいです。</p>
+
+<p><strong>設定</strong>は以前のコントロールパネルと違って、macOSの大部分の設定のように<strong>OK</strong>を押さなくても即時に反映されたりもします。</p>
+
+<p>そのあたりもあって色々と間に機能が入ってるんだろうな、とは思いますが、バグの温床となっている感じ。</p>
+
+<p>特に言語周りはそれぞれの言語ごとにデバッグしないといけないので問題が見つかりにくい部分だとは思いますが、
+根本的なところは以前と同じだし、言語以外の他の部分でも気づいてないだけで起こってる部分はあるのではないかな、と思うのですが。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>基本的に前回と同じようなバグです。</p>
+
+<p>今回はアップデートの際、言語で<strong>日本語</strong>を使っていることはそのまま引き継げたようですが、
+入力キーボードの設定はデフォルト値として日本語だと<strong>Microsoft IME</strong>があり、
+これは勝手に入ってしまう状態になってしまっているようです。</p>
+
+<p>前回のバグと同様、これ自体は意図としていないもので、実際に設定項目では<strong>Microsoft IME</strong>はありません。(表向きの設定自体は以前のものをきちんと引き継げている。)</p>
+
+<p>問題は表面的な設定が引き継がれているにも関わらず裏で言語リストに加えられてしまっているために
+表面から直接削除することが出来なくなってしまっていること。</p>
+
+<p>ただし一回設定で加えてあげることでこの設定のおかしな状態が実際の状態と整合性が取れ、削除できるような状態にもなる、と。</p>
+
+<p>同じようなことが以前も起こったし、
+Macでも同じようなことは起こっていたのでなんとなく察しはつきましたが。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/05/23/computer-mac/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140523_mac_ime_1_120_90.jpg" width="120" height="90" alt="20140523_mac_ime_1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/05/23/computer-mac/">Macで入力ソースにいつの間にかU.S.が入ってきて消せない時の対処法</a></div></li></ul>
+
+<p>ただ、設定項目が無駄に分かりづらくなっていたのが(似たような設定なのに微妙に違うというのも)また面倒さに拍車をかけていました。。。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WindowsでCtrl aが効かない]]></title>
+    <link href="https://rcmdnk.com/blog/2022/05/23/computer-windows/"/>
+    <updated>2022-05-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/05/23/computer-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B082TYNNL2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B082TYNNL2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/7194JOJaoxL._SS200_.jpg" alt="PFU キーボード HHKB Professional HYBRID Type-S 英語配列／墨" /></a>
+</div>
+
+<p>Windowsで何故か<i class="key">Ctrl</i>-<i class="key">a</i>のショートカットキーが効かなくなっていた件。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windowsバージョン" id="markdown-toc-windowsバージョン">Windowsバージョン</a></li>
+  <li><a href="#状況" id="markdown-toc-状況">状況</a></li>
+  <li><a href="#autohotkeyで色々チェック" id="markdown-toc-autohotkeyで色々チェック">AutoHotkeyで色々チェック</a></li>
+  <li><a href="#スタートアップで起動しているアプリとの干渉" id="markdown-toc-スタートアップで起動しているアプリとの干渉">スタートアップで起動しているアプリとの干渉</a></li>
+  <li><a href="#原因" id="markdown-toc-原因">原因</a></li>
+  <li><a href="#clclの問題解決" id="markdown-toc-clclの問題解決">CLCLの問題解決</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windowsバージョン">Windowsバージョン</h2>
+
+<p>Windows 11 Home, バージョン: 21H2、OSTビルド: 22000.675。
+Windows Updateは最新まで更新済み(2022/05/23)。</p>
+
+<p>どのタイミングからなったか覚えてないが、ここ数ヶ月のうちだと思う。
+(それまでは使えていた記憶。)</p>
+
+<h2 id="状況">状況</h2>
+
+<p><i class="key">Ctrl</i>-<i class="key">a</i>だけがどのアプリ上でも効かない状態。</p>
+
+<p>例えばメモ帳とかだと<i class="key">Ctrl</i>-<i class="key">a</i>は<code>すべて選択</code>というコマンドに割り当てられています。
+他のアプリでも大概はそれ。</p>
+
+<p>また、WSLなどでLinuxを使っている場合、ターミナル上だとEmacsモードで<code>入力行の先頭に飛ぶ</code>、という動作に割り当てられています。</p>
+
+<p>特に後者をよく使うわけですが、なんか動作がおかしいな、と思ったらこれが効いてませんでした。</p>
+
+<p>Vimで、</p>
+
+<pre><code>inoremap &lt;C-a&gt; &lt;Home&gt;
+</code></pre>
+
+<p>という設定でインサートモード時にEmacsの様な動作をできるように設定しているのですがこれも効きません。</p>
+
+<p>AutoHotkeyで変なことしているのでは、と思いましたが、AutoHotkeyを無効にしても変わりません。</p>
+
+<p>普通に<code>a</code>を入力することはできます。</p>
+
+<p>他の<i class="key">Ctrl</i>-<i class="key">c</i>、<i class="key">v</i>、<i class="key">z</i>などは動きます。
+ターミナル上でも<i class="key">Ctrl</i>-<i class="key">e</i>で<code>行末に飛ぶ</code>という動作も問題なく動きます。</p>
+
+<p>また、<i class="key">Win</i>-<i class="key">a</i>(クイック設定を開く)も動作します。</p>
+
+<p>HHKBを使っていて、これが問題か、と思いましたが、他のキーボードを接続してみてもやはり<i class="key">Ctrl</i>-<i class="key">a</i>だけ動きませんでした。</p>
+
+<p>また、それらのキーボードを手元のMacBook Proに接続すると問題なく<i class="key">Ctrl</i>-<i class="key">a</i>は動作しました。</p>
+
+<p>Windowsを再起動しても
+問題はなおらず。</p>
+
+<h2 id="autohotkeyで色々チェック">AutoHotkeyで色々チェック</h2>
+
+<p>AutoHotkeyにはキーを確認する機能があります。</p>
+
+<ul>
+  <li>AutoHotkeyを起動してタスクトレイのアイコンを右クリックで<strong>Open</strong></li>
+  <li>開いたウィンドウの<strong>View</strong>で<strong>Key history and script info</strong>を選択</li>
+</ul>
+
+<p>これでなにかキーを適当に押してから<i class="key">F5</i>を押すと押されたキーが表示されます。</p>
+
+<p>これで見てみると、ちゃんと<code>d LControl</code>、<code>d a</code>、<code>u a</code>、<code>u LControl</code>などがちゃんと記録されていて、
+他のキーとも変わりなく認識されている感じです。</p>
+
+<p>さらに、</p>
+
+<pre><code>^a::Send, test
+</code></pre>
+
+<p>といった設定を入れてみると(AutoHotkeyの設定で<code>^</code>は<i class="key">Ctrl</i>)、メモ帳とかで<i class="key">Ctrl</i>-<i class="key">a</i>を押すとちゃんと<code>test</code>と入力されます。</p>
+
+<p>なのでWindowsは<i class="key">Ctrl</i>-<i class="key">a</i>自体はちゃんと認識しているようです。</p>
+
+<p>ただ、</p>
+
+<pre><code>^a::^a
+</code></pre>
+
+<p>とかはやはり効かない。</p>
+
+<h2 id="スタートアップで起動しているアプリとの干渉">スタートアップで起動しているアプリとの干渉</h2>
+
+<blockquote>
+  <p><a href="https://answers.microsoft.com/ja-jp/windows/forum/all/ctrla/1ede3481-ca9f-435f-8c3b-f2de806cc6b8">Ctrl+A　ショートカットキーが効かない - Microsoft コミュニティ</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.fmworld.net/cs/azbyclub/qanavi/jsp/qacontents.jsp?PID=6710-8765">富士通Q&amp;A - [Windows 10] システム構成で、問題のある項目を特定する方法を教えてください。 - FMVサポート : 富士通パソコン</a></p>
+</blockquote>
+
+<p>これらを参考にしてスタートアップに登録されているアプリを一旦全部無効にして再起動してみました。</p>
+
+<p>スタートボタン右クリックからタスクマネージャーを開いて<strong>スタートアップ</strong>タブを開きます。
+一度現在の状況をスクリーンショットなどしてメモしておいて、<strong>状態</strong>が<strong>有効</strong>になっているものを右クリックして<strong>無効</strong>にしていきます。</p>
+
+<p>全部無効し終わったら一度Windowsを再起動。</p>
+
+<p>これで試してみると、
+<i class="key">Ctrl</i>-<i class="key">a</i>がちゃんと動作するようになりました。</p>
+
+<p>というわけでなにかのアプリが悪さしているようです。</p>
+
+<p>怪しそうなアプリだけを除いて有効に戻して再起動したりして何が原因か調べます。</p>
+
+<p>で、調べた結果、<strong>CLCL.exe</strong>が起動すると効かなくなってました。</p>
+
+<h2 id="原因">原因</h2>
+
+<p><a href="https://www.nakka.com/soft/clcl/">CLCL</a>を起動すると問題が起こっていましたが、原因はCLCLの動作設定で<i class="key">Ctrl</i>-<i class="key">a</i>を設定していたことでした。</p>
+
+<p>自分のせいですが、ちょっと前にCLCLの動作がおかしくて色々といじっていたことが。。。</p>
+
+<p>CLCLはクリップボード履歴が使えるようになるツールですが、履歴一覧(を含む<strong>メニュー</strong>)をショートカットキーで呼び出せるようになっていて、これがデフォルトでは<i class="key">Alt</i>-<i class="key">c</i>、<i class="key">Alt</i>-<i class="key">t</i>に割り振られています。</p>
+
+<p>このキーがうまく動作しなくなっていて、色々と試す時に<i class="key">Ctrl</i>-<i class="key">a</i>を入れて試したりしていて、
+その際に削除するのを忘れていました。</p>
+
+<p>とういわけで、この設定を削除したらCLCLを立ち上げても動作するようになりました。</p>
+
+<h2 id="clclの問題解決">CLCLの問題解決</h2>
+
+<p>で、CLCL自体のメニューが呼び出せない問題は残っていたのですが、
+それに関しては入っていたバージョンが古かったらしく、新しいバージョンを入れたら使えるようになりました。</p>
+
+<p>古いバージョンは
+<a href="https://chocolatey.org/">Chocolatey</a>を使って入れていて、それが問題だったのか、単に古かっただけなのかちゃんと調べてませんが、
+<a href="https://www.nakka.com/soft/clcl/">CLCL</a>のページからインストール用のexeファイルを使って入れたところ問題なく動くようになりました。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>今回は自分で変な設定を入れ込んだのが原因でしたが、何かWindows全体でおかしな動作になった際には
+スタートアップで起動されてるアプリをON/OFFしながら確認してみると原因が見つけやすいです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileでBrewfile変更後にGitHubにpushしたりアクションを起こせるようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash/"/>
+    <updated>2022-03-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000003GIT?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000003GIT&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81ey0EhAczL._SS200_.jpg" alt="Homebrew" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">Homebrew-file</a>
+への機能追加でBrewfileへの変更があった際にGitHubへのレポジトリへpushしたり
+なんらかアクションを起こせる様な仕組みを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#brew-wrap" id="markdown-toc-brew-wrap">brew-wrap</a></li>
+  <li><a href="#brewfileのバージョン管理" id="markdown-toc-brewfileのバージョン管理">Brewfileのバージョン管理</a></li>
+  <li><a href="#_post_brewfile_update" id="markdown-toc-_post_brewfile_update">_post_brewfile_update</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brew-wrap">brew-wrap</h2>
+
+<p>追加の機能は<code>brew file</code>コマンド本体ではなく
+<code>brew</code>コマンドのラッパーの
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+の中に追加しました。</p>
+
+<p><code>brew-wrap</code>は<strong>.bashrc</strong>や<strong>.zshrc</strong>、もしくは<strong>config.fish</strong>なんかの中で設定ファイルを読み込むと
+<code>brew</code>コマンドをラップして
+<code>brew install</code>などを行った際に<code>brew file</code>を使って<strong>Brewfile</strong>を自動でアップデートしてくれるようになります。</p>
+
+<h2 id="brewfileのバージョン管理">Brewfileのバージョン管理</h2>
+
+<p><code>brew-wrap</code>を使うと<strong>Brewfile</strong>に対して<code>install</code>時にパッケージの追加や<code>remove</code>時に削除などは行います。</p>
+
+<p>一方でHomebrew-fileにはGitHubのレポジトリなどと結びつけて
+バージョン管理する機能もあります。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#manage-brewfile-with-git">Manage Brewfile with Git</a></p>
+</blockquote>
+
+<p><strong>Brewfile</strong>に変更があった後、</p>
+
+<pre><code>$ brew file update
+</code></pre>
+
+<p>とすればGitHub上の変更を取り入れて、追加パッケージがあれば追加し、
+また、ローカルに新たなパッケージが追加されていたり<strong>Brewfile</strong>がアップデートされていれば
+新たな<strong>Brewfile</strong>をGitのレポジトリ内で<code>commit</code>してGitHubに<code>push</code>します。
+(GitのリモートサーバーはGitHubでなくてもOK。)</p>
+
+<p>ただ、現状この作業は自分で行う必要があって、私自身はcronジョブを使って1日1回、</p>
+
+<pre><code>30 12 * * * brew file update
+</code></pre>
+
+<p>みたいな設定で<code>brew file update</code>を行っています。
+(上の設定だと毎日12:30に実行されます。)</p>
+
+<h2 id="_post_brewfile_update">_post_brewfile_update</h2>
+
+<p>この様な変更管理をBrewfile変更後に毎回行いたい、といったIssueをもらいました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/121">Feature request: provide hook into “Initialize Brewfile” process · Issue #121 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>Git関連の作業なら<code>update</code>の様なことを中でできる設定にしても良いかな、と思ったのですが、
+このIssueだと別な管理をしていて、別途コマンドを使いたい、という感じだったので
+<code>brew-wrap</code>の方を使って簡単にコマンドを追加できるようにしてみました。</p>
+
+<p><strong>.bashrc</strong>の中などで、<strong>brew-file</strong>を読み込んだ後、<code>_post_brewfile_update()</code>という関数を実装すると、
+<code>brew</code>コマンド実行時、<strong>Brewfile</strong>に何らかの変更があった際、
+その関数が実行されます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Brewfile was updated!&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの関数を実装して、</p>
+
+<pre><code>$ brew install python
+</code></pre>
+
+<p>とすると、もし<strong>python</strong>が新たにインストールされて<strong>Brewfile</strong>がアップデートされると</p>
+
+<pre><code>Brewfile was updated!
+</code></pre>
+
+<p>と表示されます。
+すでにインストールされてる場合には<strong>Brewfile</strong>に変更がないので関数は実行されません。</p>
+
+<p>GitHubと連携していて常にリモートレポジトリと同期したい場合には</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span>brew<span class="w"> </span>file<span class="w"> </span>update
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかしておけばよいかと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[マンションのテレビの信号が強すぎるためアッテネータが必要だった]]></title>
+    <link href="https://rcmdnk.com/blog/2022/03/16/computer-windows/"/>
+    <updated>2022-03-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/03/16/computer-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0876PZ87K?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0876PZ87K&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81e1SlAJzFL._SS200_.jpg" alt="ピクセラ Xit Board 【サイトボード】 Windows対応 PCIe接続 テレビチューナー(地上 BS 110度CSデジタル放送対応) 【正規代理店品】 XIT-BRD110W-EC" /></a>
+</div>
+
+<p>マンションだとテレビなんて壁にあるテレビのアンテナ線に繋いで、
+後は適当にスキャン機能で勝手にチャンネル設定してくれるものだと思ってますが、
+上手くチャンネルが捉えられずに苦労した話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#環境" id="markdown-toc-環境">環境</a></li>
+  <li><a href="#状態" id="markdown-toc-状態">状態</a></li>
+  <li><a href="#原因解決法" id="markdown-toc-原因解決法">原因、解決法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="環境">環境</h2>
+
+<p>まずテレビですが、普通のテレビはなくて、Windows PCXIT-BRD110Wという
+チューナーをつけていて、それで見ています。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0876PZ87K?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0876PZ87K&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81e1SlAJzFL._SS200_.jpg" alt="ピクセラ Xit Board 【サイトボード】 Windows対応 PCIe接続 テレビチューナー(地上 BS 110度CSデジタル放送対応) 【正規代理店品】 XIT-BRD110W-EC" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0876PZ87K?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0876PZ87K&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">ピクセラ Xit Board 【サイトボード】 Windows対応 PCIe接続 テレビチューナー(地上 BS 110度CSデジタル放送対応) 【正規代理店品】 XIT-BRD110W-EC</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0876PZ87K?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0876PZ87K&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FXIT-BRD110W%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FXIT-BRD110W%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>今のマンションが
+直接アンテナ持ってるわけではなく(?)、
+J:COMの回線が来ていて、地デジなどの信号もJ:COMのものになるらしいです。</p>
+
+<p>そんなわけで、なんか最初にJ:COMのサービスに入らないとしても
+無料で地上波の設定をしてくれる、というサービスがあったりしたんですが
+（そして有料のサービスを勧められるのだと思いますが）
+そんなのは別に必要ないだろう、ということで大分経ってから見てみようとしたところ上手くチャンネルが見つからない状態でした。</p>
+
+<h2 id="状態">状態</h2>
+
+<p>BSはNHKやBSフジなど全部見つかってるようなんですが、
+地上デジタルが、NHKの総合、Eテレは見つかるんですが、
+フジとか朝日とかが見つからない状態。</p>
+
+<p>あと、見つかるのはTokyo MXとJ:COMテレビ。</p>
+
+<p>中途半端に見つかるので、完全におかしいわけではなく、一部の信号が弱い状態なのか
+なぞな状況。</p>
+
+<h2 id="原因解決法">原因、解決法</h2>
+
+<p>XITのアプリのチャンネルスキャンの設定を見てみると、
+チェンネルの受信レベル、というのが<strong>56(良好)</strong>になってました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220316_before.png" alt="20220316_before.png" class="pic" /></p>
+
+<p><strong>良好</strong>となってますが、60以上が良い状態、ということらしいです。</p>
+
+<p>マンションに設置してあるアンテナが悪い、とかなら他の部屋にも影響があるはずだし、
+J:COMだとしても他の部屋も問題ありそうなものですが、なんなのか。</p>
+
+<p>と、色々と設定をいじっていると
+<strong>チューナー/アンテナ</strong>という設定項目の
+<strong>アッテネータ設定</strong>という項目を発見。
+<img src="https://rcmdnk.com/images/post/20220316_attenuator.jpg" alt="20220316_attenuator.jpg" class="pic" /></p>
+
+<p>これを<strong>OFF</strong>から<strong>ON</strong>にすると
+受信レベルが90を超えてひととおり民法が見つかるようになりました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220316_after.png" alt="20220316_after.png" class="pic" /></p>
+
+<p>アッテネータなので信号を弱める設定ですが、
+どうも信号が強すぎて受信レベルが低くなる、ということもあるようです。</p>
+
+<p>説明書の「困ったときは」の中の<strong>電波が弱い</strong>という項目に、</p>
+
+<blockquote>
+  <p>なお、電波が強すぎる場合も受信レベルが下がることがあります。</p>
+</blockquote>
+
+<p>とありました。が、これに関して<strong>アッテネータ</strong>を<strong>ON</strong>にしろとも書いてないのでわかりません。</p>
+
+<p>今回も正直良くわかってないままいろいろいじっていて、この<strong>アッテネータ</strong>の項目見つけたときも
+信号をさらに弱めても意味ないだろうな、と思いながらやってたまたま良くなっただけです。</p>
+
+<p>設定のところに<strong>電波が強すぎる場合は</strong>とありますが、アプリ上でわかるのは<strong>受信レベル</strong>で、
+これは弱く出るのでこれをいじれば良いとは思えません。</p>
+
+<p>ただ、こういった現象は他のチューナーでも起こることで、
+アッテネータの設定も一般的にある設定のようです。</p>
+
+<ul>
+  <li><a href="https://www.amazon.co.jp/hz/reviews-render/lighthouse/B07DZ9SY4S?filterByKeyword=%E3%82%A2%E3%83%83%E3%83%86%E3%83%8D%E3%83%BC%E3%82%BF%E8%A8%AD%E5%AE%9A&amp;pageNumber=1">確認の際によく指摘される項目</a></li>
+  <li><a href="https://bbs.kakaku.com/bbssearch/search.asp?searchword=%83A%83b%83e%83l%81%5B%83%5E&amp;bbstabno=1&amp;topcategorycd=2&amp;categorycd=0556">価格.com - アッテネータ （PC用テレビチューナー） のクチコミ掲示板検索結果</a></li>
+</ul>
+
+<p>普通のテレビでもアッテネータの設定があるものはあるみたいで、
+中で自動でやってくれるものもあるのかと。</p>
+
+<p>あと、多分昔は直接線につないでたりするのも普通だったのかも(うちにも付いてた気がしないでもない)。</p>
+
+<p>これまでこの辺の問題にあたったことがなかったのでよく知りませんでした。</p>
+
+<p>これがJ:COMだから、ということが直接の原因ではないようですが、
+ケーブルテレビ系だとこの辺の調整が必要なこともよくあるようです。</p>
+]]></content>
+  </entry>
+  
+</feed>
