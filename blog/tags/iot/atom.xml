@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: IoT | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/iot/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2024-12-19T00:14:53+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Oura ringの情報をGASを使ってSheetsに保存する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/07/14/computer-iot/"/>
+    <updated>2024-07-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/07/14/computer-iot</id>
+    <content type="html"><![CDATA[<p>以前ちょっと作っておいたGoogle Apps Scriptを使ってOura ringの情報をGoogle Sheetsに
+保存しておくツールをアップデートしたのでその話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#api--gas--sheets" id="markdown-toc-api--gas--sheets">API + GAS + Sheets</a></li>
+  <li><a href="#oura-api" id="markdown-toc-oura-api">Oura API</a></li>
+  <li><a href="#oura-gas" id="markdown-toc-oura-gas">Oura-gas</a></li>
+  <li><a href="#gasでのoauth20認証を使ったapiの利用" id="markdown-toc-gasでのoauth20認証を使ったapiの利用">GASでのOAuth2.0認証を使ったAPIの利用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="api--gas--sheets">API + GAS + Sheets</h2>
+
+<p>APIを公開しているサービスなら、GASを使ってそのAPIを叩いて情報を取得して
+Google Sheetsに保存する、というのが
+無料で情報を保存しておくのに一番手軽な方法だと思います。</p>
+
+<p>csvでexportできたりそもそもアプリで見れば十分なものもありますが、
+取り敢えず一度設置しておけば常にSheetsに最新情報が保存されてる状態に
+なるので、何かと便利です。</p>
+
+<h2 id="oura-api">Oura API</h2>
+
+<blockquote>
+  <p><a href="https://cloud.ouraring.com/docs/">Oura API</a></p>
+</blockquote>
+
+<p>2024年にV1 APIが廃止されて現在はV2 APIが提供されています。</p>
+
+<p>この変更もあって、以前のスクリプトは使えなくなったので、
+新しいスクリプトを作り直しました。</p>
+
+<p>基本的な使い方はV1/V2でそれほど変わらないと思います。</p>
+
+<p>一つひっかっかった点として、</p>
+
+<blockquote>
+  <p><a href="https://cloud.ouraring.com/v2/docs">Oura API Documentation (2.0)</a></p>
+</blockquote>
+
+<p>このAPIのドキュメントの中にある</p>
+
+<p>各APIの説明の<code>GET</code>のところを押すと見れるURLがAPIのURLとは違う点。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240715_ouraapi.jpg" alt="20240715_ouraapi.jpg" class="pic" /></p>
+
+<p><code>https://cloud.ouraring.com/...</code></p>
+
+<p>となってますが、これは
+<a href="https://cloud.ouraring.com/">Oura on the web</a>のURLで
+その下のV2…などは無いように見えます。</p>
+
+<p>実際には<code>cloud</code>ではなく<code>api</code></p>
+
+<p><code>https://api.ouraring.com/...</code></p>
+
+<p>すぐ下のcURLなどの実際の使用例を見ればURLが<code>api</code>になっているのでそちらを最初から参照すれば良いですが、
+最初、この<code>cloud...</code>の方を使ってしまって少しハマりました。</p>
+
+<h2 id="oura-gas">Oura-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/Oura-gas"></div>
+
+<p>ということで作り直したスクリプト集がこれ。</p>
+
+<p>使い方はREADME参照。</p>
+
+<p>現状は以下のような関数があります。</p>
+
+<ul>
+  <li><code>fillPerosnalInfo</code>: 入力した年齢や身長などの個人情報、</li>
+  <li><code>fillDailyReadiness</code>: 日毎のスコア、及び関連するデータ</li>
+  <li><code>fillDailySleep</code>: 日毎の睡眠スコア、及び関連するデータ</li>
+  <li><code>fillDailyStress</code>: 日毎のストレスデータ</li>
+  <li><code>fillSleep</code>: 睡眠ごとのデータ</li>
+</ul>
+
+<p>これらの関数を適当なTriggerで1日1回実行するなりしてデータをSheetsに保存しておくことができます。</p>
+
+<p>睡眠のデータに関して、<strong>Daily Sleep Routes</strong>という項目が<code>fillDailySleep</code>で保存できるようになってますが、
+これで取れるデータは日毎の睡眠総合スコアに加えて<code>contributors</code>という項目があります。
+その中に<code>total_sleep</code>や<code>deep_sleep</code>といったデータが入っていますが、
+これらは睡眠時間とかではなく、0~100までの値が入っています。</p>
+
+<p>アプリとかで睡眠の項目を見ると<strong>睡眠コントリビューター</strong>という欄があって<strong>合計時間</strong>や<strong>深い睡眠</strong>という項目がありますが、
+実際の時間とともに色のついたバーがあると思いますが、これが0~100で高いほうが良いスコアでそれらを統合して総合スコアを出しているようです。</p>
+
+<p>合計時間がどれくらいならスコアがいくつになるかは人それぞれでなにか計算しているようです。</p>
+
+<p>Oura APIの公式にはこの辺書いてませんが、取得できるデータはアプリやOura on the web
+で得られる情報が全てっぽいので
+それらと比べながら見てみるとどれがどの値を示しているか大体分かると思います。</p>
+
+<p>Oura APIの説明してるブログとかだとこのコントリビューターの値を”時間”と言い切ってるものも結構あるので注意。</p>
+
+<h2 id="gasでのoauth20認証を使ったapiの利用">GASでのOAuth2.0認証を使ったAPIの利用</h2>
+
+<p>同じようなことは他のAPIでも使えます。</p>
+
+<p>認証の仕方に関してGoogleが色々とサンプルを提供してくれてるので有名どころは
+直接使えるものもあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/googleworkspace/apps-script-oauth2/tree/main/samples">apps-script-oauth2/samples</a></p>
+</blockquote>
+
+<p>以下はこれまでに作ったもの。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201006_withingsapi_120_90.jpg" width="120" height="90" alt="20201006_withingsapi_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<p>OuraのようにWithingsに記録されたデータをGoogle Sheetsに保存するスクリプト。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Slack-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="app-img"><a href="//itunes.apple.com/jp/app/id618783545?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple112/v4/bf/50/a5/bf50a52e-76ec-3c47-5c4c-2ee6c21f3149/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/120x90bb.jpg" alt="Slack" /></a></div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/08/11/computer-google-slack/">Google Apps Script(GAS)を使ってSlackをSheetsにバックアップする</a></div></li></ul>
+
+<p>Slackが無料利用で90日より前のメッセージが見れなくなってしまったのでバックアップしておくシステム。</p>
+
+<div class="github-widget" data-repo="rcmdnk/NatureRemo-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201009_natureremo_120_90.jpg" width="120" height="90" alt="20201009_natureremo_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/">NatureRemo APIとGASを使って温度や家電の状態をGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<p>NatureRemoの情報を保存しておくスクリプト。</p>
+
+<div class="github-widget" data-repo="rcmdnk/GitHub-gas"></div>
+
+<p>GitHubのOrganization内のmemberのこれまでに得たstarの数やPRなどのアクティビティを取得するスクリプト。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[エアコン(白くまくん)の水飛び問題2]]></title>
+    <link href="https://rcmdnk.com/blog/2023/09/30/life-iot/"/>
+    <updated>2023-09-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/09/30/life-iot</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BNB2M5QD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BNB2M5QD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XyDESvaML._SS200_.jpg" alt="【商品配送のみ】 日立 ルームエアコン 6畳 2.2kW RAS-X22N(W)/SET スターホワイト 白くまくん Premiumプラズマ空清 凍結洗浄除菌ヒートプラス搭載 ファンお掃除ロボ 室内機室外機セット(2梱包)" /></a>
+</div>
+
+<p>8月頃に診てもらったエアコンですが、
+実は全く問題が治ってなかったので再度診てもらいました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#前回の修理依頼" id="markdown-toc-前回の修理依頼">前回の修理依頼</a></li>
+  <li><a href="#状況" id="markdown-toc-状況">状況</a></li>
+  <li><a href="#再度依頼" id="markdown-toc-再度依頼">再度依頼</a></li>
+  <li><a href="#その後" id="markdown-toc-その後">その後</a></li>
+  <li><a href="#問題が起こる原因" id="markdown-toc-問題が起こる原因">問題が起こる原因</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="前回の修理依頼">前回の修理依頼</h2>
+
+<p>今年冷房を使い始めたところ水飛びが気になって仕方なかったので
+修理を依頼しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BNB2M5QD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BNB2M5QD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XyDESvaML._SS90_CR0,0,120,90_.jpg" alt="【商品配送のみ】 日立 ルームエアコン 6畳 2.2kW RAS-X22N(W)/SET スターホワイト 白くまくん Premiumプラズマ空清 凍結洗浄除菌ヒートプラス搭載 ファンお掃除ロボ 室内機室外機セット(2梱包)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/08/05/life-iot/">エアコン(白くまくん)の水飛び問題</a></div></li></ul>
+
+<p>特に販売店保証とかはつけてないのでメーカー保証のみで、
+本体保証は1年ですが、冷媒回路は5年の保証です。</p>
+
+<p>問題は
+冷媒機の金属部分が本来の親水性を失ってしまって
+水をまとめて下に流せずに残ってしまう状態で
+それが飛んでくるという状態でした。</p>
+
+<p>前回はそれに対して冷媒機の熱交換器部分をクリーニングスプレーで
+きれいにしてもらう、という作業をしてもらいました。</p>
+
+<p>やってもらった直後はちょっと良くなったかと思ってたんですが、
+実は次の日には水が飛んでくるようになってました。</p>
+
+<p>また、冷房を止めたあと凍結洗浄を行うときがありますが、
+その凍結洗浄時に最後に水を流すことが上手く行かないのか、
+それが蒸発して部屋の湿度がかなり上がってしまう状態にもなりました。</p>
+
+<p>これは以前ときちんと比較できないですが、他の部屋のものに比べると明らかにおかしいレベルで窓を開けないとまずい、と感じるくらい。</p>
+
+<p>家を出るときに止めて部屋がこの状態になってるかと思うとうかうか凍結洗浄が行われる状態で放置はできないくらいです。</p>
+
+<h2 id="状況">状況</h2>
+
+<p>熱交換機のところはこんな感じでの鉄の部分に
+目で見て明らかにわかる感じで水が付いています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231001_shirokuma.jpg" alt="20231001_shirokuma.jpg" class="pic" /></p>
+
+<p>同じ機種の他の部屋のを見るとこんなには付いてないのでやはり問題があるのではないかと。</p>
+
+<h2 id="再度依頼">再度依頼</h2>
+
+<p>とはいえ夏の忙しい時期にすぐに呼ぶのもあれだと思いながらつらつら過ごしていたのですが、来年になってまた嫌な思いをするのも嫌なので冷房シーズンが終わりそうな時期ですが再度診てもらいました。</p>
+
+<p>前回のクリーニングではだめだったということで、今回は熱交換器ごと交換ということになりました。</p>
+
+<p>下のブログの人も2回目はスプレーの作業で2回めで交換したとのことで全く同じ状況っぽいです。</p>
+
+<blockquote>
+  <p><a href="https://ameblo.jp/watten0117/entry-12620006068.html?utm_source=pocket_saves">エアコンから水が飛んでくる  ちょっと怪しいサラリーマン(リタイア編)</a></p>
+</blockquote>
+
+<p>交換は一度本体を壁から外したりもしたので2時間くらいかかってました。</p>
+
+<p>音階は熱交換器の交換、ということでしたが、もし保証外だとすると、</p>
+
+<blockquote>
+  <p><a href="https://kadenfan.hitachi.co.jp/support/repair/raj.html">ルームエアコン：日立の家電品</a></p>
+</blockquote>
+
+<p>を見るとコンプレッサーの交換で11万円から13万円ということで
+熱交換器の交換、と言っていた今回のものがそのままこれにあたるか分かりませんが
+他に該当しそうなものもないのでこれくらいかかるものかも。</p>
+
+<p>冷媒機の保証は5年ということで今回も保証の範囲内ということでした。</p>
+
+<p>流石に10万以上かかるなら別のを買うかな、というレベル。</p>
+
+<h2 id="その後">その後</h2>
+
+<p>交換後、数日経って未だ暑い日が続くので冷房をつけてますが、今のところ水飛びは出ていません。</p>
+
+<p>直接目で見ても熱交換器部分に水滴が溜まってる様子は見られません。</p>
+
+<p>ただ、湿度的には夏真っ盛りの時よりも大分落ち着いて来ているので
+また来年の夏になってみないと本格的にはわからないかもしれません。</p>
+
+<p>冷房を切ったあとの凍結洗浄での湿度上昇に関しては以前のような異常さは無くなったと思うので
+恐らく良くはなってるとは思います。</p>
+
+<h2 id="問題が起こる原因">問題が起こる原因</h2>
+
+<p>問題が起こる原因ということで、一般的なこととして説明をもらいましたが、</p>
+
+<ul>
+  <li>近年色々なところで撥水性物質が使われるようになってきていて、それは建材や芳香剤、消臭剤また化粧品など多種に及ぶ。それらが熱交換機の親水性を落とす。
+    <ul>
+      <li>多岐にわたるのでどれを無くせば良くなる、ということを特定することは難しい。</li>
+      <li>そもそも壁とかが原因ならどうしようもない。</li>
+    </ul>
+  </li>
+  <li>特定のエアコンで起こるということではなく、他社も含めてどうしても起こり得るもの。</li>
+  <li>換気口の近くにあるとそこから熱い湿った空気が上がってきて親水性を超える量の水がついてしまうことがある。</li>
+</ul>
+
+<p>などなど。</p>
+
+<p>特に新築の物件とかの方が壁とかに親水性物質があったりして水飛びが起こりやすかったりすることもあるみたいです。</p>
+
+<p>換気口の近く、というのも、うちの場合は問題のエアコンの真下に空気の取り入れ口があります。ただ、そこにエアコンの室外機への口と電源もあるので設計的にそこに設置するものなのでどうしようもありません。</p>
+
+<p>そのあたり、住宅を作る側とエアコンメーカーとでちゃんと話してよと思うのですが、それほど多く起こってるわけでもないのと因果関係も確実とも言えないので
+改善しよう、みたいな話は全然ないみたいです。</p>
+
+<p>できることとしては、</p>
+
+<ul>
+  <li>消臭剤やスプレー類をなるべくエアコンが動いているときに使わない。近くで使わない。</li>
+  <li>換気を頻繁にする。</li>
+  <li>クリーニングをなるべく頻繁に行う。
+    <ul>
+      <li>白くまくんだと凍結洗浄があるので、それを自動で行われるタイミング以外にも手動で時々実行する。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>など。</p>
+
+<p>とはいえエアコン側の個体差も大きいのはあるみたいなので、交換で治るものなら交換した方が良いには良いです。</p>
+
+<p>特にエアコンの保証が特殊で、日立の場合ですが、メーカー保証だけでも本体保証は1年ですが冷媒機部分は5年ということをきちんと把握しておきたいところです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Oura Ring(第3世代)のバッテリーがだめになったので交換してもらった]]></title>
+    <link href="https://rcmdnk.com/blog/2023/09/30/computer-iot-shopping/"/>
+    <updated>2023-09-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/09/30/computer-iot-shopping</id>
+    <content type="html"><![CDATA[<p>Oura Ringの第3世代のものを3年前くらいに買いましたが、
+それのバッテリーが2日も持たないような状態になって書い直すかと思っていたところ、
+サポートに相談してみたら保証で交換してくれました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#oura-ringの状態" id="markdown-toc-oura-ringの状態">Oura Ringの状態</a></li>
+  <li><a href="#保証" id="markdown-toc-保証">保証</a></li>
+  <li><a href="#バッテリーを交換できるのか" id="markdown-toc-バッテリーを交換できるのか">バッテリーを交換できるのか</a></li>
+  <li><a href="#バッテリー切れでも本体を交換してくれる" id="markdown-toc-バッテリー切れでも本体を交換してくれる">バッテリー切れでも本体を交換してくれる？</a></li>
+  <li><a href="#サポートに相談してみたら保証で交換してくれた" id="markdown-toc-サポートに相談してみたら保証で交換してくれた">サポートに相談してみたら保証で交換してくれた</a></li>
+  <li><a href="#保証期間が長かったのかバッテリーも保証されるのか" id="markdown-toc-保証期間が長かったのかバッテリーも保証されるのか">保証期間が長かったのか？バッテリーも保証されるのか？</a></li>
+  <li><a href="#交換品" id="markdown-toc-交換品">交換品</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="oura-ringの状態">Oura Ringの状態</h2>
+
+<p>第2世代のものを1年くらい使ったところで新しいのが出るとのことで
+割引とかもあったので発売前からの予約で買いました。</p>
+
+<p>手元に届いたのは2021年の12月中頃でした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/12/15/computer-iot-shopping/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20211215_oura1_120_90.jpg" width="120" height="90" alt="20211215_oura1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/12/15/computer-iot-shopping/">Oura Ring Generation 3が届いた</a></div></li></ul>
+
+<p>なので2年と9ヶ月以上は使ってることになります。</p>
+
+<p>最初は1週間位バッテリーが持つ状態で、最近までそれほど気にならない状態でしたが、
+数ヶ月前くらいから思ったより早くバッテリーが切れるな、とは思ってました。</p>
+
+<p>それがここ1ヶ月くらいで2日充電しないと切れちゃう状態になりちょくちょく取れないことも増えてくるように。</p>
+
+<p>最初の頃に比べるとSpO2測定なども追加されたのでLED照射の量が増えてバッテリーの減りが多くなったりしている部分もありますが、
+それでも持たなすぎです。</p>
+
+<p>夜寝るときには必ずつけたいとすると起きてるときに毎日必ず充電すれば使えないことはないのですが、
+流石に辛い状態。</p>
+
+<p>Apple Watchとか時計型であればずっとつけてる人でも毎日充電したりすることもあるみたいですが、
+充電の手間が少ないのもOura Ringの良いところでもあるので。</p>
+
+<p>とはいえ3年近く使ってるので仕方ない部分もあるかと思いつつ、どうにかならないものかと思ってました。</p>
+
+<h2 id="保証">保証</h2>
+
+<p>買ったのはOura RingのHPからで保証もその公式のものになります。</p>
+
+<blockquote>
+  <p><a href="https://support.ouraring.com/hc/ja/articles/360025439534-%E4%BF%9D%E8%A8%BC%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E8%B3%AA%E5%95%8F">保証に関するよくある質問 – Oura ヘルプ</a></p>
+</blockquote>
+
+<p>基本的には米国以外では2年になるみたいです。
+また、延長保証もありますが、これは米国のみとのこと。</p>
+
+<p>なので通常の保証範囲はすでに切れてます。</p>
+
+<p>そもそも</p>
+
+<blockquote>
+  <p>またはバッテリーなどの消耗部品を含む、通常の損傷には適用されません。</p>
+</blockquote>
+
+<p>とあるのでバッテリーの消耗は保証の範囲に入ってません。</p>
+
+<p>なので買い直すしかないかな、と思ってました。</p>
+
+<h2 id="バッテリーを交換できるのか">バッテリーを交換できるのか</h2>
+
+<p><a href="https://asmartrings.com/oura-ring-battery-replacement/">Oura Ring Battery Replacement Steps, Tips, &amp; Troubleshooting</a></p>
+
+<p>もちろんやろうと思えばできるわけですが、上のを見る自分でやるのはほぼ不可能。</p>
+
+<p>交換サービスみたいなのもないのでバッテリーの交換という解はなさそう。</p>
+
+<h2 id="バッテリー切れでも本体を交換してくれる">バッテリー切れでも本体を交換してくれる？</h2>
+
+<p>バッテリー交換とか色々と探ってるときに、
+第2世代でバッテリーが持たなくなったと相談したところ新しいものに交換してくれた、という話がチラホラ。</p>
+
+<ul>
+  <li><a href="https://www.reddit.com/r/ouraring/comments/ukge5f/great_experience_with_oura_replacing_my_battery/">Great experience with oura replacing my battery : r/ouraring</a></li>
+  <li><a href="https://www.yuki-minimalist.com/entry/20220914/ouraring_gen3?utm_source=pocket_saves">【Ouraring(第2世代)】3年3か月で不具合、、、神対応でした。 - ミニマリストの雑記ブログ</a></li>
+</ul>
+
+<p>しかも交換品が第3世代のものになってた、という話も。
+さらにはライフタイムメンバーシップまでという話もあったりします。</p>
+
+<p>ただ、第3世代に関する話はまだあまり出てないようです。</p>
+
+<h2 id="サポートに相談してみたら保証で交換してくれた">サポートに相談してみたら保証で交換してくれた</h2>
+
+<p>ということで、何か手があるかもしれないということも含めて一旦サポートに連絡してみました。</p>
+
+<p>Ouraのアプリから左上のハンバーガーボタンからヘルプに行き、一番下に<strong>お問い合わせ</strong>があるので
+そこからバッテリーが持たなくなったことを伝えます。</p>
+
+<p>問い合わせを送ると1日ほどで</p>
+
+<p>「リングのデータを確認したところバッテリーに問題があることが分かった。
+保証状況を確認するから買ったモデルや注文番号などを教えてくれ」</p>
+
+<p>という返事が。</p>
+
+<p>今思いましたが、データ確認してるならそのデータにモデルやサイズは入っているはずなのですが。</p>
+
+<p>ともかく、一つぱっとわからないのは<code>SO</code>から始まるという<strong>注文番号</strong>ですが
+これはオーダーしたときにメールが来ているはずなのでそこに書いてあります。</p>
+
+<p>Ring本体と充電器の番号が必要で、それらは別々に注文の受付メールが来てるはずです。
+また、サイジングキットを先に頼んでるとそれも別途注文番号がついているのでそれは送らないように注意。</p>
+
+<p>情報を送ったところ、また1日ほどして返事が来て、新しいものを送ります、とのこと。
+古いものは処分してくださいと。</p>
+
+<p>ちなみにやりとりは日本語でしてましたが、おそらく無効は機械翻訳でやってるんだろうな、という感じのやりとりでした。
+(担当者は外国人名。)</p>
+
+<h2 id="保証期間が長かったのかバッテリーも保証されるのか">保証期間が長かったのか？バッテリーも保証されるのか？</h2>
+
+<p>上にあるよくある質問のリンクなどを見る限り明らかに保証外だと思ってましたが
+保証されました。</p>
+
+<p>一応聞いてみたところ、確かに定義された保証の範囲外ではあるけど個々の状況によって対応している、とのことでした。</p>
+
+<p>とはいえ上の第2世代からの変更の話も結構あるので割りと広いのかも。</p>
+
+<p>ただ、今回自分の例だと、第3世代の初期ロットかそれに近いもので、
+まだSpO2など一部の機能があとからソフトウェアで入るという状態だったので、
+もしかすると後のバージョンとハードウェア的に違うものになっているのかもで、
+それがあるので交換してくれたのかも。</p>
+
+<h2 id="交換品">交換品</h2>
+
+<p>新しいものは5日ほどでDHL Expressで届きました。</p>
+
+<p>実際に買ったときは関税がかかり、受け取りのときに関税分を払いましたが、
+今回は関税はかかりませんでした。
+(なので宅配ボックスへの配達でもOKでした。)</p>
+
+<p>買ったときと同じ製品の形で送られてくると思ったら、リングだけがプチプチにくるまれた状態で送られてきました。</p>
+
+<p>こんな感じの箱が届き、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230930_box.jpg" alt="20230930_box.jpg" class="pic" /></p>
+
+<p>やけに薄い箱で最初なんなのか分かりませんでしたが、Ouraということで、
+製品版の箱ではないことは確かですが、恐らく中にちゃんとした箱が入っているとは思ってました。</p>
+
+<p>が、中は</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230930_packaging.jpg" alt="20230930_packaging.jpg" class="pic" /></p>
+
+<p>こんなの。</p>
+
+<p>なかなかにシンプルでメルカリで買ったみたいな……</p>
+
+<p>今回はリングだけで充電器は付いてきませんでした。なので既存のものを使い続けることになります。</p>
+
+<p>まあ無償で交換してもらっただけありがたいので良いですし、むしろこういった簡易な発送を行ってるのは
+それだけ多くにちゃんと対応しているからなのかもしれません。</p>
+
+<p>クレームに対してとりあえず交換の新しいのを送っておけ、という感じではないかと。</p>
+
+<p>リングは同じサイズ同じ色なので見た目は一緒ですが、3年近くつけているので
+流石によく見ると古いものには結構傷がついてました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230930_ring.jpg" alt="20230930_ring.jpg" class="pic" /></p>
+
+<p>ぱっと見はわからないですが、光が反射するのを見たりすると結構きれいになったな、と思います。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>今回はOuraの公式で直接買った場合ですが、保証期間の範囲外、対象外の場合でも
+場合によっては交換してくれることもあるみたいなので、何か問題が起こった際には一度
+問い合わせしてみると良いかもしれません。</p>
+
+<p>問い合わせに関しても注文番号を聞かれているので、国内で代理店とかで買ったものだと
+そこでの保証になるのかと思います。</p>
+
+<p>現在公式で以下から買うと$40引きで買うことができます。</p>
+
+<ul>
+  <li><a href="https://ouraring.com/ja/raf/3ff0f24858">Accurate Health Information Accessible to Everyone</a></li>
+</ul>
+
+<p>Amazonとかでもいくつかの会社が売ってますが、
+ちょっと高め。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09H3W1XX6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09H3W1XX6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/615WdjZL4ZL._SS200_.jpg" alt="Oura Ring オーラリング Heritage ヘリテージ Black ブラック (US8)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B09H3W1XX6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09H3W1XX6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Oura Ring オーラリング Heritage ヘリテージ Black ブラック (US8)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B09H3W1XX6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09H3W1XX6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FOura+Ring+%E3%82%AA%E3%83%BC%E3%83%A9%E3%83%AA%E3%83%B3%E3%82%B0+Heritage+%E3%83%98%E3%83%AA%E3%83%86%E3%83%BC%E3%82%B8+Black+%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF+%28US8%29%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FOura+Ring+%E3%82%AA%E3%83%BC%E3%83%A9%E3%83%AA%E3%83%B3%E3%82%B0+Heritage+%E3%83%98%E3%83%AA%E3%83%86%E3%83%BC%E3%82%B8+Black+%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF+%28US8%29%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>ビックカメラとかでも売ってます。</p>
+
+<ul>
+  <li><a href="https://www.biccamera.com/bc/item/11233442/">Oura Gen3 Heritage US10 Set ブラック OURA HEALTHオーラヘルス 通販 ビックカメラ.com</a></li>
+</ul>
+
+<p>ビックカメラだと黒のHeritageで47,000円ということで、今公式だと299ドルなので
+現状の為替レートを考えるとプラス2000円位。
+(恐らくもっと低いレートのときに設定してるのではないかとも思うので実際にはもうちょっと幅があったのかも。逆に今後値上げするか、もしくはもうした？)
+とはいえ、以前日本で売っていたものだと倍くらいしてるのもあったりしたのでそれに比べるとまあビックカメラの値段なら良いかも。</p>
+
+<p>ビックカメラで直接売っている所だとそこにサイジングキットもあるのですぐにサイズを決めて買うことも出来て便利だとか。</p>
+
+<p>ただ上のように保証に関しては公式HP上で買ったものとは違ってくるとは思うので、
+その辺はちょっと考えたほうが良いかもしれません。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[エアコン(白くまくん)の水飛び問題]]></title>
+    <link href="https://rcmdnk.com/blog/2023/08/05/life-iot/"/>
+    <updated>2023-08-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/08/05/life-iot</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BNB2M5QD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BNB2M5QD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XyDESvaML._SS200_.jpg" alt="【商品配送のみ】 日立 ルームエアコン 6畳 2.2kW RAS-X22N(W)/SET スターホワイト 白くまくん Premiumプラズマ空清 凍結洗浄除菌ヒートプラス搭載 ファンお掃除ロボ 室内機室外機セット(2梱包)" /></a>
+</div>
+
+<p>去年買った日立の白くまくんが水を飛ばすようになって困った話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#白くまくん" id="markdown-toc-白くまくん">白くまくん</a></li>
+  <li><a href="#問題発生" id="markdown-toc-問題発生">問題発生</a></li>
+  <li><a href="#日立のエアコンによくある現象" id="markdown-toc-日立のエアコンによくある現象">日立のエアコンによくある現象？</a></li>
+  <li><a href="#やってもらったこと" id="markdown-toc-やってもらったこと">やってもらったこと</a></li>
+  <li><a href="#原因" id="markdown-toc-原因">原因</a></li>
+  <li><a href="#とりあえず" id="markdown-toc-とりあえず">とりあえず</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="白くまくん">白くまくん</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09P83BJJZ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09P83BJJZ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31pBq11MOPL._SS90_CR0,0,120,90_.jpg" alt="白くまくん RAS-XJ56M2(W) スターホワイト [5.6kW]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/13/life-shopping-iot/">日立エアコン白くまくんXJシリーズ</a></div></li></ul>
+
+<p>問題を発生したのは2022年1月に買ったRAS-XJ22L。</p>
+
+<p>日立の最上位機種ですが、お掃除機能的な部分が一番良さげなので買ったもの。</p>
+
+<p>性能的にはダイキンがやはり評価が高い部分が大きかったですが、
+加湿機能などついた上位機種だと配管が太くて通らない場合もあったりするらしいので
+その辺も含めて日立に。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09P83BJJZ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09P83BJJZ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31pBq11MOPL._SS90_CR0,0,120,90_.jpg" alt="白くまくん RAS-XJ56M2(W) スターホワイト [5.6kW]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/13/life-shopping-iot/">日立エアコン白くまくんXJシリーズ</a></div></li></ul>
+
+<p>お掃除機能などつけずに下位のものにしてちゃんとクリーニング頼む方がコスパ的に良さそうな部分もあるのですが、
+その辺はおそらく戦略的に消費電力が圧倒的に上位機種のほうが低くて
+単純なエアコン性能で選ぶと上の方になってしまうということも。</p>
+
+<p>保証に関してはメーカー保証の本体1年と冷媒回路の5年の保証のみになってます。</p>
+
+<h2 id="問題発生">問題発生</h2>
+
+<p>実はこれ、去年の4月くらいに一回故障していて交換してもらったもの。</p>
+
+<p>その時の問題は結構大変なもので、冷媒が完全に漏れて、エアコンをつけると
+霧の様に出てきてしまう状態。
+2,3回試して完全に冷媒がなくなって冷えもしないので修理を依頼しました。</p>
+
+<p>4月位にちょっと暑いときに試しに着けてみてた時だったので
+良かったですが、夏本番になってからだと辛かったかも。</p>
+
+<p>本体のメーカー保証も残ってる状態だったので日立に連絡して見てもらったところ、
+冷媒がないのを確認して漏れてるのもどこからかよくわからないので交換、ということになりました。</p>
+
+<p>その後、去年の夏はちゃんと動いて冬も暖房は良かったのですが、
+今年の夏に入り冷房をつけていたところ、なんか冷たいと思ったらどうもエアコンからちょこちょこ水が飛んでくるようになってました。</p>
+
+<p>ちょうどエアコンのすぐ下に机があるような部屋なのでより影響が強い状態もありました。</p>
+
+<p>直接体に触れると気づきますが、机とかに落ちてもすぐに乾いてしまう程度なので
+ものが濡れて困る、というほどの状態ではありません。</p>
+
+<p>エアコンを見てみると、外側の風の方向を変える羽のところにもチラチラ水がついてますが、
+フィルターを開けて中を見てみると冷媒機のところに水が結構ついている状態。</p>
+
+<p>冷媒機で結露するのは当然ですが、通常は親水性を良くしてあって出てきた水がきちんとドレインに流れて外に流れるようになっているのですが、それが上手く行かずに外に出てきてしまっているようです。</p>
+
+<h2 id="日立のエアコンによくある現象">日立のエアコンによくある現象？</h2>
+
+<p>とはいえ気になる程度には降ってくるのでどうしたものかとちょっと調べてみたところ、
+実は日立の白くまくんではよく起こる現象らしい。。。</p>
+
+<ul>
+  <li><a href="https://ameblo.jp/watten0117/entry-12620006068.html?utm_source=pocket_saves">エアコンから水が飛んでくる  ちょっと怪しいサラリーマン(リタイア編)</a></li>
+  <li><a href="https://bbs.kakaku.com/bbs/K0001381354/SortID=24828115/?Reload=%8c%9f%8d%f5&amp;SearchWord=%83%81%81%5b%83J%81%5b%95%db%8f%d8#tab">価格.com - 『室内にパラッと小雨が降ります…』 日立 白くまくん RAS-X25M のクチコミ掲示板</a></li>
+  <li><a href="https://bbs.kakaku.com/bbs/K0001152313/SortID=24276662/?utm_source=pocket_saves">価格.com - 『水飛び～修理完了（メーカー保証）』 日立 白くまくん RAS-AJ22J のクチコミ掲示板</a></li>
+</ul>
+
+<p>他のエアコンでもあるにはあるみたいですが、ざっと検索した感じだと圧倒的に日立。
+ここは調べてるときに見つけられなかった部分。</p>
+
+<p>もっとひどい水漏れ的なひどい状況もありましたが、そこまで行くと他のエアコンでも同じくらい？あるような感じはしｍした。</p>
+
+<p>水飛び程度だと実質的にそこまで被害がない場合もあるので仕方なくそのまま使ってるケースもある感じでどうしようかと。</p>
+
+<p>日立の説明だと結露だし、まああるよね、的な雰囲気でクリーニングすれば治るかもよ、とのこと。</p>
+
+<ul>
+  <li><a href="https://kadenfan.hitachi.co.jp/support/ra/q_a/post-22.html">エアコン（室内機）から水が飛んできます。：日立の家電品</a></li>
+</ul>
+
+<p>どうしようかという感じで、
+販売店の延長保証みたいのは入らなかったので、通常の本体保証は切れてますが、冷媒機は5年あり、その冷媒機の交換で治った、という例もあるみたいなので、一旦相談してみることに。</p>
+
+<p>ただ、修理依頼で来てもらって、仮に冷媒機以外の部分を修理すべき、という話になると有償になるし、じゃあ一回クリーニング頼んで見て見るから何もしないで良い、という話にしても無駄に出張費が取られるので微妙だな、と思ってましたが
+そのあたりも見てみないことにはどうしようもないということなので一旦来てもらうことにしました。</p>
+
+<ul>
+  <li><a href="https://kadenfan.hitachi.co.jp/support/inquiry/repair/housecall.html">出張修理の流れ：日立の家電品</a></li>
+</ul>
+
+<h2 id="やってもらったこと">やってもらったこと</h2>
+
+<p>見てもらったところ、とりあえず前の機種のように冷媒が漏れてるようなことは無さそうとのこと。</p>
+
+<p>水も激しく出ているわけではないのでやはり冷媒機部分の親水性が落ちているのが問題の可能性が高いと。</p>
+
+<p>空気の汚れが付着して親水性が落ちるらしく、それをクリーニングで落とせば治ることもあるとのことで今回はクリーニングをしてもらうことになりました。</p>
+
+<p>その作業については保証の範囲内でやってくれると。</p>
+
+<p>実際にやったことは冷媒機が全部出るまで外を外してクリーニングスプレー的なものをかけ汚れを落とす作業。</p>
+
+<p>よく見るような、完全養生して水をかけて汚れを落とすみたいな感じのことまではせず、スプレーで落としてそのままドレインに流す程度だけでした。</p>
+
+<p>作業時間は点検含めて1時間位。</p>
+
+<p>ただ、強調されたのは、そのスプレーは日立の工場とかでも使われる親水性を落とさずに中の素材も傷めないものということで、
+いわゆる市販のものとかだと親水性を落としたり中を痛めるので絶対やらない方が良いとのこと。</p>
+
+<p>また、業者の人が使うようなものだと、強力なものを使って汚れを落としたあとに、後で中和剤みたいなのをかけて素材を傷めないようにするようなこともあるみたいで、その場合も負担がかかることもあるらしいです。</p>
+
+<h2 id="原因">原因</h2>
+
+<p>これといって明らかな原因があるわけではないですが、
+親水性が落ちる原因としては空気の汚れの付着で、
+特にヘアスプレーなど使うと結構良くなるみたいです。</p>
+
+<p>とはいえ特にそういったものも使っていた訳ではないし、LDKにつけてる同じ白くまくんの方が油汚れとか付きそうなものですがそちらは水がついている様子は見られません。
+大きさも違うのと、問題が起きたものが一番使っている、ということもあるので一概には言えませんが、なんらか工場時点で良くなかったのかどうか。</p>
+
+<p>あと、一般的に、最近の色々入った機種は壁から大きく出っ張るように冷媒機部分もせり出していますが、それによってそのまま下に垂れてファン口から外にでてしまうことも起きやすくなってる、とのこと。
+昔のエアコンの方がそういったことはあまりなかったようです。（完全に水漏れするとかは別として。）</p>
+
+<h2 id="とりあえず">とりあえず</h2>
+
+<p>保証の範囲でメンテしてもらって一旦は水飛びはなくなったのでしばらく様子見。</p>
+
+<p>ただ、汚れが原因だとするとまた1年したら出てしまうかもしれません。
+そのときまた同じ様にクリーニングしてもらう形で済むのかどうか。
+そもそもしてもらえるかどうか。。。</p>
+
+<p>普通にエアコンクリーニングを頼むのも一つだとは思いますが、
+毎年でだめなら中身交換してもらいたいという気も。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[スイッチボット防水温湿度計を設置]]></title>
+    <link href="https://rcmdnk.com/blog/2023/07/30/life-iot/"/>
+    <updated>2023-07-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/07/30/life-iot</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BVLYPYT1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BVLYPYT1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Vto3r9E0L._SS200_.jpg" alt="SwitchBot 防水温湿度計 Alexa 温度計 湿度計 - スイッチボット ワイヤレス 室内 屋外用 温湿度計 スマホで温度湿度管理 デジタル 高精度 コンパクト 温度 湿度 絶対湿度 異常通知 グラフ記録 スマートホーム Alexa Google Home IFTTT イフト Siriに対応(ハブ必要)" /></a>
+</div>
+
+<p>久々の新しいIoTの導入。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#室内温度などの記録" id="markdown-toc-室内温度などの記録">室内温度などの記録</a></li>
+  <li><a href="#スイッチボット防水温湿度計" id="markdown-toc-スイッチボット防水温湿度計">スイッチボット防水温湿度計</a></li>
+  <li><a href="#その他の温湿度計との違い" id="markdown-toc-その他の温湿度計との違い">その他の温湿度計との違い</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="室内温度などの記録">室内温度などの記録</h2>
+
+<p>家の中の温度や湿度を色々なものを使って測ってます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/02/20/computer-iot/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220220_co2_120_90.jpg" width="120" height="90" alt="20220220_co2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/20/computer-iot/">二酸化炭素濃度、温度、湿度計の比較</a></div></li></ul>
+
+<p>上の記事を書いたあとにSwitchBotの温湿度計も買ってます。
+色々やってみたかったということもありますが、
+現状ではそれぞれ別の場所に置いて測ってます。</p>
+
+<p>これまで室外に関しては直接計測せずにアメダスの情報をRaspberry Piで取得して表示するようなことをしてました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/06/19/computer-iot-raspberrypi-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220619_amedas_120_90.jpg" width="120" height="90" alt="20220619_amedas_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/06/19/computer-iot-raspberrypi-python/">気象庁アメダスの情報をRaspberry Piで取得して表示する</a></div></li></ul>
+
+<p>ですがちょっと外に出て測ってみると結構違うことも多くて、ベランダとかで直接測ったものもみたいな、と常々思っていたので
+スイッチボットの防水温湿度計を追加してみました。</p>
+
+<h2 id="スイッチボット防水温湿度計">スイッチボット防水温湿度計</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BVLYPYT1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BVLYPYT1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Vto3r9E0L._SS200_.jpg" alt="SwitchBot 防水温湿度計/SwitchBot 防水温湿度計/" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0BVLYPYT1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BVLYPYT1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SwitchBot 防水温湿度計/SwitchBot 防水温湿度計/</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0BVLYPYT1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BVLYPYT1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E9%98%B2%E6%B0%B4%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2FSwitchBot+%E9%98%B2%E6%B0%B4%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2F%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E9%98%B2%E6%B0%B4%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2FSwitchBot+%E9%98%B2%E6%B0%B4%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2F%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>防水仕様になったスイッチボットん温湿度計。</p>
+
+<p>測定できることは通常の温湿度計と同じで、単にディスプレイがなくなり防水仕様になっている、という感じ。</p>
+
+<p>きちんとサイズを見てなかった中、Amazonとかの商品紹介ページでスマホと同時に映ってるものを見てスマホよりもちょっと小さいくらいのサイズかと思ってましたが、
+実際には66mm x 28mm x 20mmということで、親指程度の大きさです。</p>
+
+<h2 id="その他の温湿度計との違い">その他の温湿度計との違い</h2>
+
+<p>現在SwitchBotの公式では温湿度計と同じ1980円で売ってますがAmazonとかだと通常の温湿度計のほうがちょっと安かったりします。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07L4QNZVF?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07L4QNZVF&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61mXAXIDPgL._SS200_.jpg" alt="SwitchBot 温湿度計/SwitchBot 温湿度計/" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07L4QNZVF?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07L4QNZVF&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SwitchBot 温湿度計/SwitchBot 温湿度計/</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07L4QNZVF?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07L4QNZVF&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2F%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%2F%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>また、温湿度計にはもう一つ温湿度計プラスという上位機種があります。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09PYKJ6CS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09PYKJ6CS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61EdflmfiYL._SS200_.jpg" alt="SwitchBot 温湿度計プラス/SwitchBot 温湿度計プラス/" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B09PYKJ6CS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09PYKJ6CS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SwitchBot 温湿度計プラス/SwitchBot 温湿度計プラス/</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B09PYKJ6CS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09PYKJ6CS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%E3%83%97%E3%83%A9%E3%82%B9%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%E3%83%97%E3%83%A9%E3%82%B9%2F%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%E3%83%97%E3%83%A9%E3%82%B9%2FSwitchBot+%E6%B8%A9%E6%B9%BF%E5%BA%A6%E8%A8%88%E3%83%97%E3%83%A9%E3%82%B9%2F%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>測定できるものはプラスも含めて全部同じで、精度も同じでおそらく同じセンサーを使ってそう。</p>
+
+<ul>
+  <li><a href="https://www.switchbot.jp/pages/switchbot-outdoor-meter">SwitchBot防水温湿度計 – SwitchBot (スイッチボット)</a></li>
+  <li><a href="https://support.switch-bot.com/hc/ja/articles/4433540028183">温湿度計と温湿度計プラスの相違点 – SwitchBotサポート</a></li>
+</ul>
+
+<p>通常版とプラスに関してはディスプレイや設置方法、快適度の表示みいたいのがちょっと豪華になってるのと、
+ローカルストレージが30日分か68日分か。</p>
+
+<p>防水のものはローカルストレージで68日分とプラスと同じになっています。</p>
+
+<p>基本ハブに繋げてサーバー保存(これは1年分)なので個人的には特に関係ない部分ではありますが。</p>
+
+<p>ベランダで測定すると言ってもよほどの嵐にもならない限り雨にはあたらなそうな場所に設置するつもりだったので
+通常の温湿度計を追加すれば良いかな、とも思ったのですが、そこまで変わらないのでせっかくなので新しい防水のものを買ってみました。
+直接ディスプレイ見る機会は殆どないとも思ったので。</p>
+
+<p>また、実際買ってみて思ったこととしては、設置する場所として置ける場所があれば通常版でも良かったですが、
+結果的に壁にある突起に付属のストラップで引っ掛けて吊るすみたいにしたので、これがきれいにできるのは防水版だけだな、というところ。</p>
+
+<p>床は日が当たってる部分もあるのでなるべく離した方が良いですし、壁も多少外部の熱やもしくは室内の温度の影響もあるので
+なるべく離したいのでベストは天井からぶら下げる感じかもしれません。</p>
+
+<p>いずれにしろより小さい、ということもありますが、設置場所、設置方法という意味でも自由がきくので
+外とかで測定したくて特に直接見る必要がなければ、防水仕様が必要ないとしても防水版の方が良さそうです。</p>
+
+<p>とりあえず手元の通常版と室内の同じところでしばらく見てみたところ、
+防水版の方が数%湿度が高く出てましたが、他の機種で見るとちょうどあいだの変の値を示してる状態。</p>
+
+<p>校正しようにもホントの正解がどれだか分からないのと気になるほどの違いでは無いと思ったのでとりあえずそのまま使うことにします。</p>
+]]></content>
+  </entry>
+  
+</feed>
