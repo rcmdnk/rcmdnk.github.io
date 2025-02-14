@@ -1,0 +1,1161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Obsidian | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/obsidian/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2025-02-14T00:14:29+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ObsidianでEvernoteからimportしたノートの暗号化部分を復号する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/06/13/computer-obsidian/"/>
+    <updated>2024-06-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/06/13/computer-obsidian</id>
+    <content type="html"><![CDATA[<p>個人的なメモを
+EvernoteからObsidianに移行しましたが、
+Evernoteの中で暗号化していた部分があり、
+それをObsidian上で復号するプラグインを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#evernoteからobsidianへの移行" id="markdown-toc-evernoteからobsidianへの移行">EvernoteからObsidianへの移行</a></li>
+  <li><a href="#暗号化の処理" id="markdown-toc-暗号化の処理">暗号化の処理</a></li>
+  <li><a href="#evernote-decryptor" id="markdown-toc-evernote-decryptor">Evernote Decryptor</a></li>
+  <li><a href="#以前までの機能" id="markdown-toc-以前までの機能">以前までの機能</a></li>
+  <li><a href="#v2xの機能" id="markdown-toc-v2xの機能">v2.Xの機能</a></li>
+  <li><a href="#evernoteの暗号化" id="markdown-toc-evernoteの暗号化">Evernoteの暗号化</a></li>
+  <li><a href="#exportされたノートの暗号化部分" id="markdown-toc-exportされたノートの暗号化部分">Exportされたノートの暗号化部分</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+  <li><a href="#おまけ-decryptor-or-decrypter" id="markdown-toc-おまけ-decryptor-or-decrypter">おまけ: Decryptor or Decrypter</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="evernoteからobsidianへの移行">EvernoteからObsidianへの移行</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/12/05/computer-evernote-obsidian/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20231205_obsidianimporter4_120_90.png" width="120" height="90" alt="20231205_obsidianimporter4_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/12/05/computer-evernote-obsidian/">EvernoteからObsidianへの移行</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/12/07/computer-obsidian/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20231207_markdownload_120_90.png" width="120" height="90" alt="20231207_markdownload_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/12/07/computer-obsidian/">ObsidianでEvernoteライクにWebクリップ、トレイアイコン化で使う</a></div></li></ul>
+
+<p>移行したのは半年くらい前。</p>
+
+<h2 id="暗号化の処理">暗号化の処理</h2>
+
+<p>そこから暗号化されたものをどうするかということで、
+しばらくは必要な部分だけEvernoteで見る、ということをしていました。</p>
+
+<p>一方、Obsidianには
+<a href="https://github.com/meld-cp/obsidian-encrypt">encrypt</a>、
+<a href="https://github.com/solargate/obsidian-inline-encrypter">Inline Encrypter</a>
+といったプラグインがあり、これらでノート全体を暗号化したり、
+ノート内の選択部分を暗号化したりすることが出来、
+特にInline Encrypterの方は
+表示上<i class="key">SECRET</i>な感じの記号にしてクリックすると
+パスワードを入力して復号させる、といった
+Evernoteの暗号化部分と似たような動作を実現することが出来ます。</p>
+
+<p>なのでObsidian上で改めて暗号化する場合にはこれらのプラグインを使えばいいのですが、
+Evernoteからimportしたノートの暗号化部分は別。</p>
+
+<p>最悪、一度Evernoteで復号してからObsidianにコピペして必要であれば再度暗号化する、という方法もあるのですが、
+流石に面倒。</p>
+
+<p>なんとか直接Obsidian上で復号できないかということで、
+そのためのプラグインを作りました。</p>
+
+<h2 id="evernote-decryptor">Evernote Decryptor</h2>
+
+<div class="github-widget" data-repo="rcmdnk/obsidian-evernote-decryptor"></div>
+
+<p>すでにOfficial Pluginとして入れてもらっているので
+Community Pluginsからインストールできます。</p>
+
+<blockquote>
+  <p><a href="https://obsidian.md/plugins?search=decryptor">Plugins - Obsidian</a></p>
+</blockquote>
+
+<p>Community Pluginsにいれるには
+<a href="https://github.com/obsidianmd/obsidian-releases/">Obsidian-releases</a>
+というレポジトリにPull Requestを送る必要があるのですが、
+かなりの量のPull Requestが溜まっていてレビューしてもらうのにちょっと時間がかかることもあるようです。</p>
+
+<p>実は年末に出したのでちょっと年をまたいで最初の返信が1週間ほど後でしたが、その際あった些細な訂正(説明に<code>Obsidian Plugin for...</code>みたいにObsidianを入れるのは冗長だから外して、など)
+を即座に直して送ったものの、次に見てもらったのが1ヶ月以上後でした(かつ別の人)。</p>
+
+<blockquote>
+  <p><a href="https://github.com/obsidianmd/obsidian-releases/pull/2816">Add plugin: Evernote Decryptor by rcmdnk · Pull Request #2816 · obsidianmd/obsidian-releases</a></p>
+</blockquote>
+
+<p>今から新たにプラグインを追加したいという場合には
+まずは
+<a href="https://docs.obsidian.md/Plugins/Releasing/Submission+requirements+for+plugins">Submission requirements for plugins - Developer Documentation</a>をちゃんと読んで対応し、
+他のPR(特に修正を促されているもの)を参考にして
+できるだけ一発で行けるようにしておいた方が良いです。</p>
+
+<p>半年くらい前に作ったプラグインですが、
+今回大幅にアップデートしたのでそのご紹介。</p>
+
+<h2 id="以前までの機能">以前までの機能</h2>
+
+<p>v1.Xのときの機能は、変数時にテキストを選択して右クリックすると
+<code>Decrypt Evernote encrypted data</code>
+というメニューが出るのでそれをクリックすると復号される、というものでした。</p>
+
+<p>Evernoteで暗号化された部分はimportされると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">RU5DMJGm2vZOxfMzVNCLrAZO7UhAhge8WrlsTh2NabWgtOgNp1owzaSM5lIYHLJNj8FKfeUWe/29hYnqJeSajA4jxfcCM0jdQ1BmGwG5tJBaT4S3fUi7rkKIJR/2+CRx4uegkw==</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな文字列になっています。</p>
+
+<p>この暗号化された部分全体を選択して右クリックすると
+パスワード入力のモーダルが立ち上がるのでそこに正しいパスワードを入力するとこの文字列が復号されそれに置き換わります。</p>
+
+<p>ちなみに上のは<code>1234</code>を<code>1234</code>のパスワードで暗号化したもの。</p>
+
+<p>こういう暗号化とかハッシュ化とかされたものが他に無ければだいたい見た目で暗号化された部分だな、というのはわかると思います。</p>
+
+<p>そうでなくとも前後の文脈で分かることがほとんどだと思いますが。</p>
+
+<p>また、Evernoteの暗号化の仕組み上、
+必ず<code>RU5DM</code>で始まるので、なんらか機械的に見つけることも可能だとは思います。</p>
+
+<h2 id="v2xの機能">v2.Xの機能</h2>
+
+<p>先日リリースしたv2.Xでは、Inline Encrypterを参考に
+暗号化された部分をInline Code Blockに変換し、
+その部分を見た目上ボタンのようにしてクリックすると
+パスワード入力のモーダルが立ち上がり、
+正しいパスワードを入力するとその部分が復号され、そのパスワードは一時的にモーダル上に表示される、というものに変更しました。</p>
+
+<p>いちいち置き換えられても、それを<i class="key">Ctrl</i>-<i class="key">Z</i>で戻す、みたいな不毛な作業もこれでなくなります。</p>
+
+<p>Inline Code Blockは<code>evernote_secret</code>というキーワードで始まるものとして、そのような部分の見た目を変える仕組みも入れました。</p>
+
+<p>Inline Encrypterとは違い画像ではなく単にHTMLのボタン表示ですがシンプルで十分かな、ということでそれにしてあります。</p>
+
+<p>ということで、暗号化された部分を選択して
+右クリックから
+<strong>Format Evernote secret</strong>
+というコマンドを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">`evernote_secret RU5DMJGm2vZOxfMzVNCLrAZO7UhAhge8WrlsTh2NabWgtOgNp1owzaSM5lIYHLJNj8FKfeUWe/29hYnqJeSajA4jxfcCM0jdQ1BmGwG5tJBaT4S3fUi7rkKIJR/2+CRx4uegkw==`</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の様に変換され、その部分がボタン表示されるようになります。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/format.gif?raw=true" alt="format" /></p>
+
+<p>Reading modeでもLive Previewでも動作します。</p>
+
+<p>このボタンをクリックするとパスワード入力のモーダルが立ち上がり、正しいパスワードを入力するとその部分が復号されます。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/button.gif?raw=true" alt="button" /></p>
+
+<p>この部分に矢印キーなどで移動していくと元のInline Code Blockの文字列が表示され編集することも可能です。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/edit.gif?raw=true" alt="edit" /></p>
+
+<p>逆に、手動で<code>evernote_secret ...</code>というInline Code Blockを作れば暗号化されたものでなくても同じようにボタン表示されます。
+上のコマンドの代わりに直接書き換えてもOK。</p>
+
+<p>もし、以前のように単に暗号化された部分を復号して置き換えたい場合は、<strong>Decrypt Evernote encrypted data and replace</strong>を使ってください。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/replace.gif?raw=true" alt="replace" /></p>
+
+<p>また、ボタン化せずに単に一時的に復号したものを見たい場合は
+<strong>Decrypt Evernote encrypted data</strong>。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/decrypt.gif?raw=true" alt="decrypt" /></p>
+
+<p>逆に、暗号化したテキストがあり、それをEvernote Decryptorで管理する暗号にしたい場合にはテキストを選択して
+<strong>Encrypt data as Evernote secret</strong>を実行します。</p>
+
+<p><img src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/encrypt.gif?raw=true" alt="encrypt" /></p>
+
+<p>これに関してはInline Encrypterでも似たような事が出来ますが、
+Evernote Decryptorだけで済ませる事もできるのでこういった機能があっても良いかな、ということで。</p>
+
+<p>一旦ボタン化が済むと右クリックメニューは要らなくなるかもしれませんが、その場合はオプションから消すことも出来ます。</p>
+
+<p>また、最初のバージョンはモバイルには非対応でしたが、
+v2.Xではモバイルアプルでも動作するようになっています。</p>
+
+<h2 id="evernoteの暗号化">Evernoteの暗号化</h2>
+
+<p>Evernoteの暗号化の方法は2014年に一度変更されています。</p>
+
+<p>このプラグインは2014年の変更以降のAES 128bitを使ったものにのみ対応しています。</p>
+
+<blockquote>
+  <p><a href="https://help.evernote.com/hc/en-us/articles/208314128-What-type-of-encryption-does-Evernote-use">What type of encryption does Evernote use? – Evernote Help &amp; Learning</a></p>
+</blockquote>
+
+<p>公式の情報だけだと実際にどのように暗号化されているのかすぐにはわかりませんが、
+そのあたりはすぐに解析していた人がいて、以下の記事が恐らく一番早く出て詳しいものだと思います。</p>
+
+<blockquote>
+  <p><a href="https://soundly.me/decoding-the-Evernote-en-crypt-field-payload/">Decoding the Evernote en-crypt field payload</a></p>
+</blockquote>
+
+<p>ここから先頭に<code>ENC0</code>という4byteが入っていて
+これが暗号化後に<code>RU5DM</code>となる元です。</p>
+
+<p><sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>上のページにはPythonの例がありますが、
+他の言語で書かれた例も探せば色々と出てきます。</p>
+
+<p><a href="https://github.com/akosbalasko/yarle">Yarle</a>
+というツールはEvernoteからexportされたファイルを解析して扱えるようにするツールですが、この中にTypeScriptで書かれた例があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/akosbalasko/yarle/blob/master/src/utils/decrypt.ts">yarle/src/utils/decrypt.ts at master · akosbalasko/yarle</a></p>
+</blockquote>
+
+<p>このYarleはImporterプラグインの中にもここからコードが移植されて使われています。
+(ただし、暗号化部分はImporterでは何もせずにそのまま出している。)</p>
+
+<p>この辺を参考にしつつプラグインを作りました。</p>
+
+<h2 id="exportされたノートの暗号化部分">Exportされたノートの暗号化部分</h2>
+
+<p>現状ImporterプラグインでObsidianにimportすると
+暗号化部分は暗号化された状態の文字列がそのまま出てきます。</p>
+
+<p>ExportされたENEXファイルを見てみると、暗号化された部分は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">...
+</span><span class="line">&lt;note&gt;
+</span><span class="line">    &lt;title&gt;...&lt;/title&gt;
+</span><span class="line">    ...
+</span><span class="line">    &lt;content&gt;
+</span><span class="line">        &lt;![CDATA[...
+</span><span class="line">        ...&lt;en-crypt cipher="AES" length="128"&gt;RU5DMJGm2vZOxfMzVNCLrAZO7UhAhge8WrlsTh2NabWgtOgNp1owzaSM5lIYHLJNj8FKfeUWe/29hYnqJeSajA4jxfcCM0jdQ1BmGwG5tJBaT4S3fUi7rkKIJR/2+CRx4uegkw==&lt;/en-crypt&gt;&lt;div&gt;...&lt;/div&gt;...
+</span><span class="line">        ]]&gt;
+</span><span class="line">    &lt;/content&gt;</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで、<code>en-crypt</code>というタグで囲まれた部分になっています。</p>
+
+<p>なので解析的にこの部分を見つけて暗号化された部分だと判断することができます。</p>
+
+<p>実際、Yarleの中でもこの部分を見つけて暗号化された部分だと判断し、オプションでパスワードを渡しておくと復号して出力するようになっています。</p>
+
+<p>ただし、ObsidianのImporterプラグインにはその復号部分は移植されていません。</p>
+
+<p>この部分、Importerをちょっといじって暗号化された部分を<code>evernote_secret...</code>をつけてInline Code Blockになるようにできないか、とちょっと考えています。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/06/14 </strong></p>
+
+  <p>Importerプラグインをいじって暗号化された部分を<code>evernote_secret...</code>をつけてInline Code Blockに変換するプラグインを作りました。</p>
+
+  <div class="github-widget" data-repo="rcmdnk/obsidian-importer-for-evernote-decryptor"></div>
+
+  <p>これを使うと、Importerプラグインでimportしたノートの暗号化された部分が<code>evernote_secret...</code>という形に変換されます。</p>
+
+  <p>現状Community Pluginsには入れてないので、
+<a href="https://github.com/TfTHacker/obsidian42-brat">BRAT</a>を使ってインストールする必要があります。</p>
+
+  <p>BRATをCommunity Pluginsからインストールして有効にして、BRATの設定の<code>Add Beta plugin with frozen version</code>から</p>
+
+  <ul>
+    <li>Repository: https://github.com/rcmdnk/obsidian-importer-for-evernote-decryptor</li>
+    <li>The release version tag: 1.6.999</li>
+  </ul>
+
+  <p>でインストール出来ます。</p>
+
+  <p>オリジナルのImporterプラグインとconflictしてしまうので、もし入れてる場合はオリジナルのほうを無効にするかアンインストールしてから入れてください。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>半年くらい中途半端な(でもversion 1にしてしまった)状態で
+Community Pluginsにも入れてもらっていましたが、
+2.0になって自分的にちゃんと思った通りの事ができるように出来ました。</p>
+
+<p>もしかしたら既に使っていて取り敢えず、で使っている人が居たらアップデートしてボタン化して使ってみてほしいです。</p>
+
+<h2 id="おまけ-decryptor-or-decrypter">おまけ: Decryptor or Decrypter</h2>
+
+<p>今回のプラグイン名、<code>Decryptor</code>と<code>or</code>なのですが、
+<code>Decrypter</code>という表記もあります。</p>
+
+<p>どちらも間違いでは無いようですが、
+あまり意識せずにつけてて、今回これかいてて、
+Inline Encrypterは<code>er</code>だな、と思って、違うな、と。</p>
+
+<blockquote>
+  <p><a href="https://english.stackexchange.com/questions/496051/is-it-decryptor-or-decrypter">grammar - Is it Decryptor or Decrypter? - English Language &amp; Usage Stack Exchange</a></p>
+</blockquote>
+
+<p>ここには</p>
+
+<blockquote>
+  <p>Decrypter seems to be the slightly better option because it’s the more common form (especially in Great Britain)</p>
+</blockquote>
+
+<p>とあったり、</p>
+
+<blockquote>
+  <p>According to Google Ngrams “-or” is very slightly more popular. Although only “-er” occurs in the British English sources. I’m not sure how much Google Ngrams can be trusted for the, though.</p>
+</blockquote>
+
+<p>とあったり。イギリス英語だと<code>er</code>?</p>
+
+<blockquote>
+  <p><a href="https://english.stackexchange.com/questions/4733/what-s-the-rule-for-adding-er-vs-or-when-forming-an-agent-noun-from-a-ver?noredirect=1&amp;lq=1">orthography - What’s the rule for adding “-er” vs. “-or” when forming an agent noun from a verb? - English Language &amp; Usage Stack Exchange</a></p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ObsidianでEvernoteライクにWebクリップ、トレイアイコン化で使う]]></title>
+    <link href="https://rcmdnk.com/blog/2023/12/07/computer-obsidian/"/>
+    <updated>2023-12-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/12/07/computer-obsidian</id>
+    <content type="html"><![CDATA[<p>ノートアプリのEvernoteの1つの使い方はWebクリップでした。
+また、さっと呼び出して必要な情報を検索したりすることもよくやること。</p>
+
+<p>Obsidianでも色々とWebクリップを行う方法がありますが、
+Evernoteライクにブラウザからぱっとクリップして後で確認出来るような状態にしたり
+検索を呼び出せるようにする方法について。</p>
+
+<p>今回はWindows 11、ブラウザはChromeな環境で行っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#obsidian側の設定" id="markdown-toc-obsidian側の設定">Obsidian側の設定</a>    <ul>
+      <li><a href="#ホットキー" id="markdown-toc-ホットキー">ホットキー</a></li>
+      <li><a href="#コミュニティープラグイン" id="markdown-toc-コミュニティープラグイン">コミュニティープラグイン</a></li>
+    </ul>
+  </li>
+  <li><a href="#ブラウザの設定" id="markdown-toc-ブラウザの設定">ブラウザの設定</a></li>
+  <li><a href="#使い勝手" id="markdown-toc-使い勝手">使い勝手</a>    <ul>
+      <li><a href="#webクリップ" id="markdown-toc-webクリップ">Webクリップ</a></li>
+      <li><a href="#検索" id="markdown-toc-検索">検索</a></li>
+    </ul>
+  </li>
+  <li><a href="#autohotkeyで改善" id="markdown-toc-autohotkeyで改善">AutoHotkeyで改善</a>    <ul>
+      <li><a href="#obsidianでの検索" id="markdown-toc-obsidianでの検索">Obsidianでの検索</a></li>
+      <li><a href="#webクリップ-1" id="markdown-toc-webクリップ-1">Webクリップ</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>Evernoteでやっていたことに対応して、</p>
+
+<ul>
+  <li>ブラウザで開いているページや選択部分をぱっとObsidianのノートとして保存する。
+    <ul>
+      <li>URLだけではなく内容そのものを保存(Obsidian内で内容が検索できるように)。</li>
+    </ul>
+  </li>
+  <li>グローバルショートカットキーで、他のアプリを使ってるときでも即座にObsidianを表示して検索したり出来るようにする。</li>
+</ul>
+
+<p>ざっとこんな感じ。</p>
+
+<h2 id="obsidian側の設定">Obsidian側の設定</h2>
+
+<h3 id="ホットキー">ホットキー</h3>
+
+<p>設定の<strong>ホットキー</strong>の項目を確認、必要であれば変更設定。</p>
+
+<p>今回欲しいのは以下。</p>
+
+<ul>
+  <li><strong>検索: すべてのファイルを検索</strong>: <i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">F</i></li>
+</ul>
+
+<p>これでObsidianを操作してる際にはこのキーで検索を呼び出せます。</p>
+
+<h3 id="コミュニティープラグイン">コミュニティープラグイン</h3>
+
+<p>Obsidianで以下のコミュニティープラグインをインストールします。</p>
+
+<ul>
+  <li><a href="https://github.com/Vinzent03/obsidian-advanced-uri">Advanced URI</a>: 外部(ブラウザ)からObsidianを操作するため
+    <ul>
+      <li>こちらは特に設定変更なしでOK。</li>
+    </ul>
+  </li>
+  <li><a href="https://github.com/dragonwocky/obsidian-tray">Tray</a>: トレイアイコンとして収納するため
+    <ul>
+      <li>こちらは必要であれば<code>Launch on startup</code>, <code>Hide on launch</code>, <code>Run in background</code>、などをオンにしておく。</li>
+      <li><code>Toggle window focus hotkey</code>: <code>CmdOrCtrl+Shift+E</code>のショートカットキーを設定。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="ブラウザの設定">ブラウザの設定</h2>
+
+<p><a href="https://github.com/deathau/markdownload">Markdownload</a>という拡張機能を使います。
+ChromeにもFirefoxにもあります。</p>
+
+<ul>
+  <li><a href="https://chromewebstore.google.com/detail/markdownload-markdown-web/pcmpcfapbekmbjjkdalcgopdkipoggdi">Markdownload - Markdown Web Clipper (Chrome)</a></li>
+  <li><a href="https://addons.mozilla.org/en-US/firefox/addon/markdownload/">MarkDownload - Markdown Web Clipper (Firefox)</a></li>
+</ul>
+
+<p>インストールしたらオプションで、</p>
+
+<ul>
+  <li><code>Ensble Obsidian Integration</code>を有効化
+    <ul>
+      <li><code>Obsidian Vault Name</code>, <code>Obsidian Folder Name</code>も適宣設定。</li>
+    </ul>
+  </li>
+  <li><code>Download Mode</code>は<code>Downloads API</code>。</li>
+  <li><code>Download images alongside markdown files</code>は必要であれば有効に。
+    <ul>
+      <li>無効だと画像はサイトの画像に直リンク状態になる。</li>
+      <li>ただ、手元でやる限りこれは有効にしても画像を保存してはくれなかった。(なにか勘違いしている？）</li>
+    </ul>
+  </li>
+  <li>Markdown形式などは適時好きなように。</li>
+</ul>
+
+<p>Markdownloadを入れると
+ページ上で右クリックして開く
+コンテクストメニューに<code>Markdownload</code>の項目が現れ、
+<code>Enable Obsidian Integration</code>を有効にするとそのサブメニューに
+<code>Send Tab to Obsidian</code>、<code>Send Text selection to Obsidian</code> (テキスト選択時のみ)の項目が出て、
+これらをクリックすることでObsidianにWebページをMarkdown形式にして送れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231207_markdownload.png" alt="20231207_markdownload.png" class="pic" /></p>
+
+<p>メニューバーにあるMarkdownアイコンからの保存ではObsidianに送ることは出来ないので注意<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>また、Obsidianが立ち上がっていないとObsidianに送れないので予め立ち上がった状態にしておく必要があります。</p>
+
+<p>テキスト選択時には選択したものだけを送るかタブ全体を送るかのオプションがありますが、
+手元で試す限り、テキスト選択中は<code>Send Tab to Obsidian</code>をクリックしても選択部分だけが送られました。
+(Issueには無いように見えるけどバグ？)</p>
+
+<p>加えて、キーボードショートカットキーの設定で、</p>
+
+<ul>
+  <li><code>Copy current selection as Markdown to Obsidian</code></li>
+  <li><code>Copy current tab as Markdown to Obsidian</code></li>
+</ul>
+
+<p>を設定します。が、上にも書いたように操作上これらに違いはないようで(?)
+どちらを設定してもテキスト選択時には選択部分だけ、そうでないときはタブが送られます。</p>
+
+<p>なので、とりあえず、</p>
+
+<ul>
+  <li><code>Copy current tab as Markdown to Obsidian</code>: <i class="key">Alt</i> + <i class="key">Shift</i> + <i class="key">C</i></li>
+</ul>
+
+<p>な設定にしておきました。(左手だけで出来るような組み合わせ。)</p>
+
+<p>これも好きなように設定。</p>
+
+<p>Chromeだと拡張機能のショートカットキーが画面幅が短い状態だとオプションページから見えない状態になってたりしますが、
+必要であれば以下を開くと拡張機能のショートカットキー設定ページに直接飛べます。</p>
+
+<ul>
+  <li>chrome://extensions/shortcuts</li>
+</ul>
+
+<p>拡張機能に関しては検索するとObsidian関連のWeb clipみたいなのもいくつかありますが、
+他は大概がURLを記録するためだけのものだったりします。</p>
+
+<p>いまのところ</p>
+
+<ul>
+  <li>WebページをMarkdownへの整形をいい感じしてくれる
+    <ul>
+      <li>選択部分だけを記録することも出来る</li>
+    </ul>
+  </li>
+  <li>Obsidianに直接記録できる</li>
+  <li>書式、付加情報などカスタマイズが豊富</li>
+</ul>
+
+<p>といったところが全て揃っているのはMarkdownloadだけだと思います。</p>
+
+<h2 id="使い勝手">使い勝手</h2>
+
+<h3 id="webクリップ">Webクリップ</h3>
+
+<p>ブラウザでWebクリップしたい際は</p>
+
+<ul>
+  <li>Obsidianがトレイにしまわれている場合は<i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">E</i>で立ち上げ
+    <ul>
+      <li><i class="key">Alt</i> + <i class="key">Tab</i>でブラウザに戻る</li>
+    </ul>
+  </li>
+  <li><i class="key">Alt</i> + <i class="key">Shift</i> + <i class="key">C</i>でクリップしてObsidianにフォーカスされるので確認して<i class="key">Alt</i> + <i class="key">Tab</i>でブラウザに戻る</li>
+</ul>
+
+<p>でクリップが出来ます。</p>
+
+<p>ホントはクリップする際は裏でやってほしいし、いちいちObsidianを表に出すのがつらいのですが、
+トレイアイコンの状態だと実際にはプロセスが走ってないようで保存出来ません。</p>
+
+<p>チョットこの辺なんとか出来ないかとは思うところ。</p>
+
+<h3 id="検索">検索</h3>
+
+<ul>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">E</i>、<i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">F</i></li>
+</ul>
+
+<p>でObsidianの検索画面に。
+Obsidianが予め立ち上がっていると最初のショートカットキーで逆にトレイにしまわれてしまうので注意。</p>
+
+<p>Evernoteのときはグローバルショートカットでトレイにしまわれた状態から</p>
+
+<ul>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">E</i></li>
+</ul>
+
+<p>一発でEvernoteで検索、の状態に出来ました。</p>
+
+<h2 id="autohotkeyで改善">AutoHotkeyで改善</h2>
+
+<p>上の状態に対して、各プラグインをいじることでも改善出来る部分はあると思いますが、
+チョット中身をパット理解できる状態ではないので、手元で簡単にできる方法としてAutoHotkeyを使って
+動作を改善させてみました。</p>
+
+<h3 id="obsidianでの検索">Obsidianでの検索</h3>
+
+<p>ObsidianのTrayで<code>Toggle window focus hotkey</code>を</p>
+
+<ul>
+  <li><del><code>CmdOrCtrl+Shift+Z</code></del></li>
+</ul>
+
+<p><del>に変更して、</del></p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/01/07 </strong></p>
+
+  <p><i class="key">Ctrl</i>-<i class="key">Shift</i>-<i class="key">Z</i>は多くのソフトでRe-do (<i class="key">Ctrl</i>-<i class="key">Z</i>によるUndoを逆に取り消す)に割り当てられてるのでこれは潰せない。</p>
+
+  <p>ということで、使ってない</p>
+
+  <ul>
+    <li><del><code>CmdOrCtrl+Shift+Q</code></del></li>
+  </ul>
+
+  <p>に変更。</p>
+
+  <p>このキーが一番下の<strong>Quick note hotkey</strong>にもなっているので、こちらは消しておく
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup></p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#IfWinActive</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">Obsidian</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="o">^+</span><span class="n">e</span><span class="o">::</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">^+</span><span class="n">f</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line"><span class="nb">#IfWinNotActive</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">Obsidian</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="o">^+</span><span class="n">e</span><span class="o">::</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">^+</span><span class="n">q</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">^+</span><span class="n">f</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line"><span class="n">#If</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると、</p>
+
+<ul>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">E</i></li>
+</ul>
+
+<p>だけでObsidianがトレイアイコンにある状態でも開いて検索状態にしてくれますし、
+逆に開いているときはそのまま検索状態になります。</p>
+
+<p>しまいたいときは</p>
+
+<ul>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">Q</i></li>
+</ul>
+
+<p>で。</p>
+
+<h3 id="webクリップ-1">Webクリップ</h3>
+
+<p>以下の様な設定を導入。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">#IfWinActive</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">chrome</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="o">!+</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">^+</span><span class="n">q</span>
+</span><span class="line">  <span class="nb">WinActivate</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">chrome</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">!+</span><span class="n">c</span>
+</span><span class="line">  <span class="nb">Sleep</span><span class="p">,</span> <span class="mi">1000</span>
+</span><span class="line">  <span class="nb">Send</span><span class="p">,</span> <span class="o">^+</span><span class="n">q</span>
+</span><span class="line">  <span class="nb">WinActivate</span><span class="p">,</span> <span class="n">ahk_exe</span> <span class="n">chrome</span><span class="o">.</span><span class="n">exe</span>
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line"><span class="n">#If</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Chorme上で<i class="key">Alt</i> + <i class="key">Shift</i> + <i class="key">C</i>を押すと</p>
+
+<ul>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">Q</i>でObsidianにフォーカスが当たる状態に。(トレイにしまわれている場合も呼び出される。)</li>
+  <li>一旦Chromeに戻り、元々の<i class="key">Alt</i> + <i class="key">Shift</i> + <i class="key">C</i>の司令をChromeに与えてMarkdownloadでWebクリップ。</li>
+  <li>ここでObsidianにフォーカスが当たった状態で新たなノートが作られる。
+    <ul>
+      <li>ちょっと時間がかかるので1秒(1000ms)待つ(<code>Sleep, 1000</code>)。</li>
+    </ul>
+  </li>
+  <li><i class="key">Ctrl</i> + <i class="key">Shift</i> + <i class="key">Q</i>でObsidianをトレイに仕舞う。</li>
+  <li>Chromeにフォーカスを戻す。</li>
+</ul>
+
+<p>となり、一回ですべての動作を済ませ、かつObsidianがトレイアイコンにある状態でもWebクリップを可能にし、
+最後にはChromeにフォーカスが戻る、という状態が実現できます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[EvernoteからObsidianへの移行]]></title>
+    <link href="https://rcmdnk.com/blog/2023/12/05/computer-evernote-obsidian/"/>
+    <updated>2023-12-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/12/05/computer-evernote-obsidian</id>
+    <content type="html"><![CDATA[<p>Evernoteが無料ユーザーのノート数制限を50までにする、という宣言をして、
+流石に使い続けるのは無理な感じになってきたのでObsidianへの移行を試みます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#evernote" id="markdown-toc-evernote">Evernote</a></li>
+  <li><a href="#移行先候補" id="markdown-toc-移行先候補">移行先候補</a>    <ul>
+      <li><a href="#onenote" id="markdown-toc-onenote">OneNote</a></li>
+      <li><a href="#notion" id="markdown-toc-notion">Notion</a></li>
+      <li><a href="#upnote" id="markdown-toc-upnote">UpNote</a></li>
+      <li><a href="#obsidian" id="markdown-toc-obsidian">Obsidian</a></li>
+    </ul>
+  </li>
+  <li><a href="#evernoteからobsidianへの移行" id="markdown-toc-evernoteからobsidianへの移行">EvernoteからObsidianへの移行</a>    <ul>
+      <li><a href="#evernoteからのexport-公式な方法だとつらい" id="markdown-toc-evernoteからのexport-公式な方法だとつらい">Evernoteからのexport (公式な方法だとつらい)</a></li>
+      <li><a href="#evernoteからのexport-evernote-backup" id="markdown-toc-evernoteからのexport-evernote-backup">Evernoteからのexport (evernote-backup)</a></li>
+    </ul>
+  </li>
+  <li><a href="#obsidianへのimport" id="markdown-toc-obsidianへのimport">Obsidianへのimport</a></li>
+  <li><a href="#その他" id="markdown-toc-その他">その他</a>    <ul>
+      <li><a href="#タグ" id="markdown-toc-タグ">タグ</a></li>
+      <li><a href="#他のサービス経由でのインポート" id="markdown-toc-他のサービス経由でのインポート">他のサービス経由でのインポート</a></li>
+      <li><a href="#復号" id="markdown-toc-復号">復号</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="evernote">Evernote</h2>
+
+<p><a href="https://rcmdnk.com/blog/tags/evernote/">/blog/tags/evernote/</a></p>
+
+<p>2012年の頃から使っていたようで、現在6000以上のノートがあります。</p>
+
+<p>途中、色々と移行を試みましたが、結果Evernoteが一番良いかということで使い続けています。</p>
+
+<p>2016年に無料ユーザーの端末制限が2台までになったところで一旦プレミアムを契約してしばらく使っていました。</p>
+
+<p>当時プレミアムは年間5200円でしたが、キャンペーンとかで半額とかで使えることが多かったので年間2~3千円のイメージでした。</p>
+
+<p>プレミアムだと月間アップロード制限が大幅に上がったりPDFファイルをOCRしてくれたり結構便利でしたが、
+自分の使い方的にメインPCとスマホの2台だけで使えればいいか、ということもあり
+数年後にプレミアムは解約して無料で使ってました。</p>
+
+<p>今回も年間数千円な感覚なら契約しても良いかな、と思ってましたが、
+ここ数年で倍、倍と値上げして行って、Personalという中間プランで年間93000円、
+Professionalで12400円という現状。</p>
+
+<p>現在有料プランを契約していて解約しようとすると半額を提示されたりすることもあるみたいですが、
+それでも5000円位。</p>
+
+<p>そんな中、12月4日からノート数の制限を50, ノートブックを1つだけ、という制限を課すとのお知らせが。</p>
+
+<blockquote>
+  <p><a href="https://evernote.com/blog/evernote-free-note-limits">Update: Evernote Free accounts will have fifty notes and one notebook</a></p>
+</blockquote>
+
+<p>現在4日になってヨーロッパ時間とかでも反映されても良さそうな時間帯ですが、
+まだ新しいノートを作れていますがいずれ制限がかかるのかと。</p>
+
+<p>長く使ってきたのでそれくらいの課金は良いかと思う一方、
+すでにどうしてもこれ、というわけではないし、
+そろそろ他のものに移っても良いのでは、ということで真面目に考えてみることに。</p>
+
+<h2 id="移行先候補">移行先候補</h2>
+
+<h3 id="onenote">OneNote</h3>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/07/07/computer-evernote/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/WinApp/thumbnail/Evernote_120_90.png" width="120" height="90" alt="Evernote_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/07/07/computer-evernote/">Evernoteプレミアムにアップグレードしてみた(ちょっとOneNoteとかとの比較も)</a></div></li></ul>
+
+<p>昔考えたのはMicrosoftの<a href="https://www.onenote.com/signin?wdorigin=ondc">OneNote</a>。数年前までEvernoteの移行先としては第一候補にあがるようなものでした。</p>
+
+<p>なんですが、最近(2022年9月)OneNote公式のインポートツールが廃止されました。</p>
+
+<blockquote>
+  <p><a href="https://www.onenote.com/making-the-move-from-evernote">Evernote から OneNote に移動</a></p>
+</blockquote>
+
+<p>これ以外に、非公式ツールですが、
+<a href="https://tools.stefankueng.com/Evernote2Onenote.html">Evernote2Onenote</a>
+というものがありますが、チョット試してみたところ上手くうごきませんでした。</p>
+
+<p>OneNoteをストア版ではなく、
+<a href="https://www.onenote.com/download?omkt=ja-JP">OneNote のダウンロード</a>
+から直接入れるデスクトップ版を入れないといけない、といった記述も見られましたが
+こっちを入れてみても駄目(というかインストーラーを実行すると同じものが入るだけ。)。</p>
+
+<p>ということで移行が難しいという状態。</p>
+
+<h3 id="notion">Notion</h3>
+
+<p>ノートアプリといえば最近流行りの<a href="https://www.notion.so/ja-jp">Notion</a>。</p>
+
+<p>実際Notionは別のところで使ってたりしますが、Evernoteのかわりとしては使えていません。</p>
+
+<p>一番の理由はインポートが上手く行かないから。
+Notionには
+公式の<a href="https://www.notion.so/ja-jp/help/import-data-into-notion">インポート手段</a>がありますが、
+数が多すぎるのか試してみても途中で止まってしまい、
+途中から再開したり一部だけをコピーすることも出来ないので使うのであれば新規に別のものとして使う必要があります。</p>
+
+<p>一方、個人メモとして使うには、</p>
+
+<ul>
+  <li>ブロック単位の記述がシンプルなメモとしては面倒</li>
+  <li>すべてオンラインベースでローカルでオフラインで使えない</li>
+</ul>
+
+<p>という点で微妙だな、とも。</p>
+
+<h3 id="upnote">UpNote</h3>
+
+<p>2019年ころにリリースされた<a href="https://getupnote.com/">UpNote</a>は比較的新しいツールで、Evernoteより出来ることは少ないですがシンプルで使いやすいと評判のツール。</p>
+
+<p>無料だと作れるノートは50個までと新しいEvernoteと同じですが、
+月額100円での利用他、3500円での買い切りの利用も可能ということなので、数年使うのであれば
+買って使っていきたいレベルです。</p>
+
+<p>Evernoteの制限が発表されてから移行先として最も上がっているのがUpNoteかもしれません。</p>
+
+<p>Evernoteからの移行ツールもあり、使い勝手的にもEvernoteに近いものもあり、
+Evernote感覚で使いたい、ということであれば一番の候補先になるかと思います。</p>
+
+<p>ただ、Evernoteの値上げで見ても分かるように、
+3500円での買い切りの状態でサービスがどれだけ維持できるのか、という不安は結構あります。</p>
+
+<h3 id="obsidian">Obsidian</h3>
+
+<p>Markdownファイルをベースにした<a href="https://obsidian.md/">Obsidian</a>は2020年かにリリースされた新しいソフトウェア。</p>
+
+<p>メモツールとしては個人利用は無料。</p>
+
+<p>Evernoteなどと違い、データはローカルにあるMarkdownベースのファイルを中心に管理するので
+すべてオフラインだけでも利用できます。</p>
+
+<p>他の端末と共有したい場合、Obsidian Syncという有料サービス($8)を使う事もできますが、
+Google Driveで共有したりGitを使ってGitHubなど経由で共有することも可能です。</p>
+
+<p>また、プラグインを作り公開することが可能で、
+ブラウザやエディタで拡張機能を色々使ったり作ったりするのが好きな人は
+楽しい部分があります。</p>
+
+<p>データも基本的にはMarkdownファイルでの管理なので、Obsidianを使わなくても
+直接見たり編集したりすることが可能なのも強い点です。</p>
+
+<p>最悪いきなりツールも含めて使えなくなってもメモとしては簡単に見れる状態にはなっていますし、
+他の物への移行も比較的容易に出来るはず。</p>
+
+<p>Obsidianを知った時にすぐに使わなかった理由としては
+スマホで使う際、PCとの同期がちょっと面倒であるということ。</p>
+
+<p>Obsidian Syncを使わない場合、現状でやるとするとGitを使った同期になります。</p>
+
+<p>ただ見るだけであればGoogle Driveでファイルを管理しておいてスマホから
+Driveの中のファイルを直接見る、という手もあるにはありますが。</p>
+
+<p>というわけで、使ってみたいとは思いつつ、チョット面倒だな、という感じでしたが、
+今回のきっかけで使ってみようと思って移行先としてObsidianを選びました。</p>
+
+<h2 id="evernoteからobsidianへの移行">EvernoteからObsidianへの移行</h2>
+
+<h3 id="evernoteからのexport-公式な方法だとつらい">Evernoteからのexport (公式な方法だとつらい)</h3>
+
+<p>Evernoteからノートを移行する際に、まずはEvernoteからノートをエクスポートします。</p>
+
+<p>で、このエクスポート、以前はいくつでもすべてのノートを一括で出来たと思いますが、
+最近は出来なくなっていて、ノートブック毎か、もしくはノートを複数選択して、ですが、
+選択が100個まで、となっています。</p>
+
+<blockquote>
+  <p><a href="https://help.evernote.com/hc/ja/articles/209005557-%E3%83%8E%E3%83%BC%E3%83%88%E3%81%A8%E3%83%8E%E3%83%BC%E3%83%88%E3%83%96%E3%83%83%E3%82%AF%E3%82%92-ENEX-%E3%81%BE%E3%81%9F%E3%81%AF-HTML-%E5%BD%A2%E5%BC%8F%E3%81%A7%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88">ノートとノートブックを ENEX または HTML 形式でエクスポート – Evernote ヘルプ＆参考情報</a></p>
+</blockquote>
+
+<p>複数ファイルの選択に関してはそもそも一覧画面で100個以上を選択しようとするとwarningが出て100個までしか選べません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_evernote100.png" alt="20231205_evernote100.png" class="pic" /></p>
+
+<p>これに関しては設定ファイルを直接いじることで100個以上選べるようにもなるとの話もありますが、</p>
+
+<blockquote>
+  <p><a href="https://discussion.evernote.com/forums/topic/129798-cannot-select-more-than-50-notes/#comment-654675">Cannot select more than 50 notes - Evernote for Mac Requests (Versions 10.0 and above) - Evernote User Forum</a></p>
+</blockquote>
+
+<p>Windowsで<strong>C:\Users\User\AppData\Roaming\Evernote\config.json</strong>
+にあたるファイルに対して</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="w">  </span><span class="nt">&quot;qa&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&quot;multiSelectionLimit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span>
+</span><span class="line"><span class="w">  </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を加えてみましたが、Evernoteを再起動したりしても100個の制限は変わりませんでした。</p>
+
+<p>ノートブック単位であれば100個以上でもまとめてエクスポート可能ですが、
+ノートブックがたくさんある場合けっこう大変なことになります。</p>
+
+<p>また、200個とかのノートブックで試してみましたが、Webクリップとかで大量の画像とかを含んでいるものが多いと
+かなり時間がかかり、全く終わりませんでした。</p>
+
+<p>ということで、素直なexportだと上手く行かない。。。</p>
+
+<h3 id="evernoteからのexport-evernote-backup">Evernoteからのexport (evernote-backup)</h3>
+
+<p>ということで、ちょっと探してみたところ、
+<a href="https://github.com/vzhd1701/evernote-backup">evernote-backup</a>というものが便利そう。</p>
+
+<div class="github-widget" data-repo="vzhd1701/evernote-backup"></div>
+
+<blockquote>
+  <p><a href="https://www.reddit.com/r/Evernote/comments/159dvm0/export_all_notes_with_current_evernote/">Export <em>all</em> notes with current Evernote? : r/Evernote</a></p>
+</blockquote>
+
+<p>知りませんでしたがEvernoteが公式のSDKを様々な言語で出していて
+<a href="https://github.com/evernote/evernote-sdk-python3">Python用</a>のものを使っているツールです。</p>
+
+<p>このSDKを使ってアクセスする際、端末制限にひっかかるかと思いましたが
+どうやら制限外にあるようで2端末接続を保ったまま認証してノートをダウンロードしたりすることが出来ました。</p>
+
+<p>これを使ってバックアップを取ってみます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>evernote-backup
+</span><span class="line">$<span class="w"> </span>evernote-backup<span class="w"> </span>init-db
+</span><span class="line">$<span class="w"> </span>evernote-backup<span class="w"> </span>sync
+</span><span class="line">$<span class="w"> </span>evernote-backup<span class="w"> </span><span class="nb">export</span><span class="w"> </span>output_dir/
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これだけでEvernoteの<strong>.enex</strong>ファイルがノートブック毎に<strong>output_dir</strong>の中に保存されます。</p>
+
+<p>以下は実際にやったログ。</p>
+
+<p><code>init-db</code>で認証をして、その際に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Logging in to Evernote...
+</span><span class="line">Username or Email: XXX@gmail.com
+</span><span class="line">Password:
+</span><span class="line">Enter one-time code: 123456
+</span><span class="line">Authorizing auth token, evernote backend...
+</span><span class="line">Successfully authenticated as &lt;username&gt;!
+</span><span class="line">Current login will expire at 2024-12-04 21:01:05.
+</span><span class="line">Initializing database en_backup.db...
+</span><span class="line">Reading database en_backup.db...
+</span><span class="line">Successfully initialized database for &lt;username&gt;!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と言った感じにアカウントのユーザー名も出てきてきちんと自分のアカウントで認証できたかがわかります。</p>
+
+<p>これを実行すると<strong>en_backup.db</strong>というデータベースファイルが現在のディレクトリに出来ます。</p>
+
+<p><code>sync</code>を実行すると実際にノートの同期が行われます。
+6000位のノートがありましたが、大体1時間くらいかかりました。</p>
+
+<p>Evernote上でノートの数は6075と表示されてましたが、何故か7171のノートをダウンロードしていてます。</p>
+
+<p>Expunged notebooks/notesがなんなのかは不明(ローカルで消したものはローカルのゴミ箱にあるはずだしWeb版では操作をしていない)。
+初のsyncなのでDB内にノートは無いはずなので、謎。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ evernote-backup sync
+</span><span class="line">Reading database en_backup.db...
+</span><span class="line">Authorizing auth token, evernote backend...
+</span><span class="line">Successfully authenticated as &lt;username&gt;!
+</span><span class="line">Current login will expire at 2024-12-04 21:01:05.
+</span><span class="line">Syncing user notebooks...
+</span><span class="line">  [####################################]  110286/110286
+</span><span class="line">7171 note(s) to download...
+</span><span class="line">Downloading 7171 note(s)...
+</span><span class="line">  [####################################]  7171/7171
+</span><span class="line">Updated or added notebooks: 101
+</span><span class="line">Updated or added notes: 7171
+</span><span class="line">Expunged notebooks: 59
+</span><span class="line">Expunged linked notebooks: 0
+</span><span class="line">Expunged notes: 299
+</span><span class="line">Synchronization completed!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>まあ謎ですがとりあえず出来たっぽい。sync実行後、<strong>en_backup.db</strong>は4GBちょっとになりました。</p>
+
+<p>これでデータはローカルに取れたのでこれを<strong>.enex</strong>形式でのファイルにexportします。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ evernote-backup export output_dir/
+</span><span class="line">Reading database en_backup.db...
+</span><span class="line">Exporting notebooks...
+</span><span class="line">  [####################################]  101/101
+</span><span class="line">All notes have been exported!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こちらも1時間位かかりました(ちゃんと見てなかったのでもうちょっっと短かったかもしれない)。</p>
+
+<p>これで出力すると、ノートブックごとのファイルに出力され、スタックを使って構造化している場合には
+その構造のフォルダが出来てその下にノートブックのファイルが出来ます。</p>
+
+<p>これで出したファイルの合計は6.5GBくらいでした。</p>
+
+<h2 id="obsidianへのimport">Obsidianへのimport</h2>
+
+<p>exportしたファイルをObsidianにimportします。</p>
+
+<p>importにはユーザーが作ったコミュニティプラグインを利用します。</p>
+
+<p>Obsidianの設定画面から<strong>コミュニティプラグイン</strong>へ行き、
+まず、<strong>コミュニティプラグインを有効化</strong>します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidiancommunityplugin.png" alt="20231205_obsidiancommunityplugin.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidiancommunityplugin2.png" alt="20231205_obsidiancommunityplugin2.png" class="pic" /></p>
+
+<p><strong>閲覧</strong>へ飛んで<code>importer</code>で検索すると<a href="https://github.com/obsidianmd/obsidian-importer">Importer</a>というプラグインがあるのでそれをインストールして有効にします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidianimporter.png" alt="20231205_obsidianimporter.png" class="pic" /></p>
+
+<p>インストールした後の画面で<strong>有効化</strong>をするのを忘れずに。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidianimporter2.png" alt="20231205_obsidianimporter2.png" class="pic" /></p>
+
+<p>コミュニティプラグインですがこのプラグインは
+<a href="https://github.com/obsidianmd">Obsidian.md</a>の下で管理されていて公式的なもの?</p>
+
+<p>有効化するとObsidianの左バーにこんなボタンが出てくるのでこれをクリックすると色々なファイルをImport出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidianimporter3.png" alt="20231205_obsidianimporter3.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_obsidianimporter4.png" alt="20231205_obsidianimporter4.png" class="pic" /></p>
+
+<p>File formatで<strong>Evernote (.enex)</strong>を選択してexportしたファイルを選んでimportします。</p>
+
+<p>フォルダごと選択してすべてをImportすることも可能。</p>
+
+<p>先程作った<strong>output_dir</strong>を指定すればすべてのノートブックをimportすることも出来ます。</p>
+
+<p>ただ、その際にはフォルダ構造は無視されてスタック構造は作られずにすべてのノートブックが
+指定した<strong>Output folder</strong>の下に同列にフォルダとして作られその中にノートが作られます。</p>
+
+<p>なので、スタック構造を維持したい場合は、<strong>output_dir</strong>以下のフォルダごとに指定して、
+<strong>Output folder</strong>の名前をスタックの名前にしてImportすればEvernoteと同じような構造にすることが出来ます。</p>
+
+<p>また、一気に大量にimportすると上手く行かなかったりした際に面倒なのでスタックがそこまで多くなければスタックごとのがおすすめです。</p>
+
+<p>一旦すべてをImportしてからObsidian上で構造を作ることも可能ですが、
+実際やってみたところ、100個程度のノートを持つフォルダを別のフォルダの下に移動させようとすると
+リンクのチェックなどが行われることもあり、数分かかりました。</p>
+
+<p>また、その後別の移動をしようとしても何故か上手くいかないことも。</p>
+
+<p>さらに、いろいろやっているとノートブック内のノートが他のノートブックないのものと混合したりごちゃごちゃになってました。
+おそらく上の移動ができない状態とかが何かが壊れたか、処理が終わってないか変な状態になっていたか。</p>
+
+<p>なので全部importしてから構造を作り直すのはあまり良くないです。</p>
+
+<p>また、エラーではないですが、Importした直後、一部のノートが見えない状態になっていて、
+実際にファイルを作ったフォルダを見ると該当のマークダウンがあり、
+再起動すると表示される、ということが時々起こりました。(同じものは再度やってもおなじようになる。)</p>
+
+<p>ノートの名前の中の日本語だとかスペースだとかの問題とかっぽいですが、該当ファイルをいくつか見てもはっきり何が悪いかはよくわかってません。
+一度再起動すると後は問題なく使えるのでまあ良いか、と。</p>
+
+<p>最後に、Importした際の問題として、いくつかのノートがfailedになって入れることが出来ませんでした。
+これも再現性があり、何度やっても決まったノートがfailedになります。</p>
+
+<p>見てみるとほとんどがWebクリップ、HTMLコンテンツ(おそらく2019年以前のweb cliperによるもの?)のものでした。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20231205_evernotewebclip.png" alt="20231205_evernotewebclip.png" class="pic" /></p>
+
+<p>ですが、Webクリップのノートでも成功しているものもあり、何が原因かは不明。</p>
+
+<p>とりあえず6075あるはずのノートで5836のノートが移行出来ました
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>失敗したのはほとんどがWebクリップだと思うのでとりあえずは無視して良いかと思ってます。</p>
+
+<p>インポートにかかる時間は10位のスタックがあってそれぞれ1000弱のノートですがそれぞれ数分という感じでした。</p>
+
+<p>すべてインポートした後、該当のObsidianのディレクトリを見てみると3.5GBほどになっていました。</p>
+
+<h2 id="その他">その他</h2>
+
+<h3 id="タグ">タグ</h3>
+
+<p>Obsidianにはタグ機能があり、Evernoteでタグを使っているとそのまま使えますが、
+タグにスペースとか記号があるとタグとして正しく認識されないので必要であればexportする前に変更しておくと良いとのこと。</p>
+
+<blockquote>
+  <p><a href="https://www.aruse.net/entry/2023/10/22/202954">EvernoteからObsidianに移行しました - あるSEのつぶやき・改</a></p>
+</blockquote>
+
+<p>自分の使い方的にはほとんどタグを使ってなかったのであまり気にしませんでしたが、
+一応つけてるタグはすべてアルファベットのスペース無しだったので問題なし。</p>
+
+<h3 id="他のサービス経由でのインポート">他のサービス経由でのインポート</h3>
+
+<p>インポートに失敗したノートに関して、OneNoteとかに一旦移行してとこからObsidianにインポートすれば？
+とかも考えましたが上にも書いた通りOneNoteへの移行ツールは現状まともに使えるものがなく、
+Notionとかへの移行は上手くいかないのでまあいいか、ということで無理にやらないでそのままにしてあります。</p>
+
+<h3 id="復号">復号</h3>
+
+<p>Evernoteにはテキストの暗号化機能があり、それを使っているノートがいくつかあります。</p>
+
+<p>そういったノートはexportするとその部分はもちろん暗号化されたままなわけで、Obsidianへインポートしても暗号化されたテキストが表示されます。</p>
+
+<p>これに関してはEvernoteの暗号化方式は公開されているので、パスフレーズさえあれば暗号化されたテキストを復号することが可能です。</p>
+
+<blockquote>
+  <p><a href="https://help.evernote.com/hc/ja/articles/208314128-Evernote-%E3%81%AF%E3%81%A9%E3%81%AE%E3%82%88%E3%81%86%E3%81%AA%E5%BD%A2%E5%BC%8F%E3%81%AE%E6%9A%97%E5%8F%B7%E5%8C%96%E3%82%92%E4%BD%BF%E7%94%A8%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%81%8B-">Evernote はどのような形式の暗号化を使用していますか？ – Evernote ヘルプ＆参考情報</a></p>
+</blockquote>
+
+<p>Pythonで
+<a href="https://pypi.org/project/pycryptodome/">pycryptodome</a>
+とかを使ってちょっとやってみましたが出来ることが出来たのでチョットこれとか使って
+プラグイン的なものを作るかなにかしてみたいと思っているところ。</p>
+
+<p>必要なところは必要な時にEvernoteから直接コピーしてしまうのもありかとは思ってますが。
+(ファイルに直接残すのが良いか悪いか問題があるので考えものですが。)</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>とりあえずノートの移行は出来ました。</p>
+
+<p>あとは今までのEvernoteの使い勝手と同じ様にできるようにしたり、
+Obsidianでのいい感じの使い方を探っていきます。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
