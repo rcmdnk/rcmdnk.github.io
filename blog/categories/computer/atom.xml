@@ -1,0 +1,1893 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2025-02-25T00:14:13+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ObsidianをWindows/macOS/iOSでGit (GitHub)、Remotely Save (Dropbox)を使って同期、管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/02/24/computer-obsidian/"/>
+    <updated>2025-02-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/02/24/computer-obsidian</id>
+    <content type="html"><![CDATA[<p>Obsidianの同期について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#同期したいos" id="markdown-toc-同期したいos">同期したいOS</a></li>
+  <li><a href="#各種動機方法" id="markdown-toc-各種動機方法">各種動機方法</a>    <ul>
+      <li><a href="#obsidian-sync" id="markdown-toc-obsidian-sync">Obsidian Sync</a></li>
+      <li><a href="#クラウドストレージ" id="markdown-toc-クラウドストレージ">クラウドストレージ</a></li>
+      <li><a href="#syncthing" id="markdown-toc-syncthing">Syncthing</a></li>
+      <li><a href="#livesync" id="markdown-toc-livesync">LiveSync</a></li>
+      <li><a href="#git" id="markdown-toc-git">Git</a></li>
+      <li><a href="#remotely-save" id="markdown-toc-remotely-save">Remotely Save</a></li>
+    </ul>
+  </li>
+  <li><a href="#現行の管理状態" id="markdown-toc-現行の管理状態">現行の管理状態</a>    <ul>
+      <li><a href="#git-1" id="markdown-toc-git-1">Git</a>        <ul>
+          <li><a href="#obsidian外での準備" id="markdown-toc-obsidian外での準備">Obsidian外での準備</a></li>
+          <li><a href="#大きいファイルの整理" id="markdown-toc-大きいファイルの整理">大きいファイルの整理</a></li>
+          <li><a href="#長いファイル名の整理" id="markdown-toc-長いファイル名の整理">長いファイル名の整理</a></li>
+          <li><a href="#powershellで日本語が使えない" id="markdown-toc-powershellで日本語が使えない">PowerShellで日本語が使えない</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#--us-ascii" id="markdown-toc---us-ascii">-&gt; US-ASCII</a>    <ul>
+      <li><a href="#小分けにcommitpush" id="markdown-toc-小分けにcommitpush">小分けにcommit/push</a></li>
+      <li><a href="#デスクトップアプリでの設定" id="markdown-toc-デスクトップアプリでの設定">デスクトップアプリでの設定</a></li>
+      <li><a href="#モバイルでの設定iphoneアプリ" id="markdown-toc-モバイルでの設定iphoneアプリ">モバイルでの設定(iPhoneアプリ)</a></li>
+      <li><a href="#remotely-save-1" id="markdown-toc-remotely-save-1">Remotely Save</a>        <ul>
+          <li><a href="#dropboxとの連携" id="markdown-toc-dropboxとの連携">Dropboxとの連携</a></li>
+          <li><a href="#絵文字の入ったファイルを除去" id="markdown-toc-絵文字の入ったファイルを除去">絵文字の入ったファイルを除去</a></li>
+          <li><a href="#設定項目" id="markdown-toc-設定項目">設定項目</a></li>
+          <li><a href="#同期時間" id="markdown-toc-同期時間">同期時間</a></li>
+        </ul>
+      </li>
+      <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="同期したいos">同期したいOS</h2>
+
+<p>Obsidianを使う環境としては</p>
+
+<ul>
+  <li>Windows</li>
+  <li>macOS</li>
+  <li>iOS (iPhone)</li>
+  <li>(Android)</li>
+</ul>
+
+<p>で使ってます。Androidは今は使ってませんが一応出来るようにはしてあります。</p>
+
+<p>Evernoteなどはもともとクラウドストレージ的なサービスでもあるので
+各環境でアプリを使って同期、という感じですが、
+Obsidianはアプリ自体はMarkdownファイルを管理するためのものなので
+他の環境との同期は別途設定が必要です。</p>
+
+<h2 id="各種動機方法">各種動機方法</h2>
+
+<h3 id="obsidian-sync">Obsidian Sync</h3>
+
+<p>一番手っ取り早いのが公式が提供している
+<a href="https://obsidian.md/sync">Obsidian Sync</a>。</p>
+
+<p>ただ、1つのvault, 1GBまでで4ドル、10 vaults, 10GBまでのプランで8ドルと
+同期だけの機能と考えるとちょっと高め。</p>
+
+<p>Obsidianのアプリを含めたサービスとして、と思えば
+Evernoteとかも最安で800円位なのでまあ妥当といえば妥当。</p>
+
+<p>ただ、せっかくMarkdownというシンプルなファイルで管理している訳ですし、
+できるだけ外部サービスに依存しない形で管理したい、ということを考えると別の手段を考えてみたくなります。</p>
+
+<p>これは実際に使ってないのであれですが、機能としてはやはり手軽な上に競合も起こりにくく安定しているようです。</p>
+
+<h3 id="クラウドストレージ">クラウドストレージ</h3>
+
+<p>基本的には管理しているフォルダをそのまま同期すれば良いので
+そのままクラウドストレージの中に入れてしまうのも一つの手です。</p>
+
+<p>ただ、iOSなどではDropboxなどのアプリで同期しているフォルダを直接Obsidianのアプリから
+読み書きすることはできないのでモバイルを含む場合には少し面倒です。</p>
+
+<p>iOSではiCloudであればvaultをそのまま置けるのでiCloud経由が候補になります。
+ただ、iCloudはWindowsだと結構競合が起こるイメージがあります。</p>
+
+<p>また、Androidでは直接使えるクラウドストレージはないので
+OSのフォルダに別のアプリを使って更に同期する、みたいな必要があります。</p>
+
+<p>そんな感じで、一番シンプルな方法ではありますが、
+モバイルを含む場合にはちょっと面倒です。</p>
+
+<h3 id="syncthing">Syncthing</h3>
+
+<p><a href="https://syncthing.net/">Syncthing</a>
+はP2Pでファイルを同期するためのツールです。</p>
+
+<p>クラウドストレージとは違い直接2つのデバイス間で同期するため、
+外部依存度が下がります。またサービスとしての容量制限もありません。
+一方で同時に起動していないと同期はできません。</p>
+
+<p>これを使ってるという話も結構ありましたが、
+iOSでは公式アプリがなく
+<a href="https://apps.apple.com/us/app/m%C3%B6bius-sync/id1539203216?ign-itscg=30200&amp;ign-itsct=apps_box#?platform=iphone">Möbius Sync</a>
+というアプリで使えますが、20MBまでの制限があり、
+制限のない
+<a href="https://apps.apple.com/jp/app/m%C3%B6bius-sync-pro/id1671184333">Möbius Sync Pro</a>
+の方は800円します。</p>
+
+<p>買い切りなので一旦買ってしまえば、というところではありますが、公式アプリではない、というところもちょっとひっかかるところ。</p>
+
+<p>ただ、全体的にこれを使っての同期は結構安定しているみたいです。</p>
+
+<h3 id="livesync">LiveSync</h3>
+
+<p><a href="https://github.com/vrtmrz/obsidian-livesync/blob/main/README_ja.md">LiveSync</a>
+は公式のSyncのようなサーバーを自分で作って同期するためのツールです。</p>
+
+<p>プラグインの説明のページでは
+<a href="https://fly.io/">Fly.io</a>というサービス上にデータベースを立てて同期する方法が紹介されています。</p>
+
+<p>以前はこのサービスの無料の範囲で使えたようですが、
+現状は無料のでずっと使い続けるプランは無くなったっぽい？ので完全無料にするのなら
+自分でサーバーを立ててセットアップする必要があります。</p>
+
+<p>ちょっと手がかかりますが、自分でサーバーを立てられるなら良いかも。
+同期も公式のSyncに比べると少し劣るようですがそれなりに安定している模様。</p>
+
+<p>また、複数人での共有サーバーみたいな感じでファイルを共有するとかだと
+この方法はありかもしれません。</p>
+
+<h3 id="git">Git</h3>
+
+<p><a href="https://github.com/Vinzent03/obsidian-git">Obsidian Git</a>
+というプラグインがあり、これを使うとGitで管理することができます。</p>
+
+<p>細かい履歴などもきちんと取れて参照できるので、Gitに慣れているのであれば結構便利ではないかと思うもの。</p>
+
+<p>Gitで管理できるということで、GitHubなどを通して同期することが出来ます。</p>
+
+<p>現状主にこのGitの方法で管理しています。</p>
+
+<p>Windows/macOS上では定期的な同期の設定をしておけばそれなりに安定して同期してくれます。
+たまに競合が起こりますが、Gitの競合ですがObsidianのプラグインのボタンからでも簡単に解決できます。</p>
+
+<p>最初に少し同期するタイミングなどに関して調整した方が良い部分はありますが
+基本的には安定して使えると思います。</p>
+
+<p>ただ、
+<a href="https://github.com/Vinzent03/obsidian-git?tab=readme-ov-file#mobile">Mobile</a>
+に関しては現状かなり制限があり、特に多くのファイルがある場合には同期が成功しません。</p>
+
+<p>READMEだと3000ファイルほどで試したとありますが、
+自分の場合は100ファイルほどにしても同期が成功しませんでした。</p>
+
+<p>なので実際どうしていたかというと、Mobileは重要なメモだけと割り切って、
+別にVaultを作って数十のファイルだけに絞って同期していました。</p>
+
+<p><a href="https://apps.apple.com/jp/app/working-copy-git-client/id896694807">Working Copy</a>
+というファプリを使って
+Git管理を別途行う、という方法もあるみたいですがPushしたりするのは有料で
+年4000円程。
+手間と値段を考えるとうーん、という感じ。</p>
+
+<h3 id="remotely-save">Remotely Save</h3>
+
+<p><a href="https://github.com/remotely-save/remotely-save">Remotely Save</a>
+はクラウドストレージなどを使って同期するためのプラグイン。</p>
+
+<p>ローカルにあるクラウドストレージのアプリのフォルダに保存するのではなく、
+APIを使ってクラウドストレージと直接やりとりしたりしてくれます。</p>
+
+<p>Google Driveなどを使うにはProバージョンが必要ですが、
+<a href="https://remotelysave.com/pricing">2025/3/1まではβ版ということで無料で試せるようです</a>。</p>
+
+<p>これを使うとモバイル版でも直接同期が出来ます。
+たくさんファイルがあると結構時間はかかりますが、
+一度同期してしまえばモバイルでもかなり安定しています。</p>
+
+<p>ただクラウドストレージ経由の同期だと競合が起こった場合などに管理するのが面倒なのと
+特に複数で同時に操作していると問題が起きやすいということもあるので、
+現在はGitとRemotely Saveの両建て使っています。</p>
+
+<h2 id="現行の管理状態">現行の管理状態</h2>
+
+<ul>
+  <li>Windows/macOS: Obsidian Git + GitHub</li>
+  <li>Windows/iOS: Remotely Save + Dropbox</li>
+</ul>
+
+<p>以下はGitとRemotely Saveそれぞれ始める時にやったこととかについてのメモ。</p>
+
+<h3 id="git-1">Git</h3>
+
+<h4 id="obsidian外での準備">Obsidian外での準備</h4>
+
+<ul>
+  <li>GitHubに空のPrivateレポジトリを作成する。</li>
+  <li>モバイルから扱うため、GitHubで作ったレポジトリ用の
+    <ul>
+      <li><strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Developer Settings</strong><i class="fa fa-arrow-right"></i><strong>Personal access tokens</strong><i class="fa fa-arrow-right"></i><strong>Fine-grained tokens</strong><i class="fa fa-arrow-right"></i><code>Generate new token</code>
+        <ul>
+          <li>Token name, Expiration:
+            <ul>
+              <li>適当に。ExpirationはFine-generated tokensでは最大1年。</li>
+            </ul>
+          </li>
+          <li>Repository access
+            <ul>
+              <li>該当のレポジトリ</li>
+            </ul>
+          </li>
+          <li>Permissions:
+            <ul>
+              <li><code>Contents</code>: <code>Read and write</code></li>
+              <li><code>Metadata</code>: <code>Read-only</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>使う端末でGitをインストール
+    <ul>
+      <li>Windowsなら<a href="https://gitforwindows.org/">Git for Windows</a>を入れておく。
+        <ul>
+          <li><code>C:\Users\&lt;User&gt;\ </code>の下に<strong>.ssh</strong>ディレクトリ、<strong>.gitconfig</strong>を作ってGitHub用のssh設定、ユーザー名、Emailの設定をしておく</li>
+        </ul>
+      </li>
+      <li>ちょっと注意が必要なのが、Gitを入れる前にObsidianが立ち上がっているとプラグインを入れてもGitを認識してくれないのでObsidianのアプリを再起動する必要がある</li>
+    </ul>
+  </li>
+  <li>レポジトリをClone
+    <ul>
+      <li>
+        <p>適当な.gitignoreを作ってcommitしておく(<strong>.trash</strong>は端末毎のものとしてGitの管理外する、macOSでも扱う場合に<strong>.DS_Store</strong>を無視したい。</p>
+
+        <pre><code>      echo -e ".DS_Store\n.trash" &gt; .gitignore
+      git add .gitignore
+      git commit -m "add .gitignore"
+      git push -u origin main
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>新たに始めるのであればObsidianで保管庫としてcloneしたディレクトリを指定して<strong>保管庫としてフォルダを開く</strong>を選択
+    <ul>
+      <li>そのまま新たな保管庫として使う場合、コミットが無い状態だとプラグインを有効にしたところで<code>fatal: your current branch 'main' does not have any commits yet</code>といったメッセージが出て使えないので上みたいに適当にcommitを作っておく必要がある。</li>
+    </ul>
+  </li>
+  <li>すでに作成してある保管庫をGitで管理したい場合Cloneしたディレクトリから<strong>.git</strong>ディレクトリを保管庫のディレクトリにコピー
+    <ul>
+      <li><strong>.gitignore</strong>とかもあれば一緒にコピーしておく</li>
+      <li>Gitで管理しようとしたりWindowsで管理する際にいくつか問題が起こるので整理をする必要がある(以下参照)</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="大きいファイルの整理">大きいファイルの整理</h4>
+
+<p>Evernoteのフリープランだと現在はノートのサイズとして25MBまでですが、
+有料だと200MBまで使え、大きなファイルを添付しておくことが出来ました。</p>
+
+<p>一時期有料で使ってたのでその際に50MBを超えるようなファイルも添付していて、
+これがGitだとそのまま扱えません。</p>
+
+<p>もしそのまま管理をしようと思ったら
+<a href="https://git-lfs.com/">Git Large File Storage</a>を使って管理することを考えます。</p>
+
+<p>自分で使っていたものとしては無理にノートの中に残しておかなくても良いかな、ということで、
+それらのファイル自体を別途バックアップしておいてノートからは削除するようにしました。</p>
+
+<p>WSLなら</p>
+
+<pre><code>find ./ -type f -size +10M
+</code></pre>
+
+<p>PowerShellでやるなら</p>
+
+<pre><code>Get-ChildItem -Recurse | Where-Object { $_.Length -gt 10MB }
+</code></pre>
+
+<p>とかで大きなファイルを見つけます。基本的に添付ファイルとして<strong>_resources</strong>の中に入っているもので、
+直接削除するとノートからのリンクが切れますが、それでも問題ない場合は直接これで見つけて削除してしまうのが早いかと。</p>
+
+<h4 id="長いファイル名の整理">長いファイル名の整理</h4>
+
+<p>WindowsのWSLで上記<code>find</code>コマンドを打つと、<code>Input/output error</code>のようなエラーで見れないことがあります(半角260文字以上)。
+これはファイルのパス名が長すぎる場合に出ますが、Git for Windowsでもこのような長いパス名は<code>Error: warning: could not open directory... Filename too long</code>といったエラーになります。</p>
+
+<p>Gitに関しては</p>
+
+<pre><code>git config --system core.longpaths true
+</code></pre>
+
+<p>として長いパスも許可するようにすればadd/commit出来るようにはなります。</p>
+
+<p>ただ、別のWindows環境でも毎回同じようにする必要があるので出来れば短くしておきたいところ。</p>
+
+<p>Obsidianではノートの名前が元々のEvernoteのタイトル名で、長いものは大体がWebclipしたものでした。</p>
+
+<p>一時期TwitterをClipしていたものもあって、それだとtweetの中身そのものがタイトルになるので簡単に半角ベースで260文字を超えるものが出てきます。
+<code>_resource</code>以下だと加えてそのディレクトリ構造や中のファイル名も入ってくるのでかなり長く。</p>
+
+<p>これらに関しては、いらないものは削除すれば良いですが、
+ノートを処理するとしたらObsidain上でノートの名前を変えるだけだとだめで、
+<code>_resource</code>を展開してその中にあるノート名のディレクトリ名を変更する必要があります。
+こちらを変更するとノートについているリンクは自動的にアップデートされます。</p>
+
+<p>デスクトップ版でファイルエクスプローラーを表示してその範囲を画面いっぱいまで伸ばして中にある長い名前を探していくのが手っ取り早いです。</p>
+
+<p>もし手では出来ないほど大量にある場合は直接削除するしかないかもしれませんが、
+今回はファイルエクスプローラー使ってある程度のものは名前変更で、いらなそうなものはさっさと削除、という方向でやりました。</p>
+
+<p>ちなみにWSLからだと長いファイル名は直接Linuxコマンドでは見えませんが、<code>cmd.exe /c ...</code>としてWindowsコマンドを使うことで見ることが出来ます。(もしかしたらWSLにも見ることが出来るオプションがあるかも？)</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/12697259/how-do-i-find-files-with-a-path-length-greater-than-260-characters-in-windows">How do I find files with a path length greater than 260 characters in Windows? - Stack Overflow</a></p>
+</blockquote>
+
+<h4 id="powershellで日本語が使えない">PowerShellで日本語が使えない</h4>
+
+<p>https://qiita.com/zawazawa5809/items/d6f84cf92a56f47229ed</p>
+
+<p>$OutputEncoding.encodingName</p>
+<h1 id="--us-ascii">-&gt; US-ASCII</h1>
+<p>はこのままでOK</p>
+
+<p>ワールドワイド…の
+設定後再起動が必要。</p>
+
+<p>コマンドプロンプトなら最初から使える(システムが日本語であれば？)</p>
+
+<h4 id="小分けにcommitpush">小分けにcommit/push</h4>
+
+<p>たくさんノートがある場合(2GB以上<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>)、Gitで一気に扱ってしまうとGitHubへ送れないので手動で小分けに<code>add</code>/<code>commit</code>/<code>push</code>をしておく必要があります。</p>
+
+<p>Evernoteから取ってきたノートは全部で10GB位ありましたが、ノートブックごとに別れた各ディレクトリは大きくても数100MB程度だったので以下のようなPowerShellスクリプトで各ディレクトリごとにpush。
+このコマンドでは<code>.obsidian</code>やトップディレクトリにそのまま置いてあるファイルもcommitされます。</p>
+
+<p>Gitを実行する場合、WSLの中から行ってしまうとファイルのパーミッションが全て777になってしまい、
+その後でObsidianの中のGitから見るとパーミッションが別のものに見えてすべて変更、になってしまうので
+このコマンドはPowerShellなどWindows側でやった方が良いです。</p>
+
+<pre><code>Get-ChildItem  | Where-Object { $_.Name -ne '.git' } | ForEach-Object { Write-Output $_.Name; git add $_.Name; git commit -m "add $($_.Name)"; git push }
+</code></pre>
+
+<p>Macとかでやっているならシェルスクリプトで</p>
+
+<pre><code>for d in *;do if [ "$d" != .git ];then echo $d;git add $d;git commit -m "add $d";git push;fi;done
+</code></pre>
+
+<h4 id="デスクトップアプリでの設定">デスクトップアプリでの設定</h4>
+
+<ul>
+  <li>コミュニティプラグインから<strong>Obsidian Git</strong>をインストールして有効化。
+    <ul>
+      <li>上記で<strong>.git</strong>ディレクトリが正しく設置されていると設定項目の最初が<strong>Automatic</strong>という項目になっているはず
+        <ul>
+          <li>もし<strong>Miscellaneous</strong>が最初に来ていたらGitが使えないか<strong>.git</strong>ディレクトリが正しく扱えてない(エラーのポップアップが出ているかもしれないので確認)</li>
+        </ul>
+      </li>
+      <li>最初有効にする際、初期設定？か何かで少し重くなる(数秒から数十秒止まることも)こともあるのでそうなったらちょっとまってみる</li>
+      <li>有効化出来たら設定を開いて適当に好きな設定にしておく</li>
+    </ul>
+  </li>
+  <li>設定した項目
+    <ul>
+      <li><strong>Automatic</strong>
+        <ul>
+          <li><strong>Vault backup interval (minutes)</strong>: <code>10</code></li>
+          <li><strong>Auto Backup after stop editing any file</strong>: <code>On</code></li>
+          <li><strong>Auto pull interval (minutes)</strong>: <code>0</code> (<strong>Pull changes before push</strong> in <strong>Backup</strong> is enabled)</li>
+        </ul>
+      </li>
+      <li><strong>Commit message</strong>
+        <ul>
+          <li><strong>List filenames affected by commit in the commit body</strong>: <code>On</code></li>
+        </ul>
+      </li>
+      <li><strong>Backup</strong>
+        <ul>
+          <li><strong>Pull updates on startup</strong>: <code>On</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p><a href="https://github.com/denolehov/obsidian-git/wiki/Installation">Installation · denolehov/obsidian-git Wiki</a></p>
+</blockquote>
+
+<p>うまく行かない場合、<i class="key">Ctrl</i>-<i class="key">Shift</i>-<i class="key">I</i>でデバッグ用のConsoleを開いておくとプラグインでエラーが起きたときに何が起こってるかわかりやすくなるので、
+開いた状態でプラグインのon/offを試してみたり、<code>Commit all changes</code>のコマンドを試してみたりすると良いかと。</p>
+
+<h4 id="モバイルでの設定iphoneアプリ">モバイルでの設定(iPhoneアプリ)</h4>
+
+<ul>
+  <li><strong>Create new vault</strong>
+    <ul>
+      <li>適当な名前をつけて<strong>Store in iCloud</strong>はオフのまま<code>Create</code></li>
+    </ul>
+  </li>
+  <li>設定から<strong>Community plugins</strong><i class="fa fa-arrow-right"></i><code>Turn on community plugins</code></li>
+  <li><code>Browse</code><i class="fa fa-arrow-right"></i><code>Git</code>で検索<i class="fa fa-arrow-right"></i><strong>Git</strong> by Vinzent, (Denis Olehov)を<code>Install</code>, <code>Enable</code>
+    <ul>
+      <li>最近表示が<strong>Obsidian Git</strong>から<strong>Git</strong>に変わった<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup></li>
+    </ul>
+  </li>
+  <li><code>Option</code>へ行き
+    <ul>
+      <li>Authentication/Commit Author
+        <ul>
+          <li>Username: ユーザー名を入れる</li>
+          <li>Password/Personal access token: 上で取得したTokenを入れる</li>
+        </ul>
+      </li>
+      <li>これで一旦バツを押して戻る</li>
+    </ul>
+  </li>
+  <li><strong>New tab</strong>のページで下に引っ張るとコマンドパレットが出てくるのでそこで<code>Git: Clone and existing remote repo</code>コマンドを選択
+    <ul>
+      <li>Enter remote URL: 上のレポジトリを入れる</li>
+      <li>Enter directory for clone. It needs to be emp…: <code>Vault Root</code>を選択</li>
+      <li>Does your remote repo contain a .obsidian directory: <code>YES</code></li>
+      <li>To avoid conflicts, the local…: <code>DELETE ALL YOUR LOCAL CONFIG AND PLUGINS</code></li>
+      <li>Specify depth of clone. Leave empty for full: からのまま</li>
+    </ul>
+  </li>
+</ul>
+
+<p>ただモバイルでは最初全ファイルの入ったvaultを取得しようとすると途中で何もなく止まってしまっていたので、
+結局別途vaultを作り数十程度のファイルだけの別vaultを同期していました。</p>
+
+<p>その後、Remotely Saveを使ってDropboxと同期するようになったのでモバイル側ではGitプラグインは削除しました。</p>
+
+<h3 id="remotely-save-1">Remotely Save</h3>
+
+<h4 id="dropboxとの連携">Dropboxとの連携</h4>
+
+<p>Dropboxは端末制限が入って以降全く使ってなかったのですが、
+メインで使っているGoogle CloudはRemotely SaveのPro版が必要になるのと、
+Dropboxは以前いろいろなキャンペーンで容量が増えて25GB程度あるので
+Obsidian専用として使うのも良いのではということで。</p>
+
+<p>ちょっと気になったのが連携数。</p>
+
+<p>現状端末としては3つまでしか連携できないようになっています。</p>
+
+<p>APIでの接続が1つとして数えられると制限がきついな、と思ったのですが
+どうもAPI接続は接続数とはカウントされないようです。</p>
+
+<ul>
+  <li><a href="https://www.dropboxforum.com/discussions/101000014/whats-the-current-api-call-limit-for-free-plan/813982">What’s the current api call limit for free plan?  The Dropbox Community</a></li>
+  <li><a href="https://www.dropboxforum.com/discussions/101000014/three-devices-limit-and-api-access/334652">Three devices limit and API access  The Dropbox Community</a></li>
+</ul>
+
+<p>まあ現状ではWindowsとiOSだけでの同期で、他には全く使ってないのでもう1つ増えても3つということで
+端末カウントされてもいけるんですが、いずれにしろ問題にはならないので良かったな、と。</p>
+
+<p>Gitと違ってRemotely Saveの設定画面でDropboxを選んで連携するだけで簡単に同期が出来ます。</p>
+
+<p>初期設定のままだと、<strong>アプリ/remotely-save</strong>というディレクトリがDropboxに出来てその中に同期されます。</p>
+
+<h4 id="絵文字の入ったファイルを除去">絵文字の入ったファイルを除去</h4>
+
+<p>Dropboxでは絵文字や特殊文字を使ったファイル名が使えません。</p>
+
+<p>Webクリップとかしていると絵文字や特殊文字が入ったファイル名が出来ることがあり、
+それらが最初の同期の時にエラーになっていました。</p>
+
+<p>数十とかある場合はなんらかスクリプトで処置しようかと思いましたが、
+エラーするたびに不要なら削除、必要ならその部分だけちょっと名前を変えて、という感じで
+数ファイルで済んだので手動で処理しました。</p>
+
+<h4 id="設定項目">設定項目</h4>
+
+<p>設定項目としては</p>
+
+<ul>
+  <li>Schedule For Auto Run: every 30 minutes</li>
+  <li>Sync On Save: Enable</li>
+</ul>
+
+<p>くらいが変更した点。</p>
+
+<p>初期設定のままだと</p>
+
+<ul>
+  <li>Sync _ Files Or Foolders: Disable</li>
+</ul>
+
+<p>となっていて、これだと画像ファイルが入っている<strong>_resources</strong>が同期されません。</p>
+
+<p>現状では同期先はモバイルだけという状態で、できるだけ軽くしたいということもあり、
+これはそのままDisableにしてあります。</p>
+
+<h4 id="同期時間">同期時間</h4>
+
+<p>最初に同期した時に3000ファイル位がある状態でしたが、
+正確には見てなかったですが、Windowsからアップロードする形で1時間くらいかかりました。</p>
+
+<p>モバイルの方はダウンロードしてくるような形ですが、
+多分3,4時間位かかりました。</p>
+
+<p>その間ちょっと別のアプリを開いたりもしてましたが、
+Obsidianを表に戻すと同期が進んでいって、なんだかんだそれくらい。</p>
+
+<p>なので最初はちょっと時間が必要です。
+ただ、アップロード時の絵文字によるエラー以外は特に大きなエラーもなく同期出来ました。</p>
+
+<p>一度同期が住めばモバイルで編集して同期してもすぐに同期されます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p><a href="https://obsidian.md/blog/free-for-work/">Obsidian is now free for work</a>
+でちょっと話題になっていたのでちょっと見直しがてら現状の同期環境を整理してみました。</p>
+
+<p>Obsidianを応援する意味では公式Syncを使うのもありだとは思いますが、
+出来ることとして現状はこんな感じで使ってます。</p>
+
+<p>Evernoteから移行時に残っていた暗号化された部分を復号するためのプラグインを作ったくらいで
+まだあまり複雑なことをしてませんが、
+またなんかプラグインとか作りたいところ。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/06/13/computer-obsidian/"><img class="small-thumbnail-img" src="https://github.com/rcmdnk/obsidian-evernote-decryptor/blob/master/images/button.gif?raw=true" width="120" height="90" alt="button" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/06/13/computer-obsidian/">ObsidianでEvernoteからimportしたノートの暗号化部分を復号する</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでなるべく外部依存を減らしてAIのAPIを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/27/computer-ai/"/>
+    <updated>2025-01-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/27/computer-ai</id>
+    <content type="html"><![CDATA[<p>コマンドラインからさっとAIのAPIを使うためのシェルスクリプトを
+なるべく外部依存を減らして作って通常のUnix環境なら即使えるようなものとして作ってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#スクリプト" id="markdown-toc-スクリプト">スクリプト</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#モデルを変えてみる" id="markdown-toc-モデルを変えてみる">モデルを変えてみる</a></li>
+  <li><a href="#ちょっと長めの質問返信を試す" id="markdown-toc-ちょっと長めの質問返信を試す">ちょっと長めの質問、返信を試す</a></li>
+  <li><a href="#gitのcommitメッセージを生成する" id="markdown-toc-gitのcommitメッセージを生成する">Gitのcommitメッセージを生成する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="スクリプト">スクリプト</h2>
+
+<p><code>jq</code>とか使えばJSONのパースとか簡単で複雑なことも確実にできるのですが、
+そういうの使わずにやってみます。</p>
+
+<p>ない可能性があるものとしては<code>curl</code>と<code>sed</code>くらいかな、と思いますが、
+<code>sed</code>に関してはGNU版でもmacOSなどに入ってるBSD版でも動くようにしているので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、
+ネットワークさえ繋がっていれば殆どの場合で使えるはずです。</p>
+
+<p>こんな感じ。</p>
+
+<script src="https://gist.github.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3.js"></script>
+
+<p>重要なのは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">function</span><span class="w"> </span>encode<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">str</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="se">\\</span><span class="p">/</span><span class="se">\\\\</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="se">\&quot;</span><span class="p">/</span><span class="se">\\\&quot;</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\t&#39;</span><span class="p">/</span><span class="se">\\</span><span class="nv">t</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\n&#39;</span><span class="p">/</span><span class="se">\\</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\r&#39;</span><span class="p">/</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$str</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">function</span><span class="w"> </span>extract<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">key</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">shift</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">json</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="p">|</span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;s/.*&quot;&#39;</span><span class="nv">$key</span><span class="s1">&#39;&quot;:[[:space:]]*&quot;\([^&quot;\\]*\(\\.[^&quot;\\]*\)*\)&quot;.*/\1/p&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2025/02/15 </strong></p>
+
+  <p>Windowsで作業する際に改行コードがCRLFが混じってdiffに入るとエラーになることがあるので
+それを削除するために<code>$'\r'</code>を削除する部分を追加。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>と</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">content</span><span class="o">=</span><span class="k">$(</span>encode<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$content</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">input_json</span><span class="o">=</span><span class="s1">&#39;{&quot;model&quot;: &quot;&#39;</span><span class="nv">$MODEL</span><span class="s1">&#39;&quot;, &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;&#39;</span><span class="s2">&quot;</span><span class="nv">$content</span><span class="s2">&quot;</span><span class="s1">&#39;&quot;}]}&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">json</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ENDPOINT</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$key</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$input_json</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>log
+</span><span class="line">
+</span><span class="line"><span class="nv">output</span><span class="o">=</span><span class="k">$(</span>extract<span class="w"> </span>content<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Failed to get a response from the API (ENDPOINT=</span><span class="nv">$ENDPOINT</span><span class="s2">, MODEL=</span><span class="nv">$MODEL</span><span class="s2">).&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span>extract<span class="w"> </span>message<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の部分。</p>
+
+<p><code>encode</code>で入力をエスケープして改行も<code>\n</code>に変換してJSONとして扱えるようにします。</p>
+
+<p>出力は<code>extract</code>で<code>$key</code>に対応する値を取り出します。</p>
+
+<p><code>model</code>, <code>message[0].role</code>, <code>message[0].content</code>をJSONにして<code>curl</code>を使ってAPIに送ります。</p>
+
+<p>ChatGPTなどのAPIは<code>.../chat/completions</code>というエンドポイントを叩くと、
+返してくるJSON形式のデータの中に<code>choices[0].message.content</code>に出力があるので<code>content</code>を取り出します。
+最後に<code>printf</code>でエスケープされてる文字なども直して出力します。</p>
+
+<p>ここでは一回問いかけをするだけのデータを送ってるので返ってくるchoicesは1つなのでシンプルに最初に見つかったものだけを取り出していますが、
+複数になるとこのようにやるのはけっこう大変にはなってしまいます。</p>
+
+<p>失敗した際には<code>message</code>にエラーメッセージが入っているのでそれを取り出して表示します。</p>
+
+<p>あとの部分はモデルやエンドポイント、またAPIキーなどを設定して実行するだけです。</p>
+
+<p><code>https://api.openai.com/v1/chat/completions</code>と同じ使い方のできるAPIであれば別のAPIでも使えるようになっています。
+DeepSeekやローカルLLMのollamaなども基本的にOpenAIと互換性をもたせるような形を作ってくれているので
+このスクリプトで使うことができます。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>スクリプトは
+<a href="https://gist.github.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3">Simple Chat API call script</a>
+のページからRAWのURLを取得して、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ curl -s -O https://gist.githubusercontent.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3/raw/40c2092404150649bfb55be8dca8c9a37d1b2d18/chat.sh</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>`</p>
+
+<p>とするかZIPでダウンロードして展開して使ってください。</p>
+
+<p>コピペでやろうとするとエスケープした部分とかが変わってしまう可能性があるので注意。</p>
+
+<p>使い方としては引数として質問を与えるか、パイプでつなげて標準入力として与えることができます。
+両方与えた場合は標準入力のあとに引数で与えた入力を改行した後につなげます。</p>
+
+<p>オプションは</p>
+
+<ul>
+  <li><code>-m [MODEL]</code>: モデル指定。デフォルトは<code>gpt-4o</code>。</li>
+  <li><code>-e [ENDPOINT]</code>: エンドポイント指定。デフォルトは<code>https://api.openai.com/v1/chat/completions</code>。</li>
+  <li><code>-k [KEY_NAME]</code>: APIキーを入れた環境変数名の指定。デフォルトは<code>OPENAI_API_KEY</code>。</li>
+  <li><code>-v</code>: 詳細モード。入力に使ったJSONデータと出力のJSONデータそのものも表示する。</li>
+  <li><code>-h</code>: ヘルプ表示。</li>
+</ul>
+
+<p><code>MODEL</code>, <code>ENDPOINT</code>, <code>KEY_NAME</code>は<strong>~/.config/chat/config</strong>でも変更できます。</p>
+
+<p>例えば</p>
+
+<figure class="code"><figcaption><span>~/.config/chat/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">MODEL</span><span class="o">=</span>deepseek-chat
+</span><span class="line"><span class="nv">ENDPOINT</span><span class="o">=</span>https://api.deepseek.ai/v1/chat/completions
+</span><span class="line"><span class="nv">KEY_NAME</span><span class="o">=</span>DEEPSEEK_API_KEY
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかすればDeepSeekのAPIを使うようになります。</p>
+
+<p>OpenAIとDeepSeekに関しては、ENDPOINTを指定しなくても
+<code>gpt*</code>, <code>chatgpt*</code>, <code>o1-*</code>の場合はOpenAIのAPIを、
+<code>deepseek*</code>の場合はDeepSeekのAPIを使うようにしています。</p>
+
+<p>これら以外でENDPOINTを指定しないとローカル、
+<code>http://localhost:11434/v1/chat/completions</code>を使うようにしています。
+これはollamaのデフォルトのエンドポイントです。</p>
+
+<p>必要に応じて</p>
+<ul>
+  <li><code>-M</code>: max_completion_tokens</li>
+  <li><code>-t</code>: temperature</li>
+</ul>
+
+<p>などのオプションを追加してもいいかもしれませんが、
+この辺おオプションはdeepseekだとまだ<code>max_tokens</code>しかなかったり
+OpenAIだと<code>temperature</code>しかなかったりするので
+デフォルトでは入れずに指定されたらjsonに追加するようにする、的な感じが良いかと思います。</p>
+
+<h2 id="モデルを変えてみる">モデルを変えてみる</h2>
+
+<p>というわけで、実際に使ってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./chat.sh who are you
+</span><span class="line">I am OpenAI's language model, designed to assist with a wide range of queries by providing information, answering questions, and engaging in conversation. How can I help you today?
+</span><span class="line">$ ./ask.sh -m deepseek-chat who are you
+</span><span class="line">I am DeepSeek-V3, an artificial intelligence assistant created by DeepSeek. I'm at your service and would be delighted to assist you with any inquiries or tasks you may have.
+</span><span class="line">$ ./chat.sh -m llama3.2 who are you
+</span><span class="line">I'm an artificial intelligence model known as Llama. Llama stands for "Large Language Model Meta AI."</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じでモデルの変更もしながら簡単に使えます。
+まあ、各モデルが嘘をつくこともあるので、
+この返信で正しいという確実な保証はできませんが<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<h2 id="ちょっと長めの質問返信を試す">ちょっと長めの質問、返信を試す</h2>
+
+<p>長めの質問をする場合はファイルに書いておいて中身を標準入力で渡すのが楽です。</p>
+
+<figure class="code"><figcaption><span>question.txt </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>pythonでtodo<span class="w"> </span>listを作るプロジェクトを作ってください。
+</span><span class="line">
+</span><span class="line"><span class="m">1</span>.<span class="w"> </span>プロジェクトのディレクトリ構造を決める。
+</span><span class="line"><span class="m">2</span>.<span class="w"> </span>各ディレクトリ内に適当なファイルを作る。
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな質問をしてみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/70ca8154b6b487caef02d7f393bb361d">結果</a></p>
+
+<p>~15秒位。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh -m deepseek-chat</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/e2777160a9a5ce1187b51ca477d9e822">結果</a></p>
+
+<p>~45秒位。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh -m llama3.2</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/3b4b5d1a177a6b57048dc9a7229470d2">結果</a></p>
+
+<p>~20秒位(グラボはRTX 2070 Super)。</p>
+
+<p>結構古いグラボであれですが、一応ollama使ってllima3.2でやってみてもこんな感じでできました。
+deepseek-chat (deepseek-v3)は結構時間がかかりましたが一番複雑な構造になっています。</p>
+
+<p>まあ、こういった使い方するのであれば普通にウェブでやったほうがその後のやり取りも出来るので
+無理にシェルスクリプトでやる必要はありませんが。</p>
+
+<h2 id="gitのcommitメッセージを生成する">Gitのcommitメッセージを生成する</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1642350125?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1642350125&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41r1CJwhCVL._SS90_CR0,0,120,90_.jpg" alt="git commit murder" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt/">git-gpt-commit: ChatGPTにGitのcommitを書かせる</a></div></li></ul>
+
+<p>の記事でChatGPTを使ってGitのcommitメッセージを生成するスクリプトを作りましたが、
+この中では
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+というPythonスクリプトを使ってAPIを叩いていました。</p>
+
+<p>これが入ってないと動かないので、これを<code>curl</code>でやる上の方法に変更しました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/git-gpt-commit"></div>
+
+<p><a href="https://github.com/rcmdnk/git-gpt-commit/blob/main/bin/git-gpt-commit">git-gpt-commit/bin/git-gpt-commit</a>
+のスクリプトをダウンロードしてPATHの通ったところに置いて使ってください。</p>
+
+<p>もしくはHomebrewでインストールすることもできます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install rcmdnk/rcmdnkpac/git-gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、<code>git gpt-commit</code>というGitのサブコマンドが使えるようになります。</p>
+
+<p>長いので、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">[alias]
+</span><span class="line">  c = gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかのエイリアスを設定して使ってます。</p>
+
+<p>これで、<code>commit</code>の代わりに<code>c</code>を使えば<code>git dif --cached</code>の出力を使ってcommitメッセージを生成してくれて、
+作られたメッセージがデフォルトで記入された状態でcommitメッセージを編集するためにエディタが起動します。</p>
+
+<p>gpt-commitでMODEL等を変更したい場合は<strong>~/.config/git_gpt_commit/config</strong>に書くことで変更できます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[INNOCN 40インチウルトラワイドモニターWR40 PROを購入]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/26/computer-shopping/"/>
+    <updated>2025-01-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/26/computer-shopping</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CM8RYF2Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CM8RYF2Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71kqUVeTCCL._SS200_.jpg" alt="INNOCN 40インチワイドモニター WR40 PRO WQHD(3440x1440) HDR600@144hzゲーミングモニター HDMI Display Port USB-C 90W Freesync 高さ調整 スピーカー内蔵 VESA (40インチ HDR600)" /></a>
+</div>
+
+<p>もっと大きなモニターが欲しいなとずっと思ってたんですが、
+40インチのワイドモニターを買ってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまで使ってたもの" id="markdown-toc-これまで使ってたもの">これまで使ってたもの</a></li>
+  <li><a href="#innocn-40インチワイドモニターwr40-pro" id="markdown-toc-innocn-40インチワイドモニターwr40-pro">INNOCN 40インチワイドモニターWR40 PRO</a></li>
+  <li><a href="#他の候補" id="markdown-toc-他の候補">他の候補</a></li>
+  <li><a href="#実際に使ってみて" id="markdown-toc-実際に使ってみて">実際に使ってみて</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまで使ってたもの">これまで使ってたもの</h2>
+
+<p>これまで使っていたのが32インチのAOCのフルHDの通常のワイドモニターでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07KSNSFLB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07KSNSFLB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/718Rm465mpL._SS90_CR0,0,120,90_.jpg" alt="AOC ゲーミング モニター C32G1/11 (31.5インチ/144Hz/1ms/VA 曲面パネル/HDMI×2 DP×1)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/09/21/computer-windows/">AOC C32G1/11 144Hz 31.5インチのVA局面パネルディスプレイを購入</a></div></li></ul>
+
+<p>なのでこれより大きいものということですが、縦に関しては割と十分でこれ以上大きいと首も動かさないと行けないかな、という感じで、それよりも横に広くしてウィンドウを横に並べても窮屈にならないようにしたいという思いがありました。</p>
+
+<p>であれば単に同じ位のモニター買って並べて使う、というのもありかもしれませんが、
+一旦目の前の一枚モニターでもっと広い空間が欲しいと。</p>
+
+<p>そうすると、40インチのウルトラワイドだと高さが40cmくらいでちょうど32インチのワイドモニターと高さが同じで、そのくらいが良いかな、と。</p>
+
+<p>一時期、49インチとかのスーパーウルトラワイドがいいな、とも思ってたんですが、
+49インチでも高さは34cmくらいで通常のワイドモニターだと26インチ位の高さになります。
+スーパーウルトラワイドは32:9のアスペクト比で、通常のワイドモニターの16:9を横に2つ並べた感じになるので
+大きさとしては26インチを横に2つ並べたのと同程度になります。</p>
+
+<p>一枚で横にどーんと長いのは面白いものの、それだとやっぱり求めてるものとは違うか、ということで、40インチのウルトラワイドを中心に探すことに。</p>
+
+<h2 id="innocn-40インチワイドモニターwr40-pro">INNOCN 40インチワイドモニターWR40 PRO</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CM8RYF2Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CM8RYF2Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71kqUVeTCCL._SS200_.jpg" alt="INNOCN 40インチワイドモニター WR40 PRO WQHD(3440x1440) HDR600@144hzゲーミングモニター HDMI Display Port USB-C 90W Freesync 高さ調整 スピーカー内蔵 VESA (40インチ HDR600)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CM8RYF2Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CM8RYF2Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">INNOCN 40インチワイドモニター WR40 PRO WQHD(3440x1440) HDR600@144hzゲーミングモニター HDMI Display Port USB-C 90W Freesync 高さ調整 スピーカー内蔵 VESA (40インチ HDR600)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CM8RYF2Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CM8RYF2Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FINNOCN+40%E3%82%A4%E3%83%B3%E3%83%81%E3%83%AF%E3%82%A4%E3%83%89%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+WR40+PRO%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FINNOCN+40%E3%82%A4%E3%83%B3%E3%83%81%E3%83%AF%E3%82%A4%E3%83%89%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+WR40+PRO%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>買ったのはINNOCNのWR40 PROです。
+40インチのウルトラワイドモニターで、解像度はUWQHD(3440x1440)です。</p>
+
+<p>IPSパネルでHDR600、
+144Hzのリフレッシュレート対応で一応ゲーミングモニター的な位置づけ。</p>
+
+<p>ただウルトラワイドなのですが、曲面ではなくフラットなディスプレイです。</p>
+
+<p>また、一応スピーカーも内蔵されています。</p>
+
+<p>色々とスペックに関してはありますが、選んだ最大の理由はその安さ、です。</p>
+
+<p>Amazonで見てると2週間に一回くらいセールで割引適用後の価格が6万円を切っています。</p>
+
+<p>1年位前は4万円台でも買える感じだったので40インチのモニターだとするとかなり安い方です。</p>
+
+<h2 id="他の候補">他の候補</h2>
+
+<p>40インチ以上(正確には39インチ以上)のウルトラワイドモニター、となると結構数が少なくて、現状だとこれが一番安いと思います。</p>
+
+<p>あるものとして</p>
+
+<ul>
+  <li>PHILIPS 40B1U5600/11, IPS, 3440x1440, 120Hz, 平面, 85,000円</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CNQ3G138?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CNQ3G138&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81FwpmcBO+L._SS200_.jpg" alt="PHILIPS ウルトラワイドディスプレイ(39.5インチ(21:9), IPS, WQHD 3440×1440@120Hz, 4ms, HDMI2.0 x1, DP1.4x1, USBハブ(DP Alt mode, PD100W), USBポートx4, 昇降/縦横回転, KVM スイッチ, DisplayHDR 400, リモコン付き) 40B1U5600/11" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CNQ3G138?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CNQ3G138&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">PHILIPS ウルトラワイドディスプレイ(39.5インチ(21:9), IPS, WQHD 3440×1440@120Hz, 4ms, HDMI2.0 x1, DP1.4x1, USBハブ(DP Alt mode, PD100W), USBポートx4, 昇降/縦横回転, KVM スイッチ, DisplayHDR 400, リモコン付き) 40B1U5600/11</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CNQ3G138?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CNQ3G138&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FPHILIPS+%E3%82%A6%E3%83%AB%E3%83%88%E3%83%A9%E3%83%AF%E3%82%A4%E3%83%89%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4%2839.5%E3%82%A4%E3%83%B3%E3%83%81%29+40B1U5600%2F11%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FPHILIPS+%E3%82%A6%E3%83%AB%E3%83%88%E3%83%A9%E3%83%AF%E3%82%A4%E3%83%89%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4%2839.5%E3%82%A4%E3%83%B3%E3%83%81%29+40B1U5600%2F11%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>JAPANNEXT JN-IPS40UWQHDR144, 3440x1440, 144Hz, 平面, 85,000円</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0B7HV56VB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B7HV56VB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/513KRkTD8vL._SS200_.jpg" alt="JAPANNEXT 40インチ ゲーミングモニター 144Hz 1ms UWQHD 3440x1440解像度 IPS パネル ディスプレイ (HDMI/DisplayPort/Type-C/VESA対応/高さ調節/ブルーライトカット / 視野角178°) JN-IPS40UWQHDR144" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0B7HV56VB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B7HV56VB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">JAPANNEXT 40インチ ゲーミングモニター 144Hz 1ms UWQHD 3440x1440解像度 IPS パネル ディスプレイ (HDMI/DisplayPort/Type-C/VESA対応/高さ調節/ブルーライトカット / 視野角178°) JN-IPS40UWQHDR144</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0B7HV56VB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B7HV56VB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FJAPANNEXT+40%E3%82%A4%E3%83%B3%E3%83%81+JN-IPS40UWQHDR144%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FJAPANNEXT+40%E3%82%A4%E3%83%B3%E3%83%81+JN-IPS40UWQHDR144%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>LG UltraGear OLED 39GS95QE-B, 有機EL, 3440x1440, 240Hz, 800R, 175,000円</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CVMWYVBG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CVMWYVBG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71rv9a8HDRL._SS200_.jpg" alt="【VGP 2024 Summer ゲーミング大賞】LG ゲーミング モニター UltraGear OLED 39GS95QE-B 39インチ/有機EL/21:9 曲面 ウルトラワイド(3440×1440)/240Hz/0.03ms(GTG)/VESA ClearMR 13000/DisplayHDR TRUE BLACK 400/DCI-P3 98.5%/PIP､PBP(2PBP)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CVMWYVBG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CVMWYVBG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">【VGP 2024 Summer ゲーミング大賞】LG ゲーミング モニター UltraGear OLED 39GS95QE-B 39インチ/有機EL/21:9 曲面 ウルトラワイド(3440×1440)/240Hz/0.03ms(GTG)/VESA ClearMR 13000/DisplayHDR TRUE BLACK 400/DCI-P3 98.5%/PIP､PBP(2PBP)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CVMWYVBG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CVMWYVBG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%82%B2%E3%83%BC%E3%83%9F%E3%83%B3%E3%82%B0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+UltraGear+OLED+39GS95QE-B%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%82%B2%E3%83%BC%E3%83%9F%E3%83%B3%E3%82%B0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+UltraGear+OLED+39GS95QE-B%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>LG 40WP95C-W, IPS, 5120x2160, 60Hz, 2500R, 170,000円</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0B4QQT3YV?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B4QQT3YV&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71T1-eBN-tL._SS200_.jpg" alt="【VGP2024 金賞】LG モニター ディスプレイ 40WP95C-W 39.7インチ/5K2K 曲面型ウルトラワイド(5120×2160)/Nano IPS/DCI-P3 98%/HDR/Thunderbolt4, HDMI×2, DP/スピーカー/高さ調節、スイベル/3年安心・無輝点保証" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0B4QQT3YV?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B4QQT3YV&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">【VGP2024 金賞】LG モニター ディスプレイ 40WP95C-W 39.7インチ/5K2K 曲面型ウルトラワイド(5120×2160)/Nano IPS/DCI-P3 98%/HDR/Thunderbolt4, HDMI×2, DP/スピーカー/高さ調節、スイベル/3年安心・無輝点保証</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0B4QQT3YV?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B4QQT3YV&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4+40WP95C-W+39.7%E3%82%A4%E3%83%B3%E3%83%81%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4+40WP95C-W+39.7%E3%82%A4%E3%83%B3%E3%83%81%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>Dell U4025QW-A, IPS, 5120x2160, 120Hz, 2500R, 170,000円</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0D5LDRGZD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D5LDRGZD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71NcE2Gm+2L._SS200_.jpg" alt="【Amazon.co.jp限定】Dell U4025QW-A 39.7インチ 曲面Thunderboltハブ モニター(/WUHD/IPS Black,非光沢/2500R曲面/DP,HDMI,Thunderbolt 4,USB Type-C/内蔵スピーカー/有線Ethernet/BT.709 100%,Display P3 99%,DCI-P3 99%/DisplayHDR600/高さ調整,傾き)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0D5LDRGZD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D5LDRGZD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">【Amazon.co.jp限定】Dell U4025QW-A 39.7インチ 曲面Thunderboltハブ モニター(/WUHD/IPS Black,非光沢/2500R曲面/DP,HDMI,Thunderbolt 4,USB Type-C/内蔵スピーカー/有線Ethernet/BT.709 100%,Display P3 99%,DCI-P3 99%/DisplayHDR600/高さ調整,傾き)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0D5LDRGZD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D5LDRGZD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FDell+U4025QW-A%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FDell+U4025QW-A%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>LG UltraGear OLED 45GS96QB-B, 有機EL, 3440x1440, 240Hz, 800R, 220,000円 (44.5インチ)</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CZDX6TV1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZDX6TV1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71Iq1xNrsIL._SS200_.jpg" alt="【VGP 2025 金賞】LG ゲーミング モニター UltraGear OLED 45GS96QB-B 44.5インチ/21:9 曲面型ウルトラワイド(3440×1440)/有機EL/240Hz/0.03ms(GTG､VESA ClearMR 13000)/DisplayHDR True Black 400/VRR(可変リフレッシュレート)/PIP､PBP(2PBP)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CZDX6TV1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZDX6TV1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">【VGP 2025 金賞】LG ゲーミング モニター UltraGear OLED 45GS96QB-B 44.5インチ/21:9 曲面型ウルトラワイド(3440×1440)/有機EL/240Hz/0.03ms(GTG､VESA ClearMR 13000)/DisplayHDR True Black 400/VRR(可変リフレッシュレート)/PIP､PBP(2PBP)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CZDX6TV1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZDX6TV1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%82%B2%E3%83%BC%E3%83%9F%E3%83%B3%E3%82%B0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+UltraGear+OLED+45GS96QB-B%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FLG+%E3%82%B2%E3%83%BC%E3%83%9F%E3%83%B3%E3%82%B0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC+UltraGear+OLED+45GS96QB-B%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<ul>
+  <li>CORSAIR XENEON FLEX 45WQHD240, OLED, 3440x1440, 240Hz, 湾曲(変更可: フラット~800R), 280,000円 (45インチ)</li>
+</ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BTXXCKNN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BTXXCKNN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/91orWy-wRXL._SS200_.jpg" alt="CORSAIR XENEON FLEX 45WQHD240 45インチ OLED UWQHD(3440×1440) 240Hz ゲーミングモニター CM-9030001-JP MN1040" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0BTXXCKNN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BTXXCKNN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">CORSAIR XENEON FLEX 45WQHD240 45インチ OLED UWQHD(3440×1440) 240Hz ゲーミングモニター CM-9030001-JP MN1040</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0BTXXCKNN?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BTXXCKNN&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FCORSAIR+XENEON+FLEX+45WQHD240+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FCORSAIR+XENEON+FLEX+45WQHD240+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>PHILIPSとJAPANNEXTは85,000円程度で平面モニターということでINNOCNと同じようなものです。
+リフレッシュレートなども同じで。
+INNOCNも通常価格は8万円位ですが、安くなるときにこれらよりもかなり安くなるので、
+これらを買うくらいならINNOCNを買う、という感じです。</p>
+
+<p>LG UltraGear OLED 39GS95QE-B有機ELでリフレッシュレート240Hzのゲーミングモニターを出しています。
+さらに特徴的なのは800Rの湾曲で、実際に展示されてるものを見てみましたが、結構笑えるレベルで曲がってます。</p>
+
+<p>ただ、実際に机で使うとなると、モニターとの距離は50cm位から80cm位なことが多いと思うので、ちょっと離れ目で使うときにちょうど左右が等距離に来るくらいです。
+実際には目の位置が左右に離れてる分だけ全部等距離とはなりませんが、結構左右が迫ってくる感じの画面でした。
+パット見すごいですが、慣れれば良いのかも。。。とは。</p>
+
+<p>さらにさらに
+LG UltraGear OLED 45GS96QB-Bという44.5インチのものも出しています。</p>
+
+<p>一方、LG 40WP95C-Wはリフレッシュレートが72Hz程度と低めですが、解像度が5K2K(5120x2160)です。
+湾曲も抑えめで2500Rなので机で使うと割と平面に近い感じでちょっと曲がってるな、程度かも。</p>
+
+<p>Dell U4025QW-Aも同じく5K2K(5120x2160)で、リフレッシュレートが120Hzです。</p>
+
+<p>この辺はゲーミングモニターというよりは、デザインや作業用途で使うモニターという感じです。</p>
+
+<p>最後のCORSAIR XENEON FLEX 45WQHD240は45インチでリフレッシュレート240Hzです。
+LGの大きい方のものと同じような感じですが、パネルがOLEDで、
+湾曲度合いを変更出来るという全く他にはない特徴を持っています。
+フラットな状態から800Rまで曲げることが出来るということなので、
+LGの800Rは流石にやり過ぎ、と思う人でも座る位置に合わせてちょうど良い感じの湾曲を探すことができます。</p>
+
+<p>と、面白そうな特徴のものがいくつもあるわけですが、
+如何せん高い。。。</p>
+
+<p>LG UltraGear OLED 39GS95QE-Bで170,000円、
+45インチ系だと20万円を超えるということで流石に気軽に買えません。</p>
+
+<p>長く使うものだから思い切って買うのもありかな、とは思いつつ、
+まだそれほどいろいろなものが出てないタイプのモニターなので、
+今後もっといろいろでてやすくなるかもと思いつつ。</p>
+
+<p>やはりウルトラワイドで大きいサイズなので、湾曲にはなっていた方が良いなとは思ってたんですが、
+安物系は全部フラットなので湾曲だけのために10万円以上出すのもな、という感じで、
+他の240Hz対応とかは流石にやり過ぎで必要ないし、ということで手が出ませんでした。</p>
+
+<p>ただ、最後のCORSAIRのOLEDパネルでの湾曲が変えられるものはかなり面白いもので
+買うならこれ買ってみたいな、という迷いはありました。</p>
+
+<p>が、結局とりあえず結構悩んだのでさっさと買ってからまた考えよう、とも思いつつINNOCNを買いました。</p>
+
+<h2 id="実際に使ってみて">実際に使ってみて</h2>
+
+<p><img src="https://rcmdnk.com/images/post/20250126_monitors.jpg" alt="20250126_monitors.jpg" class="pic" /></p>
+
+<p>新しく買ったiggy LS112 モニターアームを使って設置してみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CZQ8R1SS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZQ8R1SS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51i7KhGXbwL._SS90_CR0,0,120,90_.jpg" alt="17～49型 耐荷重2～20kg iggy（イギー）快適ワークのモニターアーム LS112 ブラック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2025/01/25/computer-shopping/">iggy LS112 モニターアーム</a></div></li></ul>
+
+<p>前のモニターも取り敢えず右の方に寄せて置いてあります。
+前のモニターアームは右の方につけてあったのでそのまま移動できて楽でした。</p>
+
+<p>実際には作業で右のモニターを普通に使うには流石に右すぎる感があるので、
+なにかパット見たいものを置いておくとか、映像流してながら観用とかその程度。</p>
+
+<p>実際に座ってモニターまでの距離を測ってみると近いときで60cm位、ちょっと引いた感じで80cm位でした。</p>
+
+<p>机はサンワダイレクトの180cm x 60cmのシンプルワークデスクです。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0757HQY5Y?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0757HQY5Y&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51mCQ20OjUL._SS200_.jpg" alt="サンワダイレクト シンプルワークデスク 幅180cm×奥行60cm モニターアーム対応 組立簡単 パソコンデスク ライトブラウン 100-DESKF007LBR" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0757HQY5Y?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0757HQY5Y&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">サンワダイレクト シンプルワークデスク 幅180cm×奥行60cm モニターアーム対応 組立簡単 パソコンデスク ライトブラウン 100-DESKF007LBR</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0757HQY5Y?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0757HQY5Y&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%82%B5%E3%83%B3%E3%83%AF%E3%83%80%E3%82%A4%E3%83%AC%E3%82%AF%E3%83%88+%E3%82%B7%E3%83%B3%E3%83%97%E3%83%AB%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%87%E3%82%B9%E3%82%AF+%E5%B9%85180cm%C3%97%E5%A5%A5%E8%A1%8C60cm%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%82%B5%E3%83%B3%E3%83%AF%E3%83%80%E3%82%A4%E3%83%AC%E3%82%AF%E3%83%88+%E3%82%B7%E3%83%B3%E3%83%97%E3%83%AB%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%87%E3%82%B9%E3%82%AF+%E5%B9%85180cm%C3%97%E5%A5%A5%E8%A1%8C60cm%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>180cm幅の机を探すと結構高いものが多い中で、これは結構安いですが、
+数年使ってみてもしっかりしてるし、特に問題ないので
+とにかく幅の広い机が欲しい、という方にはお勧めです。</p>
+
+<p>モニターアームを付けることもきちんと考慮されていて梁が机の端から少し離れたところにあるのも良いところ。</p>
+
+<p>で、この机幅は広いのですが、奥行きは60cmしかありません。
+60cmしか、というものの、通常60cmくらいで、特に180cm幅で80cmとかの奥行きはあまりないので
+仕方ないところですが、モニターとの距離を考えるともっと奥に置きたい、と思うかもしれません。</p>
+
+<p>モニターを足を使って普通に設置すると実際には机の奥から10~20cm位のところが前面になるので結構前に出てきます。</p>
+
+<p>ただ、それもモニターアームを使えば机の後ろギリギリ、場合によっては机よりも後ろまで出すこともできます。</p>
+
+<p>実際32インチモニターを使ってるときは、机を壁から少し離して机の縁と同じくらいまでモニターの前面がなるように奥に設置していました。</p>
+
+<p>今回もそのようにするつもりだったのですが、ちょっと誤算が。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250126_monitorarm.jpg" alt="20250126_monitorarm.jpg" class="pic" /></p>
+
+<p>実際にモニターアームにつけてみた状態なのですが、左側のモニターの設置部分までモニターが届いてしまっています。。。</p>
+
+<p>支柱型なのでがっつりとつっかかります。
+これによってどうやっても机の奥から5cm位は前に出てしまう状態です。</p>
+
+<p>エルゴトロンHXなら机からの直立部分が短いので、その分少しは奥に設置できるかもしれません。
+まあHXは高すぎるので分かってても買わなかったと思いますが。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CRYWBYY8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CRYWBYY8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61gft1E5XCL._SS200_.jpg" alt="エレコム モニターアーム ワイドモニター対応 17~49インチ対応 耐荷重2kg～20kg ガス式 取り付けブラケット付属 関節5軸 DPA-SS11BK" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CRYWBYY8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CRYWBYY8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">エレコム モニターアーム ワイドモニター対応 17~49インチ対応 耐荷重2kg～20kg ガス式 取り付けブラケット付属 関節5軸 DPA-SS11BK</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CRYWBYY8?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CRYWBYY8&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%82%A8%E3%83%AC%E3%82%B3%E3%83%A0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+DPA-SS11BK%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%82%A8%E3%83%AC%E3%82%B3%E3%83%A0+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+DPA-SS11BK%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>これとか良いかも。</p>
+
+<p>とりあえず付けるだけでも結構大変だったので、一旦このままで使ってみることにします。</p>
+
+<p>距離感としては60~80cm位という状態ですが、
+60cmくらいで近めで見ていると、流石に真ん中と端の方で差が大きく、同じ大きさの文字も端の方だと見づらい、という感じがあります。大きさもありますが、斜めから見てる感もあるので単純に読みづらい感じも。</p>
+
+<p>右と左に別のウィンドウを出しておいて両方を行き来しながら作業する、ということは60cmだと結構きついです。
+どっちかによって、もう片方使うときは手元の方にもってきたくなる。</p>
+
+<p>80cmの状態で見ると、割と全体を見れる感じになって、左右のウィンドウ両方で作業するのもそれほど苦ではないかな、と。</p>
+
+<p>もちろん、離れた方が小さくなるわけで、同じ文字の大きさなら端の方でも近い方が見えるわけですが、
+それでも正面にあるものと端の方の斜め感があるものの違いの違和感があるので近いと見づらい感覚があります。</p>
+
+<p>と、良くない点を先に書いてしまいましたが、
+実際には結構満足しています。</p>
+
+<p>まず、圧倒的に広いです。
+高さは32インチのワイドモニターと同じですが、横幅が1.3倍ほどで、また、前のモニターが解像度がフルHDだったので、解像度的には2倍以上になっています。</p>
+
+<p>文字の大きさは結局32インチのときと比べて同じフォントサイズだと流石に小さくなりすぎる部分もあって少し大きくしたりしてる部分もありますが、やはり画面がすごく広く感じます。</p>
+
+<p>ワイドモニタだと横に2つウィンドウを並べると8:9のアスペクト比になるので、ちょっと縦長感が出てしまいますが、ウルトラワイドだと半分で11.5:9なのでまだわずかに横長なウィンドウになります。実際にはほぼ正方形。
+その状態だと片側だけで作業するのも全然苦なくできます。</p>
+
+<p>実際32インチワイドモニターで横に2つウィンドウを並べて作業するとちょっとストレスな感じがあったのですが、
+それが無くなったのがかなり大きいです。
+一番期待していた部分でもあったので良かったな、と。</p>
+
+<p>それ以外の点としては、WR40 PROにはスピーカーが内蔵されているのですが、
+音量が小さくてちょっと使いづらいです。</p>
+
+<p>結局外部スピーカーとして
+FUNLOGY Speakerを買って使っています。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0D4TRVKGG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D4TRVKGG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zVsujMosL._SS200_.jpg" alt="FUNLOGY Speaker（スピーカー/PCスピーカー）【VGP2024受賞 / 総合14W / ステレオスピーカー/USB給電/重低音/AUX / 3.5mmピン入力 / 日本ブランド 】 (ブラック)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0D4TRVKGG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D4TRVKGG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">FUNLOGY Speaker（スピーカー/PCスピーカー）【VGP2024受賞 / 総合14W / ステレオスピーカー/USB給電/重低音/AUX / 3.5mmピン入力 / 日本ブランド 】 (ブラック)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0D4TRVKGG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D4TRVKGG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FFUNLOGY+Speaker%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FFUNLOGY+Speaker%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>2000円以下で買える良さげなPCスピーカーとして、これとCreative Pebbleが良く見かけますが、
+Creative Pebbleは意外と大きくて置く場所を取る、とのことだったのでFUNLOGY Speakerを買ってみました。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B077XF3XJK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077XF3XJK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51XQa8rzYYL._SS200_.jpg" alt="Creative Pebble ブラック【価格.com プロダクトアワード2024】音声入力 ピンプラグ/電源 USB 接続 / 45度 上向きスピーカー 低音パッシブラジエーター 搭載 ピーク出力8.8W/総合4.4W RMS PC スピーカー SP-PBL-BK" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B077XF3XJK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077XF3XJK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Creative Pebble ブラック【価格.com プロダクトアワード2024】音声入力 ピンプラグ/電源 USB 接続 / 45度 上向きスピーカー 低音パッシブラジエーター 搭載 ピーク出力8.8W/総合4.4W RMS PC スピーカー SP-PBL-BK</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B077XF3XJK?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B077XF3XJK&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FCreative+Pebble%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FCreative+Pebble%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>正直音質は良くわからないのですが、パッシブラジエーターが付いていて、
+AOCの方で使っていたダイソーの300円スピーカーと比べると
+低音がちゃんと出ている感じがします。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>INNOCN 40インチワイドモニターWR40 PROを買ってみましたが、
+とりあえず大きな画面、特に横長の画面で作業するのはかなり快適です。</p>
+
+<p>この大きさで平面なのはちょっと辛い感じはあり、できれば湾曲にしたいな、という部分は正直あります。</p>
+
+<p>ただ価格を考えると十分満足出来るものだと思います。</p>
+
+<p>モニターアームはモニターを机の奥の方にもっていきたい場合には選ぶ際にできれば支柱型ではないもの、アームが長いものを選んだ方が良いです。
+そのうちエレコムのに買い替えたい気持ちはあります。。。</p>
+
+<p>これ以上大きいものを求める必要はないかな、と思うくらいですが、
+いずれ湾曲モニターにはしたいな、という気持ちはあります。
+とはいえ、実際湾曲やりすぎ感を感じることもあるとは思うので、
+OLEDパネルがもっと安くなって安い大きな可変湾曲モニターが出てきてくれないかな、と。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[iggy LS112 モニターアーム]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/25/computer-shopping/"/>
+    <updated>2025-01-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/25/computer-shopping</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CZQ8R1SS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZQ8R1SS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51i7KhGXbwL._SS200_.jpg" alt="17～49型 耐荷重2～20kg iggy（イギー）快適ワークのモニターアーム LS112 ブラック" /></a>
+</div>
+
+<p>新しいモニターアームを買ったのでそれについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#iggy-ls112" id="markdown-toc-iggy-ls112">iggy LS112</a></li>
+  <li><a href="#実際に設置してみて" id="markdown-toc-実際に設置してみて">実際に設置してみて</a>    <ul>
+      <li><a href="#机との設置部分" id="markdown-toc-机との設置部分">机との設置部分</a></li>
+      <li><a href="#補強プレートが必須" id="markdown-toc-補強プレートが必須">補強プレートが必須</a></li>
+      <li><a href="#設置後のモニター調整" id="markdown-toc-設置後のモニター調整">設置後のモニター調整</a></li>
+      <li><a href="#見た目" id="markdown-toc-見た目">見た目</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="iggy-ls112">iggy LS112</h2>
+
+<p>これまでエルゴトロンのMXVを買って使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07TK9JN5B?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07TK9JN5B&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61B6nBENkXL._SS90_CR0,0,120,90_.jpg" alt="エルゴトロン&nbsp;MXV デスクモニターアーム マットブラック 34インチ(3.2~9.1kg)まで対応 45-486-224" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/08/12/life-shopping/">デスクモニターアーム エルゴトロンMXV</a></div></li></ul>
+
+<p>ただ今回10kg程度のちょっと大きめのモニターを買おうと思って、MXVだと3.2~9.1.kgで少し足りないこともあり、
+新しいモニターアームを探していました。</p>
+
+<p><a href="https://www.amazon.co.jp/gp/product/B07Q8TJ2KL?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07Q8TJ2KL&amp;linkCode=shr&amp;tag=rcmdnk0c-22&amp;th=1">エルゴトロンLX</a>だと11.3kgまで対応なのでこれでも良いかと思いましたが、
+せっかくなので他のも見てみようと。</p>
+
+<p>ちょっと安めのものでも試してみようと思い見ていた結果、
+セール時にかなり安くなるiggy LS112にしてみました。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0CZQ8R1SS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZQ8R1SS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51i7KhGXbwL._SS200_.jpg" alt="17～49型 耐荷重2～20kg iggy（イギー）快適ワークのモニターアーム LS112 ブラック" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0CZQ8R1SS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZQ8R1SS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">17～49型 耐荷重2～20kg iggy（イギー）快適ワークのモニターアーム LS112 ブラック</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0CZQ8R1SS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0CZQ8R1SS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F17%EF%BD%9E49%E5%9E%8B+%E8%80%90%E8%8D%B7%E9%87%8D2%EF%BD%9E20kg+iggy%EF%BC%88%E3%82%A4%E3%82%AE%E3%83%BC%EF%BC%89%E5%BF%AB%E9%81%A9%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%AE%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+LS112+%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F17%EF%BD%9E49%E5%9E%8B+%E8%80%90%E8%8D%B7%E9%87%8D2%EF%BD%9E20kg+iggy%EF%BC%88%E3%82%A4%E3%82%AE%E3%83%BC%EF%BC%89%E5%BF%AB%E9%81%A9%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%AE%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+LS112+%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>定価(?)が16500円で、
+Amazonのブラックフライデーのときで半額表示の8250円でした。</p>
+
+<p>今見てみると30%オフで11550円とか。</p>
+
+<p>形はエルゴトロンLXのようなまず支柱があってその先にアームがつくようなものですが、
+20kgまでの耐荷重があります。</p>
+
+<p>エルゴトロンで同様の重さまで対応しているのはエルゴトロンHX(~19.1kg)とかですが、
+HXは安いときでも3万円くらいで、ここ1年くらいは4万円を超えています。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08RD4FJ3Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RD4FJ3Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61iV6+cuzbL._SS200_.jpg" alt="ERGOTRON エルゴトロン HX デスク モニターアーム マットブラック 49インチ(9.1~19.1kg)まで VESA規格対応 45-475-224" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08RD4FJ3Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RD4FJ3Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">ERGOTRON エルゴトロン HX デスク モニターアーム マットブラック 49インチ(9.1~19.1kg)まで VESA規格対応 45-475-224</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08RD4FJ3Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RD4FJ3Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FERGOTRON+%E3%82%A8%E3%83%AB%E3%82%B4%E3%83%88%E3%83%AD%E3%83%B3+HX+%E3%83%87%E3%82%B9%E3%82%AF+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+%E3%83%9E%E3%83%83%E3%83%88%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF+49%E3%82%A4%E3%83%B3%E3%83%81%289.1~19.1kg%29%E3%81%BE%E3%81%A7+VESA%E8%A6%8F%E6%A0%BC%E5%AF%BE%E5%BF%9C+45-475-224%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FERGOTRON+%E3%82%A8%E3%83%AB%E3%82%B4%E3%83%88%E3%83%AD%E3%83%B3+HX+%E3%83%87%E3%82%B9%E3%82%AF+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0+%E3%83%9E%E3%83%83%E3%83%88%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF+49%E3%82%A4%E3%83%B3%E3%83%81%289.1~19.1kg%29%E3%81%BE%E3%81%A7+VESA%E8%A6%8F%E6%A0%BC%E5%AF%BE%E5%BF%9C+45-475-224%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>LXも11.3kgまで対応していて、以前は安いときは1.5万円も切る位だったので同程度といえば同程度で、
+かつ、OEMであるAmazonベーシックのモニターアームも1万円前後で売っていたのですが、
+Amazonベーシックは1年以上前に販売を終了していて、その頃からLXも値上がりして現在は2万円を超える程になっています。</p>
+
+<p>それを考えると20kgまで対応で1万円前後のiggy LS112はかなり安く、
+セールで8250円なら現状ではかなり安いです。</p>
+
+<p>あとは動作性の問題ですが、こればかりは実際に使ってみないとわからないところ。</p>
+
+<p>そもそもモニターアームがどの程度スムーズに動くのか、というのも分かりづらいところで、
+展示品などで見ることも出来る場所もありますが、実際に自分の使うモニターを付けて動かすとまた違いますし、
+各所調整しての状態にしないとわからないことも多いので
+こればっかりは実際に使ってみないとわからないところです。</p>
+
+<p>今回はエルゴトロンMXVを使っているので、
+取り敢えずそれ基準であまりにひどければ別のものを考えるか、ということで買ってみることに。</p>
+
+<p>ちなみに、これを買うまでに色々調べていると、
+iggy LS112を紹介している記事やYouTubeは見たもの全てがPRものでした。</p>
+
+<p>まともに買ってレビューしてる感のあるものがなく、どれも「半額セール」を主張して安い！と主張するので
+正直躊躇したのですが、まあ、半額で1万円以下なら試してみるか、ということで買ってみました。</p>
+
+<h2 id="実際に設置してみて">実際に設置してみて</h2>
+
+<h3 id="机との設置部分">机との設置部分</h3>
+
+<p>このモニターアームは、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_iggy1.jpg" alt="20250125_iggy1.jpg" class="pic" /></p>
+
+<p>こんな感じのベースをデスクに設置するのですが、
+これの裏は下の絵の左の用になっていて、右にある金具を机に挟んだ状態で
+ネジをこの金具に上から通してネジで机に固定する形です。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_iggy2.jpg" alt="20250125_iggy2.jpg" class="pic" /></p>
+
+<p>上からネジを締め、そのネジが支柱の中に収まることでかなりスマートになります。</p>
+
+<p>エルゴトロンMXVだと、下から日本のネジで机に固定する形です。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_ergotron1.jpg" alt="20250125_ergotron1.jpg" class="pic" /></p>
+
+<p>こんな感じで下から抑えるので下側は結構出っ張ります。</p>
+
+<p>一方、iggy LS112は上から固定するので、机の上には何も出っ張りません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_iggy3.jpg" alt="20250125_iggy3.jpg" class="pic" /></p>
+
+<p>上の写真は補強プレートも挟んでいますがかなりすっきりします。</p>
+
+<p>机直下で配線を色々と整理したい場合にはこの辺はかなり違ってきます。</p>
+
+<p>一方、iggyの場合は上からネジを締めて支柱の中に収めるので、一度アームを取り付けてしまうと移動が一切出来ません。</p>
+
+<p>実際にモニターの中心位置を調べるために一度アームを取り付けて調整したいところですが、iggyの場合は一旦支柱のところまで外してから移動させ、固定し直す必要があります。</p>
+
+<p>基本的には最初に設置するときだけですが、何度か調整に手間取ったので結構面倒でした。</p>
+
+<p>一度設置してしまえば確かに見た目はかなり良いのですが。</p>
+
+<p>設置方法としてはネジで抑える以外に、机に穴を開けて固定する方法もあります。
+そのため、長さの違う支柱ネジ2つが付属しています。
+1つはちょうど机の上にネジが当たるくらいの長さで、ちょうど入れ込むとネジの先と固定台の縁での支えになります。</p>
+
+<h3 id="補強プレートが必須">補強プレートが必須</h3>
+
+<p>下からの写真でも補強プレートが挟まっているのが分かると思いますが、
+これは別途買ったものです。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07SYPF134?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07SYPF134&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61YRglyJm4L._SS200_.jpg" alt="ZepSon モニターアーム補強プレート 取付部硬さ強化対策 デスク保護 傷防止 滑り止めシート付き (黒色)" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07SYPF134?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07SYPF134&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">ZepSon モニターアーム補強プレート 取付部硬さ強化対策 デスク保護 傷防止 滑り止めシート付き (黒色)</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07SYPF134?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07SYPF134&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FZepSon+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0%E8%A3%9C%E5%BC%B7%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88+%E5%8F%96%E4%BB%98%E9%83%A8%E7%A1%AC%E3%81%95%E5%BC%B7%E5%8C%96%E5%AF%BE%E7%AD%96+%E3%83%87%E3%82%B9%E3%82%AF%E4%BF%9D%E8%AD%B7+%E5%82%B7%E9%98%B2%E6%AD%A2+%E6%BB%91%E3%82%8A%E6%AD%A2%E3%82%81%E3%82%B7%E3%83%BC%E3%83%88%E4%BB%98%E3%81%8D+%28%E9%BB%92%E8%89%B2%29%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FZepSon+%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%A0%E8%A3%9C%E5%BC%B7%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88+%E5%8F%96%E4%BB%98%E9%83%A8%E7%A1%AC%E3%81%95%E5%BC%B7%E5%8C%96%E5%AF%BE%E7%AD%96+%E3%83%87%E3%82%B9%E3%82%AF%E4%BF%9D%E8%AD%B7+%E5%82%B7%E9%98%B2%E6%AD%A2+%E6%BB%91%E3%82%8A%E6%AD%A2%E3%82%81%E3%82%B7%E3%83%BC%E3%83%88%E4%BB%98%E3%81%8D+%28%E9%BB%92%E8%89%B2%29%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>上から抑えるネジがそのまま机に当たるので、強く締めたり、モニターを付けてから負荷がかかると机にめり込むことがあります。</p>
+
+<p>実際二番目の写真の真ん中の穴がそれ。。。</p>
+
+<p>実際には自分でもミスをしていて、最初穴を開けたときに使う長い方の支柱ネジを使ってしまい、ぎりぎり抑えて開けてしまったので余計に深く入り込みましたが、
+軽く短い方で試しても強く締めると机に傷は付きました。</p>
+
+<p>特に重いものを支えるのでできるだけ強く締めておこう、となるわけですが、強く締めていくと机にめり込むことがあるので注意です。</p>
+
+<p>締めるときに傷つかなくても思いモニターを付けて強い負荷がかかればネジの部分は傷つく可能性は高いです。</p>
+
+<p>ということでiggy LS112を使う際には補強プレートが必須だと思います。</p>
+
+<p>プレート含めてセール時で1万円位、という感じ。</p>
+
+<p>エルゴトロンMXVの場合は締めるネジの先に支え部があるので、机にめり込むことはありません。ただ柔らかい木だと傷はつくかも。
+その様な場合でも補強プレートは入れておいた方が良さそうです。</p>
+
+<p>ただ、補強プレートを入れると、特に上面で机の上をより広く占めるようになるので
+その辺は考慮しておく必要があります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_iggy4.jpg" alt="20250125_iggy4.jpg" class="pic" /></p>
+
+<p>2段になっている下の部分が補強プレートですが、本来の支柱の支え部分よりも手前に5cm位横にも数cm広がっています。
+補強プレートは色々売ってるのでサイズも考えていい感じのを選ぶべきだな、と。</p>
+
+<p>今回上のを選んだのはiggy LS112のAmazonのページに一緒に買うものとして出ていたのが一番で、iggyとこれを薦めてる記事とかも見たのでこれで良いかと言う程度。
+買ってみて、思ったより幅とるな、とは思いました。</p>
+
+<p>とはいえプレートを入れてみて、かなり安定感が増しまた感はあるのと、
+机にも優しい感じは強いので、もし机に傷をつけたくない場合はモニターアームをつける際に軽いモニターでも補強プレートを考えた方が良さそうです。</p>
+
+<h3 id="設置後のモニター調整">設置後のモニター調整</h3>
+
+<p>モニターの上下や角度などを自愛に動かせるよう、各関節部についてるネジを調整して
+いきます。</p>
+
+<p>最初結構固めに調整されていて、上下などを手で動かすことがほとんど出来ないレベルでした。</p>
+
+<p>モニター角度も上向きで簡単に下向かないような感じ。</p>
+
+<p>ただ、10kgとちょっと重めのモニターを付けるので、一旦そのままつけてみたところそれなりに動いて、角度も手で動くレベルでした。</p>
+
+<p>全体の上下としてはむしろゆるいくらいで、下に下りきってしまったので少しきつくする調整をしました。</p>
+
+<p>調整した結果、割とスムーズに動くようになり、止めたところできっちり止まるようにも調整できました。</p>
+
+<p>隣のエルゴトロンのものと比べても遜色ない感じです。</p>
+
+<p>実際にはiggy LS112の方により重いモニターが付いてるのでそのせいで動かしづらい部分はありますが、
+スムーズさ的なところやきちっと止まる感じは関節部の調整さえすればいい感じになりました。</p>
+
+<p>このあたりは口コミなどを見るとやはりエルゴトロンに比べると、的なこともあったので多少は心配していましたが、
+思った以上に問題なく使える感じです。</p>
+
+<p>口コミだと重さに耐えられずに垂れてしまうとか、逆に軽すぎて上を向いてしまう、というのもありましたが、
+調整するときに結構沢山ネジを回す感じなので
+十分に調整できてないことも結構あるんじゃないかな、と思います。</p>
+
+<p>40インチの結構大きめのモニターで問題なく支えられてピタ止め出来ますし、
+最初に位置を調整する際にはネジをかなり緩めて手で動かすレベルで調整していたので
+関節の締め方の調整を上手く行えば問題なく使えると思います。</p>
+
+<h3 id="見た目">見た目</h3>
+
+<p>エルゴトロンと同じ様な表面がざらついた金属加工で、
+触るとエルゴトロンよりも少しざらつきが強い感じです。</p>
+
+<p>表面的な意味合いではiggy LS112も安っぽくは無くいい感じです。</p>
+
+<p>設置部分がiggy LS112の方が結構分厚く、補強プレートを抜いて考えると
+上面だけだとエルゴトロンの方が大分すっきりして見えます。</p>
+
+<p>エルゴトロンの足元はこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250125_ergotron2.jpg" alt="20250125_ergotron2.jpg" class="pic" /></p>
+
+<p>上のiggy LS112の写真と比べると、台座も薄く、足回りも細いのでスッキリして見えます。
+この辺は耐荷重の兼ね合いもあるかもしれませんが、エルゴトロンのHXあたりでもそれなりにスッキリしているので
+その辺は違いかな、と。</p>
+
+<p>ただ値段的にもっと安っぽいものかと思ってましたが
+全体的にエルゴトロンと比べても安っぽくはない感じです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>iggy LS112は20kgまでの耐荷重があり、セールであれば1万円以下で買えるモニターアームです。</p>
+
+<p>20kgまでの耐荷重があるモニターアームの中ではかなり安い部類に入ると思います。
+きめのモニターを使うのであれば特にセール時にはかなりの候補になるかと思います。</p>
+
+<p>30インチくらいまでだと10kgを超えないので、エルゴトロンLXやMXVでも重量的には十分なので、
+セールでないときはまずはエルゴトロンの方がお勧めかな、とは思いますが、
+セール時はかなり安いので買って損はないかと。</p>
+
+<p>全体的な動作性も問題なく、調整もしやすい感じで、思ったより良かったです。</p>
+
+<p>唯一難点があるとすると固定する際に上から押し込むネジの先が直接机に当たるので
+机を傷つけてしまう可能性があります。</p>
+
+<p>なので補強プレートはあった方が良いです。</p>
+
+<p>また、上から締める関係上、設置位置の調整を行うには全てを外してからでないと出来ないのがちょっと面倒です。</p>
+
+<p>逆にそのおかげで机の下がスッキリするので、最初に少し苦労すれば後々はむしろ良い感じにはなります。</p>
+
+<p>ということで、全体的には満足です。</p>
+
+<p>エルゴトロンがかなり値上がりしてるのでこういったものも候補に入るのではないかと。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[SwitchBot CO2センサーを使ってみた]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/06/comuter-iot/"/>
+    <updated>2025-01-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/06/comuter-iot</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0DBLKNYPY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DBLKNYPY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71czGp0EbiL._SS200_.jpg" alt="SwitchBot CO2センサー 二酸化炭素濃度計 温湿度計 アラーム - スイッチボット デジタル 大画面 高精度 CO2測定器 快適指数 天気予報 時計 卓上 カレンダー スマホ連動 アラート通知 グラフ記録 スマートホーム Alexa Google Home Siriに対応" /></a>
+</div>
+
+<p>SwitchBotから新しく出たCO2センサーを購入したので
+持ってるCO2センサーと比較したりしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#co2センサー" id="markdown-toc-co2センサー">CO2センサー</a></li>
+  <li><a href="#switchbot-co2センサー" id="markdown-toc-switchbot-co2センサー">SwitchBot CO2センサー</a></li>
+  <li><a href="#他のセンサーとの比較" id="markdown-toc-他のセンサーとの比較">他のセンサーとの比較</a>    <ul>
+      <li><a href="#co2" id="markdown-toc-co2">CO2</a></li>
+      <li><a href="#温度" id="markdown-toc-温度">温度</a></li>
+      <li><a href="#湿度" id="markdown-toc-湿度">湿度</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="co2センサー">CO2センサー</h2>
+
+<p>CO2センサーに関しては
+新型コロナウイルスが流行してから需要が高まってましたが、
+個人で使うようなものとしてはなかなかどれを選んだら良いという決定版はありませんでした。</p>
+
+<p>特にクラウドと連携して記録を保持したりスマホと連携できるようなものはかなり少なく、
+推奨されているNDIR方式でそのような機能を持つものとなると
+最低でも1万円前後になるので良くわからないものを買うのはちょっと躊躇してしまうので
+買うのが難しいものの1つだったと思います。</p>
+
+<p>個人的にはCO2センサーは最初Raspberry Piを使ってCO2センサーを作ってました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS90_CR0,0,120,90_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi/">MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS90_CR0,0,120,90_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/">MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220618_lcd5_120_90.jpg" width="120" height="90" alt="20220618_lcd5_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi/">Raspberry Piで液晶ディスプレイを使って温度とかを表示する</a></div></li></ul>
+
+<p>まあこれも最初掴んだMH-Z19BというAliExpressで買ったセンサーがおそらく偽物で、
+調子が悪いな、と思い始めた頃、
+秋月電子通商がMH-Z19Cという後継センサーを売り出してくれたのでそれに乗り換えています。
+AliExpressで買ったMH-Z19Bは半年ほどで動作不良になりましたが、秋月電子通商のMH-Z19Cはもう3年以上順調に動作しています。</p>
+
+<p>Raspberry Pi Zero WHが当時2000円位でMH-Z19Cが2500円くらいですが、
+温度センサーとかディスプレイとかつけるとなんだかんだ1万円位かかってます。</p>
+
+<p>その後、比較もしたいということで、PTH-8というWiFiでクラウドにデータを送信できるセンサーを買いました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B097DNC871?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B097DNC871&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61tC8I8iusL._SS90_CR0,0,120,90_.jpg" alt="Protmex co2センサー CO2測定器 リアルタイム遠隔監視 二酸化炭素濃度計 アラーム機能 18650mAh大容量電池温度 湿度表示付き 高精度 空気質検知器 ポータブル 測定器 検測機 USB充電式 日本語説明書付き" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/19/computer-iot/">PTH-8: スマホで確認できる二酸化炭素濃度計</a></div></li></ul>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0C4JXNJ8X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0C4JXNJ8X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51C65urk-OL._SS200_.jpg" alt="WiFiスマート二酸化炭素検出器多機能ポータブル温度湿度アプリアラーム大気質CO2モニターPTH-8" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0C4JXNJ8X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0C4JXNJ8X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">WiFiスマート二酸化炭素検出器多機能ポータブル温度湿度アプリアラーム大気質CO2モニターPTH-8</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0C4JXNJ8X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0C4JXNJ8X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FWiFi%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%A4%9C%E5%87%BA%E5%99%A8%E5%A4%9A%E6%A9%9F%E8%83%BD%E3%83%9D%E3%83%BC%E3%82%BF%E3%83%96%E3%83%AB%E6%B8%A9%E5%BA%A6%E6%B9%BF%E5%BA%A6%E3%82%A2%E3%83%97%E3%83%AA%E3%82%A2%E3%83%A9%E3%83%BC%E3%83%A0%E5%A4%A7%E6%B0%97%E8%B3%AACO2%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BCPTH-8%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FWiFi%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%A4%9C%E5%87%BA%E5%99%A8%E5%A4%9A%E6%A9%9F%E8%83%BD%E3%83%9D%E3%83%BC%E3%82%BF%E3%83%96%E3%83%AB%E6%B8%A9%E5%BA%A6%E6%B9%BF%E5%BA%A6%E3%82%A2%E3%83%97%E3%83%AA%E3%82%A2%E3%83%A9%E3%83%BC%E3%83%A0%E5%A4%A7%E6%B0%97%E8%B3%AACO2%E3%83%A2%E3%83%8B%E3%82%BF%E3%83%BCPTH-8%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>買った当時1万円位。</p>
+
+<p>別のIoTを管理しているSmart Lifeというアプリで確認出来るという点が割と大きかったです。</p>
+
+<p>2つのセンサーの違いはPTH-8を買った頃でそれなりに合ってました。</p>
+
+<p><a href="https://rcmdnk.com/blog/2022/02/20/computer-iot/#google_vignette/">/blog/2022/02/20/computer-iot/#google_vignette/</a></p>
+
+<p>最大で100ppm程度の差はありますが、まあざっくり400ppmなのか、1000ppmなのか、2000ppmなのか、程度のことが分かれば
+十分なんじゃないかな、と思うので、この時点ではこのくらいの一致度で十分かな、という感じでした。</p>
+
+<p>CO2濃度を校正する方法としては、外気がだいたい400ppm位なので外に置いた状態で校正ボタンを押してそこに合わせる、という方法が主なものになります。
+ただ実際に気になる高い方がどの程度合ってるかは分からないのが難しいところ。
+複数あればそれらを比較して確認する程度です。</p>
+
+<p>一応今のところPTH-8も問題なく動いています。</p>
+
+<p>ただ今見てみるとPTH-8はAmazonで1.4万円位で売ってるようで
+他のものもよく知らないメーカーから出ているもので1万円前後かな、という感じです。</p>
+
+<h2 id="switchbot-co2センサー">SwitchBot CO2センサー</h2>
+
+<p>そんな感じでちょっと買うのに躊躇してしまうCO2センサーですが、
+SwitchBotから出たCO2センサーが値段的にも手頃でかつそこそこ有名になったSwitchBotの製品ということで
+良く買われてる印象があります。</p>
+
+<p>新たに必要かと言われると微妙な所でしたが、SwitchBot製品は色々と使っているので
+試してみることにしました(実際買ったのは去年11月頃)。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0DBLKNYPY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DBLKNYPY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71czGp0EbiL._SS200_.jpg" alt="SwitchBot CO2センサー 二酸化炭素濃度計 温湿度計 アラーム - スイッチボット デジタル 大画面 高精度 CO2測定器 快適指数 天気予報 時計 卓上 カレンダー スマホ連動 アラート通知 グラフ記録 スマートホーム Alexa Google Home Siriに対応" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0DBLKNYPY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DBLKNYPY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SwitchBot CO2センサー 二酸化炭素濃度計 温湿度計 アラーム - スイッチボット デジタル 大画面 高精度 CO2測定器 快適指数 天気予報 時計 卓上 カレンダー スマホ連動 アラート通知 グラフ記録 スマートホーム Alexa Google Home Siriに対応</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0DBLKNYPY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DBLKNYPY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+CO2%E3%82%BB%E3%83%B3%E3%82%B5%E3%83%BC+%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSwitchBot+CO2%E3%82%BB%E3%83%B3%E3%82%B5%E3%83%BC+%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>NDIR方式で
+8000円位ですが、ちょくちょくあるセールで7000円を切るので
+現状スマホ連携が簡単に出来る機種としてはかなり安い部類でもあります。</p>
+
+<p>ちなみにAmazonの公式ストアで安くなってなくても楽天の公式ストアで安くなってたり
+<a href="https://www.switchbot.jp/">SwitchBot（スイッチボット）公式サイト</a>
+で安くなってたりもするのでそれら見てみたり、なくても2,3ヶ月待てば多分7000円切るセールもあるかと思います。</p>
+
+<p>CO2センサーは単独でもスマホとのBluetoothでの連携が可能でデータをスマホで見ることが出来ます。</p>
+
+<p>また、SitchBotハブがあればスマホが離れていても現在値が見れたり、
+設定値を超えたときにアラートを出したりiPhoneの場合はガジェットとして表示したり出来ます。
+設定値をトリガーとして他のSwitchBot製品を動かしたり、IFTTTなどと連携すればさらに出来ることは広がります。</p>
+
+<p>ハブも含めると1万円を超えてしまいますが、
+もしこれまでに使ってるものがあれば連携すればよいし
+無ければ無理にハブまでは買う必要は無いかな、と思います。</p>
+
+<p>CO2センサーということですが、温湿度計もついていて、
+またハブと連携すると天気予報も表示されるようになっています。</p>
+
+<p>電源は単三電池2本か、もしくはUSB Type-Cで給電することが出来ます。</p>
+
+<p>電池で出来るなら電池で運用したいな、と思ったのですが、
+電池での運用だと色々と制限がかかり、
+CO2の測定間隔が30分で固定されます。NDIR方式はLEDから出た光をガス中で吸収させ、残った赤外光を測定することで濃度を測定するのですが、
+結構電力を使うということみたいです。
+それでも電池での短い間隔での運用をオプションとして選べるようにしてほしかったな、とは思います。</p>
+
+<p>電源供給の場合は1秒から30分まで1秒刻みで設定できますが、
+1分より短くすると本体の温度が上がってしまう危険性があるので1分にすることが推奨されています。
+電池で運用しているとCO2の測定値の横に<strong>XX minutes ago</strong>と何分前に測定されたか、の表示が出るようになります。</p>
+
+<p>換気したいときとかを考えると無いよりはマシですが、30分の間隔はちょっと長すぎるので基本的には電源供給で使うことになるかと思います。</p>
+
+<p>で、その電源供給も一癖あって、付属のUSB Type-Cケーブルがあるのですが、これが
+接続部分がコンパクトかつフラットケーブルになっています。
+CO2センサーの電源供給部分は本体後ろ側についてますが、そこがケーブルが挿しにくい形状になっていて
+手元にある他のUSB Type-Cケーブルだと接続部分が大きくて挿ささらなかったり、接続部分がコンパクトでも
+ケーブルが曲がり切らずに上手く置けない状態になったりしてしまいます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_switchbotco2.jpg" alt="20250106_switchboto2.jpg" class="pic" /></p>
+
+<p>付属のケーブルはUSB A to CなのでAのアダプターが必要です。
+ケーブルは1mほどの長さですが、設置したい場所によっては電源から離れていたりすることもあると思うので
+現状ケーブルとかが必要になるかもしれません。</p>
+
+<p>このように隠れるようなところに電源口をつけなくても普通に後ろ側に後ろ向きに口を出すことは
+容積的にも全然余裕で出来ると思うのですが、付属ケーブルを絶対使わせるようになってるのは
+結構ひどい仕様だな、という感じはします。</p>
+
+<p>という感じで少し気になる点はありますが、
+実物はPTH-8と比べてもコンパクトですし表示も見やすいです。</p>
+
+<p>値段と、SwitchBotの製品としての信頼性も考慮すると
+現状CO2センサーを買うとするならSwitchBot CO2センサー一択ではないかな、と思うレベルではないかと。</p>
+
+<h2 id="他のセンサーとの比較">他のセンサーとの比較</h2>
+
+<p>ちょっと同時に測定してみたのもの。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_compare.jpg" alt="20250106_compare.jpg" class="pic" /></p>
+
+<ul>
+  <li>Raspberry Pi Zeroで運用しているMH-Z19C(CO2, 温度), およびBME280(温度、湿度)</li>
+  <li>PTH-8</li>
+  <li>SwitchBot CO2センサー</li>
+  <li>SwitchBot 温湿度計</li>
+</ul>
+
+<p>温湿度計は温度の10の桁の液晶が一部だめになってしまっています。。。(直接見ることは無いのでそのまま使ってますが。)</p>
+
+<h3 id="co2">CO2</h3>
+
+<p>とある日とまた別の日の二酸化炭素の計測。
+これらは一旦全て外気で400ppm校正をしてあります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_co20.png" alt="20250106_co20.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_co21.png" alt="20250106_co21.png" class="pic" /></p>
+
+<p>SwitchBotとMH-Z19Cは結構良くあってます。</p>
+
+<p>PTH-8は1時間に1データなのでグラフがざっくりしてますが、1枚目の方は大体合ってるように見えます。
+2枚目の方では全体的に200ppmほど低めに出ているようにも見えますが、
+この間2日くらいの違いで、別の日を見るとまた合っていたりちょっとズレてたり、
+なんか不安定ではありますが、まあざっくり1000ppm超える、とかを見る程度なら使えるかな、とは。</p>
+
+<p>SwichBotとMH-Z19はかなり合ってるのでそれなりに信用出来るのではないかと。</p>
+
+<h3 id="温度">温度</h3>
+
+<p>温度についても。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_temp0.png" alt="20250106_temp0.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_temp1.png" alt="20250106_temp1.png" class="pic" /></p>
+
+<p>MH-Z19Cは一応温度も測定できるのでしてありますが、
+普段見てないのであれですが、全体的に4℃くらい高いかんじです。</p>
+
+<p>これは以前からそうでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/02/20/computer-iot/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220220_co2_120_90.jpg" width="120" height="90" alt="20220220_co2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/20/computer-iot/">二酸化炭素濃度、温度、湿度計の比較</a></div></li></ul>
+
+<p>これに関してはちょっとセンサーがデバイス内部にあるらしく、そもそも少し高めに出てしまうものなのかもしれません。
+これに関しては自作スクリプトで温度を計算しているので簡単にずらすことは出来るのですが、まあ一旦こういうものということで。</p>
+
+<p>その他を見るとBME280の温度が少し低めで、SwitchBotのCO2センサーが一番高めです。その間1℃程度の差で全体的に推移しています。</p>
+
+<p>上の記事の中の2022年2月15日時点ではBME280がPTH-8に比べて6℃くらい高い状態ですが、その後BME280には-6℃の補正を入れてあります。
+それが現状ではちょっとやり過ぎなのかも。1℃くらい上げても良さそうか？</p>
+
+<h3 id="湿度">湿度</h3>
+
+<p>湿度も。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_humi0.png" alt="20250106_humi0.png" class="pic" /></p>
+
+<p><img src="https://rcmdnk.com/images/post/20250106_humi1.png" alt="20250106_humi1.png" class="pic" /></p>
+
+<p>SwitchBotの2つは2%くらいの差でおさまってそうです。ただ、温湿度計(Thermo)の方が全体的に高め。</p>
+
+<p>さらにはBME280, PTH-8がそれえらより5%位高め。BME280とPTH-8は結構合ってる感じがあります。</p>
+
+<p>BME280に関しては以前PTH-8と食い違っていたので補正を入れて+15%してあります。</p>
+
+<p>これがちょっと微妙かも。</p>
+
+<p>PTH-8とSwitchBotのどちらを信じるかですが、SwitchBot器2つがそう言ってるのであればそうと。
+5%位下げても良いかも。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>という感じでSwitchBot CO2センサーを使ってみました。</p>
+
+<p>CO2センサーとしては手元にあるものと比較して見るとある程度正確な値が出ているように見えます。</p>
+
+<p>簡単に記録が出来、今は特に設定してはいませんが、CO2の値をトリガーとして
+アラートを出したり、なにかを操作することも簡単に出来るので
+IoTとしてはかなり使いやすいと思います。</p>
+
+<p>CO2センサーとしてはそれなりコンパクトで、温湿度計もついていて、
+表示も見やすいと思います。</p>
+
+<p>値段的にもWiFi/Bluetooth通信出来るCO2センサーとしてはかなり安い部類に入るので
+これから買うならSwitchBot CO2センサー一択ではないかな、と思います。</p>
+
+<p>気になるのは電源供給の部分で、
+電池運用で通常の記録が出来ると良かったな、という点と、
+USB Type-Cケーブルがほぼ付属のものしか使えないようになっているのがちょっと不便かな、という点ですが、
+それを差し引いてもこれから買うならSwitchBot CO2センサーで良いのではないかと。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
