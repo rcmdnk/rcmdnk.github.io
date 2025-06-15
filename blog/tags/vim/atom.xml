@@ -1,0 +1,1967 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Vim | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/vim/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2025-06-15T01:26:30+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim v0.11とGNU screen 5.0.0の組み合わせで`+q4D73`が表示され崩れるのを治す]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/03/computer-vim-screen/"/>
+    <updated>2025-05-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/03/computer-vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovimをv0.11.0にアップデートしたところGNU screen内で立ち上げると
+表示が崩れるようになってしまうことに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-500とneovim-v010での表示問題" id="markdown-toc-gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</a></li>
+  <li><a href="#neovim-v011での表示問題" id="markdown-toc-neovim-v011での表示問題">Neovim v0.11での表示問題</a></li>
+  <li><a href="#neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard" id="markdown-toc-neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</h2>
+
+<p>今回v0.11にアップデートしたところまた問題が起こったというところなのですが、
+v0.10のときにも似たような問題が起こっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<p>上記でTruecolor対応にしたところ</p>
+
+<p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+<p>といった表示が出てscreen全体の表示が崩れるような状態になっていました。</p>
+
+<p>いつも出るわけではなく、
+ウィンドウを縦横に分割して、左側のウィンドウで開くときに表示が崩れる状態です。</p>
+
+<p>これに関しては上のポストでは<code>notermguicolors</code>を設定して対処するとしていますが、
+その後、クリップボードを無効にすることで対処していました。</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.<span class="nb">clipboard</span> <span class="p">=</span> false
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでNeovim v0.10では表示が問題なくできるようになっていました。</p>
+
+<p>Ref: <a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+
+<h2 id="neovim-v011での表示問題">Neovim v0.11での表示問題</h2>
+
+<p>Neovim v0.11にアップデートしたところ、また表示が崩れるようになってしまいました。</p>
+
+<p><code>+q4D73</code>といった表示が出て、表示が崩れるようになっています。</p>
+
+<p>これに関しては上のIssueにあるように、
+<a href="https://github.com/neovim/neovim/pull/31730">#31730</a>がmergeされたため、別途</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line">local termfeatures <span class="p">=</span> <span class="k">vim</span>.<span class="k">g</span>.termfeatures or {}
+</span><span class="line">termfeatures.osc52 <span class="p">=</span> false
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.termfeatures <span class="p">=</span> termfeatures
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の設定が必要になります。</p>
+
+<p>ただ、v0.10ではこの設定だと治らないので両方使う可能性がある場合は両方入れておく必要があります。</p>
+
+<p>OSC52はコピーに使われるシーケンスでその処理に関してGNU screenでは処理しないために
+そのまま表示されたりして表示が崩れてしまうようです。</p>
+
+<blockquote>
+  <p><a href="https://zenn.dev/link/comments/111f73802a8971">OSC52</a></p>
+</blockquote>
+
+<h2 id="neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</h2>
+
+<p>クリップボードに関してはVim内のものとOSのクリップボードを共有したりはしないので
+この辺特に気にせずoffにして問題ない状態です。
+Neovimは基本的にターミナル内で使っていて、かつGNU screen内で使うことが殆どで、
+OSのクリップボードに出したい場合はGNU screenのコピー機能でコピーして、
+それをOSに共有するような形にしています。</p>
+
+<p>そのために以下のツールをつかっています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/multi_clipboard"></div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkのAutoHotkey v2対応版リリース(含v1->v2への対応方法)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim/"/>
+    <updated>2024-10-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkey v2 に対応した vim_ahk のリリースを行いました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#autohotkey-v2" id="markdown-toc-autohotkey-v2">AutoHotkey v2</a></li>
+  <li><a href="#v2への移行" id="markdown-toc-v2への移行">v2への移行</a></li>
+  <li><a href="#v1v2の切り替え" id="markdown-toc-v1v2の切り替え">v1/v2の切り替え</a></li>
+  <li><a href="#主な大きな変更点" id="markdown-toc-主な大きな変更点">主な大きな変更点</a>    <ul>
+      <li><a href="#hotkeyがラベルではなく関数に" id="markdown-toc-hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</a></li>
+      <li><a href="#if---hotif" id="markdown-toc-if---hotif">#If -&gt; #HotIf</a></li>
+      <li><a href="#変数代入" id="markdown-toc-変数代入">変数代入</a></li>
+      <li><a href="#文字列の扱い" id="markdown-toc-文字列の扱い">文字列の扱い</a></li>
+      <li><a href="#コマンドは全て関数に" id="markdown-toc-コマンドは全て関数に">コマンドは全て関数に</a></li>
+      <li><a href="#設定項目の変更" id="markdown-toc-設定項目の変更">設定項目の変更</a></li>
+      <li><a href="#gui周り" id="markdown-toc-gui周り">Gui周り</a></li>
+    </ul>
+  </li>
+  <li><a href="#vim_ahkのv2対応" id="markdown-toc-vim_ahkのv2対応">vim_ahkのv2対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyを使ってVim風のキーバインドをWindows上のいたるところで使えるようにするスクリプトです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<h2 id="autohotkey-v2">AutoHotkey v2</h2>
+
+<p>2年ほど前にAutoHotkey v2が正式リリースされ、2023年初頭にはv2の方がプライマリーバージョンとして推奨されるようになりました。</p>
+
+<p>変更点が結構ある上にv1がすぐに使えなくなるわけでもないので、自分の別のスクリプトも含めてv2に移行するのが面倒でしたが、
+だいぶ前に自分で作るだけ作ってたIssueに「いつ出来るの？」と待ってくれてる方がいたので久々にAutoHotkeyを勉強しながらやってみることに。</p>
+
+<h2 id="v2への移行">v2への移行</h2>
+
+<p>AutoHotkeyは2003年頃にリリースされた古いソフトウェアですが、当初ドキュメントもあまりなく、特に日本語などは有志によるものなどが色々ありました。</p>
+
+<p>10年位前でも良くまとまってるものが少なかったこともあり自分でもまとめたりしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/">AutoHotkeyの使い方1</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/">AutoHotkeyの使い方2</a></div></li></ul>
+
+<p>現在はかなり整備されていて、v1からv2への移行についても詳しく書かれています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>かなり大きく変わっているので、これをパット見てすぐに移行するのは難しいですが、
+実際にv2として動かしてエラーを見て、エラー箇所について上のドキュメントで探して、という感じでやっていけばほとんどなんとかなるかと思います。</p>
+
+<p>ざっくりでもいいからとりあえず簡単に移行したい、という場合には
+移行用のツールを作ってくれてる方もいるので、それを使うのもいいかもしれません</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/10/02 </strong></p>
+
+  <p>このツール最初に使おうとしたら、自分の環境に入っているAutoHotokeyがv2.0.0のv2の古いバージョンでエラーが出て使えないじゃないか、と思ってましたが最新のv2.0.18を入れ直したら動きました。</p>
+
+  <p>v2.0.11あたりで結構大きな変更が入った(?)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+<p>。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mmikeww/AHK-v2-script-converter">mmikeww/AHK-v2-script-converter: AHK v1 -&gt; v2 script converter</a></p>
+</blockquote>
+
+<p>特に細かいことを気にしたくなければ一旦これで変換して、その後にエラー箇所を修正していく、というのがてっとり早いかと。</p>
+
+<h2 id="v1v2の切り替え">v1/v2の切り替え</h2>
+
+<p>現状、AutoHotkey v2をインストールするとv1も同時にインストールされるようになっています。</p>
+
+<p>適当なスクリプトを実行すると、v1/v2のどちらかでしか実行できないものだけが含まれる場合は自動判別で実行できるバージョンで実行されます。</p>
+
+<p>例えば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかならv1,</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>ならv2で自動的に実行されます。</p>
+
+<p>一方、どちらでも実行できる、もしくは混ざってしまってどちらでも失敗するようなスクリプトで判別不能な場合は
+最初にどちらを使うか、の選択ウィンドウが出てくるようになっています。</p>
+
+<p>また、スクリプトの先頭に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#Requires</span> <span class="n">AutoHotkey</span> <span class="n">v2</span><span class="o">.</span><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにバージョンを指定すると必ずそのバージョンで実行されるようになります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>v2でテストするためにとりあえずこのv2.0指定をして実行してエラーが出た箇所を直していく、という作業が基本です。</p>
+
+<h2 id="主な大きな変更点">主な大きな変更点</h2>
+
+<p>たくさん変更があるので詳しくは
+<a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0</a>
+を参照ですが、
+とくに気になった変更点をいくつか。</p>
+
+<h3 id="hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</h3>
+
+<p>AutoHotkeyでまず行うのが</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったHotkeyの設定ですが、複数行で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">    <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに書くことがv1では出来ました。</p>
+
+<p>この書き方を<strong>ラベル</strong>表記と呼んでいるみたいです。</p>
+
+<p>一方、v2ではこのラベル表記が廃止され、関数表記に変わりました。
+(MsgBox, Sendもコマンドから関数に変わって書き方が変わっています。)</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(</span><span class="n">hk</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>引数の<code>hk</code>は入力のHotkey(この場合は<code>a</code>)が入ります。</p>
+
+<p>関数名を省略して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くことも出来、この場合入力キーは<code>A_ThisHotkey</code>で取得できます。(これはv1のラベル表記でも使える。)</p>
+
+<p>この書き方はv1.1.20から使える様になってv2以前では括弧だけ使うか、関数の引数無しで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように定義して入力キーは<code>A_ThisHotkey</code>で取得する、という形でした。</p>
+
+<p>1行で書く場合にはv2でも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように括弧なしでも書けます。</p>
+
+<p>また、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;c&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように、複数のキーに同じ処理を割り当てることが出来ます。</p>
+
+<p>同じようなことはv1でも出来ますが、v1だとラベル表記として</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">d</span>
+</span><span class="line"><span class="nl">c::</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="n">c</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">e</span>
+</span><span class="line">  <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くと<i class="key">a</i>, <i class="key">b</i>を押すとそのHotkeyの表示と<code>d</code>が送られ、さらに<code>c</code>の表示と<code>e</code>が送られます。</p>
+
+<p>これは複数行で書く場合には<code>Return</code>が来るまで途中にキーラベルがあっても継続して処理が行われるためです。</p>
+
+<p>v2だとこういった重ねがけはできないので、<code>A_ThisHotkey</code>を使って処理を分けたりする必要があります。</p>
+
+<p>ただ、この<code>Return</code>を忘れて処理がおかしくなったりすることもあったので
+より明確に処理を分けることが出来るようになった、という感じはします。</p>
+
+<h3 id="if---hotif">#If -&gt; #HotIf</h3>
+
+<p>特定の条件下でHotkeyを有効にするためにv1では<code>#If</code>を使っていましたが、v2では<code>#HotIf</code>に変わりました。</p>
+
+<p><code>#IfWinActive</code>などはなくなり、
+<code>#HotIf WinActive(...)</code>のように条件部分を分けてかくようになりました。</p>
+
+<p><code>HotIfWinActive</code>などもはありますが、これらは上のような<code>::</code>を使ったHotkeyではなく<code>Hotkey</code>関数をつかった定義のための条件分岐として使われます。
+それらは特に動的にHotkeyを変更するときに使われるものです。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/HotIf.htm#IfWin">HotIf / HotIfWin… - Syntax &amp; Usage AutoHotkey v2</a></p>
+</blockquote>
+
+<p>単純なHotkey設定だけであれば上のHotkeyの関数化とこの<code>#HotIf</code>への変更を行えば大概動くはずです。</p>
+
+<h3 id="変数代入">変数代入</h3>
+
+<p>v1では<code>=</code>および<code>:=</code>で変数に代入できましたが、v2では<code>:=</code>のみになりました。</p>
+
+<p>v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">a</span> <span class="o">:=</span> <span class="s">&quot;abc&quot;</span><span class="c1">   ;1</span>
+</span><span class="line"><span class="n">a</span> <span class="o">:=</span> <span class="n">abc</span><span class="c1">     ;2</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span><span class="c1">    ;3</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="n">abc</span><span class="c1">      ;4</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="nv">%abc%</span><span class="c1">    ;5</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ol>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+  <li>“abc” (“も含む)</li>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+</ol>
+
+<p>といった代入になっていました。</p>
+
+<p><a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/">/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/</a></p>
+
+<p>v2では3, 4 ,5はできなくなります。
+一般的なプログラミング言語の代入を<code>:=</code>で行うようになった形です。</p>
+
+<p>v2では全体的に曖昧な書き方が削除されてわかりやすくなっています。</p>
+
+<p>また、v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにすると空文字列が代入されていましたが、v2ではエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように明示的に空文字列を代入する必要があります。</p>
+
+<h3 id="文字列の扱い">文字列の扱い</h3>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="nv">%abc%</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ul>
+  <li>“abcxyz”</li>
+  <li>“123xyz”</li>
+  <li>“123xyz”</li>
+</ul>
+
+<p>といった結果になりました。何もつけないと文字列として理解され、<code>%</code>囲むと変数として理解されました。
+さらに<code>% </code>で始めるとなにもないものは変数として扱われ<code>"</code>で囲むと文字列として扱われました。</p>
+
+<p>この辺もあまり他では見ないものでややこしくなる一員でしたが、v2では<code>% </code>という表記は削除され、基本全てが<code>% </code>で始まった状態として扱われるようになっています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<code>123xyz</code>と表示されます。</p>
+
+<p>これに関連して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="p">{</span><span class="n">Enter</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書きましたが、v2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="s">&quot;{Enter}&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>"</code>で囲む必要があります。</p>
+
+<p><code>Send</code>はHotkeyの設定で比較的よく使うと思うのでこの変更が必要となる部分は多いかもしれません。</p>
+
+<h3 id="コマンドは全て関数に">コマンドは全て関数に</h3>
+
+<p>上の<code>MsgBox</code>や<code>Send</code>のようなものはv1ではコマンド扱いでしたが
+関数となり、書き方が変わっています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm#legacy-syntax-removed">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">abc</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンド直後に<code>,</code>をつけても付けなくてもよかったのですが、v2では
+関数ではあるが関数の引数の両側の括弧を省略して書くことができる、という形なので、
+関数名直後に<code>,</code>をつけるとエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="s">&quot;abc&quot;</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="s">&quot;abc&quot;</span><span class="c1"> ; これはエラー</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これも<code>Send</code>でも同様で直す部分は結構あるかもしれません。</p>
+
+<p>また、関数化に伴い、引数の順序が変わったりもしています。</p>
+
+<p><code>MsgBox</code>だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Text</span>
+</span><span class="line"><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Options</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Timeout</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という書き方だったものがv2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span>
+</span><span class="line"><span class="n">Result</span> <span class="o">:=</span> <span class="n">MsgBox</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v1/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v1</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>もう一つ大きな変更は関数化により返り値が出るようにあんったので、
+これまで取得したい値を引数に渡して取り出すような形だったものの多くが返り値として取得できるようになりました。</p>
+
+<p>また、<code>KeyWait</code>など一部の関数では実行後に<code>ErrorLevel</code>という値を見ることで
+処理の成否を判断するようになっていましたが、これも関数化により返り値として取得できるようになりました。</p>
+
+<p><code>MsgBox</code>の<code>Timeout</code>も返り値として取得できるようになっています。
+また、<code>MsgBox</code>ではv1では<code>IfMsgBox</code>というコマンドを使って押されたボタンを判断していましたが、
+これも返り値に入ります。
+タイム・アウトすれば<code>timeout</code>、それ以外なら<code>OK</code>など押されたボタンの情報が入ります。</p>
+
+<h3 id="設定項目の変更">設定項目の変更</h3>
+
+<ul>
+  <li><code>#NoEnv</code>は削除(<code>NoEnv</code>な状態がデフォルトに)</li>
+  <li><code>#UseHook On</code> <i class="fa fa-arrow-right"></i> <code>#UseHook True</code> (On/OffからTrue/Falseに変更)</li>
+  <li><code>#InstallKeybdHook</code> <i class="fa fa-arrow-right"></i> <code>InstallKeybdHook</code> (#コマンドから関数に変更)</li>
+  <li><code>#HotkeyInterval 2000</code> <i class="fa fa-arrow-right"></i> <code>A_HotkeyInterval := 2000</code> (#コマンドから変数に変更)</li>
+</ul>
+
+<p>など、設定項目も変わっています。</p>
+
+<h3 id="gui周り">Gui周り</h3>
+
+<p>かなり変わってます。</p>
+
+<p>ボタンを押したときの動作などを<code>g-label</code>という形で<code>gCancel</code>のようにオプションに追加すると
+<code>Cancel</code>というラベルが呼ばれるようになっていましたが、
+v2では作られたオブジェクトに対して<code>OnEvent</code>という関数を使ってイベントを設定するようになりました。</p>
+
+<p>また、似たように<code>v</code>をつけるオプションで<code>vMyVar</code>をオプションに加えると<code>MyVar</code>というglobal変数に
+そのコントロールの値が入るようになっていましたが、
+v2では<code>vMyVar</code>のように<code>v</code>をつけるオプションは残っていますがこれは単にそのコントロールの名前を指定するだけのものになっています。</p>
+
+<p>コントロールでの値の取得はそのコントロールユニットの<code>Value</code>プロパティを使うようになっています。</p>
+
+<p>その他いろいろな変更がありますが、
+この辺り、もともとあったものを書き換えようと思うとかなりややこしいのですが、
+v2からの学び始めるのであればv1の書き方を覚えるよりも素直に理解できるようになってると思います。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/Gui.htm">Gui Object - Methods &amp; Properties AutoHotkey v2</a></p>
+</blockquote>
+
+<h2 id="vim_ahkのv2対応">vim_ahkのv2対応</h2>
+
+<p>以下のPRにまとめてあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/pull/101">Ahk v2 by rcmdnk · Pull Request #101 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>なるべく細かく一つ一つの変更に対応してcommitは分けてあります。</p>
+
+<p>v2の(もしくはv1のときにすでにアップデートで入っていた)書き方によってより良く出来そうな部分はまだあると思うので
+また改善していきたいと思います。</p>
+
+<p>現状、v1だったときに出来たことは全て出来るようになっていると思っていますが、
+もし何か不具合があればIssueなどで報告していただけると助かります。</p>
+
+<p>自分のv1スクリプトの中で使いたい場合は
+<a href="https://github.com/rcmdnk/vim_ahk/tree/v0.13.2">v0.13.2</a>などの<code>v0.13.X</code>以前のものか<a href="https://github.com/rcmdnk/vim_ahk/tree/ahk_v1">ahk_v1</a> branchのものを使ってください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim 0.10でcolorschemeを以前のように戻す]]></title>
+    <link href="https://rcmdnk.com/blog/2024/05/20/computer-vim/"/>
+    <updated>2024-05-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/05/20/computer-vim</id>
+    <content type="html"><![CDATA[<p><a href="https://neovim.io/doc/user/news-0.10.html">News-0.10</a>
+になって変わってしまった
+colorschemeを以前のように戻す方法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#termguicolors" id="markdown-toc-termguicolors">termguicolors</a></li>
+  <li><a href="#colorscheme--vim" id="markdown-toc-colorscheme--vim">colorscheme  vim</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="termguicolors">termguicolors</h2>
+
+<p>0.10からターミナルで立ち上げるCUI上のNeovimでも
+24-bitのtrue colorが有効な環境では
+<code>termguicolors</code>が有効になり
+<code>guifg</code>などで設定したGUI用の色が使われるようになりました。</p>
+
+<p>これを戻すには<strong>.config/nvim/init.vim</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">set</span> notermguicolors
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定しておきます。</p>
+
+<p>ほとんどの場合、GUI用の設定はCUI用の設定にプラスアルファで
+より繊細な色設定がされている状態で、
+またGUI用の方をメインとして作られていることも多いので
+これに関しては無理に戻す必要はないかもしれません。</p>
+
+<p>ただし、場合によってはNeovimが本来true colorをサポートしていない状態なのに
+勘違いして(実際には何らかの設定がTrue colorを示す状態になってしまっていて)<code>termguicolors</code>が有効になっていることがあるので
+その場合は<code>notermguicolors</code>を設定する必要があります。</p>
+
+<p>GUI用の設定と共有して<code>set termguicolors</code>を明に設定するのを避けたい場合は
+その原因を探ってNeovimが<code>termguicolors</code>を設定しないようにする必要があります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<h2 id="colorscheme--vim">colorscheme  vim</h2>
+
+<p>Neovim 0.10から<code>default</code>のcolorschemeが変更されました。</p>
+
+<p>以前の同じcolorschemeにするには</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">colorscheme</span> <span class="k">vim</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、<code>vim</code>というcolorschemeを指定します。</p>
+
+<p>また、いろいろな設定を一旦リセットしてからcolorschmeを設定するために</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line">
+</span><span class="line"><span class="k">hi</span> CursorLine ...
+</span><span class="line"><span class="k">hi</span> ColorColumn ...
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように一旦リセットしてからhighlightを設定していることもあるかと思います。</p>
+
+<p>0.10からは以前と同じようにするには</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">colorscheme</span> <span class="k">vim</span>
+</span><span class="line">
+</span><span class="line"><span class="k">hi</span> CursorLine ...
+</span><span class="line"><span class="k">hi</span> ColorColumn ...
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにclearした後に<code>vim</code>なcolorschemeを設定する必要があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/neovim/neovim/issues/26378">The new default colorscheme breaks legacy vim colorscheme: workarounds and future steps? · Issue #26378 · neovim/neovim</a></p>
+</blockquote>
+
+<p>ただし、別途colorschemeを導入している場合にはちょっと面倒です。</p>
+
+<p>colorschmeファイルの中でも、ほとんどの場合colorschmeファイルの先頭で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;syntax_on&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="nb">syntax</span> reset
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じでcolorschemeをリセットしています。</p>
+
+<p>なのでcolorschmeを設定する前に<code>colorschme vim</code>を設定しても意味ないですし、
+後からしても設定したcolorschemeが上書きされてしまいます。</p>
+
+<p>なのでcolorschme自体をアップデートする必要があります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">if</span> filereadable<span class="p">(</span>$VIMRUNTIME . <span class="s1">&#39;/colors/vim.lua&#39;</span><span class="p">)</span>
+</span><span class="line">  source $VIMRUNTIME<span class="sr">/colors/</span><span class="k">vim</span>.<span class="k">lua</span>
+</span><span class="line"><span class="k">endif</span>
+</span><span class="line"><span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;syntax_on&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="nb">syntax</span> reset
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じでNeovim 0.10で導入されたruntimeの中にある<strong>colors/vim.lua</strong>ファイルを読み込む必要があります。</p>
+
+<p>自分の環境ではもともと<strong>.vimrc</strong>に書いていた設定をプラグイン化したものを使っているので、
+そのプラグインをアップデートすることで対応しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/13/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171113_vimcolor_120_90.jpg" width="120" height="90" alt="20171113_vimcolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/13/computer-vim/">.vimrc見直しの一環としてカラースキームプラグインを作った</a></div></li></ul>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/rcmdnk-color.vim/commit/e2b8c300aff61cabf6c413ea910086ad0083bff9">feat: add support for nvim &gt;= 0.10 by conditionally sourcing vim.lua … · rcmdnk/rcmdnk-color.vim@e2b8c30</a></p>
+</blockquote>
+
+<p>colorschemeプラグインは頻繁に変更されるものでもないので
+よく使われているものでも長いこと更新されていないものも多く、
+Neovimへの対応ということもありなかなか対応されないものもあるかもしれません。</p>
+
+<p>その場合は他のcolorschemeを使うか、
+自分でforkして上の様な対応して使うかなどする必要があります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim 0.10でのtruecolorの取り扱いの変更に対する対応]]></title>
+    <link href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"/>
+    <updated>2024-05-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/05/19/vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovim 0.10がリリースされましたが
+導入したところシンタックスハイライトがまともに効かない状態になっていたので
+取り敢えずの対応について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#neovim-010" id="markdown-toc-neovim-010">Neovim 0.10</a></li>
+  <li><a href="#termguicolorsのデフォルト値の変更" id="markdown-toc-termguicolorsのデフォルト値の変更">termguicolorsのデフォルト値の変更</a></li>
+  <li><a href="#iterm2--gnu-screenでのtrue-color対応" id="markdown-toc-iterm2--gnu-screenでのtrue-color対応">iTerm2 + GNU Screenでのtrue color対応</a></li>
+  <li><a href="#gnu-screenでのtrue-color対応" id="markdown-toc-gnu-screenでのtrue-color対応">GNU Screenでのtrue color対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="neovim-010">Neovim 0.10</h2>
+
+<p><a href="https://neovim.io/doc/user/news-0.10.html">News-0.10 - Neovim docs</a></p>
+
+<p>結構いろいろな変更が入っていて、
+<a href="https://neovim.io/doc/user/news-0.10.html#_-breaking-changes">BREAKING CHANGES</a>
+の項目にもいろいろな変更が含まれています。</p>
+
+<h2 id="termguicolorsのデフォルト値の変更">termguicolorsのデフォルト値の変更</h2>
+
+<p>この中で個人的に問題になったのが</p>
+
+<blockquote>
+  <p>‘termguicolors’ is enabled by default when Nvim is able to determine that the host terminal emulator supports 24-bit color.</p>
+</blockquote>
+
+<p>これまではこの設定を明に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">set</span> termguicolors
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と設定していなければターミナル上では24-bitのtrue colorは無効になっていましたが
+0.10からは環境を見てTrue colorがサポートされているとみなされるとこれが自動的に有効になるようになりました。</p>
+
+<p>現在多くの端末エミュレータはtrue colorに対応しているので
+これまで上記の設定をしてなかった人は0.10にアップデートした時点で
+シンタックスハイライトが少し変わった表示になっているかもしれません。</p>
+
+<p>デフォルトのカラースキーマ自体が変わったので
+そちらの影響で変わっている部分もあるかもしれません。</p>
+
+<p>とはいえ、true colorが使えるのであれば使った方がより繊細な表示で
+最近のカラースキーマはGUIを中心としてtrule color前提で作られているものが多いので
+使えるなら使ったほうが良いとは思います。</p>
+
+<h2 id="iterm2--gnu-screenでのtrue-color対応">iTerm2 + GNU Screenでのtrue color対応</h2>
+
+<p>macOSのもともと入っているターミナルアプリはtrue colorに対応していませんが
+<a href="https://iterm2.com/">iTerm2</a>ではtrue colorに対応しています。</p>
+
+<blockquote><p><div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span><br /><span class="line-number">2</span><br /><span class="line-number">3</span><br /><span class="line-number">4</span><br /><span class="line-number">5</span><br /><span class="line-number">6</span><br /><span class="line-number">7</span><br /><span class="line-number">8</span><br /><span class="line-number">9</span><br /><span class="line-number">10</span><br /><span class="line-number">11</span><br /><span class="line-number">12</span><br /><span class="line-number">13</span><br /><span class="line-number">14</span><br /><span class="line-number">15</span><br /></pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>awk<span class="w"> </span>-v<span class="w"> </span><span class="nv">term_cols</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">width</span><span class="k">:-$(</span>tput<span class="w"> </span>cols<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="m">80</span><span class="k">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-v<span class="w"> </span><span class="nv">term_lines</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">height</span><span class="k">:-</span><span class="nv">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s1">&#39;BEGIN{</span><br /></span><span class="line"><span class="s1">    s=&quot;/\\&quot;;</span><br /></span><span class="line"><span class="s1">    total_cols=term_cols*term_lines;</span><br /></span><span class="line"><span class="s1">    for (colnum = 0; colnum&lt;total_cols; colnum++) {</span><br /></span><span class="line"><span class="s1">        r = 255-(colnum*255/total_cols);</span><br /></span><span class="line"><span class="s1">        g = (colnum*510/total_cols);</span><br /></span><span class="line"><span class="s1">        b = (colnum*255/total_cols);</span><br /></span><span class="line"><span class="s1">        if (g&gt;255) g = 510-g;</span><br /></span><span class="line"><span class="s1">        printf &quot;\033[48;2;%d;%d;%dm&quot;, r,g,b;</span><br /></span><span class="line"><span class="s1">        printf &quot;\033[38;2;%d;%d;%dm&quot;, 255-r,255-g,255-b;</span><br /></span><span class="line"><span class="s1">        printf &quot;%s\033[0m&quot;, substr(s,colnum%2+1,1);</span><br /></span><span class="line"><span class="s1">        if (colnum%term_cols==term_cols) printf &quot;\n&quot;;</span><br /></span><span class="line"><span class="s1">    }</span><br /></span><span class="line"><span class="s1">    printf &quot;\n&quot;;</span><br /></span><span class="line"><span class="s1">}&#39;</span><br /></span></code></pre></td></tr></table></div></figure></notextile></div>bash</p><footer><strong>terminal - Print true color (24-bit) test pattern - Unix &amp; Linux Stack Exchange</strong> <cite><a href="https://unix.stackexchange.com/questions/404414/print-true-color-24-bit-test-pattern">unix.stackexchange.com/404414/&hellip;</a></cite></footer></blockquote>
+
+<p>こんな感じのスクリプトでなだらかに色が表示されてればOK。
+対応していなければ色が飛び飛びの状態になります。</p>
+
+<p>True color
+<img src="https://rcmdnk.com/images/post/20240519_truecolor.png" alt="20240519_truecolor.png" class="pic" /></p>
+
+<p>Non-true color
+<img src="https://rcmdnk.com/images/post/20240519_nontruecolor.png" alt="20240519_nontruecolor.png" class="pic" /></p>
+
+<p>また、
+iTerm2上でNeovim 0.10を使うとたしかに<code>termguicolors</code>が有効になっていました。</p>
+
+<p>コマンドモードで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="p">:</span> <span class="k">set</span> termguicolors?
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で確認出来ます。</p>
+
+<p>0.9でやってみると<code>notermguicolors</code>になっているのに対して
+0.10では<code>termguicolors</code>になっていました。</p>
+
+<p>実際シンタックスハイライトもtrue colorで表示されているようで
+これまでの表示よりも繊細な色が出ています。</p>
+
+<p>が、問題はGNU Screenです。</p>
+
+<p>GNU Screenは現在の4.9.1でもtrue colorに対応していないので
+true colorは無効な状態で使う必要があります。</p>
+
+<p>使えない状態なのでこれまで通り<code>termguicolors</code>を無効のまま使っていれば
+問題ないわけですが、
+0.10にアップデートしたところシンタックスハイライトがまともに効かない状態になってしまいました。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="p">:</span> <span class="k">set</span> termguicolors?
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で確認すると<code>termguicolors</code>になっています。</p>
+
+<p>GNU screenには<code>truecolor on</code>という設定がありますが、
+このオプションは少なくとも現状のステーブルバージョンでは意味がない設定になっています。</p>
+
+<p>ですが、このオプションをonにしてもoffにしても上の状況は変わらず。</p>
+
+<p>Windowsでは
+<a href="https://hyper.is/">Hyper</a>
+を使っていますが、こちらもtrue color対応で、そのままだとNeovimで0.10ではtrue colorが使われていますが、
+Gnu Screenを使っているとtrue colorが使われていない状態になっています。</p>
+
+<p>実際<code>notermguicolors</code>になっていました。</p>
+
+<p>ということでGNU Screenの設定など以外で何かiTermの場合だけscreen内でもtrue colorが有効だと勘違いする設定があるみたいです。</p>
+
+<p>問題なのは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">COLORTERM</span><span class="o">=</span>truecolor
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という環境変数が設定されていることでした。</p>
+
+<p>hyperでは設定されてません。</p>
+
+<p>この環境変数がGNU Screenの中でも引き継がれてNeovimが勘違いしていたようです。</p>
+
+<p>実際、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">unset</span><span class="w"> </span>COLORTERM
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として変更してNeovimを起動すると<code>termguicolors</code>が無効になりました。</p>
+
+<p>他のターミナル上で<code>COLORTERM</code>が設定されていなくてもこれまで特に不満はなかったので
+取り敢えずはこれで対応しておきます。</p>
+
+<h2 id="gnu-screenでのtrue-color対応">GNU Screenでのtrue color対応</h2>
+
+<p>GNU Screenでtrue colorが有効にできればよいわけですが、ちょっとやった感じうまくいってません。</p>
+
+<p>上にも書いたように<code>truecolor on</code>という設定があるのですが、それは現状バージョンでは意味がない設定になっています。</p>
+
+<blockquote>
+  <p><a href="https://bbs.archlinux.org/viewtopic.php?id=249670">GNU Screen : True color (24bit) support / Applications &amp; Desktop Environments / Arch Linux Forums</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://arstechnica.com/civis/threads/truecolor-support-in-screen-on-ubuntu.1425567/">truecolor support in screen? (on ubuntu)  Ars OpenForum</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-03/msg01152.html">bug#62237: 28.1 or higher: 24-bit true color breaks colours in Emacsen b</a></p>
+</blockquote>
+
+<p>version 5では有効になる？といった話もあり、
+masterブランチの最新版を使えば有効になっているとの話もあったのですが、
+以下からmasterブランチをとってきてビルドしてみたところ、
+<code>trulecolor on</code>のオプションを設定して
+neovimを立ち上げたところ、<code>COLORTERM</code>を設定していない状態では
+<code>notermguicolors</code>になっていました。</p>
+
+<blockquote>
+  <p><a href="https://git.savannah.gnu.org/cgit/screen.git">screen.git - screen</a></p>
+</blockquote>
+
+<p>また、上の<code>awk</code>コマンドを実行してみると、薄緑一色が表示される状態で明らかになにかおかしな状態。</p>
+
+<p>さらにNeovimを立ち上げて<code>set termguicolors</code>を設定すると
+なにもないところでも変な色が表示されるようになりました。</p>
+
+<p>どうもまともに色付けが働いてない状態です。</p>
+
+<p>現在のmasterは2024/03/27のコミットが最終コミットで、
+どこかの状態だとうまく動いているのもあるのかもしれませんが。</p>
+
+<p>もしくは何かしらビルド時のオプションや、設定のほうでなにかあるのかも。</p>
+
+<p>ぱっとではうまくいかなかったので、またそのうち調べてみます。</p>
+
+<p>ChatGPTに聞いてみたら、<code>truecolor</code>オプションなど教えてくれましたが、
+うまくいかないというとtmux使え、と言い出してしまい。。。</p>
+
+<p>上のリンクの中でもそういった話の流れもあるのでまあそういうのを学んでいるのだと思いますが、
+ちょっと悲しい。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/05/24 </strong></p>
+
+  <p><code>unset COLORTERM</code>で対応していたところ、GNU screen内からNeovimを立ち上げると一瞬、</p>
+
+  <p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+  <p>みたいな何か文字化けのような変なものが見えるようになりました。</p>
+
+  <p><strong>init.vim</strong>で色々設定しているとその作業でこれが消えた状態に最終的になりますが、
+<strong>.init.vim</strong>を空にして見てみるとこの表示が一番上に残った状態で始まります。</p>
+
+  <p>ただし、これが書き込まれているわけではなく画面を動かすと消えるようなもの。</p>
+
+  <p>どうもこれは</p>
+
+  <blockquote>
+    <p><a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+  </blockquote>
+
+  <p>ここで問題にされている問題のようで、GNU Screenで対応できていない(?)エスケープシーケンスを使って
+truecolorをチェックしていることによりそれがそのまま表示されてしまうといった問題の模様(きちんとは理解していない)。</p>
+
+  <p>概要としては0.10.0からtruecolorかどうかを動的にチェックするようになって、
+その過程で行う作業で出てくるものとのこと。</p>
+
+  <p><code>set notermguicolors</code>として明示的にtruecolorをoffにしておけばこのチェックを行わないので
+これが出ません。</p>
+
+  <p>ということで、<strong>init.vim</strong>の中で<code>notermguicolors</code>をセットしておくことにしました。</p>
+
+  <p><code>COLORTERM</code>に関しては特にどっちでも変わらない状況ではありますが、
+setしてあっても困らないので一旦GNU screenに入るときでもunsetせずにそのままにしておくように。</p>
+
+  <p>これによってGNU screenを使わないときでもtruecolorを使えない状態にはなりますが、
+基本的にGNU screen内で作業するので、きれいな表示だとしても下手に違う表示になる方が気持ち悪いので
+全てでnotermguicolorsでやるほうが良いだろう、という言い訳をしてそうしておきます。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2024/05/29 </strong></p>
+
+  <p>Windows上で
+<a href="https://hyper.is/">Hyper™</a>
+を使ってWSL2上のNeovimを使っているのですが、
+この際、<code>COLORTERM</code>はあらかじめセットされていない状態で、
+この状態だとGNU screen内で<code>set notermguicolors</code>をしていても上のエスケープシーケンスが表示されるようになってしまいました。</p>
+
+  <p><code>COLORTERM</code>がセットされていない状態だと最初にチェックを行うようになっているのか、
+そのチェックの過程でエスケープシーケンスが表示されるようです。</p>
+
+  <p><code>COLORTERM</code>の値ですが、<code>truecolor</code>もしくは<code>24bit</code>が取れるようですが、</p>
+
+  <blockquote>
+    <p><a href="https://gitlab.com/gnachman/iterm2/-/issues/5294">export COLORTERM=truecolor (#5294) · イシュー · George Nachman / iterm2 · GitLab</a></p>
+  </blockquote>
+
+  <p>このどちらにしても<code>notermguicolors</code>になっていなければNeovim上ではtruecolorが有効になりました。</p>
+
+  <p><code>COLORTERM</code>をunsetするか、0や1といった意味のない(ターミナルによっては意味がある?)値にすると
+<code>notermguicolors</code>をセットしなくてもtruecolorは無効になりますが
+エスケープシーケンスが表示される状態になります。</p>
+
+  <p>Hyperではtruecolorをサポートしていますが、直接立ち上げた状態では<code>COLORTERM</code>はセットされていませんが
+<code>notermguicolors</code>をセットしなければtruecolorが有効になり、かつきちんと表示されます。</p>
+
+  <p>ということで、GNU screenを立ち上げる際、逆に</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">COLORTERM</span><span class="o">=</span>24bit
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>を明示して立ち上げるようなスクリプトにしておきました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2024/06/05 </strong></p>
+
+  <p><a href="https://github.com/neovim/neovim/pull/29197">fix(tui): move $COLORTERM check to _defaults.lua by gpanders · Pull Request #29197 · neovim/neovim</a></p>
+
+  <p>やはりCOLORTERMに<code>24bit</code>もしくは<code>truecolor</code>がセットされている場合にはそれを使い、
+それ以外の値がセットされているか値がない場合にはtruecolorが使えるかどうかチェックしに行くようになっっているみたいです。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Vimでコピペ用に色々消す]]></title>
+    <link href="https://rcmdnk.com/blog/2022/10/25/computer-vim/"/>
+    <updated>2022-10-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/10/25/computer-vim</id>
+    <content type="html"><![CDATA[<p>Vim/NeoVimの表示で左側にGitの変更状況を表示したり
+色々と言語サポートを表示したりすることが出来ますが、
+サクッとマウスなどでコピペする際、それらが表示されていると文字として認識されて
+余計な文字までコピーされてしまいます。</p>
+
+<p>その辺り一時的に表示を消してコピペをしたり出来るようにする設定について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#消したいもの" id="markdown-toc-消したいもの">消したいもの</a></li>
+  <li><a href="#各種設定変更方法" id="markdown-toc-各種設定変更方法">各種設定変更方法</a>    <ul>
+      <li><a href="#list" id="markdown-toc-list">list</a></li>
+      <li><a href="#nowrap" id="markdown-toc-nowrap">nowrap</a></li>
+      <li><a href="#signcolumn" id="markdown-toc-signcolumn">signcolumn</a></li>
+      <li><a href="#スペルチェック" id="markdown-toc-スペルチェック">スペルチェック</a></li>
+      <li><a href="#文末以降のチルダ" id="markdown-toc-文末以降のチルダ">文末以降のチルダ</a></li>
+      <li><a href="#coc-pyrightによる型ヒント" id="markdown-toc-coc-pyrightによる型ヒント">coc-pyrightによる型ヒント</a></li>
+      <li><a href="#cocnvimのerrorなどに対する下線など" id="markdown-toc-cocnvimのerrorなどに対する下線など">coc.nvimのErrorなどに対する下線など</a></li>
+      <li><a href="#cocnvimのpopupやその他もろもろ" id="markdown-toc-cocnvimのpopupやその他もろもろ">coc.nvimのpopupやその他もろもろ</a></li>
+    </ul>
+  </li>
+  <li><a href="#変更設定" id="markdown-toc-変更設定">変更設定</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="消したいもの">消したいもの</h2>
+
+<p>消したいものは以下のもの。</p>
+
+<ul>
+  <li>list: 文末の空白やタブなど</li>
+  <li>nowrap: 長い行を折り返さないで隠す設定</li>
+  <li>signcolumn: Gitの変更やエラーなどの状況。</li>
+  <li>文末以降のチルダ(EndOfBuffer)</li>
+  <li>coc-pyrightによる型ヒント</li>
+</ul>
+
+<p>他にもプラグインや設定によってはあるかもしれませんが、
+現状自分の設定だとこんなものでした。</p>
+
+<h2 id="各種設定変更方法">各種設定変更方法</h2>
+
+<h3 id="list">list</h3>
+
+<p>文末の空白やタブなどを可視化する設定。
+<code>listchars</code>で設定された各種状態の可視化をするかしないかを決める値です。</p>
+
+<p>これは</p>
+
+<pre><code>set nolist
+</code></pre>
+
+<p>としてやれば消えます。</p>
+
+<p>再び見せる場合には</p>
+
+<pre><code>set list
+</code></pre>
+
+<p>もともと<code>nolist</code>になっている可能性もあるので、最初の状態を取得しておきます。</p>
+
+<pre><code>let g:default_list = &amp;list
+</code></pre>
+
+<p><code>set</code>に関する値を取得したい場合には<code>&amp;</code>を使って取ることができます。</p>
+
+<p>これで隠したいときは</p>
+
+<pre><code>set nolist
+</code></pre>
+
+<p>で必ず<code>nolist</code>にし、戻したいときは</p>
+
+<pre><code>let &amp;list = g:default_list
+</code></pre>
+
+<p>とすることで、もとの状態に戻します。</p>
+
+<p><code>set</code>には直接変数を与えることは出来ませんが、上のように<code>let &amp;&lt;var&gt;</code>とすることで
+変数を<code>set</code>の設定に渡すことが出来ます。</p>
+
+<p>この設定はウィンドウ(表示されている枠)毎に設定されています。(<code>set</code>でも<code>setlocal</code>でも変わらない。)</p>
+
+<p>Ref: <code>help nolist</code></p>
+
+<blockquote>
+  <pre><code>                                            'list' 'nolist' 'list'                  boolean (default off)
+                    local to window
+</code></pre>
+</blockquote>
+
+<h3 id="nowrap">nowrap</h3>
+
+<p>長い行を複数行にせずにスクロールのような形で画面移動して見に行くようにする設定。</p>
+
+<p>これは</p>
+
+<pre><code>set wrap
+</code></pre>
+
+<p>とすると画面内に複数行で表示されるようになります。</p>
+
+<p>ただ、これに関しては現状では最初から<code>wrap</code>で運用してますが、一応考慮に入れておきます。</p>
+
+<p>この設定もウィンドウ毎に設定されています。</p>
+
+<h3 id="signcolumn">signcolumn</h3>
+
+<p>左側に1列か数列文の情報表示をする設定。</p>
+
+<p>プラグインでGitの変更状態を表示させたり、言語サポートプラグインで文法エラーを表示したりする事ができます。</p>
+
+<p>これを消すには</p>
+
+<pre><code>set signcolumn=no
+</code></pre>
+
+<p><code>signcolumn</code>には<code>auto</code>などの値が入っているので、最初に</p>
+
+<pre><code>let g:default_signcolumn = &amp;signcolumn
+</code></pre>
+
+<p>で値を取得しておいて戻す際には</p>
+
+<pre><code>let &amp;signcolumn = g:default_signcolumn
+</code></pre>
+
+<p>とします。</p>
+
+<h3 id="スペルチェック">スペルチェック</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>スペルチェックを有効にしていると間違ったスペルに下線が付いたりします。</p>
+
+  <p>これは</p>
+
+  <pre><code>set spell
+</code></pre>
+
+  <p>の設定で有効になり、</p>
+
+  <pre><code>set nospell
+</code></pre>
+
+  <p>で無効にできます。</p>
+
+  <p>この下線はコピペする際には取得されないのでちょっと用途がずれますが、
+コードの見た目から邪魔なものをなくしてみたい、という時にも使いたいのでこれも追加。</p>
+
+  <p>スペルチェックに関しては別途、</p>
+
+  <pre><code>nnoremap &lt;silent&gt; &lt;Leader&gt;s :setlocal spell!&lt;CR&gt;
+</code></pre>
+
+  <p>という設定を入れていて<code>&lt;Leader&gt;s</code>でトグルするようにもしています。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="文末以降のチルダ">文末以降のチルダ</h3>
+
+<p>短いファイルを表示する際、Vimのウィンドウがファイルよりも長い場合、
+ファイル外の下部の部分に関しては<code>~</code>で始まるラインとして表示されます。</p>
+
+<p>これに関しては直接方法はなく、この表示部分のシンタックスグループのテキストの色を
+背景と同じにする、ということで消します。</p>
+
+<p>この<code>~</code>は<code>EndOfBuffer</code>というシンタックスグループで管理されています。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/1294790/how-to-change-the-color-of-the-tilde-characters-indicating-the-filler-lines-afte">How to change the color of the tilde characters indicating the filler lines after the last line of a buffer in Vim? - Stack Overflow</a>)</p>
+</blockquote>
+
+<p>通常はこれが<code>NonText</code>の言うシンタックスグループにリンクされていて、
+<code>EndOfBuffer</code>自体では指定をしていません。</p>
+
+<p><code>NonText</code>を使っているものがざっと見なかったですが、とりあえずこの両方を
+背景と同じ色にしておけばOK。</p>
+
+<p>バックグラウンドの色に関しては<code>Ignore</code>というシンタックスグループがあり、
+この文字の色が背景と同じ色になって見せないようになっています。</p>
+
+<p>これらの色は</p>
+
+<pre><code>let g:default_nontext_fg = synIDattr(hlID('NonText'), 'fg')
+let g:default_endofbuffer_fg = synIDattr(hlID('EndOfBuffer'), 'fg')
+if g:default_endofbuffer_fg == ""
+  let g:default_endofbuffer_fg = g:default_nontext_fg
+endif
+let g:ignore_fg = synIDattr(hlID('Ignore'), 'fg')
+</code></pre>
+
+<p>みたいな感じで取得できます。</p>
+
+<p><code>hlID</code>というのがグループ名からIDを取得する関数で、<code>synIDattr</code>でそのIDに関する情報を取得できます。
+<code>synIDattr</code>の2つ目以降の引数にほしい情報名を入れて取得。
+ここでは<code>fg</code>、つまりはテキストの色を取得しています。(2つ目以降、複数を指定することも可能。)</p>
+
+<p><code>EndOfBuffer</code>に関しては指定が無いこともあるので、後で戻す際に空欄のままだとエラーになるので
+もし指定がない場合は<code>NonText</code>のものを入れておきます。</p>
+
+<p>これで、隠したいときは</p>
+
+<pre><code>execute "highlight NonText ctermfg=" . g:ignore_fg . " guifg=" . g:ignore_fg
+execute "highlight EndOfBuffer ctermfg=" . g:ignore_fg . " guifg=" . g:ignore_fg
+</code></pre>
+
+<p>として<code>Ignore</code>の色にします。
+<code>highlight</code>に対して直接変数を与えることはできませんが、コマンドを文字列にしてから<code>execute</code>に渡すことで変数を使うことが出来ます。</p>
+
+<p>一応<code>ctermfg</code>, <code>guifg</code>両方を指定していますがgvimを使わないとかターミナルでは使わないとかあればどちらかだけでも。</p>
+
+<p>これを元に戻すには</p>
+
+<pre><code>execute "highlight NonText ctermfg=" . g:default_nontext_fg . " guifg=" . g:default_nontext_fg
+execute "highlight EndOfBuffer ctermfg=" . g:default_endofbuffer_fg . " guifg=" . g:default_endofbuffer_fg
+</code></pre>
+
+<p>とすればOK。</p>
+
+<p>これらのハイライト設定は常にグローバルで、
+バッファごととかウィンドウごとにはなりません。</p>
+
+<p>頑張ればできるかもしれませんが、結構面倒な感じなので現状では変更はグローバルな変更の状態になっています。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/49301534/vim-highlight-setting-local">Vim Highlight Setting Local - Stack Overflow</a></p>
+</blockquote>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>シンタックスグループに関しては以下のような関数を用意して取得するように更新。</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">function</span><span class="p">!</span> s:get_orig_highlight<span class="p">(</span>group<span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:id <span class="p">=</span> hlID<span class="p">(</span><span class="k">a</span>:group<span class="p">)-&gt;</span>synIDtrans<span class="p">()</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:fg <span class="p">=</span> synIDattr<span class="p">(</span><span class="k">l</span>:id<span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:<span class="nb">bg</span> <span class="p">=</span> synIDattr<span class="p">(</span><span class="k">l</span>:id<span class="p">,</span> <span class="s1">&#39;bg&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:fg <span class="p">!=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="k">l</span>:orig . <span class="s1">&#39; ctermfg=&#39;</span> . <span class="k">l</span>:fg . <span class="s1">&#39; guifg=&#39;</span> . <span class="k">l</span>:fg
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:<span class="nb">bg</span> <span class="p">!=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="k">l</span>:orig . <span class="s1">&#39; ctermbg=&#39;</span> . <span class="k">l</span>:<span class="nb">bg</span> . <span class="s1">&#39; guibg=&#39;</span> . <span class="k">l</span>:<span class="nb">bg</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:orig <span class="p">==</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">return</span> <span class="s1">&#39;highlight &#39;</span> . <span class="k">a</span>:group . <span class="k">l</span>:orig
+</span><span class="line"><span class="k">endfunction</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p><code>hlID</code>で取得したIDから<code>synIDtrans</code>を使うことで
+そのIDが別のグループにリンクされているとそのリンク先の情報が得られます。</p>
+
+  <p>もし、そのリンク先も別のグループにリンクされていたとすると
+最終的なリンク先まで<code>synIDtrans</code>一発でたどり着くことができます。</p>
+
+  <p>もしリンクされていなければそのままそのIDが返されます。</p>
+
+  <p>これを使って</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">let</span> <span class="k">g</span>:default_endofbuffer <span class="p">=</span> s:get_orig_highlight<span class="p">(</span><span class="s1">&#39;EndOfBuffer&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>とすることで元の状態を保持しておいて後で戻すための情報をコマンドとして保存しておきます。</p>
+
+  <p>基本的に背景色は無いグループですが、一応変わる可能性も考えて
+背景色も保存して変更するようにしました。</p>
+
+  <p>これで、</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">if</span> <span class="k">b</span>:current_view <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">  ...
+</span><span class="line">  execute <span class="k">g</span>:default_nontext
+</span><span class="line">  execute <span class="k">g</span>:default_endofbuffer
+</span><span class="line">  ...
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">0</span>
+</span><span class="line">  ...
+</span><span class="line">  <span class="nb">highlight</span><span class="p">!</span> link NonText Ignore
+</span><span class="line">  <span class="nb">highlight</span><span class="p">!</span> link EndOfBuffer Ignore
+</span><span class="line">  ...
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>のように、ハイライトがかかっているときには必要なものを<code>Ignore</code>にリンクして
+戻すときは最初に保存したコマンドを実行する、という形にすることでスッキリ出来ました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="coc-pyrightによる型ヒント">coc-pyrightによる型ヒント</h3>
+
+<p>coc.nvimのサポートプラグインのcoc-pyrightでは最近型ヒントが付けられていない部分に対して
+型ヒントを表示してくれる機能が追加されました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="nb">def</span> add<span class="p">(</span><span class="k">a</span>: int<span class="p">,</span> <span class="k">b</span>: int<span class="p">)</span>:
+</span><span class="line">    <span class="k">return</span> <span class="k">a</span> <span class="p">+</span> <span class="k">b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな関数があると、返り値は<code>int</code>が予想されますが、これに対して、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="nb">def</span> add<span class="p">(</span><span class="k">a</span>: int<span class="p">,</span> <span class="k">b</span>: int<span class="p">)</span>: <span class="p">-&gt;</span> int
+</span><span class="line">    <span class="k">return</span> <span class="k">a</span> <span class="p">+</span> <span class="k">b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように表示してくれます。(<code>-&gt; int</code>の部分)</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>NeoVimだとこのように表示されますが、
+Vimだと下の実際の文法と同じ様な表示になります。</p>
+
+  <p><code>-&gt; int</code>の部分を非文字として追加して表示することが出来るようです。
+その場合にはコピペするとそのまま使えるコードになります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>関数の返り値の他、変数の型ヒントも表示してくれます。</p>
+
+<p>ただし、きちんと型ヒントを書くと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="nb">def</span> add<span class="p">(</span><span class="k">a</span>: int<span class="p">,</span> <span class="k">b</span>: int<span class="p">)</span> <span class="p">-&gt;</span> int:
+</span><span class="line">    <span class="k">return</span> <span class="k">a</span> <span class="p">+</span> <span class="k">b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>:</code>より前に書かないといけないので、coc-pyrightで表示されたものをそのままコピペするとエラーになります。</p>
+
+<p>これは<strong>~/.vim/coc-settings.json</strong>(<strong>~/.config/nvim/coc-settings.json</strong>)の中で、</p>
+
+<pre><code>"pyright.inlayHints.functionReturnTypes": false,
+"pyright.inlayHints.variableTypes": false,
+</code></pre>
+
+<p>とすると無効化出来ます。</p>
+
+<p>有効にしている場合には(調べた限り)それぞれを変更することは出来ませんが、</p>
+
+<pre><code>CocCommand document.toggleInlayHint
+</code></pre>
+
+<p>というコマンドを実行することで表示を消したり表示したりすることが出来ます。
+現状では表示する、消す、といったコマンドはないようでトグルするだけです。</p>
+
+<p>この設定はバッファごと(つまりは開いたファイルごと)の変更になります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>Inlay Hintは言語によってあるものとないものがあり、ないものを開いてこのコマンドを使うと</p>
+
+  <pre><code>[coc.nvim] Inlay hint provider not found for current document
+</code></pre>
+
+  <p>と言ったエラーが出ます。
+無視してしまっても良いのですが、これに関しては、</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">if</span> CocHasProvider<span class="p">(</span><span class="s1">&#39;inlayHint&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="k">v</span>:true
+</span><span class="line">  CocCommand document.toggleInlayHint
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>のように<code>inlayHint</code>というProviderがあるかないか、を調べる関数があるのでそれを使うことで余計なエラーを出さずに実行できるようになります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="cocnvimのerrorなどに対する下線など">coc.nvimのErrorなどに対する下線など</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>coc.nvimで文法エラーなどを検出するとその部分に上のsigncolumよる表示とともに
+該当の部分に下線が引かれたりします。</p>
+
+  <p>これもコピペには直接作用しませんが、すっきり表示するために消したいな、と思い設定を入れてみました。</p>
+
+  <p>これらは<code>CocXXXHighlight</code>(<code>XXX=Unused, Error, Warning, Info, Hint</code>)というグループがあり
+これらが下線や取り消し線、背景色を薄く塗るグループにリンクされています。</p>
+
+  <blockquote>
+    <p>https://github.com/neoclide/coc.nvim/blob/2692b894a2d4c17d2def60969e6af078dcda1a12/plugin/coc.vim#L511</p>
+  </blockquote>
+
+  <p>上のリンクにあるように、これらは</p>
+
+  <pre><code>`hi default link CocErrorHighlight
+</code></pre>
+
+  <p>のように<code>default link</code>が使われているため、なんらか変更行ったあとに<code>highlight clear</code>することで戻すことが出来ます。</p>
+
+  <p>なのでこれらに関しては最初に設定は取得せずに、</p>
+
+  <figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">if</span> <span class="k">b</span>:current_view <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">  ...
+</span><span class="line">  <span class="k">if</span> dein#tap<span class="p">(</span><span class="s1">&#39;coc.nvim&#39;</span><span class="p">)</span>
+</span><span class="line">    <span class="k">for</span> name <span class="k">in</span> [<span class="s1">&#39;Unused&#39;</span><span class="p">,</span> <span class="s1">&#39;Deprecated&#39;</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span> <span class="s1">&#39;Warning&#39;</span><span class="p">,</span> <span class="s1">&#39;Info&#39;</span><span class="p">,</span> <span class="s1">&#39;Hint&#39;</span>]
+</span><span class="line">      exe <span class="s1">&#39;highlight clear Coc&#39;</span> . name . <span class="s1">&#39;Highlight&#39;</span>
+</span><span class="line">    <span class="k">endfor</span>
+</span><span class="line">    ...
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  ...
+</span><span class="line"><span class="k">else</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">0</span>
+</span><span class="line">  ...
+</span><span class="line">  <span class="k">if</span> dein#tap<span class="p">(</span><span class="s1">&#39;coc.nvim&#39;</span><span class="p">)</span>
+</span><span class="line">    <span class="k">for</span> name <span class="k">in</span> [<span class="s1">&#39;Unused&#39;</span><span class="p">,</span> <span class="s1">&#39;Deprecated&#39;</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span> <span class="s1">&#39;Warning&#39;</span><span class="p">,</span> <span class="s1">&#39;Info&#39;</span><span class="p">,</span> <span class="s1">&#39;Hint&#39;</span>]
+</span><span class="line">      exe <span class="s1">&#39;highlight Coc&#39;</span> . name . <span class="s1">&#39;Highlight ctermbg=NONE guibg=NONE cterm=NONE gui=NONE guisp=NONE&#39;</span>
+</span><span class="line">    <span class="k">endfor</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  ...
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>のように、ハイライトがついているときは<code>cterm</code>, <code>ctermbg</code>などを<code>NONE</code>にしてしまい、
+戻すときは<code>clear</code>で戻すようにしました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="cocnvimのpopupやその他もろもろ">coc.nvimのpopupやその他もろもろ</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>coc.nvimがつけるものが結構色々あって、一つはErrorなどになっている部分にカーソルがあるとpopupが出ることがあります。</p>
+
+  <p>その状態でコピペするとその部分がとれてしまうので、一度別の場所にカーソルを動かすなどしないといけません。</p>
+
+  <p>これに関しては</p>
+
+  <pre><code>call coc#float#close_all()
+</code></pre>
+
+  <p>を呼ぶことで消すことが出来ます。</p>
+
+  <p>これらのポップアップはカーソルをもう一度移動して戻すと再表示されてしまいますが、
+一時的には消した状態を維持できます。</p>
+
+  <p>ポップアップが出ないようにcoc.nvim自体を無効化することも考えられますが、
+それがちょっとうまくいきませんでした。</p>
+
+  <p><code>CocDisable</code>、<code>CocEnable</code>というコマンドがあって無効化、有効化が出来るんですが、
+これらのコマンドを実行しても残るものがあって、
+下にあるように<code>clearmatches</code>などを使って一通り消せるとはあり、もしこれでうまく行けば
+シンタックスグループなども逐次変更せずにすみます。</p>
+
+  <p>ただ、Inlay Hintに関しては独立しているのか残ってしまいました。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/neoclide/coc.nvim/issues/1268">Cleanup syntax highlighting on :CocDisable / :CocRestart · Issue #1268 · neoclide/coc.nvim</a></p>
+  </blockquote>
+
+  <p>さらに微妙なのが、なぜか<code>CocDisable</code>を最初にした直後は<code>document.toggleInlayHint</code>をしても消えず、
+その後このコマンドを実行すると<code>CocEnable</code>、<code>CocDisable</code>の状態に関係なくtoggleが実行されます。</p>
+
+  <p>これによってどうやってもうまく制御出来なかったので<code>CocDisable</code>を使うのはやめました。</p>
+
+  <p><code>b:coc_enabled</code>や<code>b:coc_diagnostic_disable</code>といった状態を制御する変数も用意されていますがこれらも
+思ったようには使えず。</p>
+
+  <p>また、<code>clearmatches</code>を使ってしまうと戻すのに別途コマンドが色々必要になることもあって結構面倒です。</p>
+
+  <p>なので最終的にはcoc.nvim自体は有効にしたまま必要なシンタックスグループなどを直接変更するなどして対処しています。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="変更設定">変更設定</h2>
+
+<p>以下の様な関数とキーバインドを用意してさっと変えられるようにします。</p>
+
+<figure class="code"><figcaption><span>.vimrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">function</span><span class="p">!</span> s:toggle_view<span class="p">()</span>
+</span><span class="line">  <span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;g:default_list&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_list <span class="p">=</span> &amp;<span class="nb">list</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_wrap <span class="p">=</span> &amp;<span class="nb">wrap</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_signcolumn <span class="p">=</span> &amp;signcolumn
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_nontext_fg <span class="p">=</span> synIDattr<span class="p">(</span>hlID<span class="p">(</span><span class="s1">&#39;NonText&#39;</span><span class="p">),</span> <span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_endofbuffer_fg <span class="p">=</span> synIDattr<span class="p">(</span>hlID<span class="p">(</span><span class="s1">&#39;EndOfBuffer&#39;</span><span class="p">),</span> <span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+</span><span class="line">    <span class="k">if</span> <span class="k">g</span>:default_endofbuffer_fg <span class="p">==</span> <span class="s2">&quot;&quot;</span>
+</span><span class="line">      <span class="k">let</span> <span class="k">g</span>:default_endofbuffer_fg <span class="p">=</span> <span class="k">g</span>:default_nontext_fg
+</span><span class="line">    <span class="k">endif</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:ignore_fg <span class="p">=</span> synIDattr<span class="p">(</span>hlID<span class="p">(</span><span class="s1">&#39;Ignore&#39;</span><span class="p">),</span> <span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;b:current_view&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">b</span>:current_view <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">    <span class="k">let</span> &amp;<span class="nb">list</span> <span class="p">=</span> <span class="k">g</span>:default_list
+</span><span class="line">    <span class="k">let</span> &amp;<span class="nb">wrap</span> <span class="p">=</span> <span class="k">g</span>:default_list
+</span><span class="line">    <span class="k">let</span> &amp;signcolumn <span class="p">=</span> <span class="k">g</span>:default_signcolumn
+</span><span class="line">    execute <span class="s2">&quot;highlight NonText ctermfg=&quot;</span> . <span class="k">g</span>:default_nontext_fg . <span class="s2">&quot; guifg=&quot;</span> . <span class="k">g</span>:default_nontext_fg
+</span><span class="line">    execute <span class="s2">&quot;highlight EndOfBuffer ctermfg=&quot;</span> . <span class="k">g</span>:default_endofbuffer_fg . <span class="s2">&quot; guifg=&quot;</span> . <span class="k">g</span>:default_endofbuffer_fg
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">set</span> <span class="nb">nolist</span>
+</span><span class="line">    <span class="k">set</span> <span class="nb">wrap</span>
+</span><span class="line">    <span class="k">set</span> signcolumn<span class="p">=</span>no
+</span><span class="line">    execute <span class="s2">&quot;highlight NonText ctermfg=&quot;</span> . <span class="k">g</span>:ignore_fg . <span class="s2">&quot; guifg=&quot;</span> . <span class="k">g</span>:ignore_fg
+</span><span class="line">    execute <span class="s2">&quot;highlight EndOfBuffer ctermfg=&quot;</span> . <span class="k">g</span>:ignore_fg . <span class="s2">&quot; guifg=&quot;</span> . <span class="k">g</span>:ignore_fg
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> dein#tap<span class="p">(</span><span class="s1">&#39;coc.nvim&#39;</span><span class="p">)</span>
+</span><span class="line">    CocCommand document.toggleInlayHint
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line"><span class="k">endfunction</span>
+</span><span class="line">command<span class="p">!</span> ToggleView <span class="k">call</span> s:toggle_view<span class="p">()</span>
+</span><span class="line"><span class="nb">nnoremap</span> <span class="p">&lt;</span><span class="k">silent</span><span class="p">&gt;</span> <span class="p">&lt;</span>Leader<span class="p">&gt;</span><span class="k">c</span> :ToggleView<span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>この設定で<code>&lt;Leader&gt;c</code>と押すたびに表示変更が行われます。
+(<code>&lt;Leader&gt;</code>はデフォルトではバックスラッシュ。自分の設定では<code>,</code>になっているのでこのトグルは<code>,c</code>で行う。)</p>
+
+<p><code>coc.nvim</code>に関してはプラグインが入っている場合にのみ実行されるようにしています。</p>
+
+<p>ここではdein.vimを使って管理しているのでそれを使ってチェック。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001NFYTVW?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001NFYTVW&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71GHQdnXXLL._SS90_CR0,0,120,90_.jpg" alt="COCキー" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/10/24/computer-vim/">coc.nvimのサポートプラグインを管理する</a></div></li></ul>
+
+<p>一番最初にこの関数が実行された際にデフォルトの表示設定をグローバル変数に記録しておきます。</p>
+
+<p>トグルの状態に関しては<code>b:current_view</code>というバッファ変数に記録しておきます。</p>
+
+<p>ちょっとやっかいなのは</p>
+
+<ul>
+  <li><code>list</code>など<code>set</code>に関するもの: ウィンドウ(<code>w</code>)</li>
+  <li><code>highlight</code>: グローバル(<code>g</code>)</li>
+  <li>cocの<code>InlayHint</code>: バッファ(<code>b</code>)</li>
+</ul>
+
+<p>でそれぞれの状態の変更範囲が違うところ。</p>
+
+<p><code>ToggleView</code>を実行すると、<code>highlight</code>はすべての箇所で変更されますが、
+<code>list</code>などは現在のウィンドウのみで変更されます。
+さらにcocの<code>InlayHint</code>に関してはバッファ単位なので、もし同じファイルを2つのウィンドウに分けて表示している場合にはその両方で変更されます。</p>
+
+<p>ホントはすべてウィンドウ毎に変更できれば良いのですが、かなり面倒なので現状ではこのような感じまでで。</p>
+
+<p><code>InlayHint</code>に関してはOn/Offを指定する方法はないため、これがバッファごとということを踏まえて
+状態の保存の変数は<code>b:current_viedw</code>というバッファ変数にしてこの状態と揃えるようにしています。</p>
+
+<p>これによって、一時的に<code>list</code>だけが消えたウィンドウなどが出来てしまいますが、
+そのウィンドウで<code>&lt;Leader&gt;c</code>を2回以上押せばすべてが揃って表示、または非表示の状態にすることが出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20221025_vimview0.jpg" alt="20221025_vimview0.jpg" class="pic" /></p>
+
+<p>これを</p>
+
+<p><img src="https://rcmdnk.com/images/post/20221025_vimview1.jpg" alt="20221025_vimview1.jpg" class="pic" /></p>
+
+<p>こんな感じに。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/11/06 </strong></p>
+
+  <p>アップデート版は以下の通り</p>
+
+  <figure class="code"><figcaption><span>.vimrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">function</span><span class="p">!</span> s:get_orig_highlight<span class="p">(</span>group<span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:id <span class="p">=</span> hlID<span class="p">(</span><span class="k">a</span>:group<span class="p">)-&gt;</span>synIDtrans<span class="p">()</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:fg <span class="p">=</span> synIDattr<span class="p">(</span><span class="k">l</span>:id<span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:<span class="nb">bg</span> <span class="p">=</span> synIDattr<span class="p">(</span><span class="k">l</span>:id<span class="p">,</span> <span class="s1">&#39;bg&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:fg <span class="p">!=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="k">l</span>:orig . <span class="s1">&#39; ctermfg=&#39;</span> . <span class="k">l</span>:fg . <span class="s1">&#39; guifg=&#39;</span> . <span class="k">l</span>:fg
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:<span class="nb">bg</span> <span class="p">!=</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">l</span>:orig <span class="p">=</span> <span class="k">l</span>:orig . <span class="s1">&#39; ctermbg=&#39;</span> . <span class="k">l</span>:<span class="nb">bg</span> . <span class="s1">&#39; guibg=&#39;</span> . <span class="k">l</span>:<span class="nb">bg</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">l</span>:orig <span class="p">==</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">return</span> <span class="s1">&#39;highlight &#39;</span> . <span class="k">a</span>:group . <span class="k">l</span>:orig
+</span><span class="line"><span class="k">endfunction</span>
+</span><span class="line">
+</span><span class="line"><span class="k">function</span><span class="p">!</span> s:toggle_view<span class="p">()</span>
+</span><span class="line">  <span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;g:default_list&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_list <span class="p">=</span> &amp;<span class="nb">list</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_wrap <span class="p">=</span> &amp;<span class="nb">wrap</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_signcolumn <span class="p">=</span> &amp;signcolumn
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_spell <span class="p">=</span> &amp;<span class="k">spell</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_nontext <span class="p">=</span> s:get_orig_highlight<span class="p">(</span><span class="s1">&#39;NonText&#39;</span><span class="p">)</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">g</span>:default_endofbuffer <span class="p">=</span> s:get_orig_highlight<span class="p">(</span><span class="s1">&#39;EndOfBuffer&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;b:current_view&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line">  <span class="k">if</span> <span class="k">b</span>:current_view <span class="p">==</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">1</span>
+</span><span class="line">    <span class="k">let</span> &amp;<span class="nb">list</span> <span class="p">=</span> <span class="k">g</span>:default_list
+</span><span class="line">    <span class="k">let</span> &amp;<span class="nb">wrap</span> <span class="p">=</span> <span class="k">g</span>:default_wrap
+</span><span class="line">    <span class="k">let</span> &amp;signcolumn <span class="p">=</span> <span class="k">g</span>:default_signcolumn
+</span><span class="line">    <span class="k">let</span> &amp;<span class="k">spell</span> <span class="p">=</span> <span class="k">g</span>:default_spell
+</span><span class="line">    execute <span class="k">g</span>:default_nontext
+</span><span class="line">    execute <span class="k">g</span>:default_endofbuffer
+</span><span class="line">    <span class="k">if</span> dein#tap<span class="p">(</span><span class="s1">&#39;coc.nvim&#39;</span><span class="p">)</span>
+</span><span class="line">      <span class="k">for</span> name <span class="k">in</span> [<span class="s1">&#39;Unused&#39;</span><span class="p">,</span> <span class="s1">&#39;Deprecated&#39;</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span> <span class="s1">&#39;Warning&#39;</span><span class="p">,</span> <span class="s1">&#39;Info&#39;</span><span class="p">,</span> <span class="s1">&#39;Hint&#39;</span>]
+</span><span class="line">        exe <span class="s1">&#39;highlight clear Coc&#39;</span> . name . <span class="s1">&#39;Highlight&#39;</span>
+</span><span class="line">      <span class="k">endfor</span>
+</span><span class="line">      <span class="k">if</span> CocHasProvider<span class="p">(</span><span class="s1">&#39;inlayHint&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="k">v</span>:true
+</span><span class="line">        CocCommand document.toggleInlayHint
+</span><span class="line">      <span class="k">endif</span>
+</span><span class="line">    <span class="k">endif</span>
+</span><span class="line">  <span class="k">else</span>
+</span><span class="line">    <span class="k">let</span> <span class="k">b</span>:current_view <span class="p">=</span> <span class="m">0</span>
+</span><span class="line">    <span class="k">set</span> <span class="nb">nolist</span>
+</span><span class="line">    <span class="k">set</span> <span class="nb">wrap</span>
+</span><span class="line">    <span class="k">set</span> signcolumn<span class="p">=</span>no
+</span><span class="line">    <span class="k">set</span> <span class="nb">nospell</span>
+</span><span class="line">    <span class="nb">highlight</span><span class="p">!</span> link NonText Ignore
+</span><span class="line">    <span class="nb">highlight</span><span class="p">!</span> link EndOfBuffer Ignore
+</span><span class="line">    <span class="k">if</span> dein#tap<span class="p">(</span><span class="s1">&#39;coc.nvim&#39;</span><span class="p">)</span>
+</span><span class="line">      <span class="k">for</span> name <span class="k">in</span> [<span class="s1">&#39;Unused&#39;</span><span class="p">,</span> <span class="s1">&#39;Deprecated&#39;</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span> <span class="s1">&#39;Warning&#39;</span><span class="p">,</span> <span class="s1">&#39;Info&#39;</span><span class="p">,</span> <span class="s1">&#39;Hint&#39;</span>]
+</span><span class="line">        exe <span class="s1">&#39;highlight Coc&#39;</span> . name . <span class="s1">&#39;Highlight ctermbg=NONE guibg=NONE cterm=NONE gui=NONE guisp=NONE&#39;</span>
+</span><span class="line">      <span class="k">endfor</span>
+</span><span class="line">      <span class="k">if</span> CocHasProvider<span class="p">(</span><span class="s1">&#39;inlayHint&#39;</span><span class="p">)</span> <span class="p">==</span> <span class="k">v</span>:true
+</span><span class="line">        CocCommand document.toggleInlayHint
+</span><span class="line">      <span class="k">endif</span>
+</span><span class="line">      <span class="k">call</span> coc#float#close_all<span class="p">()</span>
+</span><span class="line">    <span class="k">endif</span>
+</span><span class="line">  <span class="k">endif</span>
+</span><span class="line"><span class="k">endfunction</span>
+</span><span class="line">command<span class="p">!</span> ToggleView <span class="k">call</span> s:toggle_view<span class="p">()</span>
+</span><span class="line"><span class="nb">nnoremap</span> <span class="p">&lt;</span><span class="k">silent</span><span class="p">&gt;</span> <span class="p">&lt;</span>Leader<span class="p">&gt;</span><span class="k">c</span> :ToggleView<span class="p">&lt;</span>CR<span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>NeoVimでは</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20221106_vimview2.jpg" alt="20221106_vimview2.jpg" class="pic" /></p>
+
+  <p>が</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20221106_vimview3.jpg" alt="20221106_vimview3.jpg" class="pic" /></p>
+
+  <p>Vimでは</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20221106_vimview4.jpg" alt="20221106_vimview4.jpg" class="pic" /></p>
+
+  <p>が
+<img src="https://rcmdnk.com/images/post/20221106_vimview5.jpg" alt="20221106_vimview5.jpg" class="pic" /></p>
+
+  <p>の状態に。</p>
+
+  <p>コードちょっと変更してエラーとかを少し追加してあります。
+popupの例も。</p>
+
+  <p>あと、<code>CocErrorHighlight</code>などによる下線が何故か最初の例だと出てませんが、ここだと<code>__main__</code>の右の行末のスペースなどの部分に下線が出ているものがあって、
+これもちゃんと消えてるのが確認出来ると思います。</p>
+
+  <p>何故か最初の例だとmain関数がif文の中にあったので移動。。。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+</feed>
