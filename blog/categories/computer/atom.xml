@@ -1,0 +1,1450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2025-08-02T01:21:15+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[git worktreeの管理]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/28/computer-git/"/>
+    <updated>2025-07-28T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/28/computer-git</id>
+    <content type="html"><![CDATA[<p>Git Worktreeの管理方法について、
+外部ツールなどを使わずにできる個人的便利設定。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#worktreeを管理する場所" id="markdown-toc-worktreeを管理する場所">Worktreeを管理する場所</a></li>
+  <li><a href="#worktree関連のalias" id="markdown-toc-worktree関連のalias">Worktree関連のalias</a></li>
+  <li><a href="#worktreeの切り替え" id="markdown-toc-worktreeの切り替え">Worktreeの切り替え</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="worktreeを管理する場所">Worktreeを管理する場所</h2>
+
+<p>Worktreeはレポジトリルートに<strong>.worktree</strong>というディレクトリを作ってその中で管理するようにしています。
+レポジトリの中で閉じたいので。</p>
+
+<p>このディレクトリはルートのGit管理からは外したいので
+<strong>.gitignore</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">/.worktree</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を追加しておきます。</p>
+
+<p><strong>.git</strong>ディレクトリの中に作るという案も出てたりしますが、
+gitの内部構造用ディレクトリなので避けた方が無難です。</p>
+
+<p>submoduleのような状態で管理している場合にはそもそも<strong>.git</strong>がディレクトリでなくなり、
+親の<strong>.git</strong>ディレクトリを使ったりするとよくわからなくなってくこともあるかもしれないので。</p>
+
+<p>現状この方法で一つ困ってるのが、仮想環境を自動認識してくれるmiseを使った環境設定を行っている際。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p><strong>.mise.toml</strong>がworktreeとその親のディレクトリでも見つかって重複してしまうわけですが、
+Pythonの仮想環境(だけ？かほかもそうかは見てません)を自動認識する際に
+その際にPATHが親ディレクトリの方の仮想環境が前につけられてしまいます。</p>
+
+<p>その他の設定は例えばenvなどで違う値を指定していればworktreeの方が優先されて設定されます。</p>
+
+<p>基本的には近い<strong>.mise.toml</strong>の設定が優先されるようになっているはずですが、
+どうもバグっぽい。</p>
+
+<blockquote>
+  <p><a href="https://github.com/jdx/mise/issues/4515">Python virtual env is in wrong order in PATH for nested configs · Issue #4515 · jdx/mise</a></p>
+</blockquote>
+
+<p>これを避けるためにはやはりレポジトリ外に<strong>worktree</strong>を作る必要があるのですが、
+管理が煩雑になるので中に作りたい気持ちがあり、
+現状では上のバグがそのうち治ることを期待して、
+<code>uv</code>を使った仮想環境ではworktreeでは<code>uv run ...</code>のようにして仮想環境を使うようにしています。</p>
+
+<h2 id="worktree関連のalias">Worktree関連のalias</h2>
+
+<p>以下のようなGitのaliasを設定しておくと便利です。</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[alias]</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># worktree</span>
+</span><span class="line"><span class="w">  </span><span class="n">wt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">worktree</span>
+</span><span class="line"><span class="w">  </span><span class="n">wl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">worktree list</span>
+</span><span class="line"><span class="w">  </span><span class="n">wa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $# -eq 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      echo &#39;Usage: git wa &lt;worktree_name&gt;&#39;;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git worktree add .worktree/$1; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">wr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f() {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $# -eq 1 ] &amp;&amp; [ </span><span class="se">\&quot;</span><span class="s2">$1</span><span class="se">\&quot;</span><span class="s2"> != </span><span class="se">\&quot;</span><span class="s2">--force</span><span class="se">\&quot;</span><span class="s2"> ] &amp;&amp; [ </span><span class="se">\&quot;</span><span class="s2">$1</span><span class="se">\&quot;</span><span class="s2"> != </span><span class="se">\&quot;</span><span class="s2">-f</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      git worktree remove </span><span class="se">\&quot;</span><span class="s2">$@</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    wt=$(git worktree list|grep &#39;</span><span class="se">\\</span><span class="s2">.worktree/&#39;|sentaku -s $&#39;</span><span class="se">\n</span><span class="s2">&#39;|cut -d &#39; &#39; -f1);</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -z </span><span class="se">\&quot;</span><span class="s2">$wt</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git worktree remove </span><span class="se">\&quot;</span><span class="s2">$wt</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>wt</code>は単に短縮alias。<code>wl</code>もそのまま。</p>
+
+<p><code>wa</code>はworktree名を指定することで、<strong>.worktree</strong>の中にその名前でworktreeを追加します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git wa my-worktree</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>レポジトリ下のいずれかの中にいてもalias内のコマンドはレポジトリルートで実行されるので
+感ならず**<repo>/.worktree/my-worktree**が作成されます。</repo></p>
+
+<p>worktreeの中から<code>git wa</code>を実行してももとのレポジトリルートの中の<strong>.worktree</strong>に作成されます。</p>
+
+<p><code>wr</code>はworktreeを削除するaliasです。</p>
+
+<p>worktree名が直接渡された場合はそのworktreeを削除します。</p>
+
+<p>引数が与えられないか<code>-f</code>/<code>--force</code>だけが渡された場合は
+現在存在するworktreeの中から選択して削除します。</p>
+
+<p><code>git worktree list</code>ではもとのレポジトリルートの位置も表示されるので、
+<code>.worktree/</code>の中にあるものだけを選択できるようにしています。</p>
+
+<p>上では<a href="https://github.com/rcmdnk/sentaku">sentaku</a>を使ってますが、
+<a href="https://github.com/junegunn/fzf">fzf</a>や<a href="https://github.com/peco/peco">peco</a>
+など好きなもので。</p>
+
+<h2 id="worktreeの切り替え">Worktreeの切り替え</h2>
+
+<p>aliasだとディレクトリ移動はできないので、
+worktreeの切り替えに関しては以下のようなシェルの関数を作って
+<strong>.bashrc</strong>などで読み込んで起きます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span><span class="nv">gitcmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">type</span><span class="w"> </span>git<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ret</span><span class="o">=</span><span class="nv">$?</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$ret</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$gitcmd</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s1">&#39;is a function&#39;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span>git-wc<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="c1"># worktree change</span>
+</span><span class="line"><span class="w">      </span><span class="nv">selected</span><span class="o">=</span><span class="k">$(</span><span class="nb">command</span><span class="w"> </span>git<span class="w"> </span>worktree<span class="w"> </span>list<span class="p">|</span>sentaku<span class="w"> </span>-s<span class="w"> </span><span class="s1">$&#39;\n&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">      </span><span class="nv">ret</span><span class="o">=</span><span class="nv">$?</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$ret</span><span class="w"> </span>-ne<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nv">$ret</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$selected</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="nb">local</span><span class="w"> </span><span class="nv">dir</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$selected</span><span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">1</span><span class="k">)</span><span class="p">;</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="k">else</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Directory </span><span class="nv">$dir</span><span class="s2"> does not exist.&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span>git<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;wc&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="nb">command</span><span class="w"> </span>git<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nv">$?</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span>git-wc
+</span><span class="line"><span class="w">    </span><span class="o">}</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>git</code>コマンドがある場合、まず<code>git-wc</code>という関数を定義します。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[.pre-commit-config.yamlがあるレポジトリで自動的にずpre-commit installされた状態にする]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/27/computer-python/"/>
+    <updated>2025-07-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/27/computer-python</id>
+    <content type="html"><![CDATA[<p>Gitのレポジトリに<strong>.pre-commit-config.yaml</strong>ファイルが用意されていて
+pre-commitでリンターなどがかけられるようになっていても、
+<code>pre-commit install</code>を忘れてしまうとpre-commitが動作しません。</p>
+
+<p>手動でやろうとするとどうしても忘れてしまうので、
+自動化する方法についていくつかやってみたものについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pre-commit" id="markdown-toc-pre-commit">pre-commit</a></li>
+  <li><a href="#git-alias" id="markdown-toc-git-alias">Git alias</a></li>
+  <li><a href="#git-inittemplatedir" id="markdown-toc-git-inittemplatedir">Git init.templateDir</a></li>
+  <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pre-commit">pre-commit</h2>
+
+<p>Gitのhookの機能で<strong>.git/hooks/pre-commit</strong>にスクリプトを置いておくと
+コミット時に自動的に実行され、問題があるとコミットが中断されるようになります。</p>
+
+<p>その実行内容を簡単に管理できるようにするのが
+その名も<a href="https://pre-commit.com/">pre-commit</a>というツール。</p>
+
+<p><code>pre-commit install</code>を実行すると
+pre-commitツールが管理するツールを実行するための
+<strong>.git/hooks/pre-commit</strong>がインストールされます。</p>
+
+<p><code>pre-commit</code>コマンドは
+レポジトリルートに置かれた
+<strong>.pre-commit-config.yaml</strong>という設定ファイルに従って
+ツールを実行します。</p>
+
+<p><strong>.pre-commit-config.yaml</strong>や中で使うツールの設定などを適時レポジトリ内に追加しておけば
+コミット時に必要なチェックが行われ必要な形を担保できます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873119324?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873119324&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41JjzCF-UFL._SS90_CR0,0,120,90_.jpg" alt="入門 Python 3 第2版" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/07/computer-python/">Pythonレポジトリ用のpre-commit環境を整える</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4814400179?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4814400179&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Xh3Xdtg-L._SS90_CR0,0,120,90_.jpg" alt="ロバストPython ―クリーンで保守しやすいコードを書く" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/01/computer-python/">pyproject-pre-commit: Pythonプロジェクト用のpre-commit集</a></div></li></ul>
+
+<p>ただ、<code>pre-commit install</code>を忘れてしまうとコミット時のチェックが行われません。</p>
+
+<p>結構忘れたまま過ごしてしまうこともあるので、Gitのレポジトリを取ってきたら中で必ず
+<code>pre-commit install</code>が実行された状態になるような方法をいくつか試してみました。</p>
+
+<p>基本的にはPythonで
+<a href="https://docs.astral.sh/uv/">uv</a>
+を使って管理されているレポジトリを想定していますが、
+Pythonじゃなくてもそのまま使える部分もありますし
+必要に応じて調整すれば使えるはずです。</p>
+
+<h2 id="git-alias">Git alias</h2>
+
+<p><strong>~/.gitconfig</strong>に以下のようなaliasを設定します。</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[alias]</span>
+</span><span class="line"><span class="w">  </span><span class="n">cl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git clone </span><span class="se">\&quot;</span><span class="s2">$@</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    ret=$?;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ </span><span class="se">\&quot;</span><span class="s2">$ret</span><span class="se">\&quot;</span><span class="s2"> != 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return $ret;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    for last_arg; do :; done; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -d </span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      d=</span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    else </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      d=</span><span class="se">\&quot;</span><span class="s2">$(basename </span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2"> .git)</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    cd </span><span class="se">\&quot;</span><span class="s2">$d</span><span class="se">\&quot;</span><span class="s2">; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $? -ne 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      echo </span><span class="se">\&quot;</span><span class="s2">Failed to change directory to $d</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if type uv &gt; /dev/null 2&gt;&amp;1 &amp;&amp; [ -f uv.lock ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      uv sync;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -f .pre-commit-config.yaml ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      if uv run which pre-commit &gt; /dev/null 2&gt;&amp;1;then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">        uv run pre-commit install;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      elif type pre-commit &gt; /dev/null 2&gt;&amp;1;then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">        pre-commit install;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>git clone</code>の代わりに<code>git cl</code>を使うと、
+レポジトリをクローンした後に
+特に最後の部分でレポジトリの中に<strong>.pre-commit-config.yaml</strong>があれば<code>pre-commit install</code>を実行するようにしています。</p>
+
+<p><code>pre-commit</code>コマンドはuvで管理される仮想環境化にあるのであればそれを使い、
+そこにない場合にはグローバルにインストールされていればそれを使います。</p>
+
+<p>そのため、その上で<strong>.uv.lock</strong>があれば<code>uv sync</code>を実行して
+仮想環境の準備もしておきます。</p>
+
+<p>この方法だと<strong>.gitconfig</strong>さえdotfilesなどで管理しておけば
+どの環境でもどうように使えますし、
+また<code>uv</code>などに関しても必要なものがあれば初期設定を追加することも出来ます。</p>
+
+<p>これが一番簡単で確実な方法かな、と思います。
+pre-commitに関してはこれでほぼほぼ問題ないはず。</p>
+
+<p>ただ、あくまでaliasなので、普通に<code>git clone</code>したら出来ないですし、
+<a href="https://github.com/x-motemen/ghq">ghq</a>みたいなレポジトリ管理ツールなどを使う場合にも
+適用されないので
+それらのときでも同様のことをするためには必要に応じてwrapperを作るなどする必要があります。</p>
+
+<h2 id="git-inittemplatedir">Git init.templateDir</h2>
+
+<p>Gitでは<code>init.templateDir</code>を<strong>.gitconfig</strong>に設定しておくと、
+その中にある<strong>hooks</strong>などのディレクトリにあるファイルを
+<strong>.git/hooks</strong>などにコピーしてくれます。</p>
+
+<p><strong>.git</strong>の中には<strong>hoooks</strong>や<strong>info</strong>といったディレクトリが作られますが、
+その中にあるファイルは元々Gitをインストールしたときに一緒にインストールされる
+<strong>git-core/templates</strong>の中にあるものがコピーされます。</p>
+
+<p>通常は<code>$(git --exec-path)/../share/git-core/templates)</code>のような場所にあります。
+ここの<strong>hooks</strong>には<strong>pre-commit.sample</strong>などのhookのサンプルが置かれていて、
+クローンしたレポジトリの<strong>.git/hooks/pre-commit</strong>はそのサンプルが入っている状態になります。</p>
+
+<p><code>init.templateDir</code>にファイルを置いておくとこれらの代わりに<code>init.templateDir</code>で指定したディレクトリの中にあるファイルが
+<strong>.git</strong>にコピーされるようになります。</p>
+
+<p>この設定のため、まず、<strong>.gitconfig</strong>に</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[init]</span>
+</span><span class="line"><span class="w">  </span><span class="n">templateDir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">~/.config/git-templates</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような設定を追加するか、もしくはコマンドで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git config --global init.templateDir ~/.config/.git-templates</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を実行して設定を追加します。</p>
+
+<p>テンプレートディレクトリの場所はどこでも良いのでHOME直下に<strong>.git-templates</strong>として作ったり好きなように。</p>
+
+<p><code>pre-commit</code>コマンドには<code>init-templatedir</code>というサブコマンドがあり、これによって指定したテンプレートディレクトリに<strong>pre-commit</strong>ファイルを追加することができます。</p>
+
+<p>もし<code>pre-commit</code>コマンドがグローバルにインストールされているのであれば、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit init-templatedir ~/.config/git-templates</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で、<strong>~/.config/git-templates/hooks/pre-commit</strong>にpre-commitファイルが追加され、
+次にCloneする際にこのファイルが追加されます。</p>
+
+<p>一方、uvなどで管理している仮想環境化に<code>pre-commit</code>コマンドがインストールされている場合には、
+これだと別のものになってしまいます。
+逆にその仮想環境化で作った<strong>pre-commit</strong>ファイルはそのレポジトリ専用のものになってしまいます。</p>
+
+<figure class="code"><figcaption><span>pre-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="c1"># start templated</span>
+</span><span class="line"><span class="nv">INSTALL_PYTHON</span><span class="o">=</span>&lt;/path/to&gt;/python3
+</span><span class="line"><span class="nv">ARGS</span><span class="o">=(</span>hook-impl<span class="w"> </span>--config<span class="o">=</span>.pre-commit-config.yaml<span class="w"> </span>--hook-type<span class="o">=</span>pre-commit<span class="o">)</span>
+</span><span class="line"><span class="c1"># end templated</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">HERE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nv">ARGS</span><span class="o">+=(</span>--hook-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HERE</span><span class="s2">&quot;</span><span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INSTALL_PYTHON</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exec</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INSTALL_PYTHON</span><span class="s2">&quot;</span><span class="w"> </span>-mpre_commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">elif</span><span class="w"> </span><span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>pre-commit<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exec</span><span class="w"> </span>pre-commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;`pre-commit` not found.  Did you forget to activate your virtualenv?&#39;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初の<code>INSTALL_PYTHON</code>が<code>&lt;repo&gt;/.venv/bin/python3</code>のような
+Pythonのパスになってたりします。</p>
+
+<p>これをいろいろな環境で完璧に合わせるのは難しいので最小限の状態にして
+かつ、pre-commitが設定されてないレポジトリでは実行しないように、</p>
+
+<figure class="code"><figcaption><span>pre-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>root<span class="k">)</span><span class="s2">/.pre-commit-config.yaml&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ARGS</span><span class="o">=(</span>hook-impl<span class="w"> </span>--config<span class="o">=</span>.pre-commit-config.yaml<span class="w"> </span>--hook-type<span class="o">=</span>pre-commit<span class="o">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nv">HERE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ARGS</span><span class="o">+=(</span>--hook-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HERE</span><span class="s2">&quot;</span><span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exec</span><span class="w"> </span>pre-commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようなスクリプトにしておくと
+基本的にグローバルにインストールされている<strong>pre-commit</strong>コマンドが実行され、
+必要であればレポジトリで仮想環境下に入って実行、もしくはuvなら<code>uv run git commit</code>などすれば
+その仮想環境下の<code>pre-commit</code>コマンドが実行されるようになります。</p>
+
+<p>すべてのレポジトリにインストールされるので、<strong>.pre-commit-config.yaml</strong>がないレポジトリでは
+実行しないようにしておく必要があります。</p>
+
+<h2 id="mise">mise</h2>
+
+<p><a href="https://mise.jdx.dev/">mise</a>はPythonだけでなく様々な言語の仮想環境を管理できるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p>この<a href="https://mise.jdx.dev/">mise</a>を使っている場合に使える方法。</p>
+
+<p>miseを有効にするために、レポジトリ<strong>.mise.toml</strong>を作成しておく必要がありますが、
+それを以下のような設定にしておきます。</p>
+
+<figure class="code"><figcaption><span>.mise.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[env]</span>
+</span><span class="line"><span class="n">_</span><span class="p">.</span><span class="n">python</span><span class="p">.</span><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.venv&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[settings]</span>
+</span><span class="line"><span class="n">experimental</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[hooks]</span>
+</span><span class="line"><span class="n">enter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;[ -x </span><span class="se">\&quot;</span><span class="s2">$(git rev-parse --git-path hooks/pre-commit)</span><span class="se">\&quot;</span><span class="s2"> ] || uv run pre-commit install &gt;/dev/null&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>miseにも<a href="https://mise.jdx.dev/hooks.html">hooks</a>という機能がありますが、現状正式版にはなっていないため、
+使うためには<code>experimental = true</code>を設定しておく必要があります。</p>
+
+<p>hooksはmiseの古いバージョンだと使えないかもしれないので
+使えない場合はmiseのバージョンを更新してみてください。
+(少なくともversion 2025.7.4だと使える)</p>
+
+<p>hooksはディレクトリを移動するたびに実行される<code>cd</code>や特定のファイルが変更されたときに実行される<code>watch_files</code>などがありますが、
+<code>enter</code>/<code>leave</code>といったレポジトリ内に入った際や出た際に実行されるものもあります。</p>
+
+<p>この<code>enter</code>を使って<code>pre-comimt install</code>を実行するようにしておきます。</p>
+
+<p>ここでは<code>pre-commit</code>コマンドがuvで仮想環境にインストールされるようになっているレポジトリを仮定しています。
+もし、<code>pre-commit</code>コマンドをレポジトリ依存ではなくグローバルなものとして使ってる場合には単に<code>pre-commit install</code>に変更してください。</p>
+
+<p>この方法の利点としては
+レポジトリ側での設定なのでレポジトリごとに必要に応じた設定ができること。</p>
+
+<p>また、<code>enter</code>の指定なので、仮に間違って<strong>.git/hooks/pre-commit</strong>ファイルを消してしまっても
+次にそのレポジトリに入ったときに追加されます。</p>
+
+<p>上の2つのGitだけの設定に比べると一般性は下がりますが、
+その分レポジトリごとに必要な設定ができるので便利です。</p>
+
+<p>欠点としてはmiseを使ってないと意味がないということと、
+<code>enter</code>はレポジトリ下に入るたびに実行されるのでちょっと冗長かもしれないということ。</p>
+
+<p><code>uv run pre-cmmit install</code>は場合によっては実行時間が気になることもあるかもしれません。
+なので上のように<strong>pre-commit</strong>がインストールされてないときだけ実行するようにしてあります。</p>
+
+<p>また、毎回<code>uv run</code>してしまうと<code>uv sync</code>相当のことが毎回行われるのも場合によっては問題になるかもしれないので
+基本的にはこのように必要なときだけ実行するようにしておいが方が良いと思います。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>cloneするときに、という点では最初のようなaliasを使えば
+pre-commitだけでなく、必要なものを自由に設定できるので
+便利です。</p>
+
+<p>ただ、<code>cl</code>意外を使ってしまう場合があれば適用されないので
+その場合を把握しておく必要があります。</p>
+
+<p><code>init.templateDir</code>を使う方法は
+pre-commitに関しては割と確実な方法ではありますが、
+pre-commit関係ないレポジトリでも入れてしまったり、
+どの環境のpre-commitを使うかで場合によって動かないこともあるので注意が必要です。</p>
+
+<p>miseを使う方法だとレポジトリごとに必要な設定もできるので便利です
+ただmiseを使っていないと意味がないという欠点があります。
+またレポジトリ側の設定なので自分で管理できるレポジトリでの話になります。</p>
+
+<p>個人的な現状の設定としてはaliasとmiseの方法を入れてあります</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[cVimがChromeのManifest V3で使えなくなったのでVimium Cに乗り換えた]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/12/computer-chrome-vim/"/>
+    <updated>2025-07-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/12/computer-chrome-vim</id>
+    <content type="html"><![CDATA[<p>3月頃にすでに一部のChromeの拡張機能が使えなくなる警告は出ていましたが、とりあず手動で有効にすれば使えていました。
+ただ、今回一度落として再起動した際にManifest V3のアップデートが完全に?有効になったようで
+有効にすることが不可能になりました。
+いくつか使えなくなったものがありますが、cVimの乗り換えに関して。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまで使っていたものvimperator---cvim" id="markdown-toc-これまで使っていたものvimperator---cvim">これまで使っていたものVimperator -&gt; cVim</a></li>
+  <li><a href="#vimium-cへの乗り換え" id="markdown-toc-vimium-cへの乗り換え">Vimium Cへの乗り換え</a></li>
+  <li><a href="#設定" id="markdown-toc-設定">設定</a>    <ul>
+      <li><a href="#custom-key-mappings" id="markdown-toc-custom-key-mappings">Custom key mappings</a></li>
+      <li><a href="#vonibarを半透明にする" id="markdown-toc-vonibarを半透明にする">Vonibarを半透明にする</a></li>
+      <li><a href="#link-hintsの表示文字の変更" id="markdown-toc-link-hintsの表示文字の変更">Link hintsの表示文字の変更</a></li>
+      <li><a href="#戻る進むの文字列の追加" id="markdown-toc-戻る進むの文字列の追加">戻る/進むの文字列の追加</a></li>
+      <li><a href="#キーボードショートカット" id="markdown-toc-キーボードショートカット">キーボードショートカット</a></li>
+      <li><a href="#windows-autohotkeyの設定" id="markdown-toc-windows-autohotkeyの設定">Windows, AutoHotkeyの設定</a>        <ul>
+          <li><a href="#検索キー" id="markdown-toc-検索キー">検索キー</a></li>
+          <li><a href="#進む戻る" id="markdown-toc-進む戻る">進む、戻る</a></li>
+        </ul>
+      </li>
+      <li><a href="#macos-karabiner-elementの設定" id="markdown-toc-macos-karabiner-elementの設定">macOS, Karabiner-Elementの設定</a>        <ul>
+          <li><a href="#検索キー-1" id="markdown-toc-検索キー-1">検索キー</a></li>
+          <li><a href="#進む戻る-1" id="markdown-toc-進む戻る-1">進む、戻る</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまで使っていたものvimperator---cvim">これまで使っていたものVimperator -&gt; cVim</h2>
+
+<p>ブラウザでVimライクな操作をするための拡張機能として
+元々FirefoxでVimperatorを使っていましたが、
+Firefoxのアップデートで数々の拡張機能が使えなくなり、
+似たような拡張機能を探して、一番使えそうなVimiumという拡張機能を試してみました。
+ただ、基本的にはキーマッピングを変える位しか出来ないので
+Vimperatorとは程遠いものでした。
+VimiumはFirefox版もChrome版もあり、そこも良い点ですが、
+特にFirefox版はうまく動かないものも多く使えませんでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/10/20/computer-firefox-vimperator/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171020_vimium_120_90.jpg" width="120" height="90" alt="20171020_vimium_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/20/computer-firefox-vimperator/">Vimperator亡き後のためにVimium-FFを試してみる</a></div></li></ul>
+
+<p>そこでもはやFirefoxにこだわる必要もなくなったのでChromeに乗り換えました。</p>
+
+<p>ChromeにはcVimという拡張機能があり、それがある程度Vimperatorの代わりになるものだったので
+これまでずっとそれを使ってきました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00IE67ZSM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00IE67ZSM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/3110x9TzbSL._SS90_CR0,0,120,90_.jpg" alt="【並行輸入品】Toshiba Chromebook CB35-A3120 PLM01U-002005 13.3-Inch Cloud Computer" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/10/22/computer-firefox/">cVim: Google ChromeのVimperatorみたいな拡張</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/18/computer-chrome/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171118_cvim_120_90.jpg" width="120" height="90" alt="20171118_cvim_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/18/computer-chrome/">Google ChromeでcVimの設定をアップデート</a></div></li></ul>
+
+<p>ただ、このcVimはかなり前にChromeのウェブストアからは消えていて
+自分でビルドして入れたりしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07TN1HBTG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07TN1HBTG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xSDA7k3OL._SS90_CR0,0,120,90_.jpg" alt="HP 14インチ Chromebook HD タッチスクリーン ラップトップ PC (Intel Celeron N3350 最大2.4GHz、4GB RAM、32GB フラッシュメモリ、WiFi、HDカメラ、Bluetooth、最大10時間のバッテリー寿命、クロームOS、ブラック) (更新済み" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/06/11/computer-chrome-vim/">cVimがchromeウェブストアから消えた</a></div></li></ul>
+
+<p>ただ今回のChromeのアップデートで完全に使えなくなったので、
+自分でなんとかコードをアップデートして使うか、別なものを使うかというところで
+色々見てみた結果、
+<a href="https://github.com/philc/vimium">Vimium</a>をフォークした
+<a href="https://github.com/gdh1995/vimium-c">Vimium C</a>
+が良さそうだったので乗り換え先にしました。</p>
+
+<h2 id="vimium-cへの乗り換え">Vimium Cへの乗り換え</h2>
+
+<p><a href="https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg">Vimium C - All by Keyboad</a></p>
+
+<p>オリジナルのVimiumは基本的にはキーマッピング+Hit a hint(リンクに対してヒントを表示してそれをキーボードで選択する)という機能がメインでした。</p>
+
+<p>VimperatorやcVimはコマンドラインモードもあり、コマンドの定義も出来てそれによっていろいろな操作が出来るようになっていましたが、
+Vimiumでは出来ず、これに関してはVimium Cでも出来ません。</p>
+
+<p>ただ、Vimiumではキーマッピングも基本的にはもともとあるコマンドに対してキーマッピングを設定するというものですが、
+Vimium Cではより複雑な設定が出来るのと、
+独自コマンドの拡張で特定のURLを開くキーを設定したりすることも出来るようになっています。</p>
+
+<p>これでだいたいいまやりたいことが出来そうだったのでVimium Cで一通り設定をしてみました。</p>
+
+<h2 id="設定">設定</h2>
+
+<h3 id="custom-key-mappings">Custom key mappings</h3>
+
+<p>以下をVimium Cのオプションの<strong>Custom key mappings</strong>に追加。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Leader
+</span><span class="line">mapKey , &lt;leader&gt;
+</span><span class="line">
+</span><span class="line"># Unmap
+</span><span class="line"># &lt;a-f&gt; is used for chrome native search
+</span><span class="line">unmap &lt;a-f&gt;
+</span><span class="line">
+</span><span class="line"># Move
+</span><span class="line">map &lt;c-f&gt; scrollFullPageDown
+</span><span class="line">map &lt;c-b&gt; scrollFullPageUp
+</span><span class="line">map &lt;c-u&gt; scrollPageDown
+</span><span class="line">map &lt;c-d&gt; scrollPageUp
+</span><span class="line">map &lt;c-h&gt; scrollLeft
+</span><span class="line">map &lt;c-j&gt; scrollDown
+</span><span class="line">map &lt;c-k&gt; scrollUp
+</span><span class="line">map &lt;c-l&gt; scrollRight
+</span><span class="line">
+</span><span class="line"># Tab
+</span><span class="line">map d removeTab
+</span><span class="line">map u restoreTab
+</span><span class="line">map t Vomnibar.activateInNewTab
+</span><span class="line">
+</span><span class="line"># Search selected text by Google
+</span><span class="line">map &lt;c-g&gt; autoOpen keyword="google"
+</span><span class="line">
+</span><span class="line"># Put [url](title) in clipboard
+</span><span class="line">map &lt;leader&gt;i openUrl url="javascript:(()=&gt;{const\u0020t=document.title.replace(/([\\[\\]])/g,'\\\\$1'),u=location.href,m='['+t+']('+u+')';navigator.clipboard.writeText(m);let\u0020d=document.createElement('div');d.textContent='Copied:\u0020'+m;Object.assign(d.style,{position:'fixed',bottom:'20px',right:'20px',background:'#333',color:'#fff',padding:'10px\u002015px',zIndex:99999,borderRadius:'6px',fontSize:'14px',boxShadow:'0\u00202px\u00206px\u0020rgba(0,0,0,0.3)',maxWidth:'80%',wordBreak:'break-word'});document.body.appendChild(d);setTimeout(()=&gt;d.remove(),2500);})()"
+</span><span class="line">
+</span><span class="line"># Others
+</span><span class="line">map y copyCurrentUrl
+</span><span class="line">map r reload hard</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>leader</code>設定はVimium、Vimium Cともにサポートされてませんが、
+擬似的に<code>mapKey</code>を使うことで実現できます。</p>
+
+<p><a href="https://github.com/philc/vimium/issues/1986">Feature Request: Leader key support · Issue #1986 · philc/vimium</a></p>
+
+<p><a href="https://github.com/gdh1995/vimium-c/issues/1107">leader keyword support · Issue #1107 · gdh1995/vimium-c</a></p>
+
+<p>Move/Tab及びOthersにある設定はVimiumでも出来るものです。
+また、<code>&lt;a-f&gt;</code>をunmapしているのは、Chromeの検索を別途で<code>&lt;a-f&gt;</code>で使いたいからです。</p>
+
+<p>Vimium Cを使った理由はそれ以外の<code>autoOpen</code>と<code>openUrl</code>コマンドを使ってもの。</p>
+
+<p>ワンキーで選択中のテキストをGoogleで検索する、という操作をVimperator以来よく使っているのでそれがないと困るのですが、
+Vimiumだと実現は難しそう。</p>
+
+<p><a href="https://github.com/philc/vimium/issues/2566">How can I search the selected text with my custom search engines with a single key? · Issue #2566 · philc/vimium</a></p>
+
+<p>一方、Vimium Cなら、<code>autoOpen</code>というコマンドを使いそれを実現できます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">map &lt;c-g&gt; autoOpen keyword="google"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ここで<code>keywoard</code>で指定しているものは
+オプションの<strong>Custom search engines</strong>で設定されているもので、
+<code>google</code>はデフォルトで設定されています。
+これで選択中のテキストをGoogleで検索して開けます。</p>
+
+<p>似たようなことはVimiumでも例えばVisualモードに入って単語を選択して、<code>p</code>で検索、ということも出来ますが、
+左手キーボード、右手マウス、といった　感じで操作している際に右手で選択して左手で一発サーチ、
+がしたいのでこれが必要です。</p>
+
+<p>もう一つは<code>openUrl</code>コマンドで、これはその名の通り指定したURLを開くコマンドです。
+VimperatorやcVimであった<code>qmark</code>のような使い方も出来ますし、
+これにBookmarkletのコードを指定することも出来るので
+表示中のページのいろいろな情報を取得したりすることも出来るようになります。</p>
+
+<p>上の設定では<code>&lt;leader&gt;i</code>(<code>,i</code>)で表示中のページを<code>[url](title)</code>の形式でクリップボードにコピーするBookmarkletを実行します。
+ちょっと後半にごちゃごちゃと追加がありますが、
+<code>navigator.clipboard.writeText(m)</code>より後は右下にコピーしたよ、という表示を出すためのものなので必要なければ削除しても大丈夫です。</p>
+
+<p>ちょっとURLをメモしておきたいときに便利でよくつかうのでこれもないと困るもの。</p>
+
+<h3 id="vonibarを半透明にする">Vonibarを半透明にする</h3>
+
+<p><code>o</code>などで表示されるVomnibarですが、例えばちょっと表示されてるページの何かを検索しようと思ったとき、
+見ながら検索したいのにVomonibarが出てしまうと完全に見えなくなってしまい困ることがあります。</p>
+
+<p>cVimでも同じようなことがあって、そういった表示を半透明にするようにしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/04/24/computer-chrome-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180424_cvimrcopacity_120_90.jpg" width="120" height="90" alt="20180424_cvimrcopacity_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/04/24/computer-chrome-vim/">cVimでコマンドモードの候補などの表示を半透明にする</a></div></li></ul>
+
+<p>Vimium Cでも同じように、
+<strong>Custom CSS for Vimium C UI</strong>の設定に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">/* #omni */
+</span><span class="line">body[data-mode="omni"] {
+</span><span class="line"> opacity: 0.8;
+</span><span class="line">}</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という設定を加えることで半透明にします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250713_vomnibar.jpg" alt="20250713_vomnibar.jpg" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<h3 id="link-hintsの表示文字の変更">Link hintsの表示文字の変更</h3>
+
+<p><strong>Characters used for link hints</strong>の設定を</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">hjklasdfgyuiopqwertnmzxcvb</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>に。元々は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sadjklewcmpgh</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>だけですが、使いやすいように。</p>
+
+<h3 id="戻る進むの文字列の追加">戻る/進むの文字列の追加</h3>
+
+<p><code>[[</code>や<code>]]</code>でページに愛に有る<code>prev</code>や<code>next</code>といった文字のリンクに進むことが出来るようになっていますが、
+この文字列の設定がデフォルトだと英語と中国と記号、といった感じになってるので日本語を追加します。</p>
+
+<p><strong>Previous patterns</strong></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">上一封,上页,上一页,上一章,前一页,上一张,prev,previous,back,older,&lt;←,«,≪,&lt;&lt;,前へ,戻る,前のページ</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><strong>Next patterns</strong></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">下一封,下页,下一页,下一章,后一页,下一张,next,more,newer,&gt;,›,→,»,≫,&gt;,次へ,進む,次のページ</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>それぞれ、<code>前へ</code>, <code>次へ</code>以降のものが追加したもの。</p>
+
+<h3 id="キーボードショートカット">キーボードショートカット</h3>
+
+<p>WindowsやLinuxで、上記のマッピングのように<code>&lt;c-n&gt;</code>を設定しようとしても効かずにChromeの下の<strong>新しいウィンドウを開く</strong>の動作が出てしまいます。</p>
+
+<p><a href="https://github.com/philc/vimium/wiki/FAQ#why-cant-i-remap-ctrl-n-and-similar-keys-on-linux-and-windows">Why can’t I remap Ctrl-N and similar keys on Linux and Windows?</a></p>
+
+<p>このキーを右のタブに移る<code>nextTab</code>に設定したいのですが、
+この動作に関しては拡張機能の設定で<strong>キーボードショートカット</strong>へ行くと、<strong>Vimium C</strong>の設定もあり、
+その中に<strong>Go one tab right</strong>という項目があるのでここに<code>Ctrl+N</code>を設定することで
+<code>&lt;c-n&gt;</code>で右のタブに移ることが出来るようになります。</p>
+
+<p>ついでに<code>Ctrl+P</code>も左のタブに移る<strong>Go one tab left</strong>に設定しておきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250713_keyboardshortcut.jpg" alt="20250713_keyboardshortcut.jpg" class="pic" /></p>
+
+<p>ここで設定するとメリットもあって、Chromeのより上流の設定になるので
+通常Vimium Cが無効になるChromeのウェブストアのページなどでも動作する状態になります。
+なのでmacOSでもこちらでやっておくことにします。</p>
+
+<p>他のhistoryやreloadなどもそういったページで動作させたい場合はここでキー設定をしておくと出来るようになります。</p>
+
+<p>あと、場合によっては別の拡張機能がこのキーボードショートカットで上書きしてることもあって、
+拡張機能のオプションでショートカットが見つからずに変更できないという場合もあるので、
+キーボードショートカット一覧をチェックして必要なら別の拡張機能のショートカットも変更しておくと良いです。</p>
+
+<h3 id="windows-autohotkeyの設定">Windows, AutoHotkeyの設定</h3>
+
+<h4 id="検索キー">検索キー</h4>
+
+<p>Windowsの場合、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">!</span><span class="n">f</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!fff&quot;</span>
+</span><span class="line"><span class="n">#HotIf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような設定をAutoHotkeyでしています。</p>
+
+<p>これは<i class="key">Ctrl</i>-<i class="key">F</i>を<code>scrollFullPageDown</code>に設定しているので
+代わりの検索キーです。</p>
+
+<p>Vimium Cの機能でも<i class="key">/</i>で検索が出来ますが、
+サイトによってうまくいかなかったりする場合にChromeの検索だとうまくいくことがあるので一応すぐに使えるように。</p>
+
+<p>cVimの場合だとGitHubなんかで<i class="key">/</i>検索すると表示が崩れてましたが
+その点Vimiumでは問題なく動作しているので、検索に関してはVimiumの方が安定しているかも。</p>
+
+<p>上のキーバインドがちょっとよくわからないものになってますが、</p>
+
+<ul>
+  <li><code>!f</code>: <i class="key">Alt</i>-<i class="key">F</i>でメニューにフォーカス</li>
+  <li><code>f</code>: <i class="key">F</i>で<strong>検索と編集</strong>の項目にフォーカス</li>
+  <li><code>f</code>: <i class="key">F</i>で<strong>検索</strong>を実行</li>
+</ul>
+
+<p>という役割です。
+<i class="key">Ctrl</i>-<i class="key">F</i>が使えないのでメニューから実行のを変わりにやっていますが、
+別の方法としてはAutoHotkeyで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">!</span><span class="n">f</span><span class="o">::^</span><span class="n">f</span>
+</span><span class="line"><span class="o">^</span><span class="n">f</span><span class="o">::</span><span class="mi">1</span><span class="n">f</span>
+</span><span class="line"><span class="n">#HotIf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように交換しておいて、<code>scrollFullPageDown</code>を<code>&lt;a-f&gt;</code>に設定する、という方法でも良いかもしれません。</p>
+
+<h4 id="進む戻る">進む、戻る</h4>
+
+<p>Vimiumでも<code>goBack</code>/<code>goForward</code>というコマンドでブラウザ履歴の戻る、進むが出来き、
+また拡張機能のキーボードショートカットでも<strong>Go back in history</strong>/<strong>Go forward in history</strong>という項目で
+設定することも出来ます。</p>
+
+<p>ただ、この動作は他のアプリでもよく使うもので、さらにOS共通のショートカットの
+<i class="key">Alt</i>-<i class="key">Left</i>/<i class="key">Right</i>で
+行えるのでAutoHotkeyで設定してあります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">^</span><span class="n">o</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!{Left}&quot;</span>
+</span><span class="line"><span class="o">^</span><span class="n">i</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!{Right}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これであればChromeのウェブストアのページなどでも動作するという利点もあり、
+エクスプローラーなどでも<i class="key">Ctrl</i>-<i class="key">O</i>で戻る、なども出来るようになります。</p>
+
+<p>ただ、一つ欠点として、これらのキーが潰れるので、必要であれば特定のアプリだけで使うようにした方が良いかもしれません。
+自分的にはターミナル上での作業でも特に使わなくても困らないので全体設定にしてあります。</p>
+
+<p>一つ被るものとしてはMicrosoft IMEで、<i class="key">Ctrl</i>-<i class="key">I</i>がカタカナに変換、のキーになっている点。
+Google日本語入力を使ってますがMS IMEの設定ベースのキーを使っているので同様に<i class="key">Ctrl</i>-<i class="key">I</i>を使います。
+たまに使うので使えないと面倒なので、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">!</span><span class="n">i</span><span class="o">::^</span><span class="n">i</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として<i class="key">Alt</i>-<i class="key">I</i>でカタカナ変換出来るようにしてあります。</p>
+
+<p>これに関してはIMEの設定で変更することも出来ますが、
+変更する方を統一しておきたいのでAHKで変更してあります。</p>
+
+<h3 id="macos-karabiner-elementの設定">macOS, Karabiner-Elementの設定</h3>
+
+<h4 id="検索キー-1">検索キー</h4>
+
+<p>macOSの場合には元々ブラウザの検索は<i class="key">Cmd</i>-<i class="key">F</i>なので<code>&lt;c-f&gt;</code>を設定してもそのままで大丈夫です。</p>
+
+<h4 id="進む戻る-1">進む、戻る</h4>
+
+<p>macOSではChromeやFinderでは<i class="key">Command</i>-<i class="key">[</i>/<i class="key">]</i>で戻る、進むが出来るので
+これを設定します。</p>
+
+<p>Wndows同様IMEの問題があるのでこちらも<i class="key">Command</i>-<i class="key">I</i>でカタカナ変換が出来るようにしておきます。</p>
+
+<p>この設定は</p>
+
+<blockquote>
+  <p><a href="https://rcmdnk.com/KE-complex_modifications/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<p>からPersonal SettingsをImportすると</p>
+
+<p><strong>Next/Prev by Ctrl-i/o, Ctrl-left/right arrow</strong>、及び
+<strong>Cmd-i as Ctrl-i, for IME katakana</strong>という設定があるのでそれを有効にすることで設定が出来ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[c/ua (lume)を使ってmacOSの仮想環境を作る]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/10/computer-mac/"/>
+    <updated>2025-05-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/10/computer-mac</id>
+    <content type="html"><![CDATA[<p>Linuxであればdockerなどを使って簡単にテストなどを行える仮想環境を手に入れられますが、
+macOSの仮想環境はどうなのか。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macosのライセンス" id="markdown-toc-macosのライセンス">macOSのライセンス</a></li>
+  <li><a href="#macosの仮想環境を作る方法" id="markdown-toc-macosの仮想環境を作る方法">macOSの仮想環境を作る方法</a></li>
+  <li><a href="#cualume" id="markdown-toc-cualume">c/ua、lume</a></li>
+  <li><a href="#lumeのインストール" id="markdown-toc-lumeのインストール">lumeのインストール</a></li>
+  <li><a href="#イメージの準備" id="markdown-toc-イメージの準備">イメージの準備</a></li>
+  <li><a href="#とりあえず起動" id="markdown-toc-とりあえず起動">とりあえず起動</a></li>
+  <li><a href="#guiなしで起動" id="markdown-toc-guiなしで起動">GUIなしで起動</a></li>
+  <li><a href="#ディレクトリ共有" id="markdown-toc-ディレクトリ共有">ディレクトリ共有</a></li>
+  <li><a href="#ちゃんと止める" id="markdown-toc-ちゃんと止める">ちゃんと止める</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macosのライセンス">macOSのライセンス</h2>
+
+<p>Macを買うとその中でmacOSが使えて
+新しいバージョンが出ても無料でアップデートできますが、
+現状Windowsなどと違ってmacOSを単体で購入することはできません。</p>
+
+<p>ソフトウェア自体は無料で入手することができますが、
+ライセンスはどうなっているのか？</p>
+
+<p>macOS(Sequoia 15.4.1)で
+<strong>メニューバーのアップルマーク</strong><i class="fa fa-arrow-right"></i><strong>このMacについて</strong><i class="fa fa-arrow-right"></i>詳細情報<strong><i class="fa fa-arrow-right"></i></strong>使用許諾契約**
+を見てみると2.B項に以下のようなことが書いてあります。</p>
+
+<blockquote>
+  <p>（i）お客様が所有または管理する、macOS Sonoma、macOS Ventura、macOS Monterey、macOS Big
+Sur、macOS Catalina、macOS Mojave、またはmacOS High Sierra（以下「Macコンピュータ」といいま
+す）を実行している各Appleブランドのコンピュータで直接、Appleソフトウェアのコピーを1部、個人的な非
+商用利用のためにダウンロードし、インストールし、使用し、実行するため。</p>
+
+  <p>（ii）お客様が営利企業または教育機関である場合、次のいずれかの用途でAppleソフトウェアのコピーを1部
+ダウンロードし、インストールし、使用し、実行するため：（a）お客様が所有または管理する各Macコン
+ピュータでの単一の個人による使用、または（b）お客様が所有または管理する1台のMacコンピュータでの複
+数の個人による使用。例えば、社員1人が、自身のデスクトップおよびラップトップのMacコンピュータの両方
+でAppleソフトウェアを使用する場合、または複数の生徒が、リソースセンターもしくはライブラリに存在す
+るMacコンピュータ1台でAppleソフトウェアを順次使用する場合。ならびに</p>
+
+  <p>（iii）お客様が所有もしくは管理する、Appleソフトウェアをすでに実行しているAppleブランドの各コン
+ピュータ上の仮想オペレーティングシステム内で、Appleソフトウェア、または以前のmacOSもしくはOS Xオ
+ペレーティングシステムソフトウェアもしくはAppleソフトウェアの後続のリリースの、追加のコピーもしくは
+インスタンスを最大2部、次の目的のためにインストール、使用、実行するため：（a）ソフトウェア開発、
+（b）ソフトウェア開発中のテスト、（c）macOS Serverの使用、または（d）個人的な非商用利用。</p>
+</blockquote>
+
+<ul>
+  <li>(i): 通常のMacでmacOSを使っても良いよ</li>
+  <li>(ii): 教育機関や営利企業なら1台のMac(およびその中に入ってるmacOS)を複数で使っても良いよ</li>
+</ul>
+
+<p>があり、さらに</p>
+
+<ul>
+  <li>(iii): macOSが入ってるMacでテストなどのために仮想環境としてmacOSを最大2つまで使っても良いよ</li>
+</ul>
+
+<p>ということが書いてあります。</p>
+
+<p>つまり、macOSの仮想環境が欲しい場合はmacOSが入ってるMacの中になら作ることができる、ということです。
+ただし商用で貸出したりみたいなことは許可されてません。
+また、Macであってもいくらでも作ってよいわけではなく最大2つまで、ということです。</p>
+
+<p>GitHub Actionsみたいなのは多分特別なライセンスが必要なんだと思います。</p>
+
+<p>WindowsのVirtualBoxなどにmacOSをインストールするとかはライセンス違反です。
+MacでもWindowsを入れてその中でmacOSを仮想環境として動かすのも駄目なようです。</p>
+
+<p>ということで、Windowsしか持ってないけどmacOSの環境がほしい、というのは根本的に無理な話みたいです。</p>
+
+<p>一方でMacを持っている場合は、macOSの中に仮想環境を作ることはライセンス的には問題ない、ということになります。</p>
+
+<h2 id="macosの仮想環境を作る方法">macOSの仮想環境を作る方法</h2>
+
+<p><a href="https://www.vmware.com/">VMware</a>などの仮想マシンにmacOSをインストールして使うことは
+上にも書いた通りMacで動かしているmacOSの中であれば合法です。</p>
+
+<p>それ以外にも
+<a href="https://github.com/insidegui/VirtualBuddy">VirtualBuddy</a>、
+<a href="https://github.com/yep/virtualOS?utm_source=chatgpt.com">virtualOS</a>、
+<a href="https://github.com/utmapp/UTM">UTM</a>
+みたいなソフトウェアがあります。</p>
+
+<p>これらはちょっとセットアップが大変だったり
+起動する際に時間がかかったりしますが、
+Appleは
+<a href="https://developer.apple.com/documentation/virtualization/running-macos-in-a-virtual-machine-on-apple-silicon">Virtualization Framework</a>
+というものを提供していて、
+これだとXcodeが入っていれば別途ソフトウェアを入れずに仮想環境を作ることができます。</p>
+
+<p>さらに、このVirtualization Frameworkを使いやすくした
+<a href="https://github.com/cirruslabs/tart/">tart</a>
+とか
+<a href="https://github.com/trycua/cua">c/ua</a>
+といったソフトウェアがあります。</p>
+
+<p>tartのほうが前からあってよく使われていたようですが、
+<a href="https://tart.run/licensing/">ライセンス</a>
+ライセンスが
+<a href="https://fair.io/">Fair Source License</a>
+なのでちょっと注意が必要です。(個人で普通に使う分には余裕な許容量ではありますが。)</p>
+
+<p>c/uaの方は数ヶ月前に出てきたものみたいで、
+特に最近のAI agentブームの中で
+AIが直接操作するようなこともできるようにしています。
+ライセンスはMITです。
+後発ということで色々と考えて作られてることもあるようで、
+このc/ua、及びそのコマンドラインツールの
+<a href="https://github.com/trycua/cua/blob/main/libs/lume/README.md">lume</a>
+が使って見た感じ今のところ一番手軽で良さげでした。</p>
+
+<h2 id="cualume">c/ua、lume</h2>
+
+<div class="github-widget" data-repo="trycua/cua"></div>
+
+<p>数ヶ月前にできたばかりのようで、簡易にnativeな環境にできるだけ近い仮想環境を作れるものとして作られています。</p>
+
+<blockquote>
+  <p><a href="https://news.ycombinator.com/item?id=42908061">Show HN: Lume – OS lightweight CLI for MacOS and Linux VMs on Apple Silicon Hacker News</a>
+特にfor Computer-Use Agentということで、</p>
+</blockquote>
+
+<p>Pythonで直接操作したり、LLMを使ったAgentが用意されたりしています。</p>
+
+<p>ここでは
+<a href="https://github.com/trycua/cua/blob/main/libs/lume/README.md">lume</a>
+というコマンドラインツールで仮想環境を立ち上げることについて簡単に。</p>
+
+<h2 id="lumeのインストール">lumeのインストール</h2>
+
+<p>インストールは公式スクリプトで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするか、Homebrewで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install trycua/lume/lume</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でインストールできます。</p>
+
+<h2 id="イメージの準備">イメージの準備</h2>
+
+<p>使えるイメージは
+<a href="https://github.com/orgs/trycua/packages">Packages · Cua</a>
+にあるものです。</p>
+
+<p>現状OSの種類としては2つ、macOS Sequoia (15)とUbuntu Noble Numbat (24.04)
+があり、それぞれ入っているパッケージなどの違いなど含め全部で8つイメージがあります。</p>
+
+<p>なのでLinuxのいろいろなものを試してみたい、という場合は現状ではまだあまりできない状態ではあります。</p>
+
+<p>とりあえず、適当にXcodeが入ったmacOSを用意。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume pull macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでイメージがダウンロードされますが、20GB位あり、数分かかります。</p>
+
+<p>ダウンロードが終わったら<code>lume ls</code>で確認してみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume ls
+</span><span class="line">name                        os      cpu     memory  disk            display   status   storage  shared_dirs  ip  vnc
+</span><span class="line">macos-sequoia-xcode_latest  macOS   4       8.00G   22.5GB/50.0GB   1024x768  stopped  default  -            -   -</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>名前は<code>macos-sequoia-xcode:latest</code>でも<code>macos-sequoia-xcode_latest</code>でも通るみたいです。(<code>:</code>は<code>_</code>と同値としている？)</p>
+
+<h2 id="とりあえず起動">とりあえず起動</h2>
+
+<p>準備ができたので起動:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでウィンドウが出てきてmacOSが起動します。
+初回だけいきなりログイン状態になる？ようです。
+初期状態のユーザー名とパスワードはともに<code>lume</code>になっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250511_lume.png" alt="20250511_lume.png" class="pic" /></p>
+
+<p>これでmacOSの中で別のmacOSを動かせます。</p>
+
+<p>ただいくつか制限はあるようで、
+特にApp Storeにサインインすることができません。</p>
+
+<p>なのでApp Store経由でのアプリのインストールなどが出来ません。
+少し改善されてiCloudへはXcodeのβ版を使えばサインインできるようになったようです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/trycua/cua/issues/138">cannot use xcode since it requires app store sign-in (which is unsupported on virtualization) · Issue #138 · trycua/cua</a></p>
+</blockquote>
+
+<p>それ以外だと特に出来ないことはないようには見えますが、実際の環境とは少し違うところがあるので注意です。</p>
+
+<p>また、使っているmacOSとは別環境になるので、例えばネットワーク環境的に証明書をインストールする必要がある場合などは
+仮想環境の中へも持っていってインストール必要があります。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/development.html#prepare-cert-if-needed-in-zero-trust-or-etc">Development — Homebrew-file documentation</a></p>
+</blockquote>
+
+<p>止めるときは別のターミナルから</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume stop macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で止めます。</p>
+
+<p>これで色々と中で操作したことに関しては保存されます。</p>
+
+<h2 id="guiなしで起動">GUIなしで起動</h2>
+
+<p>いろいろなサービスやツールをチェックする場合にはGUIが不要な場合も多いですが、
+lumeでは<code>--no-display</code>オプションでGUIなしでも起動することができます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest --no-display</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで起動しますが、ウィンドウは出てきません。
+別のターミナルからチェックしてみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume ls
+</span><span class="line">name                        os      cpu     memory  disk            display   status   storage  ip              vnc
+</span><span class="line">macos-sequoia-xcode_latest  macOS   4       8.00G   22.5GB/50.0GB   1024x768  running  default  192.168.64.2    vnc://:clear-banana-blue-river@127.0.0.1:56109</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じの表示になっていて、<code>ip</code>が<code>192.168.64.2</code>になってることがわかります。</p>
+
+<p>ここへ<code>ssh</code>で接続することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ssh lume@192.168.64.2
+</span><span class="line">(lume@192.168.64.2) Password: # password is also 'lume'
+</span><span class="line">lume@lumes-Virtual-Machine ~ %</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ユーザー名<code>lume</code>, パスワード<code>lume</code>でログインできます。</p>
+
+<h2 id="ディレクトリ共有">ディレクトリ共有</h2>
+
+<p><code>--shared-dir</code>で元のmacOS側のディレクトリを仮想環境の中に共有することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest --shared-dir "$PWD:ro"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、起動した際にいたディレクトリ(<code>$PWD</code>)が仮想環境の中に<code>/Volumes/My Shared Files</code>という名前でマウントされます。</p>
+
+<p><code>ro</code>はread onlyの意味で、書き込みはできません。
+<code>rw</code>にすると書き込みもできるようになります。</p>
+
+<p>ただし、マウントしたあとで、元のmacOS側でファイルを変更すると
+変更したファイルは仮想環境の中ではPermission deniedになってアクセスできなくなります。</p>
+
+<p>これはちょっと不便なところで変更したファイルを仮想環境内で使いたいと思うと一旦<code>lume</code>を止めて改めて立ち上げる必要があります。</p>
+
+<h2 id="ちゃんと止める">ちゃんと止める</h2>
+
+<p><code>lume run</code>したターミナルで<i class="key">Ctrl</i>-<i class="key">C</i>を押すと止まりますが、
+正常終了にはならずに起動中に操作したことが保存されないことがあります。</p>
+
+<p>他のところから<code>run stop</code>すれば良いのですが、ちょっと面倒なので
+こんな感じのスクリプトを作っておくと便利です。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">IMAGE</span><span class="o">=</span>macos-sequoia-xcode:latest
+</span><span class="line"><span class="nv">SHARED_DIR</span><span class="o">=</span><span class="nv">$PWD</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">trap</span><span class="w"> </span><span class="s1">&#39;lume stop $IMAGE;exit 0&#39;</span><span class="w"> </span>SIGINT<span class="w"> </span>SIGTERM
+</span><span class="line">lume<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$IMAGE</span><span class="s2">&quot;</span><span class="w"> </span>--no-display<span class="w">  </span>--shared-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SHARED_DIR</span><span class="s2">:ro&quot;</span><span class="w"> </span><span class="p">&amp;</span>
+</span><span class="line"><span class="nv">LUME_PID</span><span class="o">=</span><span class="nv">$!</span>
+</span><span class="line"><span class="nb">wait</span><span class="w"> </span><span class="nv">$LUME_PID</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでスクリプトを実行したディレクトリを仮想環境に共有します。</p>
+
+<p>さらに<i class="key">Ctrl</i>-<i class="key">C</i>を押すと<code>lume stop</code>が実行されてただしく終了するようになります。</p>
+
+<p>ただ、これでもたまにプロセスが残ってしまうことがあり、次に
+<code>lume run</code>しようとするとすでに走っているとのエラーが出ることがあります。</p>
+
+<p><code>lume ls</code>で確認して<code>running</code>になっているものがあればもう一度それに対して<code>lume stop</code>してみます。</p>
+
+<p>もし<code>runnin</code>ではないのに<code>lume run</code>が失敗するときは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$<span class="w"> </span>ps<span class="w"> </span><span class="err">&#39;</span><span class="w"> </span>lume<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかで<code>lume run</code>したプロセスが残ってないか確認して残っていたらそのPIDを<code>kill</code>します。</p>
+
+<p>現状ではここまですれば再度使えるようになっています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim v0.11とGNU screen 5.0.0の組み合わせで`+q4D73`が表示され崩れるのを治す]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/03/computer-vim-screen/"/>
+    <updated>2025-05-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/03/computer-vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovimをv0.11.0にアップデートしたところGNU screen内で立ち上げると
+表示が崩れるようになってしまうことに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-500とneovim-v010での表示問題" id="markdown-toc-gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</a></li>
+  <li><a href="#neovim-v011での表示問題" id="markdown-toc-neovim-v011での表示問題">Neovim v0.11での表示問題</a></li>
+  <li><a href="#neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard" id="markdown-toc-neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</h2>
+
+<p>今回v0.11にアップデートしたところまた問題が起こったというところなのですが、
+v0.10のときにも似たような問題が起こっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<p>上記でTruecolor対応にしたところ</p>
+
+<p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+<p>といった表示が出てscreen全体の表示が崩れるような状態になっていました。</p>
+
+<p>いつも出るわけではなく、
+ウィンドウを縦横に分割して、左側のウィンドウで開くときに表示が崩れる状態です。</p>
+
+<p>これに関しては上のポストでは<code>notermguicolors</code>を設定して対処するとしていますが、
+その後、クリップボードを無効にすることで対処していました。</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.<span class="nb">clipboard</span> <span class="p">=</span> false
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでNeovim v0.10では表示が問題なくできるようになっていました。</p>
+
+<p>Ref: <a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+
+<h2 id="neovim-v011での表示問題">Neovim v0.11での表示問題</h2>
+
+<p>Neovim v0.11にアップデートしたところ、また表示が崩れるようになってしまいました。</p>
+
+<p><code>+q4D73</code>といった表示が出て、表示が崩れるようになっています。</p>
+
+<p>これに関しては上のIssueにあるように、
+<a href="https://github.com/neovim/neovim/pull/31730">#31730</a>がmergeされたため、別途</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line">local termfeatures <span class="p">=</span> <span class="k">vim</span>.<span class="k">g</span>.termfeatures or {}
+</span><span class="line">termfeatures.osc52 <span class="p">=</span> false
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.termfeatures <span class="p">=</span> termfeatures
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の設定が必要になります。</p>
+
+<p>ただ、v0.10ではこの設定だと治らないので両方使う可能性がある場合は両方入れておく必要があります。</p>
+
+<p>OSC52はコピーに使われるシーケンスでその処理に関してGNU screenでは処理しないために
+そのまま表示されたりして表示が崩れてしまうようです。</p>
+
+<blockquote>
+  <p><a href="https://zenn.dev/link/comments/111f73802a8971">OSC52</a></p>
+</blockquote>
+
+<h2 id="neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</h2>
+
+<p>クリップボードに関してはVim内のものとOSのクリップボードを共有したりはしないので
+この辺特に気にせずoffにして問題ない状態です。
+Neovimは基本的にターミナル内で使っていて、かつGNU screen内で使うことが殆どで、
+OSのクリップボードに出したい場合はGNU screenのコピー機能でコピーして、
+それをOSに共有するような形にしています。</p>
+
+<p>そのために以下のツールをつかっています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/multi_clipboard"></div>
+
+]]></content>
+  </entry>
+  
+</feed>
