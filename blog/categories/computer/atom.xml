@@ -1,0 +1,1330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/computer/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2025-11-29T00:16:04+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[codexでgithub-mcp-serverを直接使う]]></title>
+    <link href="https://rcmdnk.com/blog/2025/10/16/computer-ai/"/>
+    <updated>2025-10-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/10/16/computer-ai</id>
+    <content type="html"><![CDATA[<p>codexにStreamable HTTPなMCP Serverに対するサポートが追加されたので
+それを使ってこれまで直接使えなかったGitHub公式のMCP Serverを使う設定を追加。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#experimental_use_rmcp_client" id="markdown-toc-experimental_use_rmcp_client">experimental_use_rmcp_client</a></li>
+  <li><a href="#github公式mcp-serverをcodexで直接使う" id="markdown-toc-github公式mcp-serverをcodexで直接使う">GitHub公式MCP Serverをcodexで直接使う</a></li>
+  <li><a href="#oauthがうまく行かない" id="markdown-toc-oauthがうまく行かない">OAuthがうまく行かない</a></li>
+  <li><a href="#experimental_use_rmcp_clientの設定がなかったときの設定" id="markdown-toc-experimental_use_rmcp_clientの設定がなかったときの設定">experimental_use_rmcp_clientの設定がなかったときの設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="experimental_use_rmcp_client">experimental_use_rmcp_client</h2>
+
+<blockquote>
+  <p><a href="https://github.com/openai/codex/blob/main/docs/config.md#streamable-http">Streamable HTTP</a></p>
+</blockquote>
+
+<p><code>experimental_use_rmcp_client</code>というオプションが追加されていて、これを<code>true</code>にすると
+Streamable HTTPなMCP Serverを使えるようになります。</p>
+
+<h2 id="github公式mcp-serverをcodexで直接使う">GitHub公式MCP Serverをcodexで直接使う</h2>
+
+<blockquote>
+  <p><a href="https://github.com/github/github-mcp-server">github/github-mcp-server: GitHub’s official MCP Server</a></p>
+</blockquote>
+
+<p>これまではこれをcodexで直接使うことは出来ず、
+<a href="https://github.com/sparfenyuk/mcp-proxy">mcp-proxy</a>
+などを使った方法が紹介されていました。</p>
+
+<p>これを<code>experimental_use_rmcp_client</code>を使うと</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">experimental_use_rmcp_client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://api.githubcopilot.com/mcp&quot;</span>
+</span><span class="line"><span class="n">bearer_token_env_var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;GITHUB_MCP_API_TOKEN&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と設定を書くだけで使えるようになります。</p>
+
+<p>ここで、<code>GITHUB_MCP_API_TOKEN</code>はGitHubのPersonal Access Tokenを格納した環境変数の名前で、
+その環境変数をcodexが中で解釈している形になります。</p>
+
+<p><code>$GITHUB_MCP_API_TOKEN</code>と変数展開の形では書かずに直接変数名だけ書きます。
+このことから分かるように、文字列であるTOKENを直接設定ファイルに書くことは出来ず、環境変数に入れておく必要があります。</p>
+
+<p>これでcodexを起動して<code>/mcp</code>コマンドを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">  • Server: github-mcp-server
+</span><span class="line">    • Status: enabled
+</span><span class="line">    • Auth: Bearer token
+</span><span class="line">    • URL: https://api.githubcopilot.com/mcp
+</span><span class="line">    • Tools: add_comment_to_pending_review, add_issue_comment, add_sub_issue, assign_copilot_to_issue,
+</span><span class="line">create_and_submit_pull_request_review, create_branch, create_issue, create_or_update_file,
+</span><span class="line">create_pending_pull_request_review, create_pull_request, create_repository, delete_file,
+</span><span class="line">delete_pending_pull_request_review, fork_repository, get_commit, get_file_contents, get_issue, get_issue_comments,
+</span><span class="line">get_label, get_latest_release, get_me, get_release_by_tag, get_tag, get_team_members, get_teams, list_branches,
+</span><span class="line">list_commits, list_issue_types, list_issues, list_label, list_pull_requests, list_releases, list_sub_issues, list_tags,
+</span><span class="line">merge_pull_request, pull_request_read, push_files, remove_sub_issue, reprioritize_sub_issue, request_copilot_review,
+</span><span class="line">search_code, search_issues, search_pull_requests, search_repositories, search_users, submit_pending_pull_request_review,
+</span><span class="line">update_issue, update_pull_request, update_pull_request_branch</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じで確認でき、適当なレポジトリで<code>codex</code>を起動して、
+<code>現在openなIssueを一覧表示して</code>などと入力するとIssueの一覧が表示されます。</p>
+
+<h2 id="oauthがうまく行かない">OAuthがうまく行かない</h2>
+
+<p><code>bearer_token_env_var</code>を設定しておかないと、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">■ MCP client for `github-mcp-server` failed to start: handshaking with MCP server failed: Send message error Transport
+</span><span class="line">[rmcp::transport::worker::WorkerTransport&lt;rmcp::transport::streamable_http_client::StreamableHttpClientWorker&lt;reqwest::as
+</span><span class="line">ync_impl::client::Client&gt;&gt;] error: Auth required, when send initialize request</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>見たい感じで<code>github-mcp-server</code>の起動に失敗します。</p>
+
+<p><code>github-mcp-server</code>はOAuthでの認証もサポートしていて、
+codexでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ codex mcp login github-mcp-server</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすることでOAuth認証を行うことも出来るようですが、やってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ codex mcp login github-mcp-server
+</span><span class="line">Dynamic registration failed: Registration failed: HTTP 404 Not Found: 404 page not found
+</span><span class="line">
+</span><span class="line">Authorize `github-mcp-server` by opening this URL in your browser:
+</span><span class="line">https://api.githubcopilot.com/authorize?response_type=code&amp;client_id=mcp-client&amp;state=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&amp;code_challenge_method=S256&amp;redirect_uri=http%3A%2F%2F127.0.0.1%3A46863%2Fcallback</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようになってうまくいかない状態。</p>
+
+<h2 id="experimental_use_rmcp_clientの設定がなかったときの設定">experimental_use_rmcp_clientの設定がなかったときの設定</h2>
+
+<p>以前は以下のような設定が紹介されていました。</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mcp-proxy&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;--transport&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;streamablehttp&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;-H&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Bearer &lt;TOKEN&gt;&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;https://api.githubcopilot.com/mcp/&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここでは<code>&lt;TOKEN&gt;</code>の部分には直接TOKENを書く必要があります。</p>
+
+<p>これで上と同じように使えはするのですが、これだとTOKENを直接設定ファイルに書く必要があります。
+<code>mcp-proxy</code>では認証部分を</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mcp-proxy&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;--transport&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;streamablehttp&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;https://api.githubcopilot.com/mcp/&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">API_ACCESS_TOKEN</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;&lt;TOKEN&gt;&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように、<code>API_ACCESS_TOKEN</code>を別途環境変数として渡す事もできますが、
+いずれにしろそれに渡すTOKENを直接書く必要があります。</p>
+
+<p>このあたりはmcp-proxyの仕様で、
+codexもこれらの値に関しては特別外から環境変数を持ってきて解釈するようなことはしないみたいなので
+仕方ないところ<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>このmcp-proxyを使ったGitHubのMCP Serverの利用は、使っているいくつかのLinux環境だと動いたのですが、
+何故かmacOSの環境下だと動かず。
+mcp-proxyのバグなのかcodexのバグなのか、なにか自分の環境の問題なのか結局よくわからずじまい。</p>
+
+<p><strong>~/.codex/config.toml</strong>をdotfilesに入れたいのでTOKENを書けないの<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+このmacOSの問題もあったのでこれまでcodexではGitHubのMCP Serverは使ってませんでした。</p>
+
+<p>一応
+<a href="https://github.com/cli/cli#installation">gh</a>
+コマンドを使える環境にしてあるのである程度のことは<code>gh</code>で出来てたので無理に使わずとも良いか、という感じではありました。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>というわけで、今までも一応使えましたが、新しい方法だと
+TOKENをcodexの設定ファイルに直接書かずに済むようになり使いやすくなります。</p>
+
+<p>OAuth認証は自分の環境でうまく言ってませんが、もし使えるならTOKENを取らずにすぐに使えて便利。
+バグでそのうち治るかもしれません。</p>
+
+<p>まだ<code>experimental_</code>がついているオプションなので、将来変わる可能性もありますが、
+とりあえずこんな設定で行けます。</p>
+
+<p>個人的にはこれまで使えてなかったのがやっと使えるようになったので良かったです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[miseでAI CLIツールやMCPもまとめて管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/10/04/computer-ai/"/>
+    <updated>2025-10-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/10/04/computer-ai</id>
+    <content type="html"><![CDATA[<p>codexなどのツールのインストールはHomebrewなどでも簡単にできるようになっていますが、
+MCPサーバー用のツールは別途管理する必要があります。</p>
+
+<p>多くはPythonやNode.jsのパッケージとしてuvx/npxなどを使って使う方法が
+紹介されていますが、
+全部まとめてmiseで管理するようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#よくある方法" id="markdown-toc-よくある方法">よくある方法</a></li>
+  <li><a href="#miseで全部管理する" id="markdown-toc-miseで全部管理する">miseで全部管理する</a></li>
+  <li><a href="#miseの設定ファイルについて" id="markdown-toc-miseの設定ファイルについて">miseの設定ファイルについて</a>    <ul>
+      <li><a href="#tools" id="markdown-toc-tools">tools</a></li>
+      <li><a href="#pipx-uvx" id="markdown-toc-pipx-uvx">pipx (uvx)</a></li>
+      <li><a href="#npm-bun" id="markdown-toc-npm-bun">npm (bun)</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="よくある方法">よくある方法</h2>
+
+<p>MCPサーバー用のツールはPythonやNode.jsのパッケージとして公開されていることが多いです。</p>
+
+<p>これらのツールは隔離された開発環境に<code>pip</code>や<code>npm</code>で直接インストールすることはありますが、
+グローバルインストールする方法はあまり推奨されていません。
+色々なツールをインストールしているとバージョンの競合などが起きやすくなるためです。</p>
+
+<p>そこでよくある方法としては<code>uvx</code>や<code>npx</code>を使って実行する方法。</p>
+
+<p>codexの設定だと</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.serena]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;uvx&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--from&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;git+https://github.com/oraios/serena&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serena&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start-mcp-server&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--context&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;codex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--enable-web-dashboard&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.context7]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;npx&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@upstash/context7-mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--api-key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${CONTEXT7_API_KEY}&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じでコマンドに<code>uvx</code>や<code>npx</code>を指定して設定する方法がよく紹介されています。</p>
+
+<p>これらのツールの公式でもこのように紹介されています。</p>
+
+<ul>
+  <li><a href="https://github.com/oraios/serena?tab=readme-ov-file#codex">oraios/serena: A powerful coding agent toolkit providing semantic retrieval and editing capabilities (MCP server &amp; other integrations)</a></li>
+  <li><a href="https://github.com/upstash/context7?tab=readme-ov-file#requirements">upstash/context7: Context7 MCP Server – Up-to-date code documentation for LLMs and AI code editors</a></li>
+</ul>
+
+<p>これらは<code>serena</code>だったり<code>context7-mcp</code>というCLIツールを使ってMCPサーバーを起動しますが、
+それらを<code>uvx</code>や<code>npx</code>で直接実行しています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uvx --from git+https://github.com/oraios/serena serena
+</span><span class="line">$ npx -y @upstash/context7-mcp</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これらのコマンドを実行すると、もし<code>PATH</code>の中やNode.jsの場合は<code>node_modules/.bin</code>にそのコマンドがあった場合は
+そちらを優先して実行します。</p>
+
+<p>無い場合、実際には最初の実行時に、<strong>~/.cache/uv/</strong>や<strong>~/.npm/_npx/</strong>にパッケージがインストールされ、それを使ってコマンドが実行されます。</p>
+
+<p>それらのインストール時には各コマンド毎に隔離した環境が作られるため、複数のツールを使ってもバージョンの競合などは起きません。</p>
+
+<p>インストールせずに実行できる、みたいに書いてあるものもありますが、実際には上に書いたように
+実態がインストールされてから実行されるので、
+初めて実行しようとすると少し時間がかかります。</p>
+
+<p>これを直接codexのMCPサーバーとして実行しようとすると時間がかかりすぎてタイムアウトエラーになることがあります。
+<code>startup_timeout_ms = 60000</code>
+などしてタイムアウトを長くして回避することも出来ますが、
+できれば先に用意しておいたほうが色々とトラブルを避けられます。</p>
+
+<h2 id="miseで全部管理する">miseで全部管理する</h2>
+
+<p><a href="https://mise.jdx.dev/">mise</a>(ミーズ)は
+開発環境の管理ツールです。</p>
+
+<p>結構機能が盛りだくさんで、</p>
+
+<ul>
+  <li>開発ツールの管理</li>
+  <li>プロジェクトごとの開発環境の管理</li>
+  <li>仮想環境の自動認識</li>
+  <li>タスクの自動化</li>
+</ul>
+
+<p>などが出来ます。</p>
+
+<p>もともと使い始めたのは仮想環境の自動認識のためでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p>それ以外だと<code>pre-commit</code>を使うレポジトリに最初に入るときに自動で<code>pre-commit install</code>を実行する設定
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+をしたりする程度でしたが、
+MCPサーバー用のツールもまとめて管理したら便利そうだったのでまとめてみました。</p>
+
+<p>以下の様な設定ファイルを用意します。</p>
+
+<figure class="code"><figcaption><span>~/config/mise/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tools]</span>
+</span><span class="line"><span class="n">node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;24.9.0&quot;</span>
+</span><span class="line"><span class="n">uv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8.22&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;npm:@openai/codex&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.42.0&quot;</span>
+</span><span class="line"><span class="s2">&quot;npm:@upstash/context7-mcp&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0.20&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを<strong>~/config/mise/config.toml</strong>に保存して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$<span class="w"> </span>mise<span class="w"> </span>install
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>すれば<code>codex</code>コマンドと共に、<code>context7-mcp</code>と<code>serena</code>コマンドもインストールされます。</p>
+
+<p><a href="https://mise.jdx.dev/getting-started.html#activate-mise">miseのsetup</a>
+が済んでいれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>.local/share/mise/installs/npm-openai-codex/0.42.0/bin/codex
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>などにインストールされているコマンドへの<code>PATH</code>が通って<code>codex</code>だけで実行できるようになっているはずです。</p>
+
+<p><code>serena</code>などもそのまま実行できるようになったので、上の
+<strong>~/.codex/config.toml</strong>は</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.context7]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;context7-mcp&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--api-key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${CONTEXT7_API_KEY}&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.serena]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;serena&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;start-mcp-server&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--context&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;codex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--enable-web-dashboard&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このように直接コマンドを使うように書き換えられます。</p>
+
+<p>この方法の利点としては</p>
+
+<ul>
+  <li>事前に必要なツールが<code>mise</code>のみ。</li>
+  <li><code>mise install</code>を実行しておくことで<code>codex</code>起動時には即座に各MCPサーバーが起動できる。</li>
+  <li>バージョン管理が一元化できる
+    <ul>
+      <li><code>mise upgrade --bump</code>とすると全てのツールを最新にできる。設定ファイルも自動で更新。</li>
+    </ul>
+  </li>
+  <li><code>codex</code>などもバージョンも含めきちんと管理することができる。
+    <ul>
+      <li>HomebrewだとHomebrewに登録された最新バージョンのみ。実際のリリースより遅れることもあり、古いバージョンを(簡単に)使うことは出来ない。</li>
+    </ul>
+  </li>
+  <li><strong>~/.config/mise/config.toml</strong>を<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>などで管理しておけば複数の環境で同じ環境を簡単に再現できる。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<h2 id="miseの設定ファイルについて">miseの設定ファイルについて</h2>
+
+<p>miseの設定ファイルについてもう少し捕捉。</p>
+
+<h3 id="tools">tools</h3>
+
+<p>今回のファイルだと
+<code>tools</code>セクションのみのファイルになっていますが、
+<code>uv</code>, <code>node</code>という管理する側のツールもここで管理します。
+別途インストールされて<code>PATH</code>に入っていればPATHの設定次第でそちらが使われる事もあるので、
+<strong>.bashrc</strong>の中などに追加する<code>_mise_hook</code>などの設定と他の<code>PATH</code>の設定の順序などちょっと注意が必要です。
+基本的に最新のものを使っている状態ならそれ程細かく気にする必要はないかもしれませんが。</p>
+
+<p>後は、<code>npm</code>や<code>pipx</code>でインストールするツールを指定しています。</p>
+
+<h3 id="pipx-uvx">pipx (uvx)</h3>
+
+<p><code>pipx</code>と書いてありますが、miseで<code>pipx</code>と書いた場合、<code>uv</code>が入っていればdefaultでは<code>uvx</code>がコマンド管理ツールとして使われます。</p>
+
+<blockquote>
+  <p><a href="https://mise.jdx.dev/dev-tools/backends/pipx.html">pipx Backend</a></p>
+</blockquote>
+
+<p><code>uvx</code>コマンドがなければ<code>pipx</code>コマンドが使われますが、<code>uvx</code>があっても<code>pipx</code>を使痛い場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.pipx]</span>
+</span><span class="line"><span class="n">uvx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と設定すれば<code>pipx</code>が必ず使われます。</p>
+
+<p>ただ<code>uvx</code>の方が高速なので無理にこの設定をすることは無いと思います。</p>
+
+<p><code>pipx</code>の形ではPyPIに公開されているパッケージの他にGitHubに公開されているパッケージや
+別のGitリポジトリに公開されているパッケージもインストールできます。
+また、zipファイルになっているパッケージもインストールできます。</p>
+
+<p>GitHubに関しては、上にあるように</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と<code>&lt;user&gt;/&lt;repo&gt;</code>の形で指定できます。</p>
+
+<p>このserenaの場合、<code>latest</code>で指定していますが、
+現状</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;v0.1.4&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>などと書いて、指定バージョンをインストールすることは出来ますが、
+この状態で<code>mise upgrade --bump</code>を実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">mise</span><span class="w"> </span><span class="n">WARN</span><span class="w">  </span><span class="n">Error</span><span class="w"> </span><span class="n">getting</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="n">for</span><span class="w"> </span><span class="n">pipx</span><span class="err">:</span><span class="n">oraios</span><span class="err">/</span><span class="n">serena</span><span class="err">:</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="n">found</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というwarningが出てアップグレードもされません。</p>
+
+<p><code>latest</code>にしておくと<code>mise ls</code>で確認するとちゃんと最新バージョンが入っていて、
+新しいバージョンがリリースされるときちんと更新されるのでここは<code>latest</code>にしてあります。</p>
+
+<p>PyPIからインストールするような</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:mcp-proxy&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.9.0&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかであればバージョンを書いても<code>mise upgrade --bump</code>で更新されます。</p>
+
+<p>ここで<code>uvx</code>などを使ってインストールされる際には
+<strong>~/.cache/uv/</strong>ではなく
+<strong>~/.local/share/mise/installs</strong>
+の下にインストールされるようになっていて、
+miseのsetupが済んでいればインストールされると
+自動的にそのコマンドのあるディレクトリへの<code>PATH</code>が通るようになっています。</p>
+
+<p><code>npm</code>などの場合も同様です。</p>
+
+<h3 id="npm-bun">npm (bun)</h3>
+
+<p><code>npm</code>の場合は通常<code>npm</code>コマンドが使われますが、<code>bun</code>を使うことも出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.npm]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tools]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.23&quot;</span>
+</span><span class="line"><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じに<code>settings.npm.bun</code>を<code>true</code>にして<code>bun</code>をインストールすれば<code>bun</code>が使われます。
+この場合は<code>bun</code>がないとエラーになります。</p>
+
+<p><code>bun</code>の方が高速なので<code>bun</code>を使うのも良いと思います。</p>
+
+<p><code>bun</code>を使う場合はこんな感じになります。</p>
+
+<figure class="code"><figcaption><span>~/config/mise/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.npm]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tools]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.23&quot;</span>
+</span><span class="line"><span class="n">node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;24.9.0&quot;</span>
+</span><span class="line"><span class="n">uv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8.22&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;npm:@openai/codex&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.42.0&quot;</span>
+</span><span class="line"><span class="s2">&quot;npm:@upstash/context7-mcp&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0.20&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2025/09/10/computer-python/"/>
+    <updated>2025-09-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/09/10/computer-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873119324?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873119324&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS200_.jpg" alt="入門 Python 3 第2版" /></a>
+</div>
+
+<p><a href="https://docs.astral.sh/uv/">uv</a>でPythonのプロジェクトを管理する際に、
+パッケージの依存関係でextrasなパッケージを<code>optional-dependencies</code>で指定することができます。</p>
+
+<p>それらのパッケージは<code>uv sync</code>ではインストールされないので、
+uvの環境でインストールしたい場合は
+<code>uv sync --extra &lt;EXTRA&gt;</code>でインストールするか、
+<code>dependency-groups</code>で設定してインストールできるようにしておく必要があります。</p>
+
+<p>ただ<code>dependency-groups</code>で指定する場合、
+そのまま同じパッケージを追加するとバージョンなどを複数の箇所に書くことになり
+管理が面倒になります。</p>
+
+<p>そのような重複を避けて書く方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#optional-dependenciesでのextraパッケージの指定" id="markdown-toc-optional-dependenciesでのextraパッケージの指定">optional-dependenciesでのextraパッケージの指定</a></li>
+  <li><a href="#uv-syncでextraパッケージをインストールする方法" id="markdown-toc-uv-syncでextraパッケージをインストールする方法"><code>uv sync</code>でextraパッケージをインストールする方法</a></li>
+  <li><a href="#自己参照して重複無く書く方法" id="markdown-toc-自己参照して重複無く書く方法">自己参照して重複無く書く方法</a></li>
+  <li><a href="#gitの管理などに関してtooluvsourrcesを使う" id="markdown-toc-gitの管理などに関してtooluvsourrcesを使う">gitの管理などに関してtool.uv.sourrcesを使う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="optional-dependenciesでのextraパッケージの指定">optional-dependenciesでのextraパッケージの指定</h2>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest &gt;= 8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの<strong>pyproject.toml</strong>があったとします。</p>
+
+<p>何もない状態から</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add "numpy&gt;=2.3.3"
+</span><span class="line">$ uv add --optional data "pandas&gt;=2.3.2"
+</span><span class="line">$ uv add --dev "pytest"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにパッケージを加えた状態です。</p>
+
+<p>このパッケージは<code>pip</code>などでインストールする際に、<code>my-example-package</code>とだけ指定すると
+<code>numpy</code>だけインストールされ、<code>pandas</code>はインストールされません。</p>
+
+<p><code>my-example-package[data]</code>と指定することで、<code>pandas</code>もインストールされます。</p>
+
+<p>これらの場合は<code>pytest</code>はインストールされません。</p>
+
+<p>一方、<code>uv sync</code>では<code>pytest</code>はインストールされますが<code>pandas</code>はインストールされません。
+<code>uv sync --extra data</code>、もしくは<code>uv sync --all-extras</code>とすることで、<code>pandas</code>もインストールされます。</p>
+
+<p>Extraなパッケージは重いライブラリだったりで、
+不要な時はインストールしないで済むようにするための仕組みです。</p>
+
+<h2 id="uv-syncでextraパッケージをインストールする方法"><code>uv sync</code>でextraパッケージをインストールする方法</h2>
+
+<p>一方、このパッケージを開発する際には<code>pandas</code>も必要になることが多いので
+それも含めた仮想環境を作っておきたいことが多いです。
+その場合に上記のようにオプション追加でインストールするのは面倒なので、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような感じで<code>dev</code>グループに<code>pandas</code>を追加しておけば<code>uv sync</code>でもインストールされます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --dev "pytest"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で追加することも出来ます。</p>
+
+<p>または、<code>pandas</code>がインストールされてない環境も簡単にチェックしたい場合、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように、別途<code>others</code>グループを作ってそこに<code>pandas</code>を追加し、
+<code>tool.uv</code>で<code>default-groups</code>に追加指定しておく方法もあります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>コマンドで追加する場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --group others "pandas&gt;=2.3.2"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でパッケージ追加出来ます。</p>
+
+<p><code>too.uv</code>の設定は手動で追加する必要があります。</p>
+
+<p>こちらでも<code>uv sync</code>で<code>pandas</code>がインストールされるようになりますし、
+<code>uv sync --no-group others</code>とすることで、<code>pandas</code>がインストールされてない環境を作ることが出来ます。</p>
+
+<p>分かりやすいように名前を変えましたがgroupの方も<code>data</code>としても大丈夫です。(<code>optional-dependencies</code>のextra名とは独立しています。)</p>
+
+<p>ただこの場合、<code>pandas&gt;=2.3.2</code>が重複していて、特にバージョンを変えたい場合などに
+2箇所を変えないといけないのでちょっと面倒です。</p>
+
+<h2 id="自己参照して重複無く書く方法">自己参照して重複無く書く方法</h2>
+
+<p>そこで、これを以下のように書き直すことが出来ます。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;my-example-package[data]&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>others</code>のグループに、自分自身の<code>my-example-package</code>を<code>data</code>のextra付きで指定しています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --group others my-example-package[data]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンドで追加することも出来ます
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>これで、<code>uv sync</code>で<code>pandas</code>がインストールされるようになり、
+また、<code>pandas</code>のバージョン指定は<code>optional-dependencies</code>の方で一箇所だけ書けば良くなります。</p>
+
+<p>このような重複の削除は、バージョン指定以外にも、特にGitHubにあるレポジトリをgitで指定する場合などに便利です。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring @ git+ssh://git@github.com/rcmdnk/inherit-docstring@v0.2.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>みたいな感じで指定するのをgroupsの方でも同様に指定する代わりにまとめて<code>my-example-package[data]</code>を指定するだけで
+良くなるのでだいぶ楽になります。</p>
+
+<p>この方法は循環参照になってしまう感じのする書き方ですが、意図したとおりに動作しますし、
+uvの開発者の方が紹介している方法になります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/astral-sh/uv/issues/9011#issuecomment-2568139247">Question: What’s the difference between <code>optional-dependencies</code> and <code>dependency-groups</code> in <code>pyproject.toml</code>? · Issue #9011 · astral-sh/uv</a></p>
+</blockquote>
+
+<p>もしかすると今後のアップデートでまた違った書き方が出来るようになったり推奨されたりするかもしれませんが、
+現状ではこの方法が一番便利な方法かな、と思ってます。</p>
+
+<h2 id="gitの管理などに関してtooluvsourrcesを使う">gitの管理などに関してtool.uv.sourrcesを使う</h2>
+
+<p>上では直接<code>dependencies</code>の中にGitのURLを入れましたが、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">uv add --optional data git+ssh://git@github.com/rcmdnk/inherit-docstring@v0.2.0</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンドで追加すれば、
+以下のような感じになるはずです。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;my-example-package[data]&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv.sources]</span>
+</span><span class="line"><span class="n">inherit-docstring</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;ssh://git@github.com/rcmdnk/inherit-docstring&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rev</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;v0.2.0&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>uv.sources</code>にGitの情報等とともに<code>inherit-docstring</code>が追加されているのが分かります。</p>
+
+<p>このような形であれば、例えばpandasなしなら、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv.sources]</span>
+</span><span class="line"><span class="n">inherit-docstring</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;ssh://git@github.com/rcmdnk/inherit-docstring&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rev</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;v0.2.0&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにパッケージ名を直接書いても良いかもしれません。
+こちらの方が循環参照っぽい気持ち悪さも無いので。</p>
+
+<p>ただ、<code>data</code>としてまとめたいものが複数ある場合などは
+自己参照を使った方法の方がまとめて出来て分かりやすいとは思います。</p>
+
+<p>また、こちらはuvの機能としてなので、
+仮にこの<strong>pyproject.toml</strong>を別の管理ツールで使いたいということがある場合などは
+こちらの方法だと理解されない可能性もあります。</p>
+
+<p>そういった意味でも先の方法をまず考えた方が良いかな、と思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkの設定画面をタブ化]]></title>
+    <link href="https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim/"/>
+    <updated>2025-08-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkeyで作ってるvim_ahkの設定画面をタブ化しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#設定画面のタブ化" id="markdown-toc-設定画面のタブ化">設定画面のタブ化</a></li>
+  <li><a href="#タブ化の方法" id="markdown-toc-タブ化の方法">タブ化の方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyのスクリプトで、Windows上のどこでも
+<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で移動したり<i class="key">Y</i>/<i class="key">P</i>でコピペしたりするVimチックな動きを
+再現するためのスクリプトです。</p>
+
+<p>exeファイルを直接使えばAutoHotkeyがインストールされてない環境でも動きます。</p>
+
+<h2 id="設定画面のタブ化">設定画面のタブ化</h2>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_keys.png" alt="settings_keys" title="settings_keys" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_applications.png" alt="settings_applications" title="settings_applications" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_status.png" alt="settings_status" title="settings_status" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_configuration.png" alt="settings_configuration" title="settings_configuration" /></p>
+
+<p>こんな感じで設定画面をタブ化しました。</p>
+
+<p>設定が多くなってくると設定画面が長くなってしまい、
+あまり長いとそのままだとウィンドウをはみ出るようになるので
+なんとか整理しないとと思ってましたがタブ化で見た目もより設定画面ぽくなって良いのでは、と。</p>
+
+<p>設定画面に余裕が出来たので、
+最後のConfigurationタブにあるように、新たに設定ファイルのImport/Export機能も追加してみました。</p>
+
+<h2 id="タブ化の方法">タブ化の方法</h2>
+
+<p>AutoHotkeyではGUIのコントロール部品が用意されていて比較的簡単にGUIを作ることができます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p>この中に
+<a href="https://www.autohotkey.com/docs/v2/lib/GuiControls.htm#Tab">Tab</a>というGUIのコントロール部品があるので
+思ったより簡単に出来ました。
+Tab/Tab2/Tab3と3種類ありますが、基本的にはTab3がTab/Tab2であった問題を解決して進化したバージョンになってるので
+Tab3を使っておけばOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span> <span class="o">:=</span> <span class="n">MyObj</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Tab3&quot;</span><span class="p">,</span> <span class="s">&quot;X+0 Y+0 W480 H360&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;First&quot;</span><span class="p">,</span> <span class="s">&quot;Second&quot;</span><span class="p">,</span> <span class="s">&quot;Third&quot;</span><span class="p">])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで、<code>Tab3</code>コンポーネントを、位置(この場合は<code>X+0 Y+0</code>で前のコンポーネントの右下位置からそのまま開始)と幅と高さ(W480 H360)を指定して、
+最後に各タブの名前をリストで指定するだけでタブが作れます。</p>
+
+<p>各タブの中身を作るには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X+0 Y+0 Section&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;XS+10 Y+20&quot;</span><span class="p">,</span> <span class="s">&quot;This is the first tab.&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>UseTab(N)</code>でタブを指定して後は通常通りコンポーネントを追加していきます。
+<code>N</code>は1から始まるのでちょっと注意。(上の場合は1: <code>First</code>, 2: <code>Second</code>, 3: <code>Third</code>のタブになります。)</p>
+
+<p>タブの中だと<code>X10</code>などで指定した際、ウィンドウの左端からの距離になってタブの枠分位値の調整が難しくなるので、
+タブを開始した直後に幅高さゼロの<code>Section</code>用の疑似テキストをアンカーとして置いて、
+<code>XS</code>や<code>YS</code>を使うことでタブの左上の位置からの距離を使えるようにしておくと便利です。</p>
+
+<p>この後に<code>Tab.UseTab(2)</code>とすればそこから<code>Second</code>タブの中身を追加していくことができます。</p>
+
+<p><code>X+0</code>の様な前のコンポーネントとの相対位置の開始位置は<code>UseTab</code>を使うとタブのそのタブの左上の位置にリセットされます。</p>
+
+<p>また、タブ終了は<code>UseTab()</code>と数字無しで指定するとタブ外に行きますが、
+その後タブの下にさらにコンポーネントを追加するには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line"><span class="n">Tab</span><span class="o">.</span><span class="n">GetPos</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tabX</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabY</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabW</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabH</span><span class="p">)</span>
+</span><span class="line"><span class="n">underTab</span> <span class="o">:=</span> <span class="n">tabY</span> <span class="o">+</span> <span class="n">tabH</span> <span class="o">+</span> <span class="mi">10</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X15 Y&quot;</span> <span class="n">underTab</span><span class="p">,</span> <span class="s">&quot;Text under the tab.&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに、<code>GetPos</code>でタブの位置とサイズを取得して、
+タブの下限位置を取得してその下に良しなにコンポーネントを追加していく感じにすると
+いい感じにタブの下にコンポーネントを追加できます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Oura Ring 4購入]]></title>
+    <link href="https://rcmdnk.com/blog/2025/08/12/computer-iot-shopping/"/>
+    <updated>2025-08-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/08/12/computer-iot-shopping</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0D9WVTNJD?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D9WVTNJD&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61WuzC7dsZL._SS200_.jpg" alt="Oura Ring 第4世代 – ブラック – サイズ7 – スマートリング|まずはサイズ確認:専用サイズキット対応|睡眠・心拍・フィットネスを計測|最長8日間バッテリー持続" /></a>
+</div>
+
+<p>Oura Ring 4の発売が開始されてから半年ちょっと経ちましたが、
+1ヶ月くらい前から日本の代理店経由でも購入できるようになりました。</p>
+
+<p>今使ってる第三世代のもがまたバッテリーの持ちが悪くなってきたので、
+これを機に買い替えることにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまでのoura-ring購入歴" id="markdown-toc-これまでのoura-ring購入歴">これまでのOura Ring購入歴</a></li>
+  <li><a href="#oura-ring-4の購入先" id="markdown-toc-oura-ring-4の購入先">Oura Ring 4の購入先</a></li>
+  <li><a href="#oura-ring-3との比較" id="markdown-toc-oura-ring-3との比較">Oura Ring 3との比較</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまでのoura-ring購入歴">これまでのOura Ring購入歴</h2>
+
+<p>最初に第2世代のものを2021年1月に購入しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B081PJSKYH?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B081PJSKYH&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zy-KK2gbL._SS90_CR0,0,120,90_.jpg" alt="Oura Ring オーラリング Heritage &nbsp;model 最新 US7 Black 『アプリ日本語対応！NextSims』" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/12/computer-iot-shopping/">Oura Ring(スマートリング、ウェアラブルデバイス)を購入した</a></div></li></ul>
+
+<p>その後、2021年々末に第3世代が出るときに
+まだ最初の買ってから1年も経ってな買ったのですが、
+第2世代を持っていて早期に購入すると<strong>a free lifetime Oura membership</strong>
+がもらえるということで、早期購入しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07XF4XT9Q?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07XF4XT9Q&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61etlVTj08L._SS90_CR0,0,120,90_.jpg" alt="Oura Ring オーラリング Balance&nbsp;model US9 Black 【アプリ日本語対応！NextSims】" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/11/01/computer-iot-shopping/">Oura Ring Generation 3を購入(a free lifetime Oura membership)</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/12/15/computer-iot-shopping/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20211215_oura1_120_90.jpg" width="120" height="90" alt="20211215_oura1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/12/15/computer-iot-shopping/">Oura Ring Generation 3が届いた</a></div></li></ul>
+
+<p>そこから2年位経ったときにちょっとバッテリーの持ちが2日位しか持たないくらいあまりに悪くなったので
+サポートに相談したところ、新しいものと交換してくれることになって新しいものになりました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/09/30/computer-iot-shopping/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20230930_packaging_120_90.jpg" width="120" height="90" alt="20230930_packaging_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/09/30/computer-iot-shopping/">Oura Ring(第3世代)のバッテリーがだめになったので交換してもらった</a></div></li></ul>
+
+<p>そこから更に2年近く経ってまたバッテリの持ちが悪くなってきています。
+今は3日4日くらいは持つので交換してもらったときほどすぐに無くなるな、という感じでは無いですが、
+それでも週に何度か切れる感じがあるのは面倒です。</p>
+
+<p>とはいえ普通に使えることは使えるので第4世代に買い替えるのはもう少し先でも良いかなと思っていましたが、
+日本の代理店経由で購入できるようになって、
+しかも値段は公式サイトで買うのと同じ値段だったので買い替えてみることに。</p>
+
+<h2 id="oura-ring-4の購入先">Oura Ring 4の購入先</h2>
+
+<p>公式で見ても一番安いので5.28万円ですが、ドルだと349ドルとかなので大体1ドル150円位で同じくらい。</p>
+
+<p>以前は公式サイトが日本語が無かった？のと値段も日本円表記はなかったと思いますが
+今はちゃんと日本語ページも有り日本円で表示されています<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>第3世代も家電量販店などでも売ってましたが、
+$299のものが5万円超えで、売り始めた2023年春頃はまだ1ドル130円とかで
+1万円以上高いな、という記憶。</p>
+
+<p>実際には公式で買うと関税を払う必要があるので、
+3, 4千円位プラスにはなりますが、それでも公式で買ったほうがだいぶ安かったです。</p>
+
+<p>それが今回はAmazonや楽天でも公式と同じ値段で売っています。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0D9WVJXZZ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D9WVJXZZ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61WuzC7dsZL._SS200_.jpg" alt="Oura Ring 第4世代 – ブラック – サイズ4 – スマートリング|まずはサイズ確認:専用サイズキット対応|睡眠・心拍・フィットネスを計測|最長8日間バッテリー持続" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B0D9WVJXZZ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D9WVJXZZ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Oura Ring 第4世代 – ブラック – サイズ4 – スマートリング|まずはサイズ確認:専用サイズキット対応|睡眠・心拍・フィットネスを計測|最長8日間バッテリー持続</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B0D9WVJXZZ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0D9WVJXZZ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FOura+Ring+%E7%AC%AC4%E4%B8%96%E4%BB%A3%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FOura+Ring+%E7%AC%AC4%E4%B8%96%E4%BB%A3%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>Amazonの方はOura shopとなっていて公式が直接やっている？
+楽天の方はソースネクストがやっていて
+<a href="https://www.sourcenext.com/product/ouraring/?srsltid=AfmBOooFvV1SEfqXy4snSBgIhQ0afaZuAS-ALGcIQz1Vkso0zXnC9-SD">ソースネクストのオンラインショップ</a>
+でも売ってまさすがそっちだと何故か送料かかるので楽天の方が安い（ソースネクストでしかポイント使ってない、という場合はポイント分で安くなるという微妙なラインですが。)</p>
+
+<p>Amazonとかでも一部独自に輸入して高く売ってたりするのもあるので注意。</p>
+
+<p>今回は楽天の方で購入しました。
+出荷も国内からで、注文して2日で届きました。休み中だったので早ければ1日でも届いていたかも。
+当然関税もかかりません。</p>
+
+<p>関税分日本の代理店経由の方が安いということになるのかな、と思いましたが、
+公式のHPでも日本向けのサポートが上がってるのと、
+AmazonのショップがOura shopとなってたりしているので、
+もしかしたら今公式で買うと日本国内出荷で関税もかからないのかもしれません。</p>
+
+<p>保証とかも1年保証は同じなのでそれほどデメリットは無いと思います。</p>
+
+<p>ただ、上にも書いたバッテリーが弱くなったときのサポートでは、
+公式で注文した際の注文番号とかが要求されたので、
+同じようなことが起こったときに公式でのサポートは難しいのかもしれません。
+その辺のサポート体制も変わっているんかもしれませんが。</p>
+
+<p>いずれにしろ買ってすぐ届く、というだけでも結構なメリットだと思いました。</p>
+
+<h2 id="oura-ring-3との比較">Oura Ring 3との比較</h2>
+
+<blockquote>
+  <p><a href="https://support.ouraring.com/hc/ja/articles/34114690317075-Oura-Ring-4%E3%81%A8Oura-Ring%E7%AC%AC3%E4%B8%96%E4%BB%A3%E3%81%AE%E6%AF%94%E8%BC%83">Oura Ring 4とOura Ring第3世代の比較 – Ouraヘルプセンター</a></p>
+</blockquote>
+
+<p>センサーとかの性能アップグレードとかがもちろん主なものですが、
+形状として内側のセンサーに関する突起がほとんどなくなり、その分3よりも少しリングが大きめに感じるようになっています。</p>
+
+<p>USサイズで0.5位大きくなった感じとのことです。</p>
+
+<blockquote>
+  <p><a href="https://www.reddit.com/r/ouraring/comments/1fw7yds/gen_4_gen_3_us_ring_size_comparison/">Gen 4 &amp; Gen 3 US Ring Size Comparison : r/ouraring</a></p>
+</blockquote>
+
+<p>なので、第3世代のもので、少し緩めのものにしている場合は場合によっては1サイズ落とした方が良いかもしれません。</p>
+
+<p>個人的には第3世代のものは少しきつめだったので同じサイズにして以前よりもつけ心地が良くなった感じがします。</p>
+
+<p>外側の形状も以前あった一部が平らになっているHeritageはなくなりすべて全体が丸い状態になっています。
+一部凹みがありその部分を手の内側に来るようにつけるようになっています。
+Heritage型だと少し平らなところの端のほうが厚くなっていたので、完全な円状の指輪でその分でも少し指の辺りが減った感じもあります。</p>
+
+<p>あとちょっと気になった点は、新しい充電器に対してケーブルもついて来ましたが、
+第4世代ではUSB C to Cのケーブルになってます。
+第3世代ではUSB A to Cのケーブルでした。</p>
+
+<p>もちろん、A to Cのケーブルで充電することも出来ますが、
+未だ家にあるアダプタがUSB A用のものが圧倒的に多くて
+最近はUSB C to Cのケーブルが充電用で入っているものも増えてきているのでその辺も揃えていかないとな、と思う今日この頃です。</p>
+
+<p>USB C用のアダプタだと高出力のアダプタも多いですが、
+充電する際に20W出力のアダプタ使うと早く充電できた、けど熱が心配？という話もあるようです。</p>
+
+<blockquote>
+  <p><a href="https://www.reddit.com/r/ouraring/comments/1hzu5kv/charging_adapter_best_suitable_for_the_oura_ring/?show=original">Charging adapter best suitable for the Oura Ring Gen 4 : r/ouraring</a></p>
+</blockquote>
+
+<p>この辺公式がアダプタにまでは言及してないのでなんとも言い難いところですが。</p>
+
+<p>また、充電器は第2世代と第3世代は互換性がありましたが、第4世代のものは第3世代とは互換性がないです。</p>
+]]></content>
+  </entry>
+  
+</feed>
