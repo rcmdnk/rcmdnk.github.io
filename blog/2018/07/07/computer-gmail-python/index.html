@@ -1,0 +1,1565 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する">
+  <meta name="description" content="Gmailのラベルやフィルタの使い方を色々考え直していましたが、
+エキスポート出来るXMLファイルを直接手でいじるのが色々大変だったので
+YAML形式に変更して編集しやすくし、
+それをGmailにインポートできる形のXML形式に変更するコマンドを作りました。">
+  
+  <meta property="og:title" content="gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Gmailのラベルやフィルタの使い方を色々考え直していましたが、
+エキスポート出来るXMLファイルを直接手でいじるのが色々大変だったので
+YAML形式に変更して編集しやすくし、
+それをGmailにインポートできる形のXML形式に変更するコマンドを作りました。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20140409_filter2.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="https://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="https://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="https://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2018-07-07T00:00:00+00:00'><span class='time'>07 Jul 2018</span></time></span>
+    
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/gmail/"><span>Gmail</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/python/"><span>Python</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2018/07/07/computer-gmail-python/" itemprop="url">gmail_filter_manager: GmailのフィルタをYAMLで簡単に管理する</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/" data-count="12">12</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&amp;t=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/" data-count="3">3</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&title=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20140409_filter2_200_200.jpg" width="200" height="200" alt="20140409_filter2_200_200">
+      </div>
+      
+      <p>Gmailのラベルやフィルタの使い方を色々考え直していましたが、
+エキスポート出来るXMLファイルを直接手でいじるのが色々大変だったので
+YAML形式に変更して編集しやすくし、
+それをGmailにインポートできる形のXML形式に変更するコマンドを作りました。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#gmail_filter_manager" id="markdown-toc-gmail_filter_manager">gmail_filter_manager</a></li>
+  <li><a href="#xml-to-yaml" id="markdown-toc-xml-to-yaml">XML to YAML</a></li>
+  <li><a href="#yamlでフィルタを作る" id="markdown-toc-yamlでフィルタを作る">YAMLでフィルタを作る</a>    <ul>
+      <li><a href="#フィルタの条件に使えるもの" id="markdown-toc-フィルタの条件に使えるもの">フィルタの条件に使えるもの</a>        <ul>
+          <li><a href="#含む含まないに使えるもの" id="markdown-toc-含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</a></li>
+        </ul>
+      </li>
+      <li><a href="#フィルタ後の処置" id="markdown-toc-フィルタ後の処置">フィルタ後の処置</a></li>
+      <li><a href="#yamlの書き方" id="markdown-toc-yamlの書き方">YAMLの書き方</a></li>
+    </ul>
+  </li>
+  <li><a href="#yaml-to-xml" id="markdown-toc-yaml-to-xml">YAML to XML</a></li>
+  <li><a href="#gmailのラベルの使用法を工夫する" id="markdown-toc-gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gmail_filter_manager">gmail_filter_manager</h2>
+
+<div class="github-widget" data-repo="rcmdnk/gmail_filter_manager"></div>
+
+<p>例のごとくGitHubにあります。</p>
+
+<p>コマンドは</p>
+
+<ul>
+  <li>bin/gfm_extract: GmailからエキスポートしたXMLファイルをYAML形式にコンバート</li>
+  <li>bin/gfm_make: YAML形式で書いたフィルタをGmailが読めるXML形式にコンバート</li>
+</ul>
+
+<p>の2つです。</p>
+
+<p>Mac + Homebrewであれば</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/gmail_filter_manager
+</code></pre>
+
+<p>で入ります。</p>
+
+<p>それ以外では</p>
+
+<pre><code>$ curl -fsSL https://raw.github.com/rcmdnk/gmail_filter_manager/install/install.sh | prefix=~/usr/local/ sh
+</code></pre>
+
+<p>で<code>prefix</code>で入れたい場所を指定して入れることが出来ます。</p>
+
+<p>もしくは上のコマンドを適当にPATHの通ったディレクトリに入れてください。</p>
+
+<p>必要なものはPythonでMac上でPython2.7.15、及び3.7.0で動作を確認してあります。</p>
+
+<p>Pythonのパッケージで<code>ruamel.yaml</code>が必要なので入っていない場合は</p>
+
+<pre><code>$ pip install ruamel.yaml
+</code></pre>
+
+<p>などでインストールしてください。</p>
+
+<h2 id="xml-to-yaml">XML to YAML</h2>
+
+<p>YAMLで直接フィルタを書いても良いですが、
+すでにGmailでフィルタを設定していたりする場合それをエキスポートして
+YAMLに変換して編集することが出来ます。</p>
+
+<p>まず、GmailからフィルタをXML形式でエキスポートします。
+エキスポートはGmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+出力したいフィルタをチェックして下にある<strong>エキスポート</strong>ボタンを押します。</p>
+
+<p>通常は一覧の下にある<strong>すべて</strong>を押してすべて選択してエキスポートすれば良いと思います。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/6579?hl=ja">メールのフィルタルールの作成 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>エキスポートした<strong>mailFilters.xml</strong>は以下の様な形になってると思います。</p>
+
+<figure class="code"><figcaption><span>mailFilters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;UTF-8&#39;?&gt;</span><span class="nt">&lt;feed</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&#39;http://www.w3.org/2005/Atom&#39;</span><span class="w"> </span><span class="na">xmlns:apps=</span><span class="s">&#39;http://schemas.google.com/apps/2006&#39;</span><span class="nt">&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;title&gt;</span>Mail<span class="w"> </span>Filters<span class="nt">&lt;/title&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filters:1530786931071,1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;author&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;name&gt;</span>rcmdnk<span class="nt">&lt;/name&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;email&gt;</span>rcmdnk@gmail.com<span class="nt">&lt;/email&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;/author&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;entry&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;category</span><span class="w"> </span><span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;title&gt;</span>Mail<span class="w"> </span>Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530786931071<span class="nt">&lt;/id&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&#39;from&#39;</span><span class="w"> </span><span class="na">value=</span><span class="s">&#39;foo@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&#39;label&#39;</span><span class="w"> </span><span class="na">value=</span><span class="s">&#39;foo&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;entry&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;category</span><span class="w"> </span><span class="na">term=</span><span class="s">&#39;filter&#39;</span><span class="nt">&gt;&lt;/category&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;title&gt;</span>Mail<span class="w"> </span>Filter<span class="nt">&lt;/title&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;id&gt;</span>tag:mail.google.com,2008:filter:1530787869174<span class="nt">&lt;/id&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;updated&gt;</span>2018-07-05T10:51:18Z<span class="nt">&lt;/updated&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;content&gt;&lt;/content&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&#39;from&#39;</span><span class="w"> </span><span class="na">value=</span><span class="s">&#39;bar@example.com&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&#39;label&#39;</span><span class="w"> </span><span class="na">value=</span><span class="s">&#39;bar&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&#39;shouldArchive&#39;</span><span class="w"> </span><span class="na">value=</span><span class="s">&#39;true&#39;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを再びインポートすればフィルタが作成できるので
+バックアップとして取っておいたり出来ます。</p>
+
+<p>以前はこれを直接編集していましたがいろいろ面倒なのでYAML形式で管理しよう、ということで
+<code>gfm_extrac</code>を使います。</p>
+
+<p><code>gfm_extract</code>は第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.xml</strong>、アウトプットに<strong>mailFilters.yaml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_extract
+</code></pre>
+
+<p>で出来た<strong>mailFilters.yaml</strong>を見てみると</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">filters</span><span class="p">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo@example.com</span>
+</span><span class="line"><span class="w">  </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bar@example.com</span>
+</span><span class="line"><span class="w">  </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line"><span class="w">  </span><span class="nt">shouldArchive</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span class="line"><span class="nt">namespaces</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">apps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://schemas.google.com/apps/2006</span>
+</span><span class="line"><span class="w">  </span><span class="nt">atom</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://www.w3.org/2005/Atom</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのシンプルなものになっているかと思います。</p>
+
+<p>インポートする際、
+上のXMLファイルの中で実際に必要な部分だけを抜き出した形です。</p>
+
+<p>基本的に<code>entry</code>タグが一つのフィルタを表していて、その中の
+<code>apps:property</code>タグがフィルタ条件、処置方法についての内容になっていて、
+それ以外は必要ありません。</p>
+
+<p><code>namespaces</code>に関しては便宜上残していますが、
+<code>gfm_make</code>するときにこれらを補完するようにしてあるので
+自作する際にはなくても大丈夫です。</p>
+
+<h2 id="yamlでフィルタを作る">YAMLでフィルタを作る</h2>
+
+<p>簡単に作り方を知る方法としては、
+適当なフィルタをGmailで作って
+それらをエキスポートし、その内容を見てみるのが良いです。
+<code>gfm_extrac</code>でYAMLに変更することで更にわかりやすくなるはずです。</p>
+
+<p>YAMLの形式としては、<code>filters</code>というキーに対して
+フィルタを配列で配置していきます。</p>
+
+<p>各フィルタの中身は配列で、一つにつき一つ、<code>apps:property</code>タグに対応するものを書いていきます。
+キーとしてXMLの<code>name</code>属性を、値として<code>value</code>属性を書きます。</p>
+
+<p>フィルタの条件もフィルタ適用後の処置についても
+同じ様な記述で同列に書いていく形になります。
+(XMLでも全て<code>apps:property</code>で同様の書き方になっていて区別されてません。)</p>
+
+<h3 id="フィルタの条件に使えるもの">フィルタの条件に使えるもの</h3>
+
+<p>フィルタに使えるものは以下のものになります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">From</td>
+      <td style="text-align: left">from</td>
+      <td style="text-align: left">メールの送信者</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">To</td>
+      <td style="text-align: left">to</td>
+      <td style="text-align: left">メールの送信先</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">件名</td>
+      <td style="text-align: left">subject</td>
+      <td style="text-align: left">メールのタイトル</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含む</td>
+      <td style="text-align: left">hasTheWord</td>
+      <td style="text-align: left">これを含むメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">含まない</td>
+      <td style="text-align: left">doesNotHaveTheWord</td>
+      <td style="text-align: left">これを含まないメール</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">添付ファイル有り</td>
+      <td style="text-align: left">hasAttachment</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">チャットは除外する</td>
+      <td style="text-align: left">excludeChats</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">サイズ</td>
+      <td style="text-align: left">size</td>
+      <td style="text-align: left">以下の2つとの組み合わせで指定サイズと比較する</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次の値より大きい/小さい</td>
+      <td style="text-align: left">sizeOperator</td>
+      <td style="text-align: left"><code>s_sl</code>なら上のサイズより大きい、<code>s_ss</code>なら小さい</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">MB/KB/バイト</td>
+      <td style="text-align: left">sizeUnit</td>
+      <td style="text-align: left">サイズに適用する単位。s_sb (バイト)、s_skb (KB)、s_smb (MB)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="含む含まないに使えるもの"><strong>含む</strong>、<strong>含まない</strong>に使えるもの</h4>
+
+<p><strong>含む</strong>、<strong>含まない</strong>については複数のCCを指定したり、
+ラベルを指定したり、単にメールの本文に含まれるかどうかなどを組み合わせて使えます。</p>
+
+<p>fromやtoも指定できるので、上記の<code>From</code>などで指定せずにこちらですることも出来、
+組み合わせて使いたい場合はまとめて<strong>含む</strong>に入れたほうが楽だったりします。</p>
+
+<p>指定方法として、</p>
+
+<ul>
+  <li>from:foo@example.com</li>
+  <li>to:foo@example.com</li>
+  <li>subject:”Hello!”</li>
+  <li>label:foo # fooラベルのついたもの</li>
+  <li>has:nouserlabels # ラベルがついてないもの</li>
+</ul>
+
+<p>などがあります。</p>
+
+<p>組み合わせるときはそのままスペースで区切るかまたは<code>()</code>で囲むと<code>AND</code>になります。
+<code>{}</code>で囲むと<code>OR</code>になります。</p>
+
+<p>また、条件に<code>-label:foo</code>などとすると否定になります。</p>
+
+<p>したがって、<strong>含まない</strong>を使わずに<strong>含む</strong>だけでやりたいことをすべて行うことも出来ます。</p>
+
+<p>その他の細かいところは公式ヘルプで。</p>
+
+<blockquote>
+  <p><a href="https://support.google.com/mail/answer/7190">Gmail で使用できる検索演算子 - Gmail ヘルプ</a></p>
+</blockquote>
+
+<p>一つ注意として、YAMLとして記述するとき</p>
+
+<ul>
+  <li>hasTheWord: {from:foo@example.com from:bar@example.com}</li>
+</ul>
+
+<p>の様に書いてしまうと値の部分がさらに辞書として理解されおかしなことになります。
+これを避けるため<code>hasTheWord</code>や<code>doesNotHaveTheWord</code>また<code>subject</code>などに関しては
+クォート(““で囲う)しておいた方が安全です。</p>
+
+<h3 id="フィルタ後の処置">フィルタ後の処置</h3>
+
+<p>フィルタ後の処置としては以下の様なものがあります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Gmail上の表記</th>
+      <th style="text-align: left">XMLの<code>name</code>属性</th>
+      <th style="text-align: left">説明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">受信トレイをスキップ(アーカイブする)</td>
+      <td style="text-align: left">shouldArchive</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">既読にする</td>
+      <td style="text-align: left">shouldMarkAsRead</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">スターを付ける</td>
+      <td style="text-align: left">shouldStar</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">ラベルを付ける</td>
+      <td style="text-align: left">label</td>
+      <td style="text-align: left">付けるラベルを指定</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">次のアドレスに転送する</td>
+      <td style="text-align: left">forwrdTo</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">削除する</td>
+      <td style="text-align: left">shouldTrash</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">迷惑メールにしない</td>
+      <td style="text-align: left">shouldNeverSpam</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">常に重要マークを付ける</td>
+      <td style="text-align: left">shouldAlwaysMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">重要マークを付けない</td>
+      <td style="text-align: left">shouldNeverMarkAsImportant</td>
+      <td style="text-align: left">指定値はtrue/false</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">適用するカテゴリ</td>
+      <td style="text-align: left">smartLabelToApply</td>
+      <td style="text-align: left">値は次のいずれか: “^smartlabel_personal”(個人)、”^smartlabel_social”(ソーシャル)、”^smartlabel_promo”(プロモーション)、”^smartlabel_notification”(新着)、”^smartlabel_group”(フォーラム)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="yamlの書き方">YAMLの書き方</h3>
+
+<p>上にも書いたようにまず<code>filters</code>というキーを作り
+そこに各フィルタの配列を与えます。</p>
+
+<p>フィルタの条件や処置についてはその中で配列として記述していきます。</p>
+
+<figure class="code"><figcaption><span>mailFilters.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">filters</span><span class="p">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hasTheWord</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">foo@example.com bar@example.com</span><span class="p p-Indicator">}</span>
+</span><span class="line"><span class="w">  </span><span class="nt">label</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bar</span>
+</span><span class="line"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">baz.com</span>
+</span><span class="line"><span class="w">  </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">baz</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>唯一<code>label</code>だけは複数配列ツィて指定できる様にもなっていて、
+複数指定した場合にはそれぞれのラベルに対して他の条件、処置が同じフィルタを
+作成することになります。</p>
+
+<h2 id="yaml-to-xml">YAML to XML</h2>
+
+<p><code>gfm_make</code>を使ってYAMLからGmailにインポートできるXMLファイルを作ります。</p>
+
+<p><code>gfm_make</code>も第一引数がインプットファイル、第二引数がアウトプットファイルの名前で、
+指定がなければインプットに<strong>mailFilters.yaml</strong>、アウトプットに<strong>filters.xml</strong>が指定されます。</p>
+
+<pre><code>$ gfm_make
+</code></pre>
+
+<p>最初にエキスポートした例で出して<code>gfm_extrac</code>で変形したものをそのまま
+XMLに変形すると</p>
+
+<figure class="code"><figcaption><span>filters.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="xml"><span class="line"><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+</span><span class="line"><span class="nt">&lt;feed</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="w"> </span><span class="na">xmlns:apps=</span><span class="s">&quot;http://schemas.google.com/apps/2006&quot;</span><span class="nt">&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;entry&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;from&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;foo@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;MyLabel1&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;entry&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;shouldArchive&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="nt">&lt;apps:property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;from&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;bar@example.com&quot;</span><span class="nt">/&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">&lt;/entry&gt;</span>
+</span><span class="line"><span class="nt">&lt;/feed&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じになります。
+最初にエキスポートしたものに比べるとずいぶんスリムになりましたが
+これで全く同じフィルタを作成することが出来ます。</p>
+
+<p>フィルタをインポートするには
+Gmailの<strong>設定</strong>から<strong>フィルタとブロック中のアドレス</strong>のページに行き、
+下の方にある<strong>フィルタをインポート</strong>を押してインポート画面を表示し、
+<strong>ファイルを選択</strong>でファイルを選択後、<strong>ファイルを開く</strong>を押すと
+フィルタが表示される様になります。</p>
+
+<p>この時点ではまだGmailにインポートされておらず、
+フィルタにチェックが入った状態でさらに下の<strong>フィルタを作成</strong>を押すと実際にインポートされます。</p>
+
+<p>このとき、右にある<strong>既存のメールに新しいフィルタを適用する</strong>にチェックしたくなりますが、
+すべてのメールを見るのでものすごい時間がかかるため、
+Gmailを使い始めて間もない、とかで無い限りチェックしない方が無難です。</p>
+
+<p>チェックしない状態で100個くらいのフィルタを作るのに1分位かかります。</p>
+
+<p>ここで、一度エキスポートして編集して再度インポートすることを考えると、
+<strong>ファイタを作成</strong>をする前に一度前のフィルタをすべて削除しておいた方が良いです。</p>
+
+<p>そうすると一瞬フィルタが無い時間ができ、その間に来たメールは振り分けられませんが、
+あとでいちいち古いフィルタを削除するよりは良いと思います。</p>
+
+<h2 id="gmailのラベルの使用法を工夫する">Gmailのラベルの使用法を工夫する</h2>
+
+<p>これを作ったのは色々Gmailのラベルやフィルタの使い方を変えようと思って
+いじってた時に手動でやっていくのが面倒になってきたからです。</p>
+
+<p>以下に書いてある様なことをやりたい場合、これらのコマンドを使って
+YAMLで管理すると非常に楽です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2018/07/06/computer-gmail/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20140409_filter_120_90.jpg" width="120" height="90" alt="20140409_filter_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2018/07/06/computer-gmail/">Gmailのラベルの使用法を工夫する</a></div></li></ul>
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished dateModified' class='entry-date updated' datetime='2018-07-07T00:00:00+00:00'><span class='date'>07 Jul 2018</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/gmail/'><span>Gmail</span></a>, <a class='tag' href='/blog/tags/python/'><span>Python</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&amp;t=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/&title=gmail_filter_manager%3A+Gmail%E3%81%AE%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF%E3%82%92YAML%E3%81%A7%E7%B0%A1%E5%8D%98%E3%81%AB%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2018/07/06/computer-gmail/" title="Previous Post: Gmailのラベルの使用法を工夫する">&laquo; Gmailのラベルの使用法を工夫する</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2018/07/08/computer-github-python/" title="Next Post: Read the Docsでsetup.pyのないプロジェクトのビルドがエラーになる件">Read the Docsでsetup.pyのないプロジェクトのビルドがエラーになる件 &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/hz/wishlist/ls/28GLSLW5HE8L8?ref_=wl_share&tag=rcmdnk0c-22">ほしいもの一覧</a>
+
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 290" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 282" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 99.97%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/04/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251014_mise_120_90.jpg" width="120" height="90" alt="20251014_mise_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/04/computer-ai/">miseでAI CLIツールやMCPもまとめて管理する</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873119324' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS90_CR0,0,120,90_.jpg' alt='入門 Python 3 第2版'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/09/10/computer-python/">Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/08/13/computer-windows-autohotkey-vim/"><img class="small-thumbnail-img" src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_keys.png" width="120" height="90" alt="settings_keys"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/08/13/computer-windows-autohotkey-vim/">vim_ahkの設定画面をタブ化</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B0D9WVTNJD' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/61WuzC7dsZL._SS90_CR0,0,120,90_.jpg' alt='Oura Ring 第4世代 – ブラック – サイズ7 – スマートリング|まずはサイズ確認:専用サイズキット対応|睡眠・心拍・フィットネスを計測|最長8日間バッテリー持続'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/08/12/computer-iot-shopping/">Oura Ring 4購入</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2025 (18)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2025/10/'>OCT (2)</a></li><li><a href='/blog/2025/09/'>SEP (1)</a></li><li><a href='/blog/2025/08/'>AUG (3)</a></li><li><a href='/blog/2025/07/'>JUL (3)</a></li><li><a href='/blog/2025/05/'>MAY (2)</a></li><li><a href='/blog/2025/02/'>FEB (1)</a></li><li><a href='/blog/2025/01/'>JAN (6)</a></li></ul></li><li><span class="monthly_archive_year_span">2024 (26)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2024/11/'>NOV (4)</a></li><li><a href='/blog/2024/10/'>OCT (2)</a></li><li><a href='/blog/2024/09/'>SEP (4)</a></li><li><a href='/blog/2024/08/'>AUG (2)</a></li><li><a href='/blog/2024/07/'>JUL (2)</a></li><li><a href='/blog/2024/06/'>JUN (3)</a></li><li><a href='/blog/2024/05/'>MAY (2)</a></li><li><a href='/blog/2024/04/'>APR (2)</a></li><li><a href='/blog/2024/02/'>FEB (4)</a></li><li><a href='/blog/2024/01/'>JAN (1)</a></li></ul></li><li><span class="monthly_archive_year_span">2023 (56)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2023/12/'>DEC (2)</a></li><li><a href='/blog/2023/11/'>NOV (4)</a></li><li><a href='/blog/2023/10/'>OCT (2)</a></li><li><a href='/blog/2023/09/'>SEP (5)</a></li><li><a href='/blog/2023/08/'>AUG (1)</a></li><li><a href='/blog/2023/07/'>JUL (2)</a></li><li><a href='/blog/2023/05/'>MAY (5)</a></li><li><a href='/blog/2023/04/'>APR (9)</a></li><li><a href='/blog/2023/03/'>MAR (8)</a></li><li><a href='/blog/2023/02/'>FEB (9)</a></li><li><a href='/blog/2023/01/'>JAN (9)</a></li></ul></li><li><span class="monthly_archive_year_span">2022 (51)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2022/12/'>DEC (1)</a></li><li><a href='/blog/2022/11/'>NOV (1)</a></li><li><a href='/blog/2022/10/'>OCT (3)</a></li><li><a href='/blog/2022/09/'>SEP (6)</a></li><li><a href='/blog/2022/08/'>AUG (3)</a></li><li><a href='/blog/2022/07/'>JUL (3)</a></li><li><a href='/blog/2022/06/'>JUN (6)</a></li><li><a href='/blog/2022/05/'>MAY (3)</a></li><li><a href='/blog/2022/03/'>MAR (8)</a></li><li><a href='/blog/2022/02/'>FEB (9)</a></li><li><a href='/blog/2022/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2021 (46)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2021/12/'>DEC (3)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (96)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (4)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (70)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (1)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (7)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (150)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (12)</a></li><li><a href='/blog/2016/09/'>SEP (13)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (183)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (12)</a></li><li><a href='/blog/2015/10/'>OCT (17)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (31)</a></li><li><a href='/blog/2015/05/'>MAY (21)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (139)</a></li><li><a href='/blog/categories/computer/'>Computer (1047)</a></li><li><a href='/blog/categories/life/'>Life (69)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.38461538461539%'>AeroFS(2)</a> <a href='/blog/tags/ai/' style='font-size: 101.53846153846153%'>AI(8)</a> <a href='/blog/tags/amazon/' style='font-size: 100.38461538461539%'>Amazon(2)</a> <a href='/blog/tags/analytics/' style='font-size: 100.76923076923077%'>Analytics(4)</a> <a href='/blog/tags/android/' style='font-size: 102.88461538461539%'>Android(15)</a> <a href='/blog/tags/applescript/' style='font-size: 103.07692307692308%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.38461538461539%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 105.76923076923077%'>AutoHotkey(30)</a> <a href='/blog/tags/bash/' style='font-size: 121.92307692307692%'>Bash(114)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.1923076923077%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.38461538461539%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.76923076923077%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.57692307692308%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.15384615384616%'>Brew-file(58)</a> <a href='/blog/tags/bsd/' style='font-size: 101.73076923076923%'>BSD(9)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.38461538461539%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.76923076923077%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.8076923076923%'>Chrome(25)</a> <a href='/blog/tags/cli/' style='font-size: 100.1923076923077%'>CLI(1)</a> <a href='/blog/tags/colinux/' style='font-size: 100.38461538461539%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.76923076923077%'>CSS(4)</a> <a href='/blog/tags/cygwin/' style='font-size: 105.96153846153847%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.1923076923077%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.38461538461539%'>Desktop(2)</a> <a href='/blog/tags/diy/' style='font-size: 100.1923076923077%'>DIY(1)</a> <a href='/blog/tags/docker/' style='font-size: 100.38461538461539%'>Docker(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.92307692307692%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.57692307692308%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.96153846153847%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.6923076923077%'>Evernote(14)</a> <a href='/blog/tags/feedly/' style='font-size: 100.1923076923077%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.34615384615384%'>Firefox(59)</a> <a href='/blog/tags/gas/' style='font-size: 100.1923076923077%'>GAS(1)</a> <a href='/blog/tags/geektool/' style='font-size: 100.57692307692308%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.1923076923077%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 108.07692307692308%'>Git(42)</a> <a href='/blog/tags/github/' style='font-size: 115.57692307692308%'>GitHub(81)</a> <a href='/blog/tags/gmail/' style='font-size: 103.07692307692308%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.53846153846153%'>GNU(8)</a> <a href='/blog/tags/go/' style='font-size: 100.57692307692308%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.84615384615384%'>Google(20)</a> <a href='/blog/tags/gpt/' style='font-size: 100.96153846153847%'>GPT(5)</a> <a href='/blog/tags/gpu/' style='font-size: 100.1923076923077%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 102.5%'>HHKB(13)</a> <a href='/blog/tags/home/' style='font-size: 100.1923076923077%'>Home(1)</a> <a href='/blog/tags/homebrew/' style='font-size: 118.65384615384616%'>Homebrew(97)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.3076923076923%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.76923076923077%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.38461538461539%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 112.3076923076923%'>IoT(64)</a> <a href='/blog/tags/iphone/' style='font-size: 102.6923076923077%'>iPhone(14)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.76923076923077%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.38461538461539%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.1923076923077%'>JavaScript(27)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.57692307692308%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.76923076923077%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 105.0%'>Karabiner(26)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.1923076923077%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.53846153846153%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.1923076923077%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.1923076923077%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.26923076923077%'>Linux(69)</a> <a href='/blog/tags/liquid/' style='font-size: 100.38461538461539%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.57692307692308%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(312)</a> <a href='/blog/tags/markdown/' style='font-size: 102.3076923076923%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.53846153846153%'>Music(8)</a> <a href='/blog/tags/network/' style='font-size: 106.15384615384616%'>Network(32)</a> <a href='/blog/tags/obsidian/' style='font-size: 100.76923076923077%'>Obsidian(4)</a> <a href='/blog/tags/octopress/' style='font-size: 124.03846153846155%'>Octopress(125)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.38461538461539%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.57692307692308%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.76923076923077%'>Pocket(4)</a> <a href='/blog/tags/poetry/' style='font-size: 100.57692307692308%'>Poetry(3)</a> <a href='/blog/tags/powershell/' style='font-size: 101.53846153846153%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 100.57692307692308%'>PR(3)</a> <a href='/blog/tags/prompt/' style='font-size: 100.57692307692308%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.6923076923077%'>PuTTY(14)</a> <a href='/blog/tags/pypi/' style='font-size: 100.1923076923077%'>PyPi(1)</a> <a href='/blog/tags/python/' style='font-size: 114.42307692307692%'>Python(75)</a> <a href='/blog/tags/qi/' style='font-size: 100.1923076923077%'>Qi(1)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.57692307692308%'>Rakuten(3)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 103.46153846153847%'>RaspberryPi(18)</a> <a href='/blog/tags/ruby/' style='font-size: 102.6923076923077%'>Ruby(14)</a> <a href='/blog/tags/screen/' style='font-size: 108.07692307692308%'>screen(42)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.6923076923077%'>sentaku(14)</a> <a href='/blog/tags/shell/' style='font-size: 100.1923076923077%'>Shell(1)</a> <a href='/blog/tags/shopping/' style='font-size: 110.0%'>Shopping(52)</a> <a href='/blog/tags/slack/' style='font-size: 100.57692307692308%'>Slack(3)</a> <a href='/blog/tags/svn/' style='font-size: 100.38461538461539%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.96153846153847%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.38461538461539%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.34615384615384%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.6923076923077%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.96153846153847%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.76923076923077%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 120.96153846153845%'>Vim(109)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.65384615384616%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.15384615384616%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.15384615384616%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.38461538461539%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 130.19230769230768%'>Windows(157)</a> <a href='/blog/tags/word/' style='font-size: 100.1923076923077%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.34615384615384%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 110.0%'>Zsh(52)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">1140 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2024/09/27/computer-windows-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20240927_win3_120_90.jpg" width="120" height="90" alt="20240927_win3_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2024/09/27/computer-windows-mac/">Win/Macそれぞれで特定のウィンドウを最前面に固定する</a><br><span class="views">477 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2022/03/11/life-shopping-iphone/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20220311_daiso1_120_90.jpg" width="120" height="90" alt="20220311_daiso1_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2022/03/11/life-shopping-iphone/">iPhone SE(第2世代)のケースはダイソーのものが一番良かった</a><br><span class="views">306 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a><br><span class="views">281 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4022737166' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51lxlVNGLnL._SS90_CR0,0,120,90_.jpg' alt='Suicaが世界を制覇する アップルが日本の技術を選んだ理由 (朝日新書)'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2019/12/17/life-trip/">Suicaで地下鉄に間違って改札を通ってしまった際にすぐに出ればキャンセルされる(こともある)</a><br><span class="views">278 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/91eb706331c1348d77b27f136d04fbc14db740e8/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8eaa2f6b56f9f9e0cb2903f6c778504528bdb47c/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a9d3c48f4c82948f5542b1cb956621c77bcdef9f/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/b4291e68cea231e6253bb5721537c4d7e5821b7b/height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/cd11e980f25ed56eb77b5acbf99268e7b1ec51fe/height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2026 - rcmdnk -
+    <span class="credit">Powered by <a href="https://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+https://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CS5ERMMZ4D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CS5ERMMZ4D');
+</script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/';
+  var disqus_url = 'https://rcmdnk.com/blog/2018/07/07/computer-gmail-python/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+}
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js" defer></script>
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/gmail/",
+        "name": "Gmail"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>
