@@ -1,0 +1,1422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Windows | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/windows/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkの設定画面をタブ化]]></title>
+    <link href="https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim/"/>
+    <updated>2025-08-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkeyで作ってるvim_ahkの設定画面をタブ化しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#設定画面のタブ化" id="markdown-toc-設定画面のタブ化">設定画面のタブ化</a></li>
+  <li><a href="#タブ化の方法" id="markdown-toc-タブ化の方法">タブ化の方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyのスクリプトで、Windows上のどこでも
+<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で移動したり<i class="key">Y</i>/<i class="key">P</i>でコピペしたりするVimチックな動きを
+再現するためのスクリプトです。</p>
+
+<p>exeファイルを直接使えばAutoHotkeyがインストールされてない環境でも動きます。</p>
+
+<h2 id="設定画面のタブ化">設定画面のタブ化</h2>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_keys.png" alt="settings_keys" title="settings_keys" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_applications.png" alt="settings_applications" title="settings_applications" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_status.png" alt="settings_status" title="settings_status" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_configuration.png" alt="settings_configuration" title="settings_configuration" /></p>
+
+<p>こんな感じで設定画面をタブ化しました。</p>
+
+<p>設定が多くなってくると設定画面が長くなってしまい、
+あまり長いとそのままだとウィンドウをはみ出るようになるので
+なんとか整理しないとと思ってましたがタブ化で見た目もより設定画面ぽくなって良いのでは、と。</p>
+
+<p>設定画面に余裕が出来たので、
+最後のConfigurationタブにあるように、新たに設定ファイルのImport/Export機能も追加してみました。</p>
+
+<h2 id="タブ化の方法">タブ化の方法</h2>
+
+<p>AutoHotkeyではGUIのコントロール部品が用意されていて比較的簡単にGUIを作ることができます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p>この中に
+<a href="https://www.autohotkey.com/docs/v2/lib/GuiControls.htm#Tab">Tab</a>というGUIのコントロール部品があるので
+思ったより簡単に出来ました。
+Tab/Tab2/Tab3と3種類ありますが、基本的にはTab3がTab/Tab2であった問題を解決して進化したバージョンになってるので
+Tab3を使っておけばOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span> <span class="o">:=</span> <span class="n">MyObj</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Tab3&quot;</span><span class="p">,</span> <span class="s">&quot;X+0 Y+0 W480 H360&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;First&quot;</span><span class="p">,</span> <span class="s">&quot;Second&quot;</span><span class="p">,</span> <span class="s">&quot;Third&quot;</span><span class="p">])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで、<code>Tab3</code>コンポーネントを、位置(この場合は<code>X+0 Y+0</code>で前のコンポーネントの右下位置からそのまま開始)と幅と高さ(W480 H360)を指定して、
+最後に各タブの名前をリストで指定するだけでタブが作れます。</p>
+
+<p>各タブの中身を作るには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X+0 Y+0 Section&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;XS+10 Y+20&quot;</span><span class="p">,</span> <span class="s">&quot;This is the first tab.&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>UseTab(N)</code>でタブを指定して後は通常通りコンポーネントを追加していきます。
+<code>N</code>は1から始まるのでちょっと注意。(上の場合は1: <code>First</code>, 2: <code>Second</code>, 3: <code>Third</code>のタブになります。)</p>
+
+<p>タブの中だと<code>X10</code>などで指定した際、ウィンドウの左端からの距離になってタブの枠分位値の調整が難しくなるので、
+タブを開始した直後に幅高さゼロの<code>Section</code>用の疑似テキストをアンカーとして置いて、
+<code>XS</code>や<code>YS</code>を使うことでタブの左上の位置からの距離を使えるようにしておくと便利です。</p>
+
+<p>この後に<code>Tab.UseTab(2)</code>とすればそこから<code>Second</code>タブの中身を追加していくことができます。</p>
+
+<p><code>X+0</code>の様な前のコンポーネントとの相対位置の開始位置は<code>UseTab</code>を使うとタブのそのタブの左上の位置にリセットされます。</p>
+
+<p>また、タブ終了は<code>UseTab()</code>と数字無しで指定するとタブ外に行きますが、
+その後タブの下にさらにコンポーネントを追加するには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line"><span class="n">Tab</span><span class="o">.</span><span class="n">GetPos</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tabX</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabY</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabW</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabH</span><span class="p">)</span>
+</span><span class="line"><span class="n">underTab</span> <span class="o">:=</span> <span class="n">tabY</span> <span class="o">+</span> <span class="n">tabH</span> <span class="o">+</span> <span class="mi">10</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X15 Y&quot;</span> <span class="n">underTab</span><span class="p">,</span> <span class="s">&quot;Text under the tab.&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに、<code>GetPos</code>でタブの位置とサイズを取得して、
+タブの下限位置を取得してその下に良しなにコンポーネントを追加していく感じにすると
+いい感じにタブの下にコンポーネントを追加できます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WindowsでのCtrl-Alt-Shift-WinなるショートカットキーとAutoHotkeyでの対処]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/05/compouter-windows-autohotkey/"/>
+    <updated>2025-01-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/05/compouter-windows-autohotkey</id>
+    <content type="html"><![CDATA[<p>AutoHotkeyを使ってショートカットキーを作ってるときに良くわからない挙動があって
+結局簡単には解決出来なそうだったという話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#ctrl-alt-shift-win" id="markdown-toc-ctrl-alt-shift-win">Ctrl-Alt-Shift-Win</a></li>
+  <li><a href="#autohotkeyで入力と出力の修飾キー" id="markdown-toc-autohotkeyで入力と出力の修飾キー">AutoHotkeyで入力と出力の修飾キー</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="ctrl-alt-shift-win">Ctrl-Alt-Shift-Win</h2>
+
+<blockquote>
+  <p><a href="https://x.com/thurrott/status/1702446581922893862">XユーザーのPaul Thurrottさん: 「I got this on Mastodon but worth repeating… Fun fact about Microsoft Windows: if you type Ctrl-Shift-Alt-Win-L, LinkedIn will open in your default browser. This is an OS hotkey that cannot be turned off. I know this reads like a joke but it isn’t.」 / X</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://superuser.com/questions/1457073/how-do-i-disable-specific-windows-10-office-keyboard-shortcut-ctrlshiftwinal">How do I disable specific windows 10/Office Keyboard Shortcut (CTRL+SHIFT+WIN+ALT+D) - Super User</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://answers.microsoft.com/en-us/windows/forum/all/disabling-the-office-hotkey-in-windows-10/58e2f30f-8556-4f73-bf0c-56544697218d">Disabling the Office hotkey in Windows 10 - Microsoft Community</a></p>
+</blockquote>
+
+<p>これまでなんとなくそれっぽい動作を起こして何が起こってるか(何を押してそうなってるか)よくわからなかったことで今更知ったのですが、
+Windows(手元のWindowsはWindows 11)上で
+<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">Win</i>を全て同時に押して離すと
+Microsoft 365のアプリが起動します。</p>
+
+<p>さらに
+<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">Win</i>と同時に<i class="key">W</i>を押すとWord, <i class="key">E</i>を押すとExcel, <i class="key">P</i>を押すとPowerPointが起動します。
+さらには<i class="key">L</i>を同時に押すとブラウザでLinkedInが開きます。</p>
+
+<p>通常は押さないことがほとんどだと思うので無視しておけば良いものではありますが、
+無効化しようと思っても簡単に出来ません。</p>
+
+<p>このショートカットの機能を無効にする、ということであれば現状はRegistryをいじるしかないようです。</p>
+
+<blockquote>
+  <p><a href="https://answers.microsoft.com/en-us/windows/forum/all/disabling-the-office-hotkey-in-windows-10/58e2f30f-8556-4f73-bf0c-56544697218d">Disabling the Office hotkey in Windows 10 - Microsoft Community</a></p>
+</blockquote>
+
+<p>Windows謹製のPowerToysに入っている<a href="https://learn.microsoft.com/ja-jp/windows/powertoys/keyboard-manager">PowerToysKeyboard Manager</a>
+を使って変更しようとしても、修飾キーだけだと<strong>アクションキーが１つ含める必要があります</strong>と言われて変更できません。</p>
+
+<p><i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">Win</i>-<i class="key">L</i>とかは<strong>Disable</strong>することは出来ます。</p>
+
+<p>ただ、AutoHotkeyを使えばこれらのキーを潰すことは出来ます。</p>
+
+<blockquote>
+  <p><a href="https://superuser.com/questions/1457073/how-do-i-disable-specific-windows-10-office-keyboard-shortcut-ctrlshiftwinal">How do I disable specific windows 10/Office Keyboard Shortcut (CTRL+SHIFT+WIN+ALT+D) - Super User</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/boards/viewtopic.php?t=88899">AHK hot keys conflict with Windows 10 default shortcuts - AutoHotkey Community</a></p>
+</blockquote>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">#^!+w::</span>
+</span><span class="line"><span class="nl">#^!+x::</span>
+</span><span class="line"><span class="nl">#^!+p::</span>
+</span><span class="line"><span class="nl">#^!+l::</span>
+</span><span class="line"><span class="nl">#^!Shift::</span>
+</span><span class="line"><span class="nl">#^+Alt::</span>
+</span><span class="line"><span class="nl">#!+Ctrl::</span>
+</span><span class="line"><span class="o">^!+</span><span class="n">LWin</span><span class="o">::</span>
+</span><span class="line"><span class="o">^!+</span><span class="n">RWin</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="p">{</span><span class="n">Blind</span><span class="p">}{</span><span class="n">vk07</span><span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような設定で4つ同時押しで話した場合や、<i class="key">W</i>などを同時に押す場合など全て無効にすることが出来ます。(<code>{vk07}</code>は何もしないキー, <code>Blind</code>は修飾キーを押したままにする)</p>
+
+<p>Windowsキーは単体で押して離すとスタートメニューが開いたりするので
+AutoHotkeyでキーマップするときとかでも入力側で使うことは無く
+4つ同時押し、というキーマップは無いので今まできちんと気づきませんでした。</p>
+
+<p>ただ、時々Microsoft 365のアプリが起動することはあって、なんなんだと思っていたところで上のショートカットが関係していました。</p>
+
+<h2 id="autohotkeyで入力と出力の修飾キー">AutoHotkeyで入力と出力の修飾キー</h2>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">^!+</span><span class="n">y</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;#^{Left}&quot;</span>
+</span><span class="line"><span class="o">^!+</span><span class="n">o</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;#^{Right}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの設定を考えます。</p>
+
+<p><i class="key">Win</i>-<i class="key">Ctrl</i>-<i class="key">Left</i>は左の仮想デスクトップに移動するショートカットです。</p>
+
+<p>が、これを設定していざ、<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">Y</i>を押すと
+左の仮想デスクトップに移動することは出来ますが、
+同時にMicrosoft 365のアプリが起動してしまいます。</p>
+
+<p>どうやら修飾キーが押された状態が保持されていて、かつなぜか<i class="key">Y</i>は無視された状態になって(?)
+マップされた<i class="key">Win</i>-<i class="key">Ctrl</i>-<i class="key">Left</i>
+が実行されると同時に、
+<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">Shift</i>-<i class="key">Win</i>を全て押した状態にもなって
+さらにAHKでのキーの出力がおさると同時に実際にはキーを離していなくても全てを離した状態と解釈され(?)
+Microsoft 365のアプリが起動してしまう、ということのようです。</p>
+
+<p>入力と出力のキーがconflictするような状態は通常はないはずで、
+そのために上にもある<code>{Blind}</code>と言う機能があり、
+これが無効の場合には入力として押された修飾キーは解放された状態で出力のキーが実行されるはずです。</p>
+
+<p>ですが、何故かこの場合は解放されないようです。</p>
+
+<p>仕方がないので、明示的に解放してあげるとMicrosoft 365のアプリが起動しなくなります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="o">^!+</span><span class="n">y</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;{Alt up}{Shift up}#^{Left}&quot;</span>
+</span><span class="line"><span class="o">^!+</span><span class="n">o</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;{Alt up}{Shift up}#^{Right}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>この設定で上手くいくことに気づく前にWindows側で簡単にこのキー無効に出来ないかな、と思って調べたのが上の結果ですが、
+Windows側で無効にするのはRegistryをいじるしかなさそうなのでなんとかAHKだけでということでこの様な形で上手くいきました。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WindowsとMacそれぞれでアプリをトグル表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/04/computer-windows-mac-autohotkey-karabiner/"/>
+    <updated>2025-01-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/04/computer-windows-mac-autohotkey-karabiner</id>
+    <content type="html"><![CDATA[<p>やりたいことは特定のアプリをどこからでもショートカットキーで呼び出せるようにし、
+かつ、同じボタンでそのアプリを隠すことが出来るようにすることです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windows--autohotkey" id="markdown-toc-windows--autohotkey">Windows + AutoHotkey</a></li>
+  <li><a href="#mac--karabiner-elements" id="markdown-toc-mac--karabiner-elements">Mac + Karabiner-Elements</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windows--autohotkey">Windows + AutoHotkey</h2>
+
+<p>Windowsでは
+<a href="https://www.autohotkey.com/">AutoHotkey</a>
+を使います。</p>
+
+<p>基本的には
+[AutoHotkey v2]https://ahkscript.github.io/ja/docs/v2/)(
+であることを前提に書いています。</p>
+
+<p>ChromeをToggleするHotkey設定としてはこんな感じ。</p>
+
+<figure class="code"><figcaption><span>toggle.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;!{Tab}&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;{Alt Up}&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#HotIf</span> <span class="nf">WinExist</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">Run</span><span class="p">(</span><span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Google\Chrome\Application\chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinWait</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">C</i>でChromeをトグル表示するHotkeyを書いています。</p>
+
+<p>現状アクティブになっている場合には<i class="key">Alt</i>-<i class="key">Tab</i>で1つ前のアプリに戻るようにしています。
+これ何度も連続で使うとちょっと不安定に<i class="key">Alt</i>-<i class="key">Tab</i>の表示が残ってしまうこともありますが、
+一回であればスムーズに動作してくれるので取り敢えずこれで。</p>
+
+<p><code>WinMinimize</code>という最小化する関数もあるのでもし最小化のほうが良ければそれで。
+<code>WinClose</code>で閉じてしまう事もできますがWindowsだと最後のWindowの場合アプリ自体が終了してしまって次の起動が遅くなるので注意。</p>
+
+<p>アクティブでない場合でウィンドウがあれば<code>WinActivate</code>で前面に出すようにしています。
+これだと複数同じアプリのウィンドウがある場合は最後にアクティブだったものが前面に出ますが、
+もし必要であれば<code>ahk_exe chrome.exe</code>を全体的にタイトル名に変えるなどで特定のウィンドウを指定することもできます。</p>
+
+<p>アクティブでもなくてウィンドウもない場合には<code>Run</code>でアプリを立ち上げます。
+立ち上げるだけだとアクティブにならないので<code>WinActivate</code>してやる必要がありますが、
+即行うとアプリが立ち上がる前で認識できないので<code>WinWait</code>で待ってから<code>WinActivate</code>しています。</p>
+
+<p>この例ではChromeで、立ち上げるアプリが<code>A_ProgramFiles</code> (<strong>\C:\Program Files (x86)</strong> or <strong>\C:\Program Files</strong>)の下にありますが、
+Obsidianなどは通常ユーザーディレクトリの中の<strong>AppData\Local</strong>の中にあります。</p>
+
+<p>AutoHotkeyには<code>A_AppData</code>という変数が定義されていますが、これは
+<code>AppData\Roaming</code>のパスを返すので<code>Local</code>を見たいときには上のように<code>A_UserName</code>を使って書くしかありません。(多分)</p>
+
+<p>Chromeなどは<strong>\C:\Program Files (x86)</strong>の下にありますが、
+Obsidianなどはユーザーディレクトリの中の<strong>AppData\Local</strong>の中にあるのでそれぞれ場所を指定しています。</p>
+
+<p><code>"C:\Users\" A_UserName "\AppData\Local\obsidian\Obsidian.exe"</code></p>
+
+<p>こんな感じのPathになります。AutohHotkeyには<code>A_AppData</code>という変数が定義されていますが、これは
+<code>AppData\Roaming</code>のパスを返すので<code>Local</code>を見たいときには上のように<code>A_UserName</code>を使って書くしかありません。(多分)</p>
+
+<p>このようにしてトグル表示を実現できますが、
+複数のアプリでも同じ様なことをする場合には関数化しておくと便利です。</p>
+
+<p>以下のようにしてAuto execute sectionでまとめて書くことが出来ます。</p>
+
+<figure class="code"><figcaption><span>toggle.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">LaunchApp</span><span class="p">(</span><span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nb">Run</span><span class="p">(</span><span class="n">appPath</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinWait</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">prevApp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;!{Tab}&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;{Alt Up}&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">HotIfWinActive</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">prevApp</span><span class="p">())</span>
+</span><span class="line">    <span class="n">HotIfWinExist</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">WinActivate</span><span class="p">(</span><span class="n">winName</span><span class="p">))</span>
+</span><span class="line">    <span class="n">HotIf</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">LaunchApp</span><span class="p">(</span><span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">))</span>
+</span><span class="line">    <span class="n">HotIf</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!c&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">,</span> <span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Google\Chrome\Application\chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!s&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe slack.exe&quot;</span><span class="p">,</span> <span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Slack\Slack.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!t&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe Hyper.exe&quot;</span><span class="p">,</span> <span class="s">&quot;C:\Users\&quot;</span> <span class="nv">A_UserName</span> <span class="s">&quot;\AppData\Local\Programs\Hyper.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!q&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe Obsidian.exe&quot;</span><span class="p">,</span> <span class="s">&quot;C:\Users\&quot;</span> <span class="nv">A_UserName</span> <span class="s">&quot;\AppData\Local\obsidian\Obsidian.exe&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Other hotkeys</span>
+</span><span class="line">
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで、<code>ToggleApp</code>という関数を使ってアプリをトグル表示するHotkeyをAuto execute sectionの中で書いています。</p>
+
+<p><code>key</code>にはHotkeyのキーを指定します。
+<code>winName</code>はWindow Spyで見つけらるclassやexe, titleなどを指定しますが、基本的にはahk_exeを指定しておくのが無難です。
+<code>appPath</code>はアプリのパスを指定します。わからない場合はスタートメニューから該当のアプリの右クリックで<strong>ファイルの場所を開く</strong>を開いて探して見てください。通常はそのファイルがさらにショートカットになっていることが多いので、それをまた右クリックして<strong>ファイルの場所を開く</strong>を開くと大元の位置が分かることが多いです。</p>
+
+<h2 id="mac--karabiner-elements">Mac + Karabiner-Elements</h2>
+
+<p>macOSでは
+<a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>
+を使います。</p>
+
+<p>以下で使う<code>frontmost_application_history_index</code>がv15.3.6から導入されたもので、
+これは現状ベータ版のみになっているので使う場合はベータ版にアップグレードする必要があります。
+(現行のstableバージョンは15.3.0。)</p>
+
+<ul>
+  <li><a href="https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/software_function/open_application/">open_application Karabiner-Elements</a></li>
+  <li><a href="https://github.com/pqrs-org/Karabiner-Elements/issues/4011">Add prev_application companion to the new open_application · Issue #4011 · pqrs-org/Karabiner-Elements</a></li>
+</ul>
+
+<p>ChromeをToggleするHotkey設定としてはこんな感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="w">    </span><span class="p">{</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Toggle Chrome&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;extra_descriptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">        </span><span class="s2">&quot;Cmd-Ctrl-c to toggle Chrome.&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p">],</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;manipulators&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">        </span><span class="p">{</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;key_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;modifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;mandatory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;command&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">},</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;software_function&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                </span><span class="nt">&quot;open_application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                  </span><span class="nt">&quot;bundle_identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;com.google.Chrome&quot;</span>
+</span><span class="line"><span class="w">                </span><span class="p">}</span>
+</span><span class="line"><span class="w">              </span><span class="p">}</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">],</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;frontmost_application_unless&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;bundle_identifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;^com\\.google\\.Chrome$&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">]</span>
+</span><span class="line"><span class="w">        </span><span class="p">},</span>
+</span><span class="line"><span class="w">        </span><span class="p">{</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;key_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;modifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;mandatory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;command&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">},</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;software_function&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                </span><span class="nt">&quot;open_application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                  </span><span class="nt">&quot;frontmost_application_history_index&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+</span><span class="line"><span class="w">                </span><span class="p">}</span>
+</span><span class="line"><span class="w">              </span><span class="p">}</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">],</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;frontmost_application_if&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;bundle_identifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;^com\\.google\\.Chrome$&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">]</span>
+</span><span class="line"><span class="w">        </span><span class="p">}</span>
+</span><span class="line"><span class="w">      </span><span class="p">]</span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Windows同様に
+<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">C</i>でChromeをトグル表示するHotkeyを書いています。</p>
+
+<p>アプリに対応する<code>bundle_identifier</code>は
+<a href="https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/software_function/open_application/">open_application</a>
+のヘルプの
+<strong>Investigate the bundle identifier and file path</strong>を参考にKarabiner-EventViewerを使って調べられます。</p>
+
+<p><code>conditions</code>の方で使う<code>bundle_identifiers</code>には正規表現で指定する必要があるので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+<code>^com\\.google\\.Chrome$</code>のように正規表現で指定します。</p>
+
+<p><code>software_function.open_application</code>を使ってアプリを開くことができます。
+すでにアプリが開いていればそれを前面に出すだけになるのでアプリが開いているかどうかを確認せずに
+最前面がそのアプリでなければ<code>open_application</code>でアプリを開くようにしています<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>アプリが前面にある際には”<code>fromtmost_application_history_index": 1</code>で1つ前に最前面にあったアプリを前面に出すようにしています。</p>
+
+<p>Windows版と違って直接直前のアプリを持ってこれるのでかなりスムーズな感じでToggle表示ができます。</p>
+
+<p>同様に別のアプリも作っていくことが出来ます。</p>
+
+<p>自分の設定は
+<a href="https://github.com/pqrs-org/KE-complex_modifications">pqrs-org/KE-complex_modifications</a>
+をforkした
+<a href="https://github.com/rcmdnk/KE-complex_modifications/">rcmdnk/KE-complex_modifications</a>
+で作っていますが、
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/master/scripts/erb2json.rb">scripts/erb2json.rb</a>
+の中に
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/646978c691919945ce368b10df4648bc8d32f23a/scripts/erb2json.rb#L408">toggle_app</a>
+という関数を作って、
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/646978c691919945ce368b10df4648bc8d32f23a/src/json/personal_rcmdnk.json.erb#L285">src/json/personal_rcmdnk.json.erb</a>
+の中に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="erb"><span class="line"><span></span><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Chrome&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-c to toggle Chrome.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.google.Chrome&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Slack&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-s to toggle Slack.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.tinyspeck.slackmacgap&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;s&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle iTerm2&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-t to toggle iTerm2.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.googlecode.iterm2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;t&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Obsidian&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-q to toggle Obsidian.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;md.obsidian&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;q&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで書いてあります。</p>
+
+<p>かなり前にForkしたままあとは自分で変更しただけで本家を追ってないので
+現状の本家とはスクリプト等も結構違うかもしれませんが参考までに。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkのAutoHotkey v2対応版リリース(含v1->v2への対応方法)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim/"/>
+    <updated>2024-10-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkey v2 に対応した vim_ahk のリリースを行いました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#autohotkey-v2" id="markdown-toc-autohotkey-v2">AutoHotkey v2</a></li>
+  <li><a href="#v2への移行" id="markdown-toc-v2への移行">v2への移行</a></li>
+  <li><a href="#v1v2の切り替え" id="markdown-toc-v1v2の切り替え">v1/v2の切り替え</a></li>
+  <li><a href="#主な大きな変更点" id="markdown-toc-主な大きな変更点">主な大きな変更点</a>    <ul>
+      <li><a href="#hotkeyがラベルではなく関数に" id="markdown-toc-hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</a></li>
+      <li><a href="#if---hotif" id="markdown-toc-if---hotif">#If -&gt; #HotIf</a></li>
+      <li><a href="#変数代入" id="markdown-toc-変数代入">変数代入</a></li>
+      <li><a href="#文字列の扱い" id="markdown-toc-文字列の扱い">文字列の扱い</a></li>
+      <li><a href="#コマンドは全て関数に" id="markdown-toc-コマンドは全て関数に">コマンドは全て関数に</a></li>
+      <li><a href="#設定項目の変更" id="markdown-toc-設定項目の変更">設定項目の変更</a></li>
+      <li><a href="#gui周り" id="markdown-toc-gui周り">Gui周り</a></li>
+    </ul>
+  </li>
+  <li><a href="#vim_ahkのv2対応" id="markdown-toc-vim_ahkのv2対応">vim_ahkのv2対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyを使ってVim風のキーバインドをWindows上のいたるところで使えるようにするスクリプトです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<h2 id="autohotkey-v2">AutoHotkey v2</h2>
+
+<p>2年ほど前にAutoHotkey v2が正式リリースされ、2023年初頭にはv2の方がプライマリーバージョンとして推奨されるようになりました。</p>
+
+<p>変更点が結構ある上にv1がすぐに使えなくなるわけでもないので、自分の別のスクリプトも含めてv2に移行するのが面倒でしたが、
+だいぶ前に自分で作るだけ作ってたIssueに「いつ出来るの？」と待ってくれてる方がいたので久々にAutoHotkeyを勉強しながらやってみることに。</p>
+
+<h2 id="v2への移行">v2への移行</h2>
+
+<p>AutoHotkeyは2003年頃にリリースされた古いソフトウェアですが、当初ドキュメントもあまりなく、特に日本語などは有志によるものなどが色々ありました。</p>
+
+<p>10年位前でも良くまとまってるものが少なかったこともあり自分でもまとめたりしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/">AutoHotkeyの使い方1</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/">AutoHotkeyの使い方2</a></div></li></ul>
+
+<p>現在はかなり整備されていて、v1からv2への移行についても詳しく書かれています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>かなり大きく変わっているので、これをパット見てすぐに移行するのは難しいですが、
+実際にv2として動かしてエラーを見て、エラー箇所について上のドキュメントで探して、という感じでやっていけばほとんどなんとかなるかと思います。</p>
+
+<p>ざっくりでもいいからとりあえず簡単に移行したい、という場合には
+移行用のツールを作ってくれてる方もいるので、それを使うのもいいかもしれません</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/10/02 </strong></p>
+
+  <p>このツール最初に使おうとしたら、自分の環境に入っているAutoHotokeyがv2.0.0のv2の古いバージョンでエラーが出て使えないじゃないか、と思ってましたが最新のv2.0.18を入れ直したら動きました。</p>
+
+  <p>v2.0.11あたりで結構大きな変更が入った(?)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+<p>。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mmikeww/AHK-v2-script-converter">mmikeww/AHK-v2-script-converter: AHK v1 -&gt; v2 script converter</a></p>
+</blockquote>
+
+<p>特に細かいことを気にしたくなければ一旦これで変換して、その後にエラー箇所を修正していく、というのがてっとり早いかと。</p>
+
+<h2 id="v1v2の切り替え">v1/v2の切り替え</h2>
+
+<p>現状、AutoHotkey v2をインストールするとv1も同時にインストールされるようになっています。</p>
+
+<p>適当なスクリプトを実行すると、v1/v2のどちらかでしか実行できないものだけが含まれる場合は自動判別で実行できるバージョンで実行されます。</p>
+
+<p>例えば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかならv1,</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>ならv2で自動的に実行されます。</p>
+
+<p>一方、どちらでも実行できる、もしくは混ざってしまってどちらでも失敗するようなスクリプトで判別不能な場合は
+最初にどちらを使うか、の選択ウィンドウが出てくるようになっています。</p>
+
+<p>また、スクリプトの先頭に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#Requires</span> <span class="n">AutoHotkey</span> <span class="n">v2</span><span class="o">.</span><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにバージョンを指定すると必ずそのバージョンで実行されるようになります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>v2でテストするためにとりあえずこのv2.0指定をして実行してエラーが出た箇所を直していく、という作業が基本です。</p>
+
+<h2 id="主な大きな変更点">主な大きな変更点</h2>
+
+<p>たくさん変更があるので詳しくは
+<a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0</a>
+を参照ですが、
+とくに気になった変更点をいくつか。</p>
+
+<h3 id="hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</h3>
+
+<p>AutoHotkeyでまず行うのが</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったHotkeyの設定ですが、複数行で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">    <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに書くことがv1では出来ました。</p>
+
+<p>この書き方を<strong>ラベル</strong>表記と呼んでいるみたいです。</p>
+
+<p>一方、v2ではこのラベル表記が廃止され、関数表記に変わりました。
+(MsgBox, Sendもコマンドから関数に変わって書き方が変わっています。)</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(</span><span class="n">hk</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>引数の<code>hk</code>は入力のHotkey(この場合は<code>a</code>)が入ります。</p>
+
+<p>関数名を省略して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くことも出来、この場合入力キーは<code>A_ThisHotkey</code>で取得できます。(これはv1のラベル表記でも使える。)</p>
+
+<p>この書き方はv1.1.20から使える様になってv2以前では括弧だけ使うか、関数の引数無しで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように定義して入力キーは<code>A_ThisHotkey</code>で取得する、という形でした。</p>
+
+<p>1行で書く場合にはv2でも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように括弧なしでも書けます。</p>
+
+<p>また、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;c&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように、複数のキーに同じ処理を割り当てることが出来ます。</p>
+
+<p>同じようなことはv1でも出来ますが、v1だとラベル表記として</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">d</span>
+</span><span class="line"><span class="nl">c::</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="n">c</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">e</span>
+</span><span class="line">  <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くと<i class="key">a</i>, <i class="key">b</i>を押すとそのHotkeyの表示と<code>d</code>が送られ、さらに<code>c</code>の表示と<code>e</code>が送られます。</p>
+
+<p>これは複数行で書く場合には<code>Return</code>が来るまで途中にキーラベルがあっても継続して処理が行われるためです。</p>
+
+<p>v2だとこういった重ねがけはできないので、<code>A_ThisHotkey</code>を使って処理を分けたりする必要があります。</p>
+
+<p>ただ、この<code>Return</code>を忘れて処理がおかしくなったりすることもあったので
+より明確に処理を分けることが出来るようになった、という感じはします。</p>
+
+<h3 id="if---hotif">#If -&gt; #HotIf</h3>
+
+<p>特定の条件下でHotkeyを有効にするためにv1では<code>#If</code>を使っていましたが、v2では<code>#HotIf</code>に変わりました。</p>
+
+<p><code>#IfWinActive</code>などはなくなり、
+<code>#HotIf WinActive(...)</code>のように条件部分を分けてかくようになりました。</p>
+
+<p><code>HotIfWinActive</code>などもはありますが、これらは上のような<code>::</code>を使ったHotkeyではなく<code>Hotkey</code>関数をつかった定義のための条件分岐として使われます。
+それらは特に動的にHotkeyを変更するときに使われるものです。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/HotIf.htm#IfWin">HotIf / HotIfWin… - Syntax &amp; Usage AutoHotkey v2</a></p>
+</blockquote>
+
+<p>単純なHotkey設定だけであれば上のHotkeyの関数化とこの<code>#HotIf</code>への変更を行えば大概動くはずです。</p>
+
+<h3 id="変数代入">変数代入</h3>
+
+<p>v1では<code>=</code>および<code>:=</code>で変数に代入できましたが、v2では<code>:=</code>のみになりました。</p>
+
+<p>v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">a</span> <span class="o">:=</span> <span class="s">&quot;abc&quot;</span><span class="c1">   ;1</span>
+</span><span class="line"><span class="n">a</span> <span class="o">:=</span> <span class="n">abc</span><span class="c1">     ;2</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span><span class="c1">    ;3</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="n">abc</span><span class="c1">      ;4</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="nv">%abc%</span><span class="c1">    ;5</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ol>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+  <li>“abc” (“も含む)</li>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+</ol>
+
+<p>といった代入になっていました。</p>
+
+<p><a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/">/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/</a></p>
+
+<p>v2では3, 4 ,5はできなくなります。
+一般的なプログラミング言語の代入を<code>:=</code>で行うようになった形です。</p>
+
+<p>v2では全体的に曖昧な書き方が削除されてわかりやすくなっています。</p>
+
+<p>また、v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにすると空文字列が代入されていましたが、v2ではエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように明示的に空文字列を代入する必要があります。</p>
+
+<h3 id="文字列の扱い">文字列の扱い</h3>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="nv">%abc%</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ul>
+  <li>“abcxyz”</li>
+  <li>“123xyz”</li>
+  <li>“123xyz”</li>
+</ul>
+
+<p>といった結果になりました。何もつけないと文字列として理解され、<code>%</code>囲むと変数として理解されました。
+さらに<code>% </code>で始めるとなにもないものは変数として扱われ<code>"</code>で囲むと文字列として扱われました。</p>
+
+<p>この辺もあまり他では見ないものでややこしくなる一員でしたが、v2では<code>% </code>という表記は削除され、基本全てが<code>% </code>で始まった状態として扱われるようになっています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<code>123xyz</code>と表示されます。</p>
+
+<p>これに関連して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="p">{</span><span class="n">Enter</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書きましたが、v2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="s">&quot;{Enter}&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>"</code>で囲む必要があります。</p>
+
+<p><code>Send</code>はHotkeyの設定で比較的よく使うと思うのでこの変更が必要となる部分は多いかもしれません。</p>
+
+<h3 id="コマンドは全て関数に">コマンドは全て関数に</h3>
+
+<p>上の<code>MsgBox</code>や<code>Send</code>のようなものはv1ではコマンド扱いでしたが
+関数となり、書き方が変わっています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm#legacy-syntax-removed">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">abc</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンド直後に<code>,</code>をつけても付けなくてもよかったのですが、v2では
+関数ではあるが関数の引数の両側の括弧を省略して書くことができる、という形なので、
+関数名直後に<code>,</code>をつけるとエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="s">&quot;abc&quot;</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="s">&quot;abc&quot;</span><span class="c1"> ; これはエラー</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これも<code>Send</code>でも同様で直す部分は結構あるかもしれません。</p>
+
+<p>また、関数化に伴い、引数の順序が変わったりもしています。</p>
+
+<p><code>MsgBox</code>だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Text</span>
+</span><span class="line"><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Options</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Timeout</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という書き方だったものがv2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span>
+</span><span class="line"><span class="n">Result</span> <span class="o">:=</span> <span class="n">MsgBox</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v1/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v1</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>もう一つ大きな変更は関数化により返り値が出るようにあんったので、
+これまで取得したい値を引数に渡して取り出すような形だったものの多くが返り値として取得できるようになりました。</p>
+
+<p>また、<code>KeyWait</code>など一部の関数では実行後に<code>ErrorLevel</code>という値を見ることで
+処理の成否を判断するようになっていましたが、これも関数化により返り値として取得できるようになりました。</p>
+
+<p><code>MsgBox</code>の<code>Timeout</code>も返り値として取得できるようになっています。
+また、<code>MsgBox</code>ではv1では<code>IfMsgBox</code>というコマンドを使って押されたボタンを判断していましたが、
+これも返り値に入ります。
+タイム・アウトすれば<code>timeout</code>、それ以外なら<code>OK</code>など押されたボタンの情報が入ります。</p>
+
+<h3 id="設定項目の変更">設定項目の変更</h3>
+
+<ul>
+  <li><code>#NoEnv</code>は削除(<code>NoEnv</code>な状態がデフォルトに)</li>
+  <li><code>#UseHook On</code> <i class="fa fa-arrow-right"></i> <code>#UseHook True</code> (On/OffからTrue/Falseに変更)</li>
+  <li><code>#InstallKeybdHook</code> <i class="fa fa-arrow-right"></i> <code>InstallKeybdHook</code> (#コマンドから関数に変更)</li>
+  <li><code>#HotkeyInterval 2000</code> <i class="fa fa-arrow-right"></i> <code>A_HotkeyInterval := 2000</code> (#コマンドから変数に変更)</li>
+</ul>
+
+<p>など、設定項目も変わっています。</p>
+
+<h3 id="gui周り">Gui周り</h3>
+
+<p>かなり変わってます。</p>
+
+<p>ボタンを押したときの動作などを<code>g-label</code>という形で<code>gCancel</code>のようにオプションに追加すると
+<code>Cancel</code>というラベルが呼ばれるようになっていましたが、
+v2では作られたオブジェクトに対して<code>OnEvent</code>という関数を使ってイベントを設定するようになりました。</p>
+
+<p>また、似たように<code>v</code>をつけるオプションで<code>vMyVar</code>をオプションに加えると<code>MyVar</code>というglobal変数に
+そのコントロールの値が入るようになっていましたが、
+v2では<code>vMyVar</code>のように<code>v</code>をつけるオプションは残っていますがこれは単にそのコントロールの名前を指定するだけのものになっています。</p>
+
+<p>コントロールでの値の取得はそのコントロールユニットの<code>Value</code>プロパティを使うようになっています。</p>
+
+<p>その他いろいろな変更がありますが、
+この辺り、もともとあったものを書き換えようと思うとかなりややこしいのですが、
+v2からの学び始めるのであればv1の書き方を覚えるよりも素直に理解できるようになってると思います。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/Gui.htm">Gui Object - Methods &amp; Properties AutoHotkey v2</a></p>
+</blockquote>
+
+<h2 id="vim_ahkのv2対応">vim_ahkのv2対応</h2>
+
+<p>以下のPRにまとめてあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/pull/101">Ahk v2 by rcmdnk · Pull Request #101 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>なるべく細かく一つ一つの変更に対応してcommitは分けてあります。</p>
+
+<p>v2の(もしくはv1のときにすでにアップデートで入っていた)書き方によってより良く出来そうな部分はまだあると思うので
+また改善していきたいと思います。</p>
+
+<p>現状、v1だったときに出来たことは全て出来るようになっていると思っていますが、
+もし何か不具合があればIssueなどで報告していただけると助かります。</p>
+
+<p>自分のv1スクリプトの中で使いたい場合は
+<a href="https://github.com/rcmdnk/vim_ahk/tree/v0.13.2">v0.13.2</a>などの<code>v0.13.X</code>以前のものか<a href="https://github.com/rcmdnk/vim_ahk/tree/ahk_v1">ahk_v1</a> branchのものを使ってください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Win/Macそれぞれで特定のウィンドウを最前面に固定する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/09/27/computer-windows-mac/"/>
+    <updated>2024-09-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/09/27/computer-windows-mac</id>
+    <content type="html"><![CDATA[<p>なにか作業しているときにメモ的なウィンドウを最前面に固定しておきたいことがあります。
+もしくは動画を再生しているブラウザを最前面に固定しておきたいこともあるかと。</p>
+
+<p>アプリによってはその機能をアプリ自体が持っているものもありますが、
+それがない場合でもWindowsやMacそれぞれでその機能を実現する方法があります。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windows" id="markdown-toc-windows">Windows</a></li>
+  <li><a href="#mac" id="markdown-toc-mac">Mac</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windows">Windows</h2>
+
+<p>Windowsでは、
+Microsoft純正の
+<a href="https://learn.microsoft.com/ja-jp/windows/powertoys/install">PowerToys</a>
+でウィンドウの最前面固定が実現できます。</p>
+
+<p>PowerToysはMicrosoft Storeからインストールできますが、
+起動するとタスクトレイに常駐して様々な機能が利用できるようになります。</p>
+
+<p>その中で<strong>Always on Top</strong>という機能があり、
+この機能を有効にすると指定したショートカットを押すことでウィンドウの最前面固定が出来ます。</p>
+
+<p>デフォルトでは<i class="key">Win</i> + <i class="key">Ctrl</i> + <i class="key">T</i> が割り当てられています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win0.png" alt="20240927_win0.png" class="pic" /></p>
+
+<p>2022年位に機能が追加されたようです。</p>
+
+<blockquote>
+  <p><a href="https://forest.watch.impress.co.jp/docs/news/1378936.html">「Microsoft PowerToys」にホットキーでウィンドウを最前面に固定する機能 - 窓の杜</a></p>
+</blockquote>
+
+<p>特定のウィンドウにフォーカスをあてた状態でショートカットを押すとそのウィンドウが最前面に固定されます。</p>
+
+<p>何もしてない状態:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win1.jpg" alt="20240927_win1.jpg" class="pic" /></p>
+
+<p>エクスプロラーが最前面にありますが、この状態でショートカットを押すとポン、と音がなって
+ウィンドウには周りに縁がついたような状態で表示されるようになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win2.jpg" alt="20240927_win2.jpg" class="pic" /></p>
+
+<p>この状態で他のウィンドウをクリックしてフォーカスをあててもエクスプローラーは最前面に表示されたまま。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win3.jpg" alt="20240927_win3.jpg" class="pic" /></p>
+
+<p>上のショートカットキーはトグルになっていてるので、エクスプローラーにフォーカスをあてて
+もう一度押すとフォーカスが外れます。</p>
+
+<p>また複数の選択もできて、一つを固定した状態で、他のウィンドウにフォーカスをあてて
+ショートカットを押すとそのウィンドウも最前面に固定されます。</p>
+
+<p>それまでに固定したものも最前面に固定されていますが、固定されている者同士では最後にフォーカスがあてられたものが優先的に最前面に来ます。</p>
+
+<p>おそらく他のソフトウェアでも出来るものあるかと思いますが、純正で出来る上に特に不満もないのでPowerToysが便利です。</p>
+
+<p>また、あまり使ってませんでしたが、PowerToysには他にもMacのQuick Lookのような機能を実現する<strong>プレビュー</strong>、
+コピーしたものを貼り付け時にプレーンテキストで貼り付ける機能を実現する<strong>Advanced Paste</strong>、
+キーリマップを変更する<strong>Keyboard Manager</strong>、などがあり、これまでサードパーティーのソフトウェアで実現していた機能がPowerToysで実現できるようになっているものもあり、ここ数年でだいぶ機能も増えてきているようなのでちょくちょく確認しておきたいところです。</p>
+
+<h2 id="mac">Mac</h2>
+
+<p>macOSでは
+macOSでは数年前にやろうと思ったときには現在のmacOSの機能制限的に出来ない状態かな、と思っていたのですが、
+現在は
+<a href="https://folivora.ai/">BetterTouchTool</a>がその機能を提供しています。</p>
+
+<p>ショートカットキーなどの割当機能に
+<strong>ピンを切り替えて焦点のあるウィンドウを最前面に浮かべる</strong>(<strong>Toggle Pin/Unpin Forcused Window To Float On Top</strong>)
+というものがあり、これを使うことで特定のウィンドウを最前面に固定できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac0.png" alt="20240927_mac0.png" class="pic" /></p>
+
+<p>ただmacOSの制限で、実際にアプリをそのまま最前面に固定、ということは外部ツールでは出来ないようで(アプリ自体に組み込まれているものはある)
+ウィンドウ画面を同じ場所にストリーム表示する、という形で実現しているようです。</p>
+
+<blockquote>
+  <p><a href="https://community.folivora.ai/t/toggle-pin-unpin-focused-window/33313">Toggle Pin/Unpin focused window - Bug Reports - BetterTouchTool Community</a></p>
+</blockquote>
+
+<p>やってみると、通常の最前面にあるときは</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac1.png" alt="20240927_mac1.png" class="pic" /></p>
+
+<p>こんな感じですが、フォーカスを別のウィンドウにあてると最前面に残ったままになるものの、
+少し表示の解像度が落ちたような表示になっていました。
+(この辺は環境によっても違うかもしれません)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac2.png" alt="20240927_mac2.png" class="pic" /></p>
+
+<p>ただちょっと見る程度であればそこまで気になるレベルではないかと。</p>
+
+<p>実際、この機能で固定すると画面共有のアイコンがメニューバーに出てきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac3.png" alt="20240927_mac3.png" class="pic" /></p>
+
+<p>ちょっと特殊な方法ですが現状のmacOSで通常の状態で実現するにはこのような方法しかないと思います。</p>
+
+<p>BetterTouchToolは最近HHKB Studioを使うようになってからトラックパッドの出番が減り、主にトラックパッドように使っていたBetterTouchToolの機能の出番は減ってましたが、
+この機能はキーボードショートカットで使っていこうと思います。</p>
+
+<p>久々にBetterTouchToolを見てみたらかなり機能が増えてて驚いたくらいなのでそのうちまた細かく見てみたいと思ってます。</p>
+
+<p><strong>通常の状態</strong>だとおそらくBetterTouchToolの上の機能がベストかと思いますが、
+SIP (System Integrity Protection)を無効にすればより直接的にウィンドウを最前面に固定することが出来るようです。</p>
+
+<p>その機能を提供しているのが<code>yabai</code>というツール。</p>
+
+<div class="github-widget" data-repo="koekeishiya/yabai"></div>
+
+<blockquote>
+  <p><a href="https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection">Disabling System Integrity Protection · koekeishiya/yabai Wiki</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://news.ycombinator.com/item?id=38473942">Yabai – A tiling window manager for macOS Hacker News</a></p>
+</blockquote>
+
+<p>SIPはEl Capitanから導入された機能で、システムの一部を保護するための機能ですが、
+当時は自分もそれを外していろいろいじったりしてましたが、最近はアプリ側の対応などもあり
+SIPをあえて無効にすることはやってないです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B016AZMAIS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B016AZMAIS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510n9cnBIrL._SS90_CR0,0,120,90_.jpg" alt="The Complete Beginners Guide to Mac OS X El Capitan: (For MacBook, MacBook Air, MacBook Pro, iMac, Mac Pro, and Mac Mini) (English Edition)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/10/10/computer-mac/">OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく</a></div></li></ul>
+
+<p>もしSIPを無効にしても大丈夫、という状態であれば<code>yabai</code>を使うとコマンドラインベースではありますが直接的なウィンドウ固定が出来るので
+そちらを使うのも一つの手かもしれません。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

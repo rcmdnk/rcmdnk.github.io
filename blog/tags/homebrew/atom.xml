@@ -1,0 +1,1641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Homebrew | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/homebrew/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへwhalerew, VSCodeの拡張機能管理を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2024/11/11/computer-homebrew-brew-file/"/>
+    <updated>2024-11-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/11/11/computer-homebrew-brew-file</id>
+    <content type="html"><![CDATA[<p>Homebrew-fileへwhalerew, VSCodeの拡張機能の管理を追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#whalerew-vscodeの拡張機能の管理を追加" id="markdown-toc-whalerew-vscodeの拡張機能の管理を追加">whalerew, VSCodeの拡張機能の管理を追加</a></li>
+  <li><a href="#その他のアップデート" id="markdown-toc-その他のアップデート">その他のアップデート</a>    <ul>
+      <li><a href="#brew-info関連" id="markdown-toc-brew-info関連">brew info関連</a></li>
+      <li><a href="#brew-infoにおけるno-url-formulaの問題" id="markdown-toc-brew-infoにおけるno-url-formulaの問題"><code>brew info</code>におけるno URL formulaの問題</a></li>
+      <li><a href="#古い名前aliasへの対応" id="markdown-toc-古い名前aliasへの対応">古い名前、aliasへの対応</a></li>
+      <li><a href="#brew-tap時にhomebrew_no_auto_updateを設定する必要なし" id="markdown-toc-brew-tap時にhomebrew_no_auto_updateを設定する必要なし"><code>brew tap</code>時にHOMEBREW_NO_AUTO_UPDATEを設定する必要なし</a></li>
+      <li><a href="#read-the-docsのテーマ変更" id="markdown-toc-read-the-docsのテーマ変更">Read the Docsのテーマ変更</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<p>Homebrewのメンテナーが作っている<a href="https://github.com/Homebrew/homebrew-bundle">bundle</a>というBrewfileファイルに書き出すツールがありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能だったり
+Brewfile自体の管理を行うための機能があるのが特徴です。</p>
+
+<h2 id="whalerew-vscodeの拡張機能の管理を追加">whalerew, VSCodeの拡張機能の管理を追加</h2>
+
+<p>Requestがあったのでwhalerew, VSCodeの拡張機能の管理を追加しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/286">vscode extensions · Issue #286</a></p>
+</blockquote>
+
+<p><a href="https://github.com/Homebrew/homebrew-bundle">bundle</a>の方で対応しているよ、とのことだったので。</p>
+
+<p>whalebrewで管理するimageやVSCodeの拡張機能が導入されている場合、
+<code>brew file init</code>で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Whalebrew images
+</span><span class="line">whalebrew whalebrew/whalesay
+</span><span class="line">
+</span><span class="line"># VSCode extensions
+</span><span class="line">vscode eamodio.gitlens
+</span><span class="line">vscode ms-python.debugpy</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような形でBrewfileに書き出されます。</p>
+
+<p>また、Brewfileにこれらの情報が書かれている状態で<code>brew file install</code>を実行した際には
+それぞれイメージや拡張機能がインストールされますが、
+<code>whalebrew</code>コマンドがなかったり、VSCodeがインストールされていない場合は
+それらのインストールも行います
+(<code>brew install whalebrew</code>/<code>brew install vscode</code>)。</p>
+
+<p>ただし、whalebrewはイメージをインストールするにあたってdocker環境が用意されていることが前提になるので、
+dockerが動いてないと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Installing whalebrew/whalesay
+</span><span class="line">[WARNING] Docker command is not available.
+</span><span class="line">[WARNING] Please install whalebrew/whalesay by whalebrew after docker is ready.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようなwaningが出て終わります。</p>
+
+<p>dockerに関しては、<code>brew install docker</code>でインストールしてもそこから実行する必要がありますし、
+caskの方にもあったり、インストールするにも色々あるところなのでこれに関しては手動でやってもらうことを前提としておきます。</p>
+
+<p><a href="https://github.com/whalebrew/whalebrew">whalebrew</a>
+に関しては自分自身
+このIssueで初めて知ったものなんですが、
+dockerイメージをインストールしてそこに入ってるコマンドを直接使えるようにするツールです。</p>
+
+<p>環境依存があるようなコマンドだとDockerイメージを使って実行することで環境を気にせず実行できるようになるので便利そうです。</p>
+
+<p>HomebrewでPython製のコマンドラインツールを配布する際に仮想環境を自動で構築してその環境として実行できるようにすることが出来ますが、
+これはちょっとインストールに時間がかかるのが難点です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1938469356?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1938469356&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Xu88hlobL._SS90_CR0,0,120,90_.jpg" alt="How to Brew: Everything You Need to Know to Brew Great Beer Every Time" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">Python製コマンドラインツールをHomebrewで配布する</a></div></li></ul>
+
+<p>普段からdockerを使ってる人であれば、
+whalebrewを使うことでそれようのimageを作っておけば比較的容易にインストール出来るようになるかな、とも。</p>
+
+<p>逆に普段dockerを動かしてない人にとってはハードル高いかもしれませんが。</p>
+
+<h2 id="その他のアップデート">その他のアップデート</h2>
+
+<p>ついでに他のアップデートについても。</p>
+
+<h3 id="brew-info関連">brew info関連</h3>
+
+<p>細かいアップデートはたくさんありますが、大きな所で<code>brew info</code>とかで取っていた
+パッケージリストや依存関係などの情報取得する方法を大きく変えました。</p>
+
+<p>昨年Homebrewが4.0.0にアップデートされたときにAPI経由のインストールがデフォルトに変わり、これに関連していくつか変更を行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01N212Y20?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01N212Y20&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51MPKyBBwqL._SS90_CR0,0,120,90_.jpg" alt="ベートーヴェン:交響曲第9番「合唱」" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python/">Homebrew-file 9.0.Xへアップデート: Homebrew 4.0.Xへの対応など</a></div></li></ul>
+
+<p>とくにこの際<code>brew info --eval-all --json=v2</code>ですべてのパッケージの情報を取得しようとしても
+API経由でインストールする<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>に関する情報がそれらを直接tapしてない限り取得できなかったので
+API関連のcacheディレクトリにあるファイルから直接情報を取得したりしていました。</p>
+
+<p>おそらくバグかな、と思うのですが、今はそれらの情報も取得できるようになっているようです。</p>
+
+<p>さらに、この<code>brew info --eval-all --json=v2</code>ですべての情報を取得していた最大の理由は
+各tapに含まれるパッケージのリストを作るためでした。
+以前はファイルがすべてシステムにあったのでformula/caskのフィアルリストを直接見に行くことで取得していましたが、
+上に書いたように現在は<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>はtapされずにそれらのformula/caskがローカルにないので
+なんらかの<code>brew</code>コマンドでなんとか取得する必要があったためです。</p>
+
+<p>ただ、これに関しても現在は<code>brew tap-info --json --installed</code>というコマンドで、
+<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>を含むすべてのtapに関してそのtapに含まれるformula/caskのリストを取得できるようになっているので
+それを使うように変更しています。</p>
+
+<p><code>brew info --eval-all --json=v2</code>に関しては<code>brew file casklist</code>でmacOSにおけるアプリのチェックをするときだけに使うようになっています。</p>
+
+<p>これによって<code>brew file init</code>が大分速くなりました。</p>
+
+<p>自分の~200 formulae, ~30 casksが入っている環境で</p>
+
+<ul>
+  <li><code>brew info</code>を使った古いversion (v9.1.4): ~30秒</li>
+  <li><code>brew tap-info</code>を使った古いversion (v9.2.0): ~6秒</li>
+</ul>
+
+<p>といった感じで1/5に。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/pull/290">Update brew info related functions (for brew file init, ect…) by rcmdnk · Pull Request #290 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>特に<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>を使っている場合、
+<code>brew install &lt;formula&gt;</code>をするたびに<code>brew file init</code>相当のことが行われるため
+結構時間がかかることがあるので、これで大分良くなってのではないかと思います。</p>
+
+<h3 id="brew-infoにおけるno-url-formulaの問題"><code>brew info</code>におけるno URL formulaの問題</h3>
+
+<p>ちょっとbrew fileのアップデートの話からはずれますが、
+<code>brew info --eval-all --json=v2</code> (<code>--json=v1</code>も)で別に1つ問題があります。
+インストールしたtap内のformulaeにURLがない場合にエラーになり、問題のないformulaeに関しても情報が取得できなくなります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/282">[ERROR] Failed at command: /opt/homebrew/bin/brew info –json=v1 –eval-all Error: formulae require at least a URL · Issue #282 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>1つわかってるformulaは
+<a href="https://github.com/hashicorp/homebrew-tap/blob/master/Formula/vagrant.rb">hashicorp/tap/vagrant</a>
+です。</p>
+
+<p>このtapを入れていなければ問題ないわけですが、このtapの中には
+<a href="https://github.com/hashicorp/homebrew-tap/blob/master/Formula/terraform.rb">hashicorp/tap/terraform</a>
+などがあり、これらを使うためにtapしてある場合、vagrantをインストールしていなくても
+<code>--eval-all</code>では全てのformulaeの情報を取得しようとするためエラーになります。</p>
+
+<p>さらには、このterraformですが、もともとは<strong>homebrew-core</strong>の中に入っていました。
+ですが、TerraformがライセンスをBUSLに変更したため
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、<strong>homebrew-core</strong>にあるformulaからはインストールできないようにされました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-core/pull/139538">hashicorp: deprecate and add caveat by iMichka · Pull Request #139538 · Homebrew/homebrew-core</a></p>
+</blockquote>
+
+<p>別にterraformのライセンスが変わってもHomeberwでインストールするものとしては問題ないような気もしますが
+なんかだめみたいです。</p>
+
+<p>まだformula自体は残っていますが、現在インストールしようとすると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Warning: terraform has been deprecated because it changed its license to BUSL on the next release! It will be disabled on 2025-04-04.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というwarninが出ます。</p>
+
+<p>また、同じくhashicorpのpackerとかだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: packer has been disabled because it will change its license to BUSL on the next release! It was disabled on 2024-09-27.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、すでに今年の9月からインストールできなくなっています。</p>
+
+<p>そんなわけで<strong>hashicorp/tap</strong>を使ってterraformなどをインストールする人が出てきているようで、
+このURLなし問題が出てきたようです。</p>
+
+<p>この問題はすでにIssueに上がってますが、結構前から解決に至っていません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/hashicorp/homebrew-tap/issues/258">Formulae require at least a URL · Issue #258 · hashicorp/homebrew-tap</a></p>
+</blockquote>
+
+<p>問題としては、Linuxかつintel CPU用のもののみ提供されているため、
+formulaの中でその場合のみツールのURLを提供するようになっていて、
+結果的にそれ以外の環境だとURLのないformulaになってしまいます。</p>
+
+<p>また、とりあえず他の環境でもインストールは出来てしまうようにする、という提案はあるのですが、
+このtapの中のformulaはtemplateを元に自動で作っているため、
+そちらを直さないといけないということで変更が進んでいません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/hashicorp/homebrew-tap/pull/252">vagrant: fix for errors on macOS by EricFromCanada · Pull Request #252 · hashicorp/homebrew-tap</a></p>
+</blockquote>
+
+<p>じゃあHomebrew側でこういうの回避するようにしてくれればよいわけですが、</p>
+
+<blockquote><p>We don't support errors with third-party taps here.</p><footer><strong>Running "brew uses" gives error · Issue #16709 · Homebrew/brew</strong> <cite><a href="https://github.com/Homebrew/brew/issues/16709">github.com/Homebrew/brew/issues/&hellip;</a></cite></footer></blockquote>
+
+<p>と、なんか切り捨てられてます。</p>
+
+<p>Homebrewのこの方は結構きついなあ、と思うことが度々ありますが、
+これも本質的なのはURLを書かないFormula側ではなくて
+環境依存でインストールするものを変えられるFormulaの設計の中、
+対応のない環境だと結果的にURLがない状態になってしまう、ということが問題なので
+その部分はHomebrew側の問題です。</p>
+
+<p>まあこの辺はIssueに出しても相当上手く相談しないと切り捨てられるので、
+いい感じにPRを作るなりしてなんとかしてもらう必要がありそうです。</p>
+
+<p>brew-file的には<code>brew file casklist</code>をする際にこの問題にぶつかりますが、
+現在は<code>brew info --eval-all --json=v2</code>で失敗した際には
+caskだけのリストを一旦作ってから<code>brew info --cask {cask list} --json=v2</code>のような形で情報を取得し、
+formula部分に関しても同様にやりますが、もしvagrantのようなformulaがある場合は
+失敗したらそれを除いて、といった形で繰り返して情報を取得するようにしています。</p>
+
+<p>とりあえずはこれで最低限brew-file的には動作出来ますが、
+余裕があればまたHomebrewの方見てみたいと思います。</p>
+
+<h3 id="古い名前aliasへの対応">古い名前、aliasへの対応</h3>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/265">support for oldnames · Issue #265 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>formulaの名前が変わった際にエラー起こることがあったみたいで、
+一旦古い名前でインストールしたformulaを削除して再インストールしてもらえれば解決するものだと思ってますが、
+これらに関してもbrew-fileの中で古い名前も確認してリストを調整するような処理を追加しています。</p>
+
+<p>この辺のIssue長くなってしまって元の人に確認してもらってないまま止まってしまっていますが、
+多分今は大丈夫なはず。</p>
+
+<p>問題があれば教えて下さい。</p>
+
+<h3 id="brew-tap時にhomebrew_no_auto_updateを設定する必要なし"><code>brew tap</code>時にHOMEBREW_NO_AUTO_UPDATEを設定する必要なし</h3>
+
+<p>その昔、<code>brew tap</code>をする際に<code>brew update</code>が自動で走るので
+単にlist表示するだけのときは
+止めたい(<code>brew list</code>などでは走らない)という類のPRを出しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/1439">disable oputput of brew tap at initialize by rcmdnk · Pull Request #1439 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>が、何故か拒否されました。
+messyらしい。</p>
+
+<p>ちょっと<strong>messy</strong>になってしまうのは
+当時、<code>tap</code>には<code>--list</code>という引数があって<code>brew tap</code>と引数なしか<code>brew tap --list</code>とするとリスト表示し、
+<code>brew tap rcmdnk/file</code>のようにtapを渡すとそれをtapする、といった使い方になってたので、
+この<code>--list</code>の時を避けるためにちょっと<strong>messy</strong>になってしまっていました。</p>
+
+<p>その後、<strong>reconsider in future</strong>とは言ってますが。</p>
+
+<p>で、仕方なく<code>HOMEBREW_NO_AUTO_UPDATE</code>を中で設定して実行するようにしていたのですが、
+いつの間にか<code>--list</code>という引数がなくなっていて、そのためか、
+以下のようなPRが出ててmergeされてました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/5766">tap: skip auto-update if called with no args by scpeters · Pull Request #5766 · Homebrew/brew</a></p>
+</blockquote>
+
+<p><code>--list</code>がない分ちょっとシンプルにはなってますが、ほぼ上と同じ変更なわけですが、
+<code>nice work</code>ということで。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/issues/5743">More responsive outdated &amp; upgrade commands through scheduled tasks and caching · Issue #5743 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>このIssueで話あってからのことなのでということかもしれませんが、
+上のPRがも忘れされれてlinkもつけられてないので知る由もなく。</p>
+
+<p>なんだかな、という感じです。</p>
+
+<p>他にも似たようなことがあって、HomebrewにPR出すのは難しいなあ、と。</p>
+
+<h3 id="read-the-docsのテーマ変更">Read the Docsのテーマ変更</h3>
+
+<p>Read the Docsに公開しているドキュメントのテーマを変更しました。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/">Welcome to homebrew-file’s documentation! — Homebrew-file documentation</a></p>
+</blockquote>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<p>以前は<code>default</code>を使ってましたが、新しく<code>alabaster</code>というテーマを使っています。</p>
+
+<p>というのもRead the docsでのビルド時に<code>default</code>を指定するとエラーになるようになっていたので。
+現在は<code>sphinx_rtd_theme</code>とすると以前と同じように出来るみたいですが
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+せっかくなので変えてみました。</p>
+
+<p><code>alabaster</code>は
+<a href="https://www.sphinx-doc.org/en/master/usage/theming.html#themes">HTML theming</a>
+でも最初に紹介されているテーマで、
+そういえば最近見るドキュメントはこれが多いな、と言う感じのものでした。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python製コマンドラインツールをHomebrewで配布する]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/"/>
+    <updated>2023-04-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1938469356?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1938469356&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Xu88hlobL._SS200_.jpg" alt="How to Brew: Everything You Need to Know to Brew Great Beer Every Time" /></a>
+</div>
+
+<p>Pythonで作ったCLIツールは
+<a href="https://pypi.org/">PyPI</a>
+を通して配布することが出来ますが
+必要なPythonのバージョンがあったり、依存パッケージを色々インストールしないといけないとなると
+<code>pip</code>でグローバルな環境に入れるのもちょっと微妙。</p>
+
+<p>仮想環境を作ってそこで管理すれば他のライブラリ等を気にせず使えますが、
+Homebrewを使うとその辺が簡単に出来ます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrewでのpythonツール用のformulaの作成" id="markdown-toc-homebrewでのpythonツール用のformulaの作成">HomebrewでのPythonツール用のFormulaの作成</a></li>
+  <li><a href="#brew-create" id="markdown-toc-brew-create">brew create</a></li>
+  <li><a href="#インストールされたもの" id="markdown-toc-インストールされたもの">インストールされたもの</a></li>
+  <li><a href="#インストール時間" id="markdown-toc-インストール時間">インストール時間</a></li>
+  <li><a href="#パッケージのアップデート" id="markdown-toc-パッケージのアップデート">パッケージのアップデート</a></li>
+  <li><a href="#配布" id="markdown-toc-配布">配布</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrewでのpythonツール用のformulaの作成">HomebrewでのPythonツール用のFormulaの作成</h2>
+
+<p>以下にPythonのFormulaに関するドキュメントがあります。</p>
+
+<blockquote>
+  <p><a href="https://docs.brew.sh/Python-for-Formula-Authors">Python for Formula Authors — Homebrew Documentation</a></p>
+</blockquote>
+
+<p>ここだと色々と思想的なものが書かれているのとちょっと古い？方法が書かれていますが、</p>
+
+<p>以下ではPyPIで配布されているパッケージのFormulaを作る際に実際にやりやすい手順を紹介。</p>
+
+<h2 id="brew-create">brew create</h2>
+
+<p>まず、テンプレートを作るため、<code>brew create</code>コマンドを使います。</p>
+
+<p>ただ、これ今ちょっと使いづらくなっています。
+デフォルトではHomebrew-coreのTapの中に作る設定になっていますが
+最近API経由のインストールがHomebrewのデフォルトになっているので
+そのTapが存在しないため</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: No available tap .</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったエラーが出てしまいます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20230217_homebrew4_120_90.png" width="120" height="90" alt="20230217_homebrew4_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/">Homebrew 4.0.0リリース</a></div></li></ul>
+
+<p>なので適当なTapを用意して上げる必要があります。
+<a href="https://github.com/Homebrew/homebrew-core">homebrew-core</a>
+を入れるでも良いのですが重いので適当な別のものを入れたほうが楽です。</p>
+
+<p>もし適当なものがなければ<strong>homebrew-testtap</strong>という名前の空レポジトリをGitHubに作って</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew tap &lt;user&gt;/testtap</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかで入れればOK
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-testtap">rcmdnk/homebrew-testtap</a>
+が空Tapなので、これを使っても良いです。</p>
+
+<p>ローカルなtapを持ったら<code>brew create</code>を実行します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Usage: brew create [options] URL</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>brew create</code>は<code>--python</code>, <code>--ruby</code>, <code>--go</code>など各言語の独自環境やビルド用の
+templateを作るためのオプションが用意されているのでこれを使います。</p>
+
+<p>python用Formulaでは<code>URL</code>にはPyPIでのSourceの圧縮ファイルを指定します。</p>
+
+<p>以下では
+<a href="https://pypi.org/project/cocoro/">cocoro</a>
+というCLIツールで作ってみます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210303_switchon_120_90.jpg" width="120" height="90" alt="20210303_switchon_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/03/03/computer-iot-raspberrypi/">シャープの加湿空気清浄機をアプリ外から操作する</a></div></li></ul>
+
+<p>PyPIの<a href="https://pypi.org/project/cocoro/#files">cocoroのファイルをダウンロード</a>
+のページに有る最新のtar.gzのファイルのURLを取得。</p>
+
+<p>これを使って以下のようなコマンドを実行。</p>
+
+<p><code>--set-name</code>オプションはつけない場合はデフォルトの値が<code>cocoro-0.1.4</code>とバージョンの付いた名前になって、
+これを変更するかどうか聞かれるプロンプトが出ます。</p>
+
+<p>バージョンは外さないと行けないので最初から<code>--set-name</code>で指定しています。</p>
+
+<p><code>--set-license</code>でのライセンス指定などは後からエディタで変更してもOK。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew create --python --set-name cocoro --set-license Apache-2.0 --tap rcmdnk/testtap https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで以下のようなファイルができ、それをエディタで開いた状態になります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Documentation: https://docs.brew.sh/Formula-Cookbook
+</span><span class="line">#                https://rubydoc.brew.sh/Formula
+</span><span class="line"># PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
+</span><span class="line">class Cocoro &lt; Formula
+</span><span class="line">  include Language::Python::Virtualenv
+</span><span class="line">
+</span><span class="line">  desc ""
+</span><span class="line">  homepage ""
+</span><span class="line">  url "https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz"
+</span><span class="line">  sha256 "170404bfe64c80e6742689225995a23708855f445dd7b65ff690ad7f2278d417"
+</span><span class="line">  license "Apache-2.0"
+</span><span class="line">
+</span><span class="line">  depends_on "python"
+</span><span class="line">
+</span><span class="line">  resource "certifi" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/37/f7/2b1b0ec44fdc30a3d31dfebe52226be9ddc40cd6c0f34ffc8923ba423b69/certifi-2022.12.7.tar.gz"
+</span><span class="line">    sha256 "35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "charset-normalizer" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/ff/d7/8d757f8bd45be079d76309248845a04f09619a7b17d6dfc8c9ff6433cac2/charset-normalizer-3.1.0.tar.gz"
+</span><span class="line">    sha256 "34e0a2f9c370eb95597aae63bf85eb5e96826d81e3dcf88b8886012906f509b5"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "fire" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/11/07/a119a1aa04d37bc819940d95ed7e135a7dcca1c098123a3764a6dcace9e7/fire-0.4.0.tar.gz"
+</span><span class="line">    sha256 "c5e2b8763699d1142393a46d0e3e790c5eb2f0706082df8f647878842c216a62"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "idna" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/8b/e1/43beb3d38dba6cb420cefa297822eac205a277ab43e5ba5d5c46faf96438/idna-3.4.tar.gz"
+</span><span class="line">    sha256 "814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "PyYAML" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/a0/a4/d63f2d7597e1a4b55aa3b4d6c5b029991d3b824b5bd331af8d4ab1ed687d/PyYAML-5.4.1.tar.gz"
+</span><span class="line">    sha256 "607774cbba28732bfa802b54baa7484215f530991055bb562efbed5b2f20a45e"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "requests" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/9d/ee/391076f5937f0a8cdf5e53b701ffc91753e87b07d66bae4a09aa671897bf/requests-2.28.2.tar.gz"
+</span><span class="line">    sha256 "98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "six" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz"
+</span><span class="line">    sha256 "1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "termcolor" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/e5/4e/b2a54a21092ad2d5d70b0140e4080811bee06a39cc8481651579fe865c89/termcolor-2.2.0.tar.gz"
+</span><span class="line">    sha256 "dfc8ac3f350788f23b2947b3e6cfa5a53b630b612e6cd8965a015a776020b99a"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "urllib3" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/21/79/6372d8c0d0641b4072889f3ff84f279b738cd8595b64c8e0496d4e848122/urllib3-1.26.15.tar.gz"
+</span><span class="line">    sha256 "8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  def install
+</span><span class="line">    # ENV.deparallelize  # if your formula fails when building in parallel
+</span><span class="line">    virtualenv_install_with_resources
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  test do
+</span><span class="line">    # `test do` will create, run in and delete a temporary directory.
+</span><span class="line">    #
+</span><span class="line">    # This test will fail and we won't accept that! For Homebrew/homebrew-core
+</span><span class="line">    # this will need to be a test that verifies the functionality of the
+</span><span class="line">    # software. Run the test with `brew test cocoro`. Options passed
+</span><span class="line">    # to `brew install` such as `--HEAD` also need to be provided to `brew test`.
+</span><span class="line">    #
+</span><span class="line">    # The installed folder is not in the path, so use the entire path to any
+</span><span class="line">    # executables being tested: `system "#{bin}/program", "do", "something"`.
+</span><span class="line">    system "false"
+</span><span class="line">  end
+</span><span class="line">end</span></code></pre></td></tr></table></div></figure>
+
+<p>ファイルはtapの中の<strong>/opt/homebrew/Library/Taps/rcmdnk/homebrew-testtap/cocoro.rb</strong> (環境によって違う、<code>$(brew --repo rcmdnk/testtap)/cocoro.rb</code>)にあります。</p>
+
+<p>このファイルは<code>$ brew edit cocoro</code>とすることでもエディタで開くことが出来ます。</p>
+
+<p><code>URL</code>で指定したものが<code>url</code>に入り、その<code>sha256</code>の値は自動的に取得されています。</p>
+
+<p>依存するHomebrewのパッケージとしては<strong>python</strong>があります。
+もし(Homebrewで入れられる)特定のPythonのバージョンを使いたい場合は
+<code>python@3.10</code>などに変更します。</p>
+
+<p>Homebrew-coreに入れる場合など、<code>test</code>をきちんと定義したい場合は<code>python</code>というエイリアスだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew test cocoro
+</span><span class="line">Error: No available formula with the name "python".</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったエラーになってしまうので<code>python@3.11</code>などきちんとバージョン含めたパッケージ名にする必要があります。</p>
+
+<p><strong>pyproject.toml</strong>や<strong>setup.py</strong>に書かれた依存関係のあるパッケージに関してはすべて
+<code>resource</code>として追加されています。</p>
+
+<p>きちんと定義されたパッケージであればもうこれでOKで、後は
+<code>desc</code>に適当な紹介文を、<code>homepage</code>にPyPIのパッケージのページかGitHubのページ、
+もしくはちゃんとしたHomepageがあればそれを記入しておけばとりあえず完成です。</p>
+
+<p>もし依存関係の記述が不十分で他に必要なパッケージがある場合には
+自分でそのパッケージのURLとハッシュ値を調べて<code>resource</code>に追加する必要があります。</p>
+
+<p>Formulaが出来たら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install cocoro</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>としてインストールできます。</p>
+
+<h2 id="インストールされたもの">インストールされたもの</h2>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ which cocoro
+</span><span class="line">/opt/homebrew/bin/cocoro</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じでコマンドがHomebrewのbinディレクトリにインストールされています(これ自体はシンボリックリンク)。
+(opt~の部分は環境によって違う、<code>$(brew --prefix)/bin/cocoro</code>)</p>
+
+<p>中身は</p>
+
+<figure class="code"><figcaption><span>cocoro </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/python3.11</span>
+</span><span class="line"><span class="c1"># -*- coding: utf-8 -*-</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">re</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">cocoro</span> <span class="kn">import</span> <span class="n">main</span>
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(-script\.pyw|\.exe)?$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、これは通常通り<code>pip install</code>で入れた場合と内容は基本的に同じです。</p>
+
+<p>ただ、Shebangを見てみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">#!/opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/python3.11</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となっていて、このpythonは
+<strong>/opt/homebrew/Cellar/cocoro/0.1.4/libexec/</strong>に作られたPythonの仮想環境のものになっています。</p>
+
+<p>この仮想環境を直接使うことは通常はないかと思いますが、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ source /opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/activate</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で入ることも出来ます。</p>
+
+<p>こんな感じで各Fomrula毎に仮想環境を用意してその中に必要なパッケージを入れて実行しているので
+他のPython環境と競合せずに管理できます。</p>
+
+<p>ちょっと注意が必要なのはHomebrewでインストールしたPythonの<code>pip</code>コマンドを使って同じツールをインストールすると
+同じく<strong>/opt/homebrew/bin/cocoro</strong>としてインストールされるので
+競合してしまいます。</p>
+
+<p>後から<code>brew</code>で入れると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: The `brew link` step did not complete successfully</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに出て<strong>bin</strong>への実行ファイルのリンクが作れません。
+仮想環境やリンク元のファイルは出来ているので、<code>pip uninstall cocoro</code>としてから<code>brew link cocoro</code>するか
+<code>brew link --overwrite cocoro</code>で矯正上書きしてしまうかで置き直せます。</p>
+
+<h2 id="インストール時間">インストール時間</h2>
+
+<p>上のcocoroはそれほど依存パッケージを持っていませんが、
+それでも<code>brew install</code>で入れると普通に<code>pip install</code>するよりも結構時間がかかりました。</p>
+
+<p><code>pip</code>なら1,2秒のところ(空の仮想環境に入れてみるテスト)、
+<code>brew install</code>だと5分位かかりました。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">==&gt; /opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/pip install -v --no-deps --no-binary :all: --use-feature=no-binary-enable-wheel-cache --ignore-installed /tmp/cocoro--termcolor-20230412-26839-193n1qy/termcolor-2.2.0.tar.gz</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の部分がやけに時間かかったみたいで、<code>--no-binary</code>でビルドするようになってるのでパッケージによっては時間がかかるものが出てきます。
+他のものはそこまで時間はかかってないので殆どの場合では<code>brew</code>でも数秒から数十秒程度で終わると思います。
+(仮想環境作ったりパッケージビルドしたりするので多少は時間がかかる。)</p>
+
+<p>単純に仮想環境で<code>pip install &lt;package&gt;==&lt;version</code>&gt;で依存関係も含めて全部入れてくれるような
+オプションもあっても良いな、とは思います。</p>
+
+<p>それだとインストールが速いのと、Formulaも<code>url</code>の代わりに<code>cocoro</code>などを指定する<code>package</code>、
+それとバージョン指定の<code>version</code>を書くだけでシンプルになって<code>resorce</code>も要らなく出来ます。</p>
+
+<p>ただ、<a href="https://docs.brew.sh/Python-for-Formula-Authors">Python for Formula Authors — Homebrew Documentation</a>
+を見るとそういうのは思想に反する感じではありますが。</p>
+
+<h2 id="パッケージのアップデート">パッケージのアップデート</h2>
+
+<p>上にあるように各パッケージはすべてバージョン指定された形でそのソースファイルのURLとハッシュが指定されていますが、
+これを手でアップデートするのはかなり大変です。</p>
+
+<p>そんなときのためのコマンドが<code>brew update-python-resources</code>。</p>
+
+<p>これ使うにあたって
+<code>pipgrip</code>というツールが必要なのでこれを別途</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install pipgrip</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>としてインストールしておく必要があります。</p>
+
+<p>これで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew update-python-resources cocoro</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすると各パッケージのバージョンの再確認を行ってくれます。</p>
+
+<p>このツールを使うに、</p>
+
+<p>これはHomebrewのTapの中にないものでも直接適用することが出来て、
+カレントディレクトリに<strong>cocoro.rb</strong>があれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew update-python-resources ./cocoro.rb</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすればそのファイルをアップデートしてくれます。</p>
+
+<p>これを使えば、</p>
+
+<figure class="code"><figcaption><span>cocoro.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cocoro</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">Formula</span>
+</span><span class="line"><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Language</span><span class="o">::</span><span class="no">Python</span><span class="o">::</span><span class="no">Virtualenv</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">desc</span><span class="w"> </span><span class="s2">&quot;Tools for COCORO API (SHARP products).&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">homepage</span><span class="w"> </span><span class="s2">&quot;https://pypi.org/project/cocoro/&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">url</span><span class="w"> </span><span class="s2">&quot;https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">sha256</span><span class="w"> </span><span class="s2">&quot;170404bfe64c80e6742689225995a23708855f445dd7b65ff690ad7f2278d417&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">license</span><span class="w"> </span><span class="s2">&quot;Apache-2.0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">depends_on</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">install</span>
+</span><span class="line"><span class="w">    </span><span class="n">virtualenv_install_with_resources</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じの最小限のformulaを書いて<code>brew update-python-resources</code>を適用することでもFormulaを完成させられます。</p>
+
+<p>もとの
+<strong>cocoro-0.1.4.tar.gz</strong>のハッシュ値は自分で求めないといけませんが、個人的には
+以下のようなスクリプトを使ってURL先のハッシュ値を取得できるようにしています。</p>
+
+<ul>
+  <li><a href="https://github.com/rcmdnk/scripts/blob/master/bin/myshasum">scripts/myshasum</a></li>
+</ul>
+
+<h2 id="配布">配布</h2>
+
+<p>出来たら
+<code>$(brew --repo rcmdnk/testtap)/cocoro.rb</code>
+をコピーして、配布用の<code>homebrew-mypackages</code>みたいなtapレポジトリに追加してGitHubに上げれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install &lt;github_user&gt;/mypackages/cocoro</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でインストールできるようになります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p><code>pip</code>だけで配布できるものをわざわざHomebrewを使って、
+ということで配布側にはちょっと手間がかかりますが、
+ユーザー側としてはHomebrewさえ使っていれば
+既存のPython環境を汚さずに、また、Pythonのバージョンの指定も含めて
+インストールするように出来るのは結構便利ではないかな、と。</p>
+
+<p>特にアップデートがあった際に<code>pip</code>だと直接そのパッケージをアップデートするコマンドを打たないといけませんが、
+Homebrewであれば定期的に<code>brew update &amp;&amp; brew upgrade</code>とかしておけば
+他のパッケージ含めてアップデートしてくれるので楽です。</p>
+
+<p>また、PyPIに公開されているPythonのコマンドラインツールであればどれでも同じことが出来るので、
+自分のパッケージでなくても自分の管理用にFormulaを作ってHomebrewで管理できるようにする、という手段もありかと思います。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-file 9.0.Xへアップデート: Homebrew 4.0.Xへの対応など]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python/"/>
+    <updated>2023-03-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01N212Y20?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01N212Y20&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51MPKyBBwqL._SS200_.jpg" alt="ベートーヴェン:交響曲第9番「合唱」" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">Homebrwe-file</a>
+を色々アップデートしたのことに関して。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#機能的な面での主な更新点" id="markdown-toc-機能的な面での主な更新点">機能的な面での主な更新点</a>    <ul>
+      <li><a href="#brewfileに書けるコマンドとしてcask_argsの追加" id="markdown-toc-brewfileに書けるコマンドとしてcask_argsの追加">Brewfileに書けるコマンドとしてcask_argsの追加</a></li>
+      <li><a href="#xdg_config_homeをconfigディレクトリのデフォルトに" id="markdown-toc-xdg_config_homeをconfigディレクトリのデフォルトに">XDG_CONFIG_HOMEをconfigディレクトリのデフォルトに</a></li>
+      <li><a href="#verboseで設定できる値を012からdebuginfowarningerrorcriticalに" id="markdown-toc-verboseで設定できる値を012からdebuginfowarningerrorcriticalに">–verboseで設定できる値を<code>0</code>/<code>1</code>/<code>2</code>から<code>debug</code>/<code>info</code>/<code>warning</code>/<code>error</code>/<code>critical</code>に</a></li>
+      <li><a href="#brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok" id="markdown-toc-brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok"><code>brew tap</code>でタップをチェックする際に<code>HOMEBREW_NO_AUTO_UPDATE=1</code>を指定しなくてもOK</a></li>
+      <li><a href="#api-cache変数の追加" id="markdown-toc-api-cache変数の追加"><code>api</code>, <code>cache</code>変数の追加</a></li>
+      <li><a href="#homebrew-corehomebrew-caskのbrewfileでの取り扱い" id="markdown-toc-homebrew-corehomebrew-caskのbrewfileでの取り扱い">homebrew-core/homebrew-caskのBrewfileでの取り扱い</a></li>
+      <li><a href="#appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に" id="markdown-toc-appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に">AppStoreからインストールしたアプリのリストアップを<code>mas</code>から<code>mdfind</code>を使った方法に</a></li>
+      <li><a href="#brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように" id="markdown-toc-brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように">brew file casklistでAppStoreからインストールしたけどHomebrewでも入れられるものを表示するように</a></li>
+      <li><a href="#homebrew_brewfile_fetch_headオプションの追加" id="markdown-toc-homebrew_brewfile_fetch_headオプションの追加">HOMEBREW_BREWFILE_FETCH_HEADオプションの追加</a></li>
+      <li><a href="#pythonのバージョン381312に対応" id="markdown-toc-pythonのバージョン381312に対応">Pythonのバージョン<code>&gt;=3.8.1,&lt;3.12</code>に対応</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他開発面での主な更新点" id="markdown-toc-その他開発面での主な更新点">その他開発面での主な更新点</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrewでインストールしたパッケージ等をBrewfileを使って管理するためのツール。</p>
+
+<p>Homebrewが4.0.0にアップデートされて色々と変わった部分などもあるので
+それに対応するためのアップデートなどをしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20230217_homebrew4_120_90.png" width="120" height="90" alt="20230217_homebrew4_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/">Homebrew 4.0.0リリース</a></div></li></ul>
+
+<p>また、ちょっと前から
+スクリプトを複数に分けて書き直すようなこともしていて色々確認していたので
+細かいアップデートは出してなかったんですがHomebrewのアップデートもあったので
+とりあえず大丈夫だと思うところまでやって新しいバージョンを出しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0B8BPCHCM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B8BPCHCM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71PWPzp0g-L._SS90_CR0,0,120,90_.jpg" alt="Dreams Come True [Analog]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/27/computer-python/">Pythonで複数のファイルからなるスクリプトを1つのスクリプトにまとめる</a></div></li></ul>
+
+<h2 id="機能的な面での主な更新点">機能的な面での主な更新点</h2>
+
+<h3 id="brewfileに書けるコマンドとしてcask_argsの追加">Brewfileに書けるコマンドとしてcask_argsの追加</h3>
+
+<p>Brewfileに</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">cask_args --appdir=~/Applications --require_sha</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と書いておくと、すべてのCaskのインストール時にこのオプションが使われるようになります。</p>
+
+<p>もし<code>-F bundle</code>を指定して使っている場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">cask_args --appdir:~/Applications, --require_sha: true</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように
+<a href="https://github.com/Homebrew/homebrew-bundle">homebrew-bundle</a>の形で書いてください。</p>
+
+<h3 id="xdg_config_homeをconfigディレクトリのデフォルトに"><a href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">XDG_CONFIG_HOME</a>をconfigディレクトリのデフォルトに</h3>
+
+<p><strong>${XDG_CONFIG_HOME}</strong>の値が定められている場合、
+<strong>${XDG_CONFIG_HOME}/brewfile/Brewfile</strong>がデフォルトのBrewfileの位置になります。</p>
+
+<p>これまでは<strong>~/.config/brewfile/Brewfile</strong>でした。
+基本的には<strong>${XDG_CONFIG_HOME}</strong>を定義してある場合でも<strong>~/.config</strong>の場合がほとんどなので
+大きな影響はないかと思います。</p>
+
+<p>それより前には<strong>~/.brewfile/</strong>だったりもしました。</p>
+
+<p>互換性のため、あたらくデフォルトとして決まったディレクトリに<strong>Brewfile</strong>がない場合には
+以前のデフォルトディレクトリを見に行ってそこにあればそちらを使うようにしています。</p>
+
+<h3 id="verboseで設定できる値を012からdebuginfowarningerrorcriticalに">–verboseで設定できる値を<code>0</code>/<code>1</code>/<code>2</code>から<code>debug</code>/<code>info</code>/<code>warning</code>/<code>error</code>/<code>critical</code>に</h3>
+
+<p>基本的に出力をすべて<code>print</code>から<code>logger</code>を使うように変更しました。</p>
+
+<p>これにともなって<code>--verbose</code>で使えるオプションも文字で指定するようにしています。</p>
+
+<p>一応数字の場合でも<code>0</code>/<code>1</code>/<code>2</code>ならそれぞれ<code>debug</code>/<code>info</code>/<code>error</code>に変換するようにはしています。</p>
+
+<p>これは主に<code>HOMEBREW_BREWFILE_VERBOSE</code>という環境変数を数字で指定している場合に対する互換性を保つための処理だったりはします。</p>
+
+<h3 id="brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok"><code>brew tap</code>でタップをチェックする際に<code>HOMEBREW_NO_AUTO_UPDATE=1</code>を指定しなくてもOK</h3>
+
+<p>このアップデートを知らなかった。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/5766">tap: skip auto-update if called with no args by scpeters · Pull Request #5766 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>これも数年前ですが、更に数年前にPR出してrejectされてたもの。。。</p>
+
+<p><a href="https://github.com/Homebrew/brew/pull/1439">disable oputput of brew tap at initialize by rcmdnk · Pull Request #1439 · Homebrew/brew</a></p>
+
+<p>アップデートの内容はほぼほぼ同じ(一部オプションが消えてその処理が要らなくなったのでその部分を除いて簡略化したのが新しいPR)
+なので参照くらい入れてほしかった(そうしてくれたら気づけたので)。</p>
+
+<h3 id="api-cache変数の追加"><code>api</code>, <code>cache</code>変数の追加</h3>
+
+<p>環境変数<strong>HOMEBREW_NO_INSTALL_FROM_API</strong>をチェックしてAPIを使っているかをチェックするように。</p>
+
+<p>APIを使っている場合、homebrew-coreとhomebrew-caskをtapせずにAPI経由でformula/caskの情報だけを取ってくるようになるので
+以前のようにtapのあるディレクトリを見に行ってformula/caskを確認することができなくなりました。</p>
+
+<p>一方で<strong>$(brew –cache)/api</strong>のディレクトリにjsonファイルなどで情報が保存されています。</p>
+
+<p><code>brew info --eval-all --json=v2</code>などにより全formulae/casksの情報が取得できるはずですが、
+現状APIモードだとこれだとhomebrew-core/caskの情報が含まれていません。</p>
+
+<p>APIを無効化しているとtapにある情報を読んでこれらも含んで示してくれます。</p>
+
+<p>ここに出てくる情報は<strong>api</strong>ディレクトリの下にあるjsonファイルにある情報と同じなので、
+homebrew-core/caskに関してはAPI有効のときにはこれらのファイルを見に行って情報を追加するような作業をしています。</p>
+
+<p>この辺のAPI関連の情報の取り回しはまだ色々やりきれてない部分があるみたいで、
+ちょこちょこ変わっています。</p>
+
+<p>一個PR出したりしましたがちょうどそのちょっと前にその内容を含めた変更のPRが別に出ていた、ということもありました(ちょっと色々な変更の一部として作られてたのでタイトルとかで確認しきれなかった。。。)。</p>
+
+<p>4.0.2までは<strong>formula.json</strong>という名前だったのが現在は<strong>formula.jws.json</strong>というファイルが使われるようになっていて、
+中身が直接すべてがparse出来るjsonの形からparseしたあとに文字列をもう一段階jsonとしてparseする必要がある形式になっています。</p>
+
+<p>この辺、まだちょっと変わるかもしれないので何かうまく動かなくなってるのに気づいたら教えてください。</p>
+
+<h3 id="homebrew-corehomebrew-caskのbrewfileでの取り扱い">homebrew-core/homebrew-caskのBrewfileでの取り扱い</h3>
+
+<p>これらのtapはAPIモードだとtapとして存在しない状態(<code>brew tap</code>でも表示されない)状態になりますが、
+これらはあるものとしてBrewfileには残すようにしています。</p>
+
+<p>書いてあってもAPIが有効であれば<code>brew file install</code>などでもtapは行いません。</p>
+
+<h3 id="appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に">AppStoreからインストールしたアプリのリストアップを<code>mas</code>から<code>mdfind</code>を使った方法に</h3>
+
+<p><code>mas</code>を使ったアプリの検索がすべてをうまく検索できないような状態があったので
+macOSネイティブな<code>mdfind</code>を使った方法に変更しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/145">mas does not show all apps · Issue #145 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>これは以下の問題に関連してるかと思うのですが、下のIssudeだとfixしているとのことでまた別の問題かもしれません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mas-cli/mas/issues/220">Microsoft Office apps not appearing in search results · Issue #220 · mas-cli/mas</a></p>
+</blockquote>
+
+<p>恐らく
+<code>mas</code>はAppStoreのアカウント情報を使って見ているため、
+複数のアカウントを使ってアプリをインストールしたりする場合に起こっているものかもしれません。</p>
+
+<p>以前、<code>mdfind</code>の方法だときちんと検索しきれなくて
+Appの中の<code>Contents/_MASReceipt/receipt</code>というファイルがあるものを見つけるとより確実に見つけられる、
+という状態があったのですが、現状使える環境で試した限りでは
+<code>mdfind</code>で全部見つけられたので<code>mdfind</code>を使う方法にしています。</p>
+
+<p><code>mdfind</code>であれば特に最初にディレクトリを指定せずともOS全体から勝手に探してきてくれる、という利点もあるので。</p>
+
+<p>これに関してもリストアップされないものとかあれば教えてください。</p>
+
+<h3 id="brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように">brew file casklistでAppStoreからインストールしたけどHomebrewでも入れられるものを表示するように</h3>
+
+<p><code>brew file casklist</code>はmacOSにインストールされているアプリを一通り調べるコマンドで、
+CaskでインストールされたものはBrewfileに従った方式で書き出され、
+AppStoreからインストールされたものも同様に<code>appstore</code>コマンドで書き出されます。</p>
+
+<p>このときにAppStoreのアプリでCaskが存在するものについてはコメントでそのCaskの名前も書き出すようにしました。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Apps installed from AppStore
+</span><span class="line">appstore 409183694 Keynote (12.2.1) # /Applications/Keynote.app
+</span><span class="line">appstore 409203825 Numbers (12.2.1) # /Applications/Numbers.app
+</span><span class="line">appstore 409201541 Pages (12.2.1) # /Applications/Pages.app
+</span><span class="line">appstore 497799835 Xcode (14.2) # /Applications/Xcode.app
+</span><span class="line">appstore 408981434 iMovie (10.3.5) # /Applications/iMovie.app
+</span><span class="line">
+</span><span class="line"># Apps installed from AppStore, but casks are available.
+</span><span class="line">appstore 425424353 The Unarchiver (4.3.5) # the-unarchiver, /Applications/The Unarchiver.app</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じ。</p>
+
+<h3 id="homebrew_brewfile_fetch_headオプションの追加">HOMEBREW_BREWFILE_FETCH_HEADオプションの追加</h3>
+
+<p>これまで、<code>brew file update</code>で<code>brew update</code>を実施する際、<code>brew update --fetch-HEAD</code>オプションを追加していました。</p>
+
+<p>ただ、このupdateは結構時間がかかるのと、Homebrew自体が<code>--HEAD</code>も含めオプション的なものを使わない方向に進んでいることもあるので
+このようなチェックはオプション扱いに移しました。</p>
+
+<p>もしこのチェックを<code>brew file update</code>の際に行いたい場合には<strong>.bashrc</strong>などで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export HOMEBREW_BREWFILE_FETCH_HEAD=1</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定してください。</p>
+
+<p>3## aliasを残すように</p>
+
+<p>Brwefile書いたformulaがalias(<strong>python@3.11</strong>に対する<strong>python</strong>など)の場合にはそのaliasのまま残すようにしました。
+<code>brew file brew install python</code>(もしくはbrew-wrap使って<code>brew install python</code>)などでも同様。</p>
+
+<p>これまでは<strong>python@3.11</strong>などに変更されてましたが、
+例えば<strong>python</strong>が<strong>python@3.12</strong>になってもその最新のを入れたいから<strong>python</strong>として書いていた、という場合にちゃんとそれを続けられるようにするための変更です。</p>
+
+<p>単に以前はaliasを取る手段が面倒だったのが簡単に取れるようになっていたので、という点もあります。
+(<code>brew info</code>から。)</p>
+
+<p>3## <code>brew file update</code>などの際にBrewfileの出力を表示させないように(v9.0.3)</p>
+
+<p>brew-wrapを使って<code>brew install &lt;package&gt;</code>とした場合なども毎回
+Brewfileの更新状態を表示してましたが、今更ながら邪魔かな、と思い始めたので表示をやめて
+デバッグモードのみで表示させるようにしました。</p>
+
+<p>以前と同じような出力にしたい場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew file --verbose debug init</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>--verbose debug</code>を使うか、環境変数で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export HOMEBREW_BREWFILE_VERBOSE=0</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定してください。</p>
+
+<h3 id="pythonのバージョン381312に対応">Pythonのバージョン<code>&gt;=3.8.1,&lt;3.12</code>に対応</h3>
+
+<p>Homebrew-file 8.XまではPython 3.9に対応していましたが、
+今回色々とアップデートしていて3.10の機能も入れたりしていました。</p>
+
+<p>ただ、HomebrewでこれだけのためにPython入れるのもあれなのと、
+<strong>python@3.9</strong>とかを依存先として入れてしまうとPATH下(<strong>$(brew –prefix)/bin</strong>)には自動的には入らない問題とかもあるので
+基本的には現状のmacOSのPythonで動かせるようにしたいな、と。</p>
+
+<p>ついでにLinux環境も考えてできるだけ古いもの、ということで3.8.1になってますが、
+3.8.1はflake8などのlinter系の対応状況による制限だったりします。
+まあこのくらいまでで良いか、と。</p>
+
+<p>Linuxだと3.6や3.7しか入ってない場合もあるかもしれませんが、
+その場合には<code>brew install python3</code>して最新のPython3をインストールしてつかてください。</p>
+
+<p>brew-fileのformulaでは以前は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">depends_on "python"</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>としていましたがこれは削除しました。</p>
+
+<p>古いバージョンに戻すにあたって変更した主な点は以下のような点</p>
+
+<ul>
+  <li>Structural Pattern Matching (match-case文, <code>&gt;=3.10</code>)をif-elseに</li>
+  <li><code>from __future__ import annotations</code>の追加(3.9以下でannotationsに関する機能を使うため)</li>
+  <li><a href="https://github.com/rcmdnk/homebrew-file/commit/e8d4742c1d48bd2be9c7a22515fc9c0149ed4d7d">str.removesuffix</a>、<a href="https://github.com/rcmdnk/homebrew-file/commit/2f360f5e96d8c0d870391ecbf2c6854ac5b3b4cd">str.removeprefix</a> (<code>&gt;=3.9</code>)を<code>str.replace</code>で代用</li>
+</ul>
+
+<h2 id="その他開発面での主な更新点">その他開発面での主な更新点</h2>
+
+<ul>
+  <li><a href="https://github.com/python-poetry/poetry">Poetry</a>を使ったパッケージ管理
+    <ul>
+      <li><strong>src</strong>以下に分割した形でコードを書く</li>
+      <li>Pythonパッケージとして<strong>brew-file</strong>というコマンドを使える形にもする
+        <ul>
+          <li>パッケージとしては基本的に外部ライブラリには依存しないように(dev環境でpytestとかは入れる)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Homebrewで配布するスクリプトは<strong>combine.sh</strong>でsingle scriptにしたものを<strong>$(brew –prefix)/bin</strong>に配置するように</li>
+  <li><strong>tests</strong>で色々テストを追加</li>
+  <li><a href="https://pre-commit.com/">pre-commit</a>を使ってコードチェック(black, flake8, isort, mypy, etc…)</li>
+  <li>ログ出力をすべてprintからloggerに</li>
+  <li>sys.exitをraise Exeptionに変更して<strong>main</strong>の中で処理するように</li>
+</ul>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>HomebrewがAPIがデフォルトになったことで色々と大きな変更もありましたが、
+とりあえず以前と同じような使用感には出来ているかと思います。</p>
+
+<p>その他の部分で多少快適になったかな、とも。</p>
+
+<p>Homebrewの変更もまだまだ細かい所で入りそうでHomebrew-fileへの影響もあるかと思いますし
+色々見落としてる部分もあるかもしれないのでもし何かあれば
+GitHubのIssueなりTwitterなりここのコメントなりで教えていただけるとありがたいです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew 4.0.0リリース]]></title>
+    <link href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/"/>
+    <updated>2023-02-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/02/17/computer-homebrew</id>
+    <content type="html"><![CDATA[<p>Homebrewがメジャーアップデートして4.0.0になりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまでのアップデート" id="markdown-toc-これまでのアップデート">これまでのアップデート</a></li>
+  <li><a href="#400における主な変更" id="markdown-toc-400における主な変更">4.0.0における主な変更</a>    <ul>
+      <li><a href="#api経由のインストールがデフォルトに" id="markdown-toc-api経由のインストールがデフォルトに">API経由のインストールがデフォルトに</a></li>
+      <li><a href="#auto-updateの間隔の延長" id="markdown-toc-auto-updateの間隔の延長">AUTO UPDATEの間隔の延長</a></li>
+      <li><a href="#analyticsの移行" id="markdown-toc-analyticsの移行">Analyticsの移行</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他の気になる変更" id="markdown-toc-その他の気になる変更">その他の気になる変更</a></li>
+  <li><a href="#homebrew-fileの対応" id="markdown-toc-homebrew-fileの対応">Homebrew-fileの対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまでのアップデート">これまでのアップデート</h2>
+
+<p>Homebrew 3.0.0がリリースされたのは2021年の2月で主な変更はM1 Macへの対応でした。</p>
+
+<p>その後、2~3ヶ月おきにマイナーアップデートして3.6.21までリリースされていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BCD7Y49T?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BCD7Y49T&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41zJh3d7QjL._SS90_CR0,0,120,90_.jpg" alt="My Homebrew: A Recipe Journal and Notebook" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/09/11/computer-mac-homebrew/">Homebrew 3.6.0リリース</a></div></li></ul>
+
+<h2 id="400における主な変更">4.0.0における主な変更</h2>
+
+<p><a href="https://brew.sh/2023/02/16/homebrew-4.0.0/">4.0.0 — Homebrew</a></p>
+
+<h3 id="api経由のインストールがデフォルトに">API経由のインストールがデフォルトに</h3>
+
+<p>最大の変更点は
+公式のFormula、Caskのレポジトリである
+<a href="https://github.com/Homebrew/homebrew-core">Homebrew/homebrew-core</a>、
+<a href="https://github.com/Homebrew/homebrew-cask">Homebrew/homebrew-cask</a>
+に関しては、デフォルトの動作として、<code>brew install</code>時に
+それらのレポジトリをタップせずに
+<a href="https://formulae.brew.sh/">Homebrew Formulae</a>
+からAPIを通じてJSONファイルをダウンロードしてパッケージの情報を取得してインストールするようになった、という点。</p>
+
+<p>これらのレポジトリは大量のファイルを含んでいますが、
+Gitレポジトリとしてローカルで管理しているため
+アップデートがあった際結構アップデートが大変だしローカルディスクの無駄遣いにもつながってしまうことから
+APIベースの情報管理への移行が進められていました。</p>
+
+<p>この機能自体は3.3.0のときに導入されていて、これまでは
+<code>HOMEBREW_INSTALL_FROM_API=1</code>とするとローカルの情報を使わずにインストールするようになっていました。</p>
+
+<p>4.0.0からはこの設定はなくなり、通常はAPIベースの管理になります。</p>
+
+<p>もしローカルレポジトリでFormulaを管理したい場合には
+<code>HOMEBREW_NO_INSTALL_FROM_API=1</code>を設定しておく必要がありますが、
+基本的にはこれは開発者向けで通常はAPIベースが推奨されているようです。</p>
+
+<p>これによって現在タップしてある<strong>homebrew/core</strong>、<strong>homebrew/cask</strong>は不要になるので、
+もしディスクスペースを空けたい場合には</p>
+
+<pre><code>$ brew untap homebrew/core
+$ brew untap homebrew/cask
+</code></pre>
+
+<p>などで削除してしまっても大丈夫です。
+手元のmacOSだとcoreが630MBでcaskが382MB程度なので両方消すと1GB程度空けることができるような状態でした。</p>
+
+<h3 id="auto-updateの間隔の延長">AUTO UPDATEの間隔の延長</h3>
+
+<p><code>brew install</code>などのコマンドを打つ際、Homebrewでは定期的に
+<code>brew update</code>が自動で実行されるようになっていて
+これまではデフォルトでは5分以内以前の<code>update</code>コマンドが行われてから経った状態だと
+再び実行されるようになっていました<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>今後は<code>HOMEBREW_INSTALL_FROM_API=1</code>の設定がされていなければ
+24時間経つまで実行されないようになりました。</p>
+
+<p>これに関しては
+<code>HOMEBREW_NO_AUTO_UPDATE=1</code>を設定しておくと
+アップデートしないようになります。</p>
+
+<p>また、<code>HOMEBREW_AUTO_UPDATE_SECS</code>という値(デフォルト86400)ですきな時間間隔に設定することもできます。</p>
+
+<p>現在もこれらの値は有効ですが、core/Caskのレポジトリのアップデートを含まない場合はそれほど負荷が大きくないのと
+24時間間隔がデフォルトになったのでこのあたりは有効にしておいても苦になることはほとんどないようになったようです。</p>
+
+<p>core/caskのFormula/Caskのアップデートに確認は別途行われるようで
+こちらの間隔は7.5分になっています。</p>
+
+<p>この間隔は<code>HOMEBREW_API_AUTO_UPDATE_SECS</code>の値(デフォルト450)で変更できます。</p>
+
+<h3 id="analyticsの移行">Analyticsの移行</h3>
+
+<p>HomebrewではGoogle Analyticsを使って
+どのパッケージがどれだけダウンロードされたか、などの情報を集めています。</p>
+
+<p>特にコマーシャル的に使うとかいうことはこれまでもなかったかと思いますが、
+導入された当初は結構いろいろな反応もありました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0134191501?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0134191501&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51R50kt6yRL._SS90_CR0,0,120,90_.jpg" alt="The Opt-Out Effect: Marketing Strategies that Empower Consumers and Win Customer-Driven Brand Loyalty" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/04/28/computer-mac-homebrew/">HomebrewがAnalyticsを導入し使用OS等の情報を集める様になった</a></div></li></ul>
+
+<p>これは<code>HOMEBREW_NO_ANALYTICS=1</code>を設定しておけばオプトアウトできるようにはなっていました。</p>
+
+<p>4.0.0からはセルフホストなヨーロッパにおかれたサーバーにも情報を取得するようになりました。
+しばらくはGoogle Analyticsも並行して使いますが、数ヶ月以内に完全に移行するとのことです。</p>
+
+<p><code>HOMEBREW_NO_ANALYTICS=1</code>を設定すると両方とも無効にしますが、
+<code>HOMEBREW_NO_GOOGLE_ANALYTICS=1</code>とすればGoogle Analyticsだけを無効にできます。</p>
+
+<p>Google Analyticsだとアメリカにデータを送ることになるのでそれを避けたいというだけならGoogle Analyticsだけを無効にしてくれ、と。</p>
+
+<p>この辺は色々と法律も出来たり難しい状態になっていますが、
+Homebrew的には余計な情報を取るのはリスクにしかならないのでよりミニマムな情報だけを
+取得するように、かつサーバーもセルフホストで管理できるように、という方向に向かったようです。</p>
+
+<blockquote>
+  <p><a href="https://news.ycombinator.com/item?id=34817222">Homebrew 4.0.0  Hacker News</a></p>
+</blockquote>
+
+<h2 id="その他の気になる変更">その他の気になる変更</h2>
+
+<ul>
+  <li><code>brew install --dry-run</code>でドライランができるようになった</li>
+  <li><code>brew docs</code>で<a href="https://docs.brew.sh/">Homebrew Documentation</a>が開かれるようになった</li>
+  <li><code>brew doctor --quiet</code>で何も問題がない場合には何も表示しないようになった</li>
+  <li>WindowsのWSL1のサポート終了</li>
+</ul>
+
+<p>他にも気になることがあれば以下から。</p>
+
+<p><a href="https://brew.sh/2023/02/16/homebrew-4.0.0/">4.0.0 — Homebrew</a></p>
+
+<h2 id="homebrew-fileの対応">Homebrew-fileの対応</h2>
+
+<p>Homebrew-fileはHomebrewのパッケージをBrewfileで管理し、それをGitHubなどでバージョン管理も行うためのツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>このなかで、各パッケージのFormulaがどのTapに属しているか、をローカルにあるファイルを用いて確認したりしています。
+なのでそれらのTapがなくなると確認が出来ずに無所属のTapになってしまいます。</p>
+
+<p>今後もcore/cask以外の非公式Tapはローカルにcloneされるので、
+それらの中に見つからなかったらcore/caskのもの、としてしまってもとりあえずは大きな問題はないかとは思ってます。</p>
+
+<p>一方で、<code>brew file casklist</code>というコマンドでCaskに関するリストを作れるようになってるんですが、
+この中で、Homebrew以外でインストールされたけどHomebrewにCaskがあるもの、を見つけられるようになっています。
+ただこれもローカルファイル依存があるのでTapがない状態だとちゃんと見つけられません。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4150736049?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4150736049&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61NK6E4FJHL._SS90_CR0,0,120,90_.jpg" alt="樽 (ハヤカワ・ミステリ文庫)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/03/09/computer-mac-homebrew/">Brew-fileのcasklistコマンドの改善</a></div></li></ul>
+
+<p><del>この辺、<code>HOMEBREW_API_AUTO_UPDATE_SECS</code>とかの設定がある以上、なんらかの情報はローカルにもあるはずでその辺使うか、もしくはAPI経由でリスト取得とか情報取得とかできればそっちに切り替えれば良いんですが、まだその辺ちゃんと見れてないので対応できてない状態です。</del></p>
+
+<div class="postscript">
+  <p><strong>追記: 2023/02/18 </strong></p>
+
+  <p><code>$(brew --cache)/api</code>にあたるディレクトリに<strong>formula.json</strong>、<strong>cask.json</strong>というファイルがダウンロードされるようになっています
+(macOSだと**/Users/<user>Library/Caches/Homebrew/api/**)。
+この中にFormula/Cask一覧があるのでそこから取得できます。</user></p>
+
+  <p>また、<code>brew</code>には<code>formulae</code>、<code>casks</code>というコマンドが(結構前から)追加されていて、これで現在使えるFormula/Caskのリストを取得できますが、
+これらはTapのディレクトリを見に行って、もしAPIが有効な場合は上記のjsonファイルも確認するような仕組みになっています。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/Homebrew/brew/blob/master/Library/Homebrew/cmd/formulae.sh">brew/formulae.sh at master · Homebrew/brew</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>今のままでもすぐに大きな問題なく使い続けられると思ってますが、
+もし何か問題があったらGitHubのIssueでもTwitterでもこのコメント欄でもいいので教えていただければ、と。</p>
+
+<p>Homebrew-fileの方はちょっとした改変を行ってる途中でその辺一段落したらこのあたりもちゃんと対処していくつもりです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrewで古いバージョンを使う(awscli@macが動かない)]]></title>
+    <link href="https://rcmdnk.com/blog/2022/11/26/computer-homebrew-mac/"/>
+    <updated>2022-11-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/11/26/computer-homebrew-mac</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4815607850?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4815607850&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51DEDQXj6oL._SS200_.jpg" alt="AWSの基本・仕組み・重要用語が全部わかる教科書 (見るだけ図解)" /></a>
+</div>
+
+<p>Homebrewでいつも通りupgradeを行ったところ、<strong>awscli</strong>がエラーを出すようになったので
+ちょっと前のバージョンを使えるようにした話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrewでのバージョン管理" id="markdown-toc-homebrewでのバージョン管理">Homebrewでのバージョン管理</a></li>
+  <li><a href="#awscliのエラー" id="markdown-toc-awscliのエラー">awscliのエラー</a></li>
+  <li><a href="#homebrewで古いバージョンのインストール" id="markdown-toc-homebrewで古いバージョンのインストール">Homebrewで古いバージョンのインストール</a></li>
+  <li><a href="#ピンどめする" id="markdown-toc-ピンどめする">ピンどめする</a></li>
+  <li><a href="#古いバージョンを残して直接使う" id="markdown-toc-古いバージョンを残して直接使う">古いバージョンを残して直接使う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrewでのバージョン管理">Homebrewでのバージョン管理</h2>
+
+<p>Homebrewでは以前はHomebrew-versionsというtapが存在し、古いバージョンのインストールが出来たりしました。</p>
+
+<p>現在はそれもなくなり、基本的に最新バージョンのものしかインストールできない仕様になっています。</p>
+
+<p>一部、Pythonなど複数のよく使われるメジャーバージョンがある場合のみ、<code>python@3.9</code>のような<code>@</code>付きの名前で
+違うバージョンがインストールできるようになってはいます。(<code>@</code>なしがいずれかに対応するようになっている。)</p>
+
+<p>普通のFormulaはちょっと前のバージョンを入れたい、と思っても
+公式でやる方法は用意されていません。</p>
+
+<p>なのでちょっと手動で色々とやる必要があります。</p>
+
+<h2 id="awscliのエラー">awscliのエラー</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2023/01/20 </strong></p>
+
+  <p>以下のエラーはどうも<strong>awscli</strong>自体に問題があったというより、環境(恐らくPythonの)がおかしな状態になっていたようです。</p>
+
+  <p>別件でHomebrewを入れ直して<strong>awscli</strong>を入れたところ問題なく動きました。</p>
+
+  <p>2.9.1まで遡って入れ直して試してみましたがやはりエラーは起きませんでした。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>今回<strong>awscli</strong>でエラーが出て前のバージョンを使わなくてはならなくなったのが発端です。</p>
+
+<p>最新の2.9.1にアップグレードすると</p>
+
+<pre><code>$ aws --version
+Traceback (most recent call last):
+  File “/opt/homebrew/bin/aws”, line 19, in &lt;module&gt;
+    import awscli.clidriver
+  File “/opt/homebrew/Cellar/awscli/2.9.1/libexec/lib/python3.11/site-packages/awscli/clidriver.py”, line 43, in &lt;module&gt;
+    from awscli.help import ProviderHelpCommand
+  File “/opt/homebrew/Cellar/awscli/2.9.1/libexec/lib/python3.11/site-packages/awscli/help.py”, line 20, in &lt;module&gt;
+    from docutils.core import publish_string
+ModuleNotFoundError: No module named ‘docutils’
+</code></pre>
+
+<p>といったエラーが出て使えなくなってしまいました。</p>
+
+<p>問題が起こっているのはmacOSの環境で、M1 Macですが、Rosetta2を使ったx86_64の環境でも同じエラーが出ました。</p>
+
+<p>WindowsのWSL環境では出なかったのでmacOSでの問題のようです。</p>
+
+<p>毎日<code>brew upgrade</code>をかけていますが、どうやら2.9.1に変更が入ったあたりが問題っぽい。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-core/commits/master/Formula/awscli.rb">History for Formula/awscli.rb - Homebrew/homebrew-core</a></p>
+</blockquote>
+
+<p>いくつか試してみたところ、</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-core/commit/c2b4aa1563bda53bf25daae56e62237c456bd3c1">awscli: depend on docutils · Homebrew/homebrew-core@c2b4aa1</a></p>
+</blockquote>
+
+<p>のcommitの前までならエラーが出ませんでした。</p>
+
+<p>2.9.0でも上のcommit以降では同様のエラーが出ました。</p>
+
+<p>上のエラーでもdocutilsに関して文句を言っているのでおそらくこの変更が原因。</p>
+
+<p>まだIssueなどに上がってないことから、もしかしたら自分の環境固有の問題かもしれませんが、まだFormulaがアップデートされたばかりなので、今後同じようなエラーが出て問題が発覚するかもしれません。</p>
+
+<p>とりあえず使えないと困るのでなんとかしようと。</p>
+
+<h2 id="homebrewで古いバージョンのインストール">Homebrewで古いバージョンのインストール</h2>
+
+<p>上にも書いたように、現状のHomebrewでは常に最新バージョンを常に使うことを想定して古いバージョンを使う方法は公式には用意されていません。</p>
+
+<p>また、以前はFormulaのURLをを直接指定してのインストールなどもできましたが、現在は</p>
+
+<pre><code>$ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/b72dc5a4db9c20cbda5c50a8e196943cca34d8f6/Formula/awscli.rb
+Error: Installation of awscli from a GitHub commit URL is unsupported! `brew extract awscli` to a stable tap on GitHub instead.
+</code></pre>
+
+<p>といった感じでダメです。</p>
+
+<p>さらに、ローカルにダウンロードして直接指定しても</p>
+
+<pre><code>$ brew install ./awscli.rb scli.rb
+Warning: No available formula with the name “./awscli.rb”. Did you mean awscli?
+==&gt; Searching for similarly named formulae...
+This similarly named formula was found:
+awscli
+To install it, run:
+  brew install awscli
+  ==&gt; Searching for a previously deleted formula (in the last month)...
+  Error: No previously deleted formula found.
+</code></pre>
+
+<p>となってできなくなっています。</p>
+
+<p>したがってきちんとTapした形でFormulaを用意しないといけません。</p>
+
+<p>すごく簡単には<strong>/opt/homebrew/Library/Taps/homebrew/homebrew-core/Formula</strong>の中の<strong>awscli.rb</strong>を以前のものと置き換えて上げて<code>brew install</code>とかすれば古いバージョンがインストールできます。</p>
+
+<p>ですが、これだと<code>brew update</code>などがうまくいかなくなります。</p>
+
+<p>別途自分でTapレポジトリを作って<strong>awsclimod.rb</strong>みたいな自分用のFormulaを作ることも考えられますが結構手間です。</p>
+
+<p>なので、一旦古いFormulaを取り出して、元にもどすような事を考えます。</p>
+
+<p>TapはGitのレポジトリとして管理されているので</p>
+
+<pre><code>$ brew rm awscli # 一旦現バージョンを削除
+$ cd /opt/homebrew/Library/Taps/homebrew/homebrew-core
+$ git log Formula/awscli.log # 必要なcommitを探す
+$ git checkout b72dc5a4db9c20cbda5c50a8e196943cca34d8f6 # 必要なcommitの状態に移行
+$ brew install awscli # 古いバージョンをインストール
+$ aws --version
+aws-cli/2.9.0 Python/3.11.0 Darwin/21.6.0 source/arm64 prompt/off
+</code></pre>
+
+<p>とすることで古いFormulaを取り出してインストールすることができます。</p>
+
+<p>ただ、このままだと<code>brew update</code>などがうまくいななくなるので元の<code>master</code>ブランチに戻す必要があります。</p>
+
+<p>そのまま戻してしまうと<code>brew upgrade</code>で2.9.1になってしまいます。</p>
+
+<p>とどめておくには以下の2つの方法があります。</p>
+
+<h2 id="ピンどめする">ピンどめする</h2>
+
+<p>Homebrewには<code>brew pin</code>というコマンドがあり、現在インストールされているパッケージを、アップデートされたバージョンがあってもそのまま留めておく、という機能があります。</p>
+
+<p>これを使い、上の状態で、</p>
+
+<pre><code>$ brew pin awscli
+$ git checkout master
+</code></pre>
+
+<p>とすることで、今後<strong>awscli</strong>を2.9.0のまま保つことができます。</p>
+
+<p>この状態で<code>update</code>/<code>upgrade</code>してみると</p>
+
+<pre><code>$ brew update
+Updated 2 taps (homebrew/core and homebrew/cask).
+==&gt; Outdated Formulae
+awscli
+You have 1 outdated formula installed.
+You can upgrade it with brew upgrade
+or list it with brew outdated.
+
+$ brew upgrade
+Error: Not upgrading 1 pinned package:
+awscli 2.9.1
+==&gt; No packages to upgrade
+</code></pre>
+
+<p>みたいな感じでエラーにはなりますが、<strong>awscli</strong>に関してはバージョンを保ったままにできます。</p>
+
+<p>もし問題が治ったバージョンがリリースされたら<code>unpin</code>コマンドを使って、</p>
+
+<pre><code>$ brew unpin awscli
+$ brew update &amp;&amp; brew upgrade
+</code></pre>
+
+<p>で最新バージョンにすることができます。</p>
+
+<h2 id="古いバージョンを残して直接使う">古いバージョンを残して直接使う</h2>
+
+<p>上の方法だと<code>brew update</code>などでエラー終了になるのがちょっと気持ち悪いところです。</p>
+
+<p>また、最新バージョンを試そうと思うと一旦<code>unpin</code>してインストールした後、だめだったら
+再び最初の方法で古いバージョンを入れ直す必要があります。</p>
+
+<p>そこで、別の方法として、古いバージョンを残しておき、それを直接使う方法を考えます。</p>
+
+<p>Homebrewではパッケージのバージョンごとに別のディレクトリを作りインストールを行い、そこから<strong>/opt/bin/</strong>などへのシンボリックリンクをはっています。</p>
+
+<p><strong>awscli</strong>であれば<strong>/opt/homebrew/Cellar/awscli/2.9.0</strong>に<strong>bin/aws</strong>などがあります。</p>
+
+<p>ただし、現在のHomebrewではパッケージの新しいバージョンがインストールされると古いバージョンは即座に消されるようになっています。</p>
+
+<p>したがって上のようなエラーに気づいてから古いバージョンを使おうと思ってもすでに消されています。</p>
+
+<p>これに関しては</p>
+
+<pre><code>$ export HOMEBREW_NO_INSTALL_CLEANUP=1
+</code></pre>
+
+<p>をしてから<code>brew</code>コマンドを使うことで古いバージョンを消さないようにできます。</p>
+
+<p>これを使って、まず上の方法に従って2.9.0をインストールした後、</p>
+
+<pre><code>$ git checkout master
+$ export HOMEBREW_NO_INSTALL_CLEANUP=1
+$ brew update &amp; brew upgrade
+</code></pre>
+
+<p>とすると
+<strong>/opt/homebrew/Cellar/awscli/</strong>に<strong>2.9.0</strong>と<strong>2.9.1</strong>が残ったままになります。</p>
+
+<p><strong>/opt/homebrew/bin/aws</strong>は2.9.1のものになってしまいますが、
+2.9.0の実行ファイルも<strong>/opt/homebrew/Cellar/awscli/2.9.0/bin/aws</strong>に残っています。</p>
+
+<p>そこで</p>
+
+<pre><code>$ export PATH=/opt/homebrew/Cellar/awscli/2.9.0/bin:$PATH
+</code></pre>
+
+<p>とすれば<code>aws</code>と呼ぶことで2.9.0の方を使えるようになります。</p>
+
+<p>この方法であれば<code>brew update</code>/<code>brew upgrade</code>は問題なく行えますし、
+最新の<strong>awscli</strong>も</p>
+
+<pre><code>$ /opt/homebrew/bin/aws --version
+</code></pre>
+
+<p>とすればすぐに使えるのでチェックも簡単にできます。</p>
+
+<p>厳密には<strong>/opt/homebrew/Cellar/awscli/2.9.0/etc</strong>の下に補完用のファイルがあったりして
+このあたりも使えるようにしたほうが良いかもしれませんが、
+最新バージョンとマイナーバージョンまで同じものでもあり大きな違いはなさそうなのでとりあえず実行ファイルだけ2.9.0を直接指定して動かすようにしています。</p>
+
+<p>上の設定を毎回やるのは面倒なので、<strong>.bashrc</strong>などに</p>
+
+<pre><code>export HOMEBREW_NO_INSTALL_CLEANUP=1
+export PATH=/opt/homebrew/Cellar/awscli/2.9.0/bin:$PATH
+</code></pre>
+
+<p>を追記しておきます。
+特に<code>HOMEBREW_NO_INSTALL_CLEANUP</code>の設定は忘れると2.9.0のディレクトリが<code>brew upgrade</code>などで消えてしまうので注意。</p>
+
+<p>逆に、この設定をし続けると他のFormulaも古いファイルが残り続けるのでディスクが圧迫されてる場合にはちょっと注意が必要です。
+場合によっては一度<code>HOMEBREW_NO_INSTALL_CLEANUP=0</code>で<code>brew upgrade</code>などを行って掃除してサイド<strong>awscli</strong>の2.9.0を入れたりする必要があるかもしれません。</p>
+
+<p>ちなみに以前は<code>brew switch</code>という、古いバージョンへの切り替えコマンドがありましたが、
+このコマンドも古いバージョンを即座に消すようになった流れの中で削除されていて現在は使えません。</p>
+]]></content>
+  </entry>
+  
+</feed>

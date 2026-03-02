@@ -1,0 +1,1238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Mac | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/mac/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[macOSでGoogle日本語入力のアップデート時に再起動を要求されても再起動を避ける]]></title>
+    <link href="https://rcmdnk.com/blog/2026/02/22/computer-mac/"/>
+    <updated>2026-02-22T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2026/02/22/computer-mac</id>
+    <content type="html"><![CDATA[<p>macOSでGoogle日本語入力のアップデートを行うと、アップデート完了後に再起動を要求されることがあります。
+OSのアップデート以外にはこれ以外では殆ど再起動する必要がないわけですが、
+Google日本語入力がちょくちょくアップデートして何度も再起動を要求されるので
+ちょっと直接なんとか出来ないかと思ってやってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#状況" id="markdown-toc-状況">状況</a></li>
+  <li><a href="#解決策" id="markdown-toc-解決策">解決策</a></li>
+  <li><a href="#google日本語入力がapple-silicon-macをネイティブサポート" id="markdown-toc-google日本語入力がapple-silicon-macをネイティブサポート">Google日本語入力がApple Silicon Macをネイティブサポート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="状況">状況</h2>
+
+<p>Apple M1 Pro, macOS Sequola 15.7.3。
+Google日本語入力のversionは3.336088.1。</p>
+
+<p>Google日本語入力はHomebrewで管理していて、夜中とかに自動で<code>brew update &amp;&amp; brew upgrade</code>しています。</p>
+
+<p>この後でIMEを変換しようとすると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20260222_googleime.png" alt="20260222_googleime.png" class="pic" /></p>
+
+<p>こんなポップアップが出て変換出来ない状態になります。</p>
+
+<p>仕方なくしばらくの間一旦macOSの日本語入力に変更して使ったりしますが、
+手が空いたら再起動してGoogle日本語入力に戻す、というのを繰り返していました。</p>
+
+<p>ここ1年以内で始めて見た気もするし、昔もなんか変換できなくなって再起動したらできるようになった、ということもあった気もしますが、
+なんか頻繁にアップデートして毎日のように再起動を要求されるようなこともあったりして
+面倒なので再起動せずになんとか出来ないか、と。</p>
+
+<p>できないならもういっそGoogle日本語入力をやめてmacOSの日本語入力に完全移行してもいいかなと思ったりもした位。</p>
+
+<h2 id="解決策">解決策</h2>
+
+<p><code>launchctl</code>を使って関連プロセスを一旦消してから再度立ち上げます。</p>
+
+<ul>
+  <li><code>application.com.google.inputmethod.Japanese.XXXXXXXXX.XXXXXXXXX</code></li>
+  <li><code>com.google.inputmethod.Japanese.Converter</code></li>
+  <li><code>com.google.inputmethod.Japanese.Renderer</code></li>
+</ul>
+
+<p>一番上の<code>application...</code>は最後に数字がついています。</p>
+
+<p>これらを<code>launchctl list</code>を使って探してあったら<code>launch remove</code>。
+その後、ConverterとRendererは再起動してやります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">inputmethod</span><span class="o">=</span><span class="k">$(</span>launchctl<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>application.com.google.inputmethod.Japanese<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $3}&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$inputmethod</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span>launchctl<span class="w"> </span>remove<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$inputmethod</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="nv">converter</span><span class="o">=</span><span class="k">$(</span>launchctl<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>com.google.inputmethod.Japanese.Converter<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $3}&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$converter</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span>launchctl<span class="w"> </span>remove<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$converter</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="nv">renderer</span><span class="o">=</span><span class="k">$(</span>launchctl<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>com.google.inputmethod.Japanese.Renderer<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $3}&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renderer</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span>launchctl<span class="w"> </span>remove<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renderer</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">launchctl<span class="w"> </span>load<span class="w"> </span>/Library/LaunchAgents/com.google.inputmethod.Japanese.Converter.plist
+</span><span class="line">launchctl<span class="w"> </span>load<span class="w"> </span>/Library/LaunchAgents/com.google.inputmethod.Japanese.Renderer.plist
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>Converter</code>と<code>Renderer</code>は試したときに無いときもあったりしました。
+<code>application...</code>はIMEを使うと自動的に立ち上がります。</p>
+
+<p>アクティビティモニタに
+<code>GooglejapaneseInput</code>, <code>GooglejapaneseInputConverter</code>, <code>GooglejapaneseInputRenderer</code>
+というこれらに対応するっぽいプロセスがあるのですが、
+アクティビティモニタから終了させてもうまくいきませんでした。</p>
+
+<p>この辺り、色々やってみた結果ですが、一度治ってしまうと状態を再現するのが難しいので
+もしかしたらアクティビティモニタから消すのでもうまくいくのかもしれません。
+(なにか勘違いしていたか、その時の状態は上のように<code>launchctl</code>使ってもいずれにしろだめだっただけなのか)</p>
+
+<p>とりあえず<code>brew</code>でのアップデート時にはこれを実行するように追加しました。</p>
+
+<h2 id="google日本語入力がapple-silicon-macをネイティブサポート">Google日本語入力がApple Silicon Macをネイティブサポート</h2>
+
+<p><a href="https://applech2.com/archives/20260217-google-japanese-support-apple-silicon-mac.html#google_vignette">Googleの日本語入力システム「Google日本語入力」がApple Silicon Macをネイティブサポートし、Rosetta 2なしで利用可能に。  AAPL Ch.</a></p>
+
+<p>これまでRosetta 2で動作していた事自体知りませんでしたが、つい最近Apple Silicon Macをネイティブサポートしたようです。</p>
+
+<p>もしかするとこれによって上のようなアップデート問題が起こらないようになるのかもしれません。</p>
+
+<p>というか時期的に、もしかするとこの辺の変更のために再起動が必要なアップデートが入っていただけなのかも。。。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[c/ua (lume)を使ってmacOSの仮想環境を作る]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/10/computer-mac/"/>
+    <updated>2025-05-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/10/computer-mac</id>
+    <content type="html"><![CDATA[<p>Linuxであればdockerなどを使って簡単にテストなどを行える仮想環境を手に入れられますが、
+macOSの仮想環境はどうなのか。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macosのライセンス" id="markdown-toc-macosのライセンス">macOSのライセンス</a></li>
+  <li><a href="#macosの仮想環境を作る方法" id="markdown-toc-macosの仮想環境を作る方法">macOSの仮想環境を作る方法</a></li>
+  <li><a href="#cualume" id="markdown-toc-cualume">c/ua、lume</a></li>
+  <li><a href="#lumeのインストール" id="markdown-toc-lumeのインストール">lumeのインストール</a></li>
+  <li><a href="#イメージの準備" id="markdown-toc-イメージの準備">イメージの準備</a></li>
+  <li><a href="#とりあえず起動" id="markdown-toc-とりあえず起動">とりあえず起動</a></li>
+  <li><a href="#guiなしで起動" id="markdown-toc-guiなしで起動">GUIなしで起動</a></li>
+  <li><a href="#ディレクトリ共有" id="markdown-toc-ディレクトリ共有">ディレクトリ共有</a></li>
+  <li><a href="#ちゃんと止める" id="markdown-toc-ちゃんと止める">ちゃんと止める</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macosのライセンス">macOSのライセンス</h2>
+
+<p>Macを買うとその中でmacOSが使えて
+新しいバージョンが出ても無料でアップデートできますが、
+現状Windowsなどと違ってmacOSを単体で購入することはできません。</p>
+
+<p>ソフトウェア自体は無料で入手することができますが、
+ライセンスはどうなっているのか？</p>
+
+<p>macOS(Sequoia 15.4.1)で
+<strong>メニューバーのアップルマーク</strong><i class="fa fa-arrow-right"></i><strong>このMacについて</strong><i class="fa fa-arrow-right"></i>詳細情報<strong><i class="fa fa-arrow-right"></i></strong>使用許諾契約**
+を見てみると2.B項に以下のようなことが書いてあります。</p>
+
+<blockquote>
+  <p>（i）お客様が所有または管理する、macOS Sonoma、macOS Ventura、macOS Monterey、macOS Big
+Sur、macOS Catalina、macOS Mojave、またはmacOS High Sierra（以下「Macコンピュータ」といいま
+す）を実行している各Appleブランドのコンピュータで直接、Appleソフトウェアのコピーを1部、個人的な非
+商用利用のためにダウンロードし、インストールし、使用し、実行するため。</p>
+
+  <p>（ii）お客様が営利企業または教育機関である場合、次のいずれかの用途でAppleソフトウェアのコピーを1部
+ダウンロードし、インストールし、使用し、実行するため：（a）お客様が所有または管理する各Macコン
+ピュータでの単一の個人による使用、または（b）お客様が所有または管理する1台のMacコンピュータでの複
+数の個人による使用。例えば、社員1人が、自身のデスクトップおよびラップトップのMacコンピュータの両方
+でAppleソフトウェアを使用する場合、または複数の生徒が、リソースセンターもしくはライブラリに存在す
+るMacコンピュータ1台でAppleソフトウェアを順次使用する場合。ならびに</p>
+
+  <p>（iii）お客様が所有もしくは管理する、Appleソフトウェアをすでに実行しているAppleブランドの各コン
+ピュータ上の仮想オペレーティングシステム内で、Appleソフトウェア、または以前のmacOSもしくはOS Xオ
+ペレーティングシステムソフトウェアもしくはAppleソフトウェアの後続のリリースの、追加のコピーもしくは
+インスタンスを最大2部、次の目的のためにインストール、使用、実行するため：（a）ソフトウェア開発、
+（b）ソフトウェア開発中のテスト、（c）macOS Serverの使用、または（d）個人的な非商用利用。</p>
+</blockquote>
+
+<ul>
+  <li>(i): 通常のMacでmacOSを使っても良いよ</li>
+  <li>(ii): 教育機関や営利企業なら1台のMac(およびその中に入ってるmacOS)を複数で使っても良いよ</li>
+</ul>
+
+<p>があり、さらに</p>
+
+<ul>
+  <li>(iii): macOSが入ってるMacでテストなどのために仮想環境としてmacOSを最大2つまで使っても良いよ</li>
+</ul>
+
+<p>ということが書いてあります。</p>
+
+<p>つまり、macOSの仮想環境が欲しい場合はmacOSが入ってるMacの中になら作ることができる、ということです。
+ただし商用で貸出したりみたいなことは許可されてません。
+また、Macであってもいくらでも作ってよいわけではなく最大2つまで、ということです。</p>
+
+<p>GitHub Actionsみたいなのは多分特別なライセンスが必要なんだと思います。</p>
+
+<p>WindowsのVirtualBoxなどにmacOSをインストールするとかはライセンス違反です。
+MacでもWindowsを入れてその中でmacOSを仮想環境として動かすのも駄目なようです。</p>
+
+<p>ということで、Windowsしか持ってないけどmacOSの環境がほしい、というのは根本的に無理な話みたいです。</p>
+
+<p>一方でMacを持っている場合は、macOSの中に仮想環境を作ることはライセンス的には問題ない、ということになります。</p>
+
+<h2 id="macosの仮想環境を作る方法">macOSの仮想環境を作る方法</h2>
+
+<p><a href="https://www.vmware.com/">VMware</a>などの仮想マシンにmacOSをインストールして使うことは
+上にも書いた通りMacで動かしているmacOSの中であれば合法です。</p>
+
+<p>それ以外にも
+<a href="https://github.com/insidegui/VirtualBuddy">VirtualBuddy</a>、
+<a href="https://github.com/yep/virtualOS?utm_source=chatgpt.com">virtualOS</a>、
+<a href="https://github.com/utmapp/UTM">UTM</a>
+みたいなソフトウェアがあります。</p>
+
+<p>これらはちょっとセットアップが大変だったり
+起動する際に時間がかかったりしますが、
+Appleは
+<a href="https://developer.apple.com/documentation/virtualization/running-macos-in-a-virtual-machine-on-apple-silicon">Virtualization Framework</a>
+というものを提供していて、
+これだとXcodeが入っていれば別途ソフトウェアを入れずに仮想環境を作ることができます。</p>
+
+<p>さらに、このVirtualization Frameworkを使いやすくした
+<a href="https://github.com/cirruslabs/tart/">tart</a>
+とか
+<a href="https://github.com/trycua/cua">c/ua</a>
+といったソフトウェアがあります。</p>
+
+<p>tartのほうが前からあってよく使われていたようですが、
+<a href="https://tart.run/licensing/">ライセンス</a>
+ライセンスが
+<a href="https://fair.io/">Fair Source License</a>
+なのでちょっと注意が必要です。(個人で普通に使う分には余裕な許容量ではありますが。)</p>
+
+<p>c/uaの方は数ヶ月前に出てきたものみたいで、
+特に最近のAI agentブームの中で
+AIが直接操作するようなこともできるようにしています。
+ライセンスはMITです。
+後発ということで色々と考えて作られてることもあるようで、
+このc/ua、及びそのコマンドラインツールの
+<a href="https://github.com/trycua/cua/blob/main/libs/lume/README.md">lume</a>
+が使って見た感じ今のところ一番手軽で良さげでした。</p>
+
+<h2 id="cualume">c/ua、lume</h2>
+
+<div class="github-widget" data-repo="trycua/cua"></div>
+
+<p>数ヶ月前にできたばかりのようで、簡易にnativeな環境にできるだけ近い仮想環境を作れるものとして作られています。</p>
+
+<blockquote>
+  <p><a href="https://news.ycombinator.com/item?id=42908061">Show HN: Lume – OS lightweight CLI for MacOS and Linux VMs on Apple Silicon Hacker News</a>
+特にfor Computer-Use Agentということで、</p>
+</blockquote>
+
+<p>Pythonで直接操作したり、LLMを使ったAgentが用意されたりしています。</p>
+
+<p>ここでは
+<a href="https://github.com/trycua/cua/blob/main/libs/lume/README.md">lume</a>
+というコマンドラインツールで仮想環境を立ち上げることについて簡単に。</p>
+
+<h2 id="lumeのインストール">lumeのインストール</h2>
+
+<p>インストールは公式スクリプトで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするか、Homebrewで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install trycua/lume/lume</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でインストールできます。</p>
+
+<h2 id="イメージの準備">イメージの準備</h2>
+
+<p>使えるイメージは
+<a href="https://github.com/orgs/trycua/packages">Packages · Cua</a>
+にあるものです。</p>
+
+<p>現状OSの種類としては2つ、macOS Sequoia (15)とUbuntu Noble Numbat (24.04)
+があり、それぞれ入っているパッケージなどの違いなど含め全部で8つイメージがあります。</p>
+
+<p>なのでLinuxのいろいろなものを試してみたい、という場合は現状ではまだあまりできない状態ではあります。</p>
+
+<p>とりあえず、適当にXcodeが入ったmacOSを用意。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume pull macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでイメージがダウンロードされますが、20GB位あり、数分かかります。</p>
+
+<p>ダウンロードが終わったら<code>lume ls</code>で確認してみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume ls
+</span><span class="line">name                        os      cpu     memory  disk            display   status   storage  shared_dirs  ip  vnc
+</span><span class="line">macos-sequoia-xcode_latest  macOS   4       8.00G   22.5GB/50.0GB   1024x768  stopped  default  -            -   -</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>名前は<code>macos-sequoia-xcode:latest</code>でも<code>macos-sequoia-xcode_latest</code>でも通るみたいです。(<code>:</code>は<code>_</code>と同値としている？)</p>
+
+<h2 id="とりあえず起動">とりあえず起動</h2>
+
+<p>準備ができたので起動:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでウィンドウが出てきてmacOSが起動します。
+初回だけいきなりログイン状態になる？ようです。
+初期状態のユーザー名とパスワードはともに<code>lume</code>になっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250511_lume.png" alt="20250511_lume.png" class="pic" /></p>
+
+<p>これでmacOSの中で別のmacOSを動かせます。</p>
+
+<p>ただいくつか制限はあるようで、
+特にApp Storeにサインインすることができません。</p>
+
+<p>なのでApp Store経由でのアプリのインストールなどが出来ません。
+少し改善されてiCloudへはXcodeのβ版を使えばサインインできるようになったようです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/trycua/cua/issues/138">cannot use xcode since it requires app store sign-in (which is unsupported on virtualization) · Issue #138 · trycua/cua</a></p>
+</blockquote>
+
+<p>それ以外だと特に出来ないことはないようには見えますが、実際の環境とは少し違うところがあるので注意です。</p>
+
+<p>また、使っているmacOSとは別環境になるので、例えばネットワーク環境的に証明書をインストールする必要がある場合などは
+仮想環境の中へも持っていってインストール必要があります。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/development.html#prepare-cert-if-needed-in-zero-trust-or-etc">Development — Homebrew-file documentation</a></p>
+</blockquote>
+
+<p>止めるときは別のターミナルから</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume stop macos-sequoia-xcode:latest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で止めます。</p>
+
+<p>これで色々と中で操作したことに関しては保存されます。</p>
+
+<h2 id="guiなしで起動">GUIなしで起動</h2>
+
+<p>いろいろなサービスやツールをチェックする場合にはGUIが不要な場合も多いですが、
+lumeでは<code>--no-display</code>オプションでGUIなしでも起動することができます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest --no-display</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで起動しますが、ウィンドウは出てきません。
+別のターミナルからチェックしてみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume ls
+</span><span class="line">name                        os      cpu     memory  disk            display   status   storage  ip              vnc
+</span><span class="line">macos-sequoia-xcode_latest  macOS   4       8.00G   22.5GB/50.0GB   1024x768  running  default  192.168.64.2    vnc://:clear-banana-blue-river@127.0.0.1:56109</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じの表示になっていて、<code>ip</code>が<code>192.168.64.2</code>になってることがわかります。</p>
+
+<p>ここへ<code>ssh</code>で接続することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ssh lume@192.168.64.2
+</span><span class="line">(lume@192.168.64.2) Password: # password is also 'lume'
+</span><span class="line">lume@lumes-Virtual-Machine ~ %</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ユーザー名<code>lume</code>, パスワード<code>lume</code>でログインできます。</p>
+
+<h2 id="ディレクトリ共有">ディレクトリ共有</h2>
+
+<p><code>--shared-dir</code>で元のmacOS側のディレクトリを仮想環境の中に共有することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ lume run macos-sequoia-xcode:latest --shared-dir "$PWD:ro"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、起動した際にいたディレクトリ(<code>$PWD</code>)が仮想環境の中に<code>/Volumes/My Shared Files</code>という名前でマウントされます。</p>
+
+<p><code>ro</code>はread onlyの意味で、書き込みはできません。
+<code>rw</code>にすると書き込みもできるようになります。</p>
+
+<p>ただし、マウントしたあとで、元のmacOS側でファイルを変更すると
+変更したファイルは仮想環境の中ではPermission deniedになってアクセスできなくなります。</p>
+
+<p>これはちょっと不便なところで変更したファイルを仮想環境内で使いたいと思うと一旦<code>lume</code>を止めて改めて立ち上げる必要があります。</p>
+
+<h2 id="ちゃんと止める">ちゃんと止める</h2>
+
+<p><code>lume run</code>したターミナルで<i class="key">Ctrl</i>-<i class="key">C</i>を押すと止まりますが、
+正常終了にはならずに起動中に操作したことが保存されないことがあります。</p>
+
+<p>他のところから<code>run stop</code>すれば良いのですが、ちょっと面倒なので
+こんな感じのスクリプトを作っておくと便利です。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">IMAGE</span><span class="o">=</span>macos-sequoia-xcode:latest
+</span><span class="line"><span class="nv">SHARED_DIR</span><span class="o">=</span><span class="nv">$PWD</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">trap</span><span class="w"> </span><span class="s1">&#39;lume stop $IMAGE;exit 0&#39;</span><span class="w"> </span>SIGINT<span class="w"> </span>SIGTERM
+</span><span class="line">lume<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$IMAGE</span><span class="s2">&quot;</span><span class="w"> </span>--no-display<span class="w">  </span>--shared-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SHARED_DIR</span><span class="s2">:ro&quot;</span><span class="w"> </span><span class="p">&amp;</span>
+</span><span class="line"><span class="nv">LUME_PID</span><span class="o">=</span><span class="nv">$!</span>
+</span><span class="line"><span class="nb">wait</span><span class="w"> </span><span class="nv">$LUME_PID</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでスクリプトを実行したディレクトリを仮想環境に共有します。</p>
+
+<p>さらに<i class="key">Ctrl</i>-<i class="key">C</i>を押すと<code>lume stop</code>が実行されてただしく終了するようになります。</p>
+
+<p>ただ、これでもたまにプロセスが残ってしまうことがあり、次に
+<code>lume run</code>しようとするとすでに走っているとのエラーが出ることがあります。</p>
+
+<p><code>lume ls</code>で確認して<code>running</code>になっているものがあればもう一度それに対して<code>lume stop</code>してみます。</p>
+
+<p>もし<code>runnin</code>ではないのに<code>lume run</code>が失敗するときは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$<span class="w"> </span>ps<span class="w"> </span><span class="err">&#39;</span><span class="w"> </span>lume<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかで<code>lume run</code>したプロセスが残ってないか確認して残っていたらそのPIDを<code>kill</code>します。</p>
+
+<p>現状ではここまですれば再度使えるようになっています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[WindowsとMacそれぞれでアプリをトグル表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/04/computer-windows-mac-autohotkey-karabiner/"/>
+    <updated>2025-01-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/04/computer-windows-mac-autohotkey-karabiner</id>
+    <content type="html"><![CDATA[<p>やりたいことは特定のアプリをどこからでもショートカットキーで呼び出せるようにし、
+かつ、同じボタンでそのアプリを隠すことが出来るようにすることです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windows--autohotkey" id="markdown-toc-windows--autohotkey">Windows + AutoHotkey</a></li>
+  <li><a href="#mac--karabiner-elements" id="markdown-toc-mac--karabiner-elements">Mac + Karabiner-Elements</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windows--autohotkey">Windows + AutoHotkey</h2>
+
+<p>Windowsでは
+<a href="https://www.autohotkey.com/">AutoHotkey</a>
+を使います。</p>
+
+<p>基本的には
+[AutoHotkey v2]https://ahkscript.github.io/ja/docs/v2/)(
+であることを前提に書いています。</p>
+
+<p>ChromeをToggleするHotkey設定としてはこんな感じ。</p>
+
+<figure class="code"><figcaption><span>toggle.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;!{Tab}&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;{Alt Up}&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#HotIf</span> <span class="nf">WinExist</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">^!</span><span class="n">c</span><span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">Run</span><span class="p">(</span><span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Google\Chrome\Application\chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinWait</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">C</i>でChromeをトグル表示するHotkeyを書いています。</p>
+
+<p>現状アクティブになっている場合には<i class="key">Alt</i>-<i class="key">Tab</i>で1つ前のアプリに戻るようにしています。
+これ何度も連続で使うとちょっと不安定に<i class="key">Alt</i>-<i class="key">Tab</i>の表示が残ってしまうこともありますが、
+一回であればスムーズに動作してくれるので取り敢えずこれで。</p>
+
+<p><code>WinMinimize</code>という最小化する関数もあるのでもし最小化のほうが良ければそれで。
+<code>WinClose</code>で閉じてしまう事もできますがWindowsだと最後のWindowの場合アプリ自体が終了してしまって次の起動が遅くなるので注意。</p>
+
+<p>アクティブでない場合でウィンドウがあれば<code>WinActivate</code>で前面に出すようにしています。
+これだと複数同じアプリのウィンドウがある場合は最後にアクティブだったものが前面に出ますが、
+もし必要であれば<code>ahk_exe chrome.exe</code>を全体的にタイトル名に変えるなどで特定のウィンドウを指定することもできます。</p>
+
+<p>アクティブでもなくてウィンドウもない場合には<code>Run</code>でアプリを立ち上げます。
+立ち上げるだけだとアクティブにならないので<code>WinActivate</code>してやる必要がありますが、
+即行うとアプリが立ち上がる前で認識できないので<code>WinWait</code>で待ってから<code>WinActivate</code>しています。</p>
+
+<p>この例ではChromeで、立ち上げるアプリが<code>A_ProgramFiles</code> (<strong>\C:\Program Files (x86)</strong> or <strong>\C:\Program Files</strong>)の下にありますが、
+Obsidianなどは通常ユーザーディレクトリの中の<strong>AppData\Local</strong>の中にあります。</p>
+
+<p>AutoHotkeyには<code>A_AppData</code>という変数が定義されていますが、これは
+<code>AppData\Roaming</code>のパスを返すので<code>Local</code>を見たいときには上のように<code>A_UserName</code>を使って書くしかありません。(多分)</p>
+
+<p>Chromeなどは<strong>\C:\Program Files (x86)</strong>の下にありますが、
+Obsidianなどはユーザーディレクトリの中の<strong>AppData\Local</strong>の中にあるのでそれぞれ場所を指定しています。</p>
+
+<p><code>"C:\Users\" A_UserName "\AppData\Local\obsidian\Obsidian.exe"</code></p>
+
+<p>こんな感じのPathになります。AutohHotkeyには<code>A_AppData</code>という変数が定義されていますが、これは
+<code>AppData\Roaming</code>のパスを返すので<code>Local</code>を見たいときには上のように<code>A_UserName</code>を使って書くしかありません。(多分)</p>
+
+<p>このようにしてトグル表示を実現できますが、
+複数のアプリでも同じ様なことをする場合には関数化しておくと便利です。</p>
+
+<p>以下のようにしてAuto execute sectionでまとめて書くことが出来ます。</p>
+
+<figure class="code"><figcaption><span>toggle.ahk </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">LaunchApp</span><span class="p">(</span><span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="nb">Run</span><span class="p">(</span><span class="n">appPath</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinWait</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">WinActivate</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">prevApp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;!{Tab}&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;{Alt Up}&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">HotIfWinActive</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">prevApp</span><span class="p">())</span>
+</span><span class="line">    <span class="n">HotIfWinExist</span><span class="p">(</span><span class="n">winName</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">WinActivate</span><span class="p">(</span><span class="n">winName</span><span class="p">))</span>
+</span><span class="line">    <span class="n">HotIf</span>
+</span><span class="line">    <span class="nb">Hotkey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">LaunchApp</span><span class="p">(</span><span class="n">winName</span><span class="p">,</span> <span class="n">appPath</span><span class="p">))</span>
+</span><span class="line">    <span class="n">HotIf</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!c&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">,</span> <span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Google\Chrome\Application\chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!s&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe slack.exe&quot;</span><span class="p">,</span> <span class="nv">A_ProgramFiles</span> <span class="s">&quot;\Slack\Slack.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!t&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe Hyper.exe&quot;</span><span class="p">,</span> <span class="s">&quot;C:\Users\&quot;</span> <span class="nv">A_UserName</span> <span class="s">&quot;\AppData\Local\Programs\Hyper.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="n">ToggleApp</span><span class="p">(</span><span class="s">&quot;^!q&quot;</span><span class="p">,</span> <span class="s">&quot;ahk_exe Obsidian.exe&quot;</span><span class="p">,</span> <span class="s">&quot;C:\Users\&quot;</span> <span class="nv">A_UserName</span> <span class="s">&quot;\AppData\Local\obsidian\Obsidian.exe&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">Return</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">; Other hotkeys</span>
+</span><span class="line">
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで、<code>ToggleApp</code>という関数を使ってアプリをトグル表示するHotkeyをAuto execute sectionの中で書いています。</p>
+
+<p><code>key</code>にはHotkeyのキーを指定します。
+<code>winName</code>はWindow Spyで見つけらるclassやexe, titleなどを指定しますが、基本的にはahk_exeを指定しておくのが無難です。
+<code>appPath</code>はアプリのパスを指定します。わからない場合はスタートメニューから該当のアプリの右クリックで<strong>ファイルの場所を開く</strong>を開いて探して見てください。通常はそのファイルがさらにショートカットになっていることが多いので、それをまた右クリックして<strong>ファイルの場所を開く</strong>を開くと大元の位置が分かることが多いです。</p>
+
+<h2 id="mac--karabiner-elements">Mac + Karabiner-Elements</h2>
+
+<p>macOSでは
+<a href="https://karabiner-elements.pqrs.org/">Karabiner-Elements</a>
+を使います。</p>
+
+<p>以下で使う<code>frontmost_application_history_index</code>がv15.3.6から導入されたもので、
+これは現状ベータ版のみになっているので使う場合はベータ版にアップグレードする必要があります。
+(現行のstableバージョンは15.3.0。)</p>
+
+<ul>
+  <li><a href="https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/software_function/open_application/">open_application Karabiner-Elements</a></li>
+  <li><a href="https://github.com/pqrs-org/Karabiner-Elements/issues/4011">Add prev_application companion to the new open_application · Issue #4011 · pqrs-org/Karabiner-Elements</a></li>
+</ul>
+
+<p>ChromeをToggleするHotkey設定としてはこんな感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="w">    </span><span class="p">{</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Toggle Chrome&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;extra_descriptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">        </span><span class="s2">&quot;Cmd-Ctrl-c to toggle Chrome.&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p">],</span>
+</span><span class="line"><span class="w">      </span><span class="nt">&quot;manipulators&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">        </span><span class="p">{</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;key_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;modifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;mandatory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;command&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">},</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;software_function&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                </span><span class="nt">&quot;open_application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                  </span><span class="nt">&quot;bundle_identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;com.google.Chrome&quot;</span>
+</span><span class="line"><span class="w">                </span><span class="p">}</span>
+</span><span class="line"><span class="w">              </span><span class="p">}</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">],</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;frontmost_application_unless&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;bundle_identifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;^com\\.google\\.Chrome$&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">]</span>
+</span><span class="line"><span class="w">        </span><span class="p">},</span>
+</span><span class="line"><span class="w">        </span><span class="p">{</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;key_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">            </span><span class="nt">&quot;modifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;mandatory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;control&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;command&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">},</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;software_function&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                </span><span class="nt">&quot;open_application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">                  </span><span class="nt">&quot;frontmost_application_history_index&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+</span><span class="line"><span class="w">                </span><span class="p">}</span>
+</span><span class="line"><span class="w">              </span><span class="p">}</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">],</span>
+</span><span class="line"><span class="w">          </span><span class="nt">&quot;conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">            </span><span class="p">{</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;frontmost_application_if&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">              </span><span class="nt">&quot;bundle_identifiers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">                </span><span class="s2">&quot;^com\\.google\\.Chrome$&quot;</span>
+</span><span class="line"><span class="w">              </span><span class="p">]</span>
+</span><span class="line"><span class="w">            </span><span class="p">}</span>
+</span><span class="line"><span class="w">          </span><span class="p">]</span>
+</span><span class="line"><span class="w">        </span><span class="p">}</span>
+</span><span class="line"><span class="w">      </span><span class="p">]</span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Windows同様に
+<i class="key">Ctrl</i>-<i class="key">Alt</i>-<i class="key">C</i>でChromeをトグル表示するHotkeyを書いています。</p>
+
+<p>アプリに対応する<code>bundle_identifier</code>は
+<a href="https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/software_function/open_application/">open_application</a>
+のヘルプの
+<strong>Investigate the bundle identifier and file path</strong>を参考にKarabiner-EventViewerを使って調べられます。</p>
+
+<p><code>conditions</code>の方で使う<code>bundle_identifiers</code>には正規表現で指定する必要があるので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+<code>^com\\.google\\.Chrome$</code>のように正規表現で指定します。</p>
+
+<p><code>software_function.open_application</code>を使ってアプリを開くことができます。
+すでにアプリが開いていればそれを前面に出すだけになるのでアプリが開いているかどうかを確認せずに
+最前面がそのアプリでなければ<code>open_application</code>でアプリを開くようにしています<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>アプリが前面にある際には”<code>fromtmost_application_history_index": 1</code>で1つ前に最前面にあったアプリを前面に出すようにしています。</p>
+
+<p>Windows版と違って直接直前のアプリを持ってこれるのでかなりスムーズな感じでToggle表示ができます。</p>
+
+<p>同様に別のアプリも作っていくことが出来ます。</p>
+
+<p>自分の設定は
+<a href="https://github.com/pqrs-org/KE-complex_modifications">pqrs-org/KE-complex_modifications</a>
+をforkした
+<a href="https://github.com/rcmdnk/KE-complex_modifications/">rcmdnk/KE-complex_modifications</a>
+で作っていますが、
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/master/scripts/erb2json.rb">scripts/erb2json.rb</a>
+の中に
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/646978c691919945ce368b10df4648bc8d32f23a/scripts/erb2json.rb#L408">toggle_app</a>
+という関数を作って、
+<a href="https://github.com/rcmdnk/KE-complex_modifications/blob/646978c691919945ce368b10df4648bc8d32f23a/src/json/personal_rcmdnk.json.erb#L285">src/json/personal_rcmdnk.json.erb</a>
+の中に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="erb"><span class="line"><span></span><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Chrome&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-c to toggle Chrome.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.google.Chrome&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Slack&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-s to toggle Slack.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.tinyspeck.slackmacgap&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;s&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle iTerm2&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-t to toggle iTerm2.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;com.googlecode.iterm2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;t&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span><span class="line"><span class="x">    {</span>
+</span><span class="line"><span class="x">      &quot;description&quot;: &quot;Toggle Obsidian&quot;,</span>
+</span><span class="line"><span class="x">      &quot;extra_descriptions&quot;: [</span>
+</span><span class="line"><span class="x">        &quot;Cmd-Ctrl-q to toggle Obsidian.&quot;</span>
+</span><span class="line"><span class="x">      ],</span>
+</span><span class="line"><span class="x">      &quot;manipulators&quot;: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">toggle_app</span><span class="p">(</span><span class="s2">&quot;md.obsidian&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;q&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;control&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span class="line"><span class="x">    },</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで書いてあります。</p>
+
+<p>かなり前にForkしたままあとは自分で変更しただけで本家を追ってないので
+現状の本家とはスクリプト等も結構違うかもしれませんが参考までに。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Win/Macそれぞれで特定のウィンドウを最前面に固定する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/09/27/computer-windows-mac/"/>
+    <updated>2024-09-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/09/27/computer-windows-mac</id>
+    <content type="html"><![CDATA[<p>なにか作業しているときにメモ的なウィンドウを最前面に固定しておきたいことがあります。
+もしくは動画を再生しているブラウザを最前面に固定しておきたいこともあるかと。</p>
+
+<p>アプリによってはその機能をアプリ自体が持っているものもありますが、
+それがない場合でもWindowsやMacそれぞれでその機能を実現する方法があります。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windows" id="markdown-toc-windows">Windows</a></li>
+  <li><a href="#mac" id="markdown-toc-mac">Mac</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windows">Windows</h2>
+
+<p>Windowsでは、
+Microsoft純正の
+<a href="https://learn.microsoft.com/ja-jp/windows/powertoys/install">PowerToys</a>
+でウィンドウの最前面固定が実現できます。</p>
+
+<p>PowerToysはMicrosoft Storeからインストールできますが、
+起動するとタスクトレイに常駐して様々な機能が利用できるようになります。</p>
+
+<p>その中で<strong>Always on Top</strong>という機能があり、
+この機能を有効にすると指定したショートカットを押すことでウィンドウの最前面固定が出来ます。</p>
+
+<p>デフォルトでは<i class="key">Win</i> + <i class="key">Ctrl</i> + <i class="key">T</i> が割り当てられています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win0.png" alt="20240927_win0.png" class="pic" /></p>
+
+<p>2022年位に機能が追加されたようです。</p>
+
+<blockquote>
+  <p><a href="https://forest.watch.impress.co.jp/docs/news/1378936.html">「Microsoft PowerToys」にホットキーでウィンドウを最前面に固定する機能 - 窓の杜</a></p>
+</blockquote>
+
+<p>特定のウィンドウにフォーカスをあてた状態でショートカットを押すとそのウィンドウが最前面に固定されます。</p>
+
+<p>何もしてない状態:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win1.jpg" alt="20240927_win1.jpg" class="pic" /></p>
+
+<p>エクスプロラーが最前面にありますが、この状態でショートカットを押すとポン、と音がなって
+ウィンドウには周りに縁がついたような状態で表示されるようになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win2.jpg" alt="20240927_win2.jpg" class="pic" /></p>
+
+<p>この状態で他のウィンドウをクリックしてフォーカスをあててもエクスプローラーは最前面に表示されたまま。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_win3.jpg" alt="20240927_win3.jpg" class="pic" /></p>
+
+<p>上のショートカットキーはトグルになっていてるので、エクスプローラーにフォーカスをあてて
+もう一度押すとフォーカスが外れます。</p>
+
+<p>また複数の選択もできて、一つを固定した状態で、他のウィンドウにフォーカスをあてて
+ショートカットを押すとそのウィンドウも最前面に固定されます。</p>
+
+<p>それまでに固定したものも最前面に固定されていますが、固定されている者同士では最後にフォーカスがあてられたものが優先的に最前面に来ます。</p>
+
+<p>おそらく他のソフトウェアでも出来るものあるかと思いますが、純正で出来る上に特に不満もないのでPowerToysが便利です。</p>
+
+<p>また、あまり使ってませんでしたが、PowerToysには他にもMacのQuick Lookのような機能を実現する<strong>プレビュー</strong>、
+コピーしたものを貼り付け時にプレーンテキストで貼り付ける機能を実現する<strong>Advanced Paste</strong>、
+キーリマップを変更する<strong>Keyboard Manager</strong>、などがあり、これまでサードパーティーのソフトウェアで実現していた機能がPowerToysで実現できるようになっているものもあり、ここ数年でだいぶ機能も増えてきているようなのでちょくちょく確認しておきたいところです。</p>
+
+<h2 id="mac">Mac</h2>
+
+<p>macOSでは
+macOSでは数年前にやろうと思ったときには現在のmacOSの機能制限的に出来ない状態かな、と思っていたのですが、
+現在は
+<a href="https://folivora.ai/">BetterTouchTool</a>がその機能を提供しています。</p>
+
+<p>ショートカットキーなどの割当機能に
+<strong>ピンを切り替えて焦点のあるウィンドウを最前面に浮かべる</strong>(<strong>Toggle Pin/Unpin Forcused Window To Float On Top</strong>)
+というものがあり、これを使うことで特定のウィンドウを最前面に固定できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac0.png" alt="20240927_mac0.png" class="pic" /></p>
+
+<p>ただmacOSの制限で、実際にアプリをそのまま最前面に固定、ということは外部ツールでは出来ないようで(アプリ自体に組み込まれているものはある)
+ウィンドウ画面を同じ場所にストリーム表示する、という形で実現しているようです。</p>
+
+<blockquote>
+  <p><a href="https://community.folivora.ai/t/toggle-pin-unpin-focused-window/33313">Toggle Pin/Unpin focused window - Bug Reports - BetterTouchTool Community</a></p>
+</blockquote>
+
+<p>やってみると、通常の最前面にあるときは</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac1.png" alt="20240927_mac1.png" class="pic" /></p>
+
+<p>こんな感じですが、フォーカスを別のウィンドウにあてると最前面に残ったままになるものの、
+少し表示の解像度が落ちたような表示になっていました。
+(この辺は環境によっても違うかもしれません)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac2.png" alt="20240927_mac2.png" class="pic" /></p>
+
+<p>ただちょっと見る程度であればそこまで気になるレベルではないかと。</p>
+
+<p>実際、この機能で固定すると画面共有のアイコンがメニューバーに出てきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240927_mac3.png" alt="20240927_mac3.png" class="pic" /></p>
+
+<p>ちょっと特殊な方法ですが現状のmacOSで通常の状態で実現するにはこのような方法しかないと思います。</p>
+
+<p>BetterTouchToolは最近HHKB Studioを使うようになってからトラックパッドの出番が減り、主にトラックパッドように使っていたBetterTouchToolの機能の出番は減ってましたが、
+この機能はキーボードショートカットで使っていこうと思います。</p>
+
+<p>久々にBetterTouchToolを見てみたらかなり機能が増えてて驚いたくらいなのでそのうちまた細かく見てみたいと思ってます。</p>
+
+<p><strong>通常の状態</strong>だとおそらくBetterTouchToolの上の機能がベストかと思いますが、
+SIP (System Integrity Protection)を無効にすればより直接的にウィンドウを最前面に固定することが出来るようです。</p>
+
+<p>その機能を提供しているのが<code>yabai</code>というツール。</p>
+
+<div class="github-widget" data-repo="koekeishiya/yabai"></div>
+
+<blockquote>
+  <p><a href="https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection">Disabling System Integrity Protection · koekeishiya/yabai Wiki</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://news.ycombinator.com/item?id=38473942">Yabai – A tiling window manager for macOS Hacker News</a></p>
+</blockquote>
+
+<p>SIPはEl Capitanから導入された機能で、システムの一部を保護するための機能ですが、
+当時は自分もそれを外していろいろいじったりしてましたが、最近はアプリ側の対応などもあり
+SIPをあえて無効にすることはやってないです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B016AZMAIS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B016AZMAIS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/510n9cnBIrL._SS90_CR0,0,120,90_.jpg" alt="The Complete Beginners Guide to Mac OS X El Capitan: (For MacBook, MacBook Air, MacBook Pro, iMac, Mac Pro, and Mac Mini) (English Edition)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/10/10/computer-mac/">OS X 10.11 El CapitanのSystem Integrity Protection(SIP) (rootless)についてちょっと詳しく</a></div></li></ul>
+
+<p>もしSIPを無効にしても大丈夫、という状態であれば<code>yabai</code>を使うとコマンドラインベースではありますが直接的なウィンドウ固定が出来るので
+そちらを使うのも一つの手かもしれません。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[macOSで勝手にミラーリング状態になってしまっていた話(HHKB Studio導入後)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/07/18/computer-mac-hhkb/"/>
+    <updated>2024-07-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/07/18/computer-mac-hhkb</id>
+    <content type="html"><![CDATA[<p>手元の環境でWindowsとMacを使っていて、同じディスプレイに両方とも繋いであります。
+また、どちらも基本的にHHKB Studioで操作しています。
+HHKB StudioはどちらもBluetooth接続です。</p>
+
+<p>切り替えるにはディスプレイの入力を変更して、HHKB StudioはBluetooth接続を変更するため、
+<i class="key">Fn1</i>-<i class="key">Control</i>-<i class="key">1</i> または <i class="key">Fn1</i>-<i class="key">Control</i>-<i class="key">2</i> で切り替えています。</p>
+
+<p>これが悪さをして勝手にミラーリング状態になってしまっていた話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#macでのミラーリングのオンオフの切り替えショートカットキー" id="markdown-toc-macでのミラーリングのオンオフの切り替えショートカットキー">Macでのミラーリングのオン/オフの切り替えショートカットキー</a></li>
+  <li><a href="#hhkb-studioでのbluetooth切り替え" id="markdown-toc-hhkb-studioでのbluetooth切り替え">HHKB StudioでのBluetooth切り替え</a></li>
+  <li><a href="#ミラーリングが勝手に起こる原因" id="markdown-toc-ミラーリングが勝手に起こる原因">ミラーリングが勝手に起こる原因</a></li>
+  <li><a href="#hhkbからf1キーを押せない" id="markdown-toc-hhkbからf1キーを押せない">HHKBからF1キーを押せない?</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="macでのミラーリングのオンオフの切り替えショートカットキー">Macでのミラーリングのオン/オフの切り替えショートカットキー</h2>
+
+<p>MacはMacbook Proを使っていて、ノート側のディスプレイも使いたいので
+ミラーリングをオフにして外部ディスプレイとは別の画面として使っています。</p>
+
+<p>これはシステム設定のディスプレイのところにある<strong>使用形態</strong>で設定できます。</p>
+
+<p>一度設定したら変更することは無いのでショートカットキーがあることすら知りませんでしたが、
+切り替えのためのショートカットキーが設定されているようです。</p>
+
+<blockquote><p>command + 輝度を下げる：Mac が複数のディスプレイに接続されている場合に、ビデオミラーリングのオン／オフを切り替えます。</p><footer><strong>Mac のキーボードショートカット - Apple サポート (日本)</strong> <cite><a href="https://support.apple.com/ja-jp/102650">support.apple.com/ja-jp/102650/&hellip;</a></cite></footer></blockquote>
+
+<p><i class="key">輝度を下げる</i>、というキーが1段目の<i class="key">F1</i>のキーにあたるもので、
+デフォルトだと直接押すと<i class="key">F1</i>ではなく<strong>輝度を下げる</strong>として動作するようになっています。</p>
+
+<p><i class="key">F1</i>にするには<i class="key">Fn</i>と同時に押す必要があります。</p>
+
+<p>この設定はシステム設定の<strong>キーボード</strong><i class="fa fa-arrow-right"></i><strong>キーボードショートカット</strong><i class="fa fa-arrow-right"></i><strong>ファンクションキー</strong>のところにある、<strong>F1、F2などのすべてのキーを標準ファンクションキーとして使用</strong>にチェックを入れることで変更できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240718_fn.png" alt="20240718_fn.png" class="pic" /></p>
+
+<p>チェックを入れると直接だと<i class="key">F1</i>、<i class="key">Fn</i>との組み合わせで<strong>輝度を下げる</strong>として動作するようになります。</p>
+
+<p>チェックを入れない状態で使っていたので<i class="key">Command</i>-<i class="key">F1</i>を押すだけでミラーリングのオン/オフが切り替わる状態でした。</p>
+
+<h2 id="hhkb-studioでのbluetooth切り替え">HHKB StudioでのBluetooth切り替え</h2>
+
+<p>HHKB StudioでBluetoothの接続先を切り替えるには
+<i class="key">Fn1</i>-<i class="key">Control</i>-<i class="key">1</i>など、
+<i class="key">Fn1</i>-<i class="key">Control</i>と数字(1~4)の組み合わせであらかじめ設定してある接続先に切り替えることができます。</p>
+
+<p>この<i class="key">Fn1</i>はHHKB Studioの英語配列だと右下にあるキーのことです。</p>
+
+<p>手元の環境ではWindowsが1, Macが2に設定してあります。</p>
+
+<p>なのでMacからWindowsへの切り替えで
+<i class="key">Fn1</i>-<i class="key">Control</i>-<i class="key">1</i>を押します。</p>
+
+<p>この際、たまにMacbook Proの画面が微妙に動くようなときがあり、
+ディスプレイ入力とはタイミングが別なので動くわけがない状態で動くので違和感は感じてましたが
+そこまで気にしてませんでした。</p>
+
+<p>それとは別に、Macにディスプレイを戻したときになぜかミラーリング状態になってしまっていて
+システム設定から戻していました。</p>
+
+<p>毎回というわけでもないので何が原因なのか良くわからなかったのですが、
+どうやら上のBluetooth切り替えのときになっていて、ノートの画面が動くことと関連していた模様。</p>
+
+<h2 id="ミラーリングが勝手に起こる原因">ミラーリングが勝手に起こる原因</h2>
+
+<p><strong>勝手に起こる</strong>というのは言いがかりで自分で起こしていました。</p>
+
+<p>Macでは修飾キーの変更を行っていて、HHKBの左の真ん中にある<i class="key">Control</i>は<i class="key">Command</i>として使っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/04/24/computer-hhkb/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240424_hhkb0_120_90.jpg" width="120" height="90" alt="20240424_hhkb0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/04/24/computer-hhkb/">HHKB Studio購入</a></div></li></ul>
+
+<p>なので、これがかなり特殊な状況を招いてしまっています。</p>
+
+<p>HHKBのBluetooth切り替えの
+<i class="key">Fn1</i>-<i class="key">Control</i>-<i class="key">1</i>
+は上の修飾キーの変更は関係なく、キーボードの元の配列どおりの右下の<i class="key">Fn1</i>キー、
+左真ん中の<i class="key">Control</i>キー、1段目の数字の<i class="key">1</i>キー、
+を同時に押すことで切り替えることができます。</p>
+
+<p>この時、<i class="key">Fn1</i>を押すタイミングは必ずしも<i class="key">Control</i>を押すタイミングより
+先でないといけません。</p>
+
+<p><i class="key">Fn1</i>を押すタイミングが後になると、
+<i class="key">Command</i>-<i class="key">Fn1</i>-<i class="key">1</i>
+となりますが、
+<i class="key">Fn1</i>-<i class="key">1</i>がHHKBのキー設定上<i class="key">F1</i>となります。</p>
+
+<p>さらに上にあるようにMacの設定で
+<strong>F1、F2などのすべてのキーを標準ファンクションキーとして使用</strong>にチェックが入ってないと
+<strong>輝度を下げる</strong>となります。</p>
+
+<p>ので、結果的に<i class="key">Fn1</i>を押すタイミングが遅いと
+<i class="key">Command</i>-<i class="key">輝度を下げる</i>
+を入力したことになり、これがミラーリングのオン/オフを切り替えるショートカットキーとなっているため
+ミラーリングが勝手にオン/オフされていたというわけです。</p>
+
+<p>ミラーリングが切り替わるとディスプレイ状態も変わるのでノートの画面も何かしら動きます。</p>
+
+<p><i class="key">Fn1</i>をちゃんと先に押せば切り替わらないので切り替わってないときもあったわけです。</p>
+
+<p>Bluetooth切替時には一回でうまく行かないときも何度か押して切り替えるようなこともあり、
+それも悪さをわからなくしていました。
+うまく行かないときはHHKBが悪いわけではなく、<i class="key">Fn1</i>を押すタイミングが悪いだけでした。</p>
+
+<p>逆に言うと、これまでミラーリングがオンになっていた際、システム設定を開いてオフにしていましたが
+ショートカットキーですぐに治すことができるようになりました。</p>
+
+<p>実際これ知ってからも<i class="key">Fn1</i>を押すタイミングが悪くてミラーリングの設定を変えてしまうことがあるので
+よく使うショートカットキーになっています……</p>
+
+<p>というわけで、修飾キーを変更しているという特殊な状況での話なので
+あまり同じ思いをしてる人は居ないかもしれませんが、このような状態でした。</p>
+
+<h2 id="hhkbからf1キーを押せない">HHKBからF1キーを押せない?</h2>
+
+<p>ちょっと話がずれますが、これを細かく見てる際、HHKB Studioのキー設定も確認してたのですが、
+<strong>F1、F2などのすべてのキーを標準ファンクションキーとして使用</strong>にチェックが入ってないと
+HHKBから<i class="key">F1</i>の入力ができないのではないかと思いました。</p>
+
+<p>HHKB Studioではソフトウェアでキー配列を変更することもできますが、
+そこには<strong>輝度を下げる</strong>のようなMac上でFnを押して変更するキーはありません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240718_hhkballkey.png" alt="20240718_hhkballkey.png" class="pic" /></p>
+
+<p>また、修飾キーを組み合わせたキーの設定もできますが、こちらも<i class="key">Fn</i>の組み合わせはありません。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240718_hhkbshortcutkey.png" alt="20240718_hhkbshortcutkey.png" class="pic" /></p>
+
+<p>HHKB上で<i class="key">F1</i>を押すにはHHKBの<i class="key">Fn1</i>と<i class="key">1</i>の組み合わせになりますが、
+これだとMac上で<i class="key">F1</i>のキーをおした状態と同じで、
+<strong>F1、F2などのすべてのキーを標準ファンクションキーとして使用</strong>にチェックが入ってないと
+<strong>輝度を下げる</strong>として動作します。</p>
+
+<p>ここにさらに<i class="key">Fn</i>を加える方法が無いので、HHKBから<strong>F1</strong>としての機能を入力することはできません。</p>
+
+<p>他のファンクションキーも同様です。</p>
+
+<p>ファンクションキーを使いたかったら
+<strong>F1、F2などのすべてのキーを標準ファンクションキーとして使用</strong>にチェックを入れる必要があります。</p>
+
+<p>そうすると逆に<strong>輝度を下げる</strong>などは使えなくなりますが。</p>
+
+<p>個人的には基本的にHHKBを使っていてファンクションキーを押すのが面倒ということもあり、
+WindowsでもMacでもファンクションキーを使うことはないのでこのチェックは外したままで良いかな、と。</p>
+
+<p>よく使うようなファンクションキーの機能としては
+ブラウザなどで<i class="key">F5</i>でリロードするとか
+文字入力中に<i class="key">F7</i>でカタカナにするとかですが、
+これらはそれぞれ<i class="key">Control</i>-<i class="key">R</i>、<i class="key">Control</i>-<i class="key">I</i>(MS IME)
+など別のショートカットキーで代用できるものがほとんどなので
+ファンクションキーは必要ないです。</p>
+
+<p>ショートカットキーが別に設定されてない場合は
+AutoHotkeyなりKarabiner-Elementsなりで設定すればいいので。</p>
+
+<p>なので個人的に問題は無いですが、これがネックでHHKB使いづらい、という人も居そう、と今更ながら。</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: RaspberryPi | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/raspberrypi/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[気象庁アメダスの情報をRaspberry Piで取得して表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2022/06/19/computer-iot-raspberrypi-python/"/>
+    <updated>2022-06-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/06/19/computer-iot-raspberrypi-python</id>
+    <content type="html"><![CDATA[<p>Raspberry Piで室内の温度や湿度を測定していますが、
+外の温度も分かると色々うれしいということで
+気象庁が出してくれている外気温を取得して同時に表示できるようにしてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#気象庁のデータ" id="markdown-toc-気象庁のデータ">気象庁のデータ</a></li>
+  <li><a href="#アメダスのデータ" id="markdown-toc-アメダスのデータ">アメダスのデータ</a></li>
+  <li><a href="#pythonで取得する" id="markdown-toc-pythonで取得する">Pythonで取得する</a></li>
+  <li><a href="#raspberry-pi上での運用" id="markdown-toc-raspberry-pi上での運用">Raspberry Pi上での運用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="気象庁のデータ">気象庁のデータ</h2>
+
+<p>昨年気象庁のホームページがリニューアルされて、
+記録されたデータや天気予報などがJAON形式で取得できるようになったことが発見されました。</p>
+
+<blockquote class="twitter-tweet"><p lang="ja" dir="ltr">まじかよ気象庁公式の天気予報APIができてるぞ、感激して大声で泣いちゃった<a href="https://t.co/2HQumqjel8">https://t.co/2HQumqjel8</a></p>&mdash; Torishima (@izutorishima) <a href="https://twitter.com/izutorishima/status/1364441626672685058?ref_src=twsrc%5Etfw">February 24, 2021</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>その後、これの仕様として、継続的な提供を約束するものではないが、
+規約に準拠して利用する限りは使っても良いものだ、とのお達しが出ました。</p>
+
+<blockquote class="twitter-tweet"><p lang="ja" dir="ltr">一番伸びてるのはこれかしら。仕様の継続性や運用状況のお知らせを気象庁はお約束していないという意味で、APIではないと申し上げざるを得ないのですが、一方で政府標準利用規約に準拠してご利用いただけます。 <a href="https://t.co/QLuhI4DNDv">https://t.co/QLuhI4DNDv</a></p>&mdash; TOYODA Eizi (@e_toyoda) <a href="https://twitter.com/e_toyoda/status/1364504338572410885?ref_src=twsrc%5Etfw">February 24, 2021</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote>
+  <p><a href="https://ja.wikipedia.org/wiki/%E6%94%BF%E5%BA%9C%E6%A8%99%E6%BA%96%E5%88%A9%E7%94%A8%E8%A6%8F%E7%B4%84">政府標準利用規約 - Wikipedia</a></p>
+</blockquote>
+
+<p>ということで、これを使いたいと思います。</p>
+
+<h2 id="アメダスのデータ">アメダスのデータ</h2>
+
+<p>今回は実際に計測されたアメダスのデータでなるべく最新のものがほしいです。</p>
+
+<p>データは</p>
+
+<pre><code>https://www.jma.go.jp/bosai/amedas/data/map/&lt;YYYYMMDDHH&gt;0000.json
+</code></pre>
+
+<p>というURLで取れて、1時間毎に新しいデータが作られる様です。
+分、秒に関しては今のところ0000しかない模様。</p>
+
+<p>https://www.jma.go.jp/bosai/amedas/data/map/20220101120000.json</p>
+
+<p>とかで過去のデータもとれます。
+ただし、この形式で取れるのは10日くらい前までのようです。(上のものはリンク切れ)</p>
+
+<p>これをとってみると</p>
+
+<pre><code>"44132":{"pressure":[1002.4,0],"normalPressure":[1005.2,0],"temp":[29.1,0],"humidity":[73,0],"snow":[null,5],"snow1h":[0,6],"snow6h":[0,6],"snow12h":[0,6],"snow24h":[0,6],"sun10m":[0,0],"sun1h":[0.0,0],"precipitation10m":[0.0,0],"precipitation1h":[0.0,0],"precipitation3h":[0.0,0],"precipitation24h":[0.0,0],"windDirection":[11,0],"wind":[1.2,0]}
+</code></pre>
+
+<p>みたいなデータの集まりが入ってます。</p>
+
+<p>この最初が場所のIDで、<code>temp</code>とか<code>humidity</code>とかで気温や湿度が取れます。配列の1つ目が値で二つ目は良くわからず。。。<code>temp</code>とかだと必ず?0。</p>
+
+<p>場所のIDは</p>
+
+<p>https://www.jma.go.jp/bosai/amedas/const/amedastable.json</p>
+
+<p>で見ることができます。</p>
+
+<pre><code>"44132":{"type":"A","elems":"11111111","lat":[35,41.5],"lon":[139,45.0],"alt":25,"kjName":"東京","knName":"トウキョウ","enName":"Tokyo"}
+</code></pre>
+
+<p>とかで、東京が<code>44132</code>です。</p>
+
+<p><code>lat</code>、<code>lon</code>が緯度経度なのでおそらく観測点の場所だと思いますが、東京、大阪などはありますが、基本的には市町村の名前があります。あと成田国際空港とか空港もちらほら。</p>
+
+<p>この中から自分の住んでる場所のIDを見つけて、アメダスのデータからそのIDEAの情報を抜き出します。</p>
+
+<p>1時間おきに新しい情報が提供されますが、12時のデータは12時ちょうどに出るわけではなく、大体10分~20分くらいたったあとに提供されてます。
+また、ファイルができた最初の段階では1つの観測点データだけが入ったようなデータになってることもあり、しばらく経ってから取得する必要があります。</p>
+
+<h2 id="pythonで取得する">Pythonで取得する</h2>
+
+<p>amedastableで取得できるエリアコードの中身に
+名前のタイプとして、</p>
+
+<ul>
+  <li><code>kjName</code>: 漢字(e.g. 東京)</li>
+  <li><code>knName</code>: カナ(e.g. トウキョウ)</li>
+  <li><code>enName</code>: ローマ字(e.g. Tokyo)</li>
+</ul>
+
+<p>の3種類があるので好きなものを使って取得できます。</p>
+
+<p>あとはこのコードを使って</p>
+
+<figure class="code"><figcaption><span>amedas.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/bin/env python3</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">requests</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name_type</span><span class="o">=</span><span class="s1">&#39;enName&#39;</span><span class="p">):</span>
+</span><span class="line">    <span class="n">area</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.jma.go.jp/bosai/amedas/const/amedastable.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span class="line">    <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">area</span><span class="p">:</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">area</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="n">name_type</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+</span><span class="line">            <span class="k">return</span> <span class="n">code</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">return</span> <span class="kc">None</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">get_json</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">):</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://www.jma.go.jp/bosai/amedas/data/map/</span><span class="si">{</span><span class="n">datetime_str</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">datetime_str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span class="line">    <span class="k">if</span> <span class="ow">not</span> <span class="n">datetime_str</span><span class="p">:</span>
+</span><span class="line">        <span class="n">datetime_str</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H0000&#39;</span><span class="p">)</span>
+</span><span class="line">        <span class="k">try</span><span class="p">:</span>
+</span><span class="line">            <span class="n">data</span> <span class="o">=</span> <span class="n">get_json</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">)[</span><span class="n">code</span><span class="p">]</span>
+</span><span class="line">        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span class="line">            <span class="c1"># try to get previous data</span>
+</span><span class="line">            <span class="n">datetime_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H0000&#39;</span><span class="p">)</span>
+</span><span class="line">            <span class="n">data</span> <span class="o">=</span> <span class="n">get_json</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">)[</span><span class="n">code</span><span class="p">]</span>
+</span><span class="line">    <span class="k">else</span><span class="p">:</span>
+</span><span class="line">        <span class="n">data</span> <span class="o">=</span> <span class="n">get_json</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">)[</span><span class="n">code</span><span class="p">]</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">data</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span><span class="line">    <span class="n">code</span> <span class="o">=</span> <span class="s1">&#39;44132&#39;</span>
+</span><span class="line">    <span class="n">name_type</span> <span class="o">=</span> <span class="s1">&#39;enName&#39;</span>
+</span><span class="line">    <span class="n">datetime_str</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span class="line">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span class="line">        <span class="n">code</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class="line">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class="line">            <span class="n">name_type</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span class="line">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+</span><span class="line">                <span class="n">datetime_str</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+</span><span class="line">    <span class="k">if</span> <span class="ow">not</span> <span class="n">code</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+</span><span class="line">        <span class="n">code</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">name_type</span><span class="p">)</span>
+</span><span class="line">    <span class="n">data</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">datetime_str</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;気温: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">℃, 湿度: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;humidity&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">%)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">main</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じでとってあげれば</p>
+
+<pre><code>$ amedas.py
+気温: 25.3℃, 湿度: 72%
+$ amedas.py Naha
+気温: 31.2℃, 湿度: 92%
+$ amedas.py Sapporo
+気温: 24.1℃, 湿度:5792%
+$ amedas.py 那覇 kjName
+気温: 31.2℃, 湿度: 92%
+$ amedas.py Tokyo enName 20220615010000
+気温: 15.2℃,湿度: 95%
+</code></pre>
+
+<p>といった感じで各地の気温、湿度が取得できます。</p>
+
+<p>3番目の引数で時間を指定してますが、指定がないときは現在時刻、
+ただし、上にも書いたように、時間が更新された直後だと取れない場合もあるのでその場合は1時間前の情報をとってくるようにしています。</p>
+
+<p>あとはこれを適宣必要な情報取れるようにしてRaspberry Pi上で適時動かすだけ。</p>
+
+<h2 id="raspberry-pi上での運用">Raspberry Pi上での運用</h2>
+
+<p>こんなスクリプトを用意して</p>
+
+<p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/bin/amedas">raspi_setup/amedas</a></p>
+
+<p><strong>/opt/bin/</strong>以下に設置。</p>
+
+<p>別途</p>
+
+<figure class="code"><figcaption><span>/etc/conf.d/amedas.conf </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="shell"><span class="line"><span></span><span class="nv">code</span><span class="o">=</span><span class="m">44132</span>
+</span><span class="line"><span class="nv">log</span><span class="o">=</span>/opt/var/amedas
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じのファイルを用意。</p>
+
+<p>これを
+systemdで実行します。</p>
+
+<p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/etc/systemd/system/amedas.service">raspi_setup/amedas.service at main · rcmdnk/raspi_setup</a></p>
+
+<p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/etc/systemd/system/amedas.timer">raspi_setup/amedas.timer at main · rcmdnk/raspi_setup</a></p>
+
+<p><strong>amedas.service</strong>, <strong>amedas.timer</strong>を<strong>/etc/systemd/system/</strong>の下に設置。</p>
+
+<p>その後、</p>
+
+<pre><code>$ sudo systemctl enable amedas.timer
+</code></pre>
+
+<p>とすれば、5分おきにデータを取得して<strong>/opt/var/amedas</strong>に書き出してくれます。</p>
+
+<p>これを別途、1分おきに見に行ってLCDに表示するものを動かしておけばLCD上に表示してくれるようになります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220619_amedas.jpg" alt="20220619_amedas.jpg" class="pic" /></p>
+
+<p>Outの部分がamedasからとったもの。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220618_lcd5_120_90.jpg" width="120" height="90" alt="20220618_lcd5_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi/">Raspberry Piで液晶ディスプレイを使って温度とかを表示する</a></div></li></ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Piで液晶ディスプレイを使って温度とかを表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi/"/>
+    <updated>2022-06-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/06/18/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>Raspberry Pi Zeroを使って室温や湿度、二酸化炭素濃度などを測定していますが、
+取った記録はBlinkというアプリを使ってみるかGoogle Sheetsに記録したものを何らの方法で見る感じになっています。</p>
+
+<p>やはり直接見れたらうれしい、ということでディスプレイを付けてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-pi-zeroで測っているもの" id="markdown-toc-raspberry-pi-zeroで測っているもの">Raspberry Pi Zeroで測っているもの</a></li>
+  <li><a href="#lcd" id="markdown-toc-lcd">LCD</a></li>
+  <li><a href="#raspberry-piとの接続" id="markdown-toc-raspberry-piとの接続">Raspberry Piとの接続</a></li>
+  <li><a href="#lcdへの表示" id="markdown-toc-lcdへの表示">LCDへの表示</a></li>
+  <li><a href="#測定値の表示" id="markdown-toc-測定値の表示">測定値の表示</a></li>
+  <li><a href="#現状の表示" id="markdown-toc-現状の表示">現状の表示</a></li>
+  <li><a href="#lcd表示を行ごとに変更することに関して" id="markdown-toc-lcd表示を行ごとに変更することに関して">LCD表示を行ごとに変更することに関して</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-pi-zeroで測っているもの">Raspberry Pi Zeroで測っているもの</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS90_CR0,0,120,90_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/">MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>BME280とMH-Z19Cという素子を使って室温と湿度、気圧、二酸化炭素濃度を測っています。</p>
+
+<p>とった記録はBlynkというアプリでスマホで見れるようになっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<p>もしくはGoogle Sheetsにも書き込んでいるので、データポータルとかでグラフを見ることも出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00KNRL068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00KNRL068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51EQHQnIMUL._SS90_CR0,0,120,90_.jpg" alt="現場ですぐ使える時系列データ分析～データサイエンティストのための基礎知識～" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google/">tsd2gspread: 時系列データをGoogle Sheetsに書き込むPythonツール</a></div></li></ul>
+
+<p>とはいえ、普通温度計とかはそれ自身が測った値を表示してくれるものがほとんどなのでそれを実現してみます。</p>
+
+<h2 id="lcd">LCD</h2>
+
+<p>今回買ってみたのはこれ。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B081TYYLX4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B081TYYLX4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71RcUgQ2BQL._SS200_.jpg" alt="SunFounder 5V 2004 20X4 キャラクタ LCDディスプレイIIC I2C TWIシリアル インターフェイス モジュール LCDモジュールシールド Arduino Uno/Mega2560に適用" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B081TYYLX4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B081TYYLX4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">SunFounder 5V 2004 20X4 キャラクタ LCDディスプレイIIC I2C TWIシリアル インターフェイス モジュール LCDモジュールシールド Arduino Uno/Mega2560に適用</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B081TYYLX4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B081TYYLX4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSunFounder+5V+2004+20X4+%E3%82%AD%E3%83%A3%E3%83%A9%E3%82%AF%E3%82%BF+LCD%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4IIC+I2C+TWI%E3%82%B7%E3%83%AA%E3%82%A2%E3%83%AB+%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%BC%E3%83%95%E3%82%A7%E3%82%A4%E3%82%B9+%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB+LCD%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%B7%E3%83%BC%E3%83%AB%E3%83%89+Arduino+Uno%2FMega2560%E3%81%AB%E9%81%A9%E7%94%A8%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FSunFounder+5V+2004+20X4+%E3%82%AD%E3%83%A3%E3%83%A9%E3%82%AF%E3%82%BF+LCD%E3%83%87%E3%82%A3%E3%82%B9%E3%83%97%E3%83%AC%E3%82%A4IIC+I2C+TWI%E3%82%B7%E3%83%AA%E3%82%A2%E3%83%AB+%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%BC%E3%83%95%E3%82%A7%E3%82%A4%E3%82%B9+%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB+LCD%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%B7%E3%83%BC%E3%83%AB%E3%83%89+Arduino+Uno%2FMega2560%E3%81%AB%E9%81%A9%E7%94%A8%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>横20文字、縦4文字が表示できる液晶ディスプレイ(LCD, Liquid Crystal Display)です。</p>
+
+<p>また、I2Cシリアルインターフェースモジュールがあらかじめはんだ付けされているものになっています。</p>
+
+<p>個のセットで1,000円ほど。</p>
+
+<p>サイズ的には横16文字、縦2文字の1602 LCDもよく売られています。</p>
+
+<p>実際に買ってみたのがこれですが、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd0.jpg" alt="20220618_lcd0.jpg" class="pic" /></p>
+
+<p>裏のモジュールの付け方がなんか斜めになっている。。。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd1.jpg" alt="20220618_lcd1.jpg" class="pic" /></p>
+
+<p>はんだ付け直そうかと一瞬思うくらいでしたが、現状では箱に詰めたりするわけでもないので一旦このままいきます。</p>
+
+<h2 id="raspberry-piとの接続">Raspberry Piとの接続</h2>
+
+<p>I2Cのモジュールがついているので、Raspberry Piとの接続は</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">LCD側</th>
+      <th style="text-align: center">Raspberry Pi GPIO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">GND</td>
+      <td style="text-align: center">PIN  20 (Ground)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">VCC</td>
+      <td style="text-align: center">PIN  1 (3.3V)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SDA</td>
+      <td style="text-align: center">PIN  3 (SDA)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SCL</td>
+      <td style="text-align: center">PIN  5 (SCL)</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.com/documentation/computers/os.html#gpio-and-the-40-pin-header">GPIO and the 40-pin Header</a></p>
+</blockquote>
+
+<p>といった感じで4本つなぐだけでOK。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd2.jpg" alt="20220618_lcd2.jpg" class="pic" /></p>
+
+<p>この右側のとこに線が出ているので、ジャンパーケーブルとかで適当につないであげます。</p>
+
+<p>すでにBME280が3.3VのPIN1, PIN17、及びSDA/SCLのPIN 3/5とつながっていますが、
+1, 3, 5に関しては同じところにつなぎます。</p>
+
+<p>I2Cでは通信に使うための認識のアドレスがあって、複数つないでも違うアドレスを使えば同時に使えるとのこと。</p>
+
+<p>いろいろ基盤にはんだ付けしてつないだのでそこにつなぎます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/01/06/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220106_raspifin1_120_90.jpg" width="120" height="90" alt="20220106_raspifin1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/01/06/computer-iot-raspberrypi/">Raspberry Pi Zeroの室内測定器を基盤で実装</a></div></li></ul>
+
+<p>こんな感じに。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd3.jpg" alt="20220618_lcd3.jpg" class="pic" /></p>
+
+<p>なんかもうちょっと最初からやりなおしたいところですが、面倒なので後付工事で。</p>
+
+<p>上の画像だと実は出力が弱い状態で、I2Cのモジュールについている青い部分にドライバで回せる部分があって、
+これを右に回していくと出力が強くなります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd4.jpg" alt="20220618_lcd4.jpg" class="pic" /></p>
+
+<p>こんな感じでつないだ直後は1段目と3段目に白い四角が見えるような状態になっています。</p>
+
+<p>実際につないでI2Cの状態を見てみると</p>
+
+<figure class="code"><figcaption><span>title lang: </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ i2cdetect -y 1
+</span><span class="line">     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+</span><span class="line">00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">20: -- -- -- -- -- -- -- 27 -- -- -- -- -- -- -- --
+</span><span class="line">30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+</span><span class="line">70: -- -- -- -- -- -- 76 --</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで接続しているものが見られ、<code>0x76</code>のものがBME280、<code>0x27</code>がLCDです。</p>
+
+<blockquote><p>For PCF8574T chip, I2C address format: 0 0 1 0 0 A2 A1 A0. The default address is: 0x27<br />For PCF8574 chip, I2C address format: 0 0 1 1 1 A2 A1 A0. The default address is: 0x3F<br />If you want to modify the default address, just need connect pinA0, A1, A2 to GND respectively.<br />For PCF8574T chip, I2C address range: 0x20-0x27<br />For PCF8574 chip, I2C address range: 0x38-0x3F<br />If you are not sure, you can use the above code to scan the changed address.</p><footer><strong>I2C LCD2004 - Wiki</strong> <cite><a href="http://wiki.sunfounder.cc/index.php?title=I2C_LCD2004">wiki.sunfounder.cc/&hellip;</a></cite></footer></blockquote>
+
+<p>ということで、今回買ったものは上の写真の真ん中に乗ってる素子を見てもらうと分かる通りPCF8574Tで、
+0x27がdefault addressになっています。</p>
+
+<p>最初が<code>00100111</code>(=<code>39</code>=<code>0x27</code>)な状態で、下位3bitがA2, A1, A0に対応して、右下にある対応する部分を
+はんだ付けして短絡するとその部分が0になります。
+例えば、A0とA1をそれぞれ短絡させると<code>00100100</code>(=<code>36</code>=<code>0x24</code>)になります。</p>
+
+<p>従って全部で8種類のアドレスを使えます。</p>
+
+<p>PCF8574も含めれば全部で16種類になり、16個のLCDを1つのRaspberry Piで操作することも可能です。</p>
+
+<p>ただ、この素子の型は上のAmazonのものだと選べないので16個フルに使おうと思うとちょっと素子を直接仕入れる必要があるかも知れません。</p>
+
+<h2 id="lcdへの表示">LCDへの表示</h2>
+
+<p>上の参照ページに
+PCF8574の
+<a href="http://wiki.sunfounder.cc/images/1/18/PCF8574T_datasheet.pdf">データシート</a>
+が公開されていますが、ここから色々読み取るのは結構大変そう。</p>
+
+<p><a href="http://wiki.sunfounder.cc/images/7/7e/LiquidCrystal_I2C.zip">C++用のライブラリ</a>
+も公開されてるので、この辺を見てコマンドのアドレスとかを調べたほうがわかりやすいかも。</p>
+
+<p>今回はPythonで使ってみたいわけですが、
+探してみるといい感じのライブラリが色々あるので使わせてもらいます。</p>
+
+<blockquote>
+  <p><a href="https://pypi.org/project/rpi-lcd/">rpi-lcd · PyPI</a></p>
+</blockquote>
+
+<p>これを使わせてもらいました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">rpi_lcd</span> <span class="kn">import</span> <span class="n">LCD</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="n">lcd</span> <span class="o">=</span> <span class="n">LCD</span><span class="p">()</span>
+</span><span class="line"><span class="n">lcd</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>で一行目に<code>Hello World!</code>が表示されます。簡単。</p>
+
+<p><a href="https://github.com/bogdal/rpi-lcd/blob/df029d149bfce2e8d7efdb7246e9dcd1cc0a59a2/rpi_lcd/__init__.py#L21">デフォルトの値として、I2Cのアドレスが0x27になっている</a>ので、もし違うアドレスであれば<code>LCD(address=0x24)</code>とかで
+初期化する必要があります。</p>
+
+<p>1602でも使うことが出来て、その場合は
+<code>LCD(width=16, rows=2)</code>と変更します。</p>
+
+<h2 id="測定値の表示">測定値の表示</h2>
+
+<p>測定値をファイルに書き出しておいて、一定時間ごとにそれを読み取って表示させる、という方法にしました。</p>
+
+<p>BME280の測定は毎分以下のスクリプトを動かしてGoogle Sheetsに入力しています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/bin/bme280">raspi_setup/bme280 at main · rcmdnk/raspi_setup</a></p>
+</blockquote>
+
+<p>ここで、
+<a href="https://pypi.org/project/tsd2gspread/#history">tsd2gspread</a>
+というGoogle Sheetsに書き込むための自作モジュールを使っていて、
+その中で<a href="https://github.com/rcmdnk/tsd2gspread/blob/252624fab973edc4eabdc85a93a25eb7b7f41a01/src/tsd2gspread/__init__.py#L150">値をローカルのファイルにも書き込む</a>ようにしました。</p>
+
+<p>で、以下のスクリプトで書き出した記録を拾ってまとめて表示させています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/bin/clock">raspi_setup/clock at main · rcmdnk/raspi_setup</a></p>
+</blockquote>
+
+<p>ちょっとしたtipsとして、一定間隔ごとにループを回したいとき、
+ループの最後で<code>sleep(1)</code>とかするとちょっとずつずれてしまうので、
+ループの最初で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span>    <span class="n">clock</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span class="line">    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span class="line">        <span class="n">clock</span> <span class="o">=</span> <span class="n">clock</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line">        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+</span><span class="line">        <span class="k">if</span> <span class="n">now</span> <span class="o">&gt;</span> <span class="n">clock</span><span class="p">:</span>
+</span><span class="line">            <span class="n">clock</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span class="line">        <span class="k">else</span><span class="p">:</span>
+</span><span class="line">            <span class="n">sleep</span><span class="p">((</span><span class="n">clock</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+</span><span class="line">        <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで必要な分だけ待つようにすると良い感じになります。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/38874597/how-to-make-a-proper-server-tick/38874657#38874657">python - How to make a proper server tick? - Stack Overflow</a></p>
+</blockquote>
+
+<p>このスクリプトは
+<a href="https://github.com/rcmdnk/raspi_setup/blob/main/etc/systemd/system/clock.service">systemdで管理</a>
+して起動していますが、
+1分おきであればBME280とかでやってるように毎回終了させてtimerで動かしたほうが良いかも。</p>
+
+<p><a href="https://github.com/rcmdnk/raspi_setup/blob/main/etc/systemd/system/bme280.service">raspi_setup/bme280.service at main · rcmdnk/raspi_setup</a>
+<a href="https://github.com/rcmdnk/raspi_setup/blob/main/etc/systemd/system/bme280.timer">raspi_setup/bme280.timer at main · rcmdnk/raspi_setup</a></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798044911?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798044911&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41cVV6Rkp2L._SS90_CR0,0,120,90_.jpg" alt="CentOS7システム管理ガイドsystemd/NetworkManager/Firewalld徹底攻略" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/09/10/computer-linux/">CentOS 7などのSystemdに対応したデーモンプログラムを作る</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000J5OFW0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000J5OFW0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81TNSEQjz5L._SS90_CR0,0,120,90_.jpg" alt="【正規品】TIME TIMER タイムタイマー 19cm 60分 TTA1-W 時間管理" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux/">systemdでcronジョブの代わりの設定をする</a></div></li></ul>
+
+<p>最初時計部分だけ秒で変えていこうと思ってたので上のようなスクリプトになっている、ということもあったりします。</p>
+
+<h2 id="現状の表示">現状の表示</h2>
+
+<p>現状こんな感じで表示されています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220618_lcd5.jpg" alt="20220618_lcd5.jpg" class="pic" /></p>
+
+<ul>
+  <li>1段目:  時計</li>
+  <li>2段目:  <a href="https://www.jma.go.jp/bosai/map.html#5/34.5/137/&amp;elem=temp&amp;contents=amedas&amp;interval=60">アメダス</a>による外気温の測定値(毎時更新)</li>
+  <li>3段目: BME280の測定値(室温、湿度)</li>
+  <li>4段目: MH-Z19の測定値(二酸化炭素濃度)</li>
+</ul>
+
+<p>かなりいい感じにできました。</p>
+
+<p><code>℃</code>を表示させたかったんですが、この文字が入ってないみたいなので<code>C</code>で代用しています。</p>
+
+<p>測定値自体に関しては、以前もちょっと調べましたが、やはりBME280の湿度は10%位低すぎる感じです。
+温度はほかと比べて+/-1,2度で、これは低いときもあるので校正が難しい。。。</p>
+
+<p>二酸化炭素は500ppmを下回るとMH-Z19Cは下がりづらい傾向がありますが、500~1000ppmくらいだと
+左にあるPTH-8とだいたい同じ(+/-20ppm程度)にはなっています。</p>
+
+<p>やはり湿度は調整しようか考え中。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2022/02/20/computer-iot/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20220220_co2_120_90.jpg" width="120" height="90" alt="20220220_co2_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/02/20/computer-iot/">二酸化炭素濃度、温度、湿度計の比較</a></div></li></ul>
+
+<h2 id="lcd表示を行ごとに変更することに関して">LCD表示を行ごとに変更することに関して</h2>
+
+<p>最初、BME280とかの測定を行っているスクリプトの中で直接必要な部分だけを変更しようとしていました。</p>
+
+<p><a href="https://pypi.org/project/rpi-lcd/">rpi-lcdI</a>だと、コンストラクタの中で、
+<a href="https://github.com/bogdal/rpi-lcd/blob/df029d149bfce2e8d7efdb7246e9dcd1cc0a59a2/rpi_lcd/__init__.py#L34">self.write(CLEAR_DISPLAY)</a>と一旦全部消してしまうので、
+以下みたいなラッパークラスを作って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">rpi_lcd</span> <span class="kn">import</span> <span class="n">LCD</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">LCDNoInitClear</span><span class="p">(</span><span class="n">LCD</span><span class="p">):</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="mh">0x27</span><span class="p">,</span> <span class="n">bus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">backlight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="n">SMBus</span><span class="p">(</span><span class="n">bus</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="mf">0.0005</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">backlight_status</span> <span class="o">=</span> <span class="n">backlight</span>
+</span><span class="line">
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mh">0x33</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mh">0x32</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mh">0x06</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mh">0x0C</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mh">0x28</span><span class="p">)</span>
+</span><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">CLEAR_DISPLAY</span><span class="p">)</span>
+</span><span class="line">        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>以下のように必要な行を書き換えるみたいなことをしていました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span>    <span class="n">lcd</span> <span class="o">=</span> <span class="n">LCDNoInitClear</span><span class="p">()</span>
+</span><span class="line">    <span class="n">lcd</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ただ、なにかconflictがあるのか、最初にclearしないと良くないのか、
+表示が乱れてしまうことがありやめました。</p>
+
+<p>ほんとは時計も秒をつけて1秒ごとに動かしたかったんですが、
+1秒ごとに全部書き換えると表示がくずれることもあり、
+一旦1分ごとに時計も測定値も更新するようにしています。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>測定値を表示させたいとはずっと思っていたもののなかなか取り組めなかったですが、
+やってみたらかなり簡単にできました。</p>
+
+<p>LCDもこれで1,000円位なので次にRaspberry Piとかでなにか作るときにもとりあえず付けて
+色々表示できるようにしておけば良いんじゃないかと思ってます。</p>
+
+<p>せっかくなのでちゃんとケースに収まるようにしたいなとも思ってますが、
+自分で欲しい物をと思ったら、3Dプリンタとかで作りたい。。。
+(でも3Dプリンタを他にそこまで使いこなせる自信がない。。。)</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Raspberry Pi Zeroの室内測定器を基盤で実装]]></title>
+    <link href="https://rcmdnk.com/blog/2022/01/06/computer-iot-raspberrypi/"/>
+    <updated>2022-01-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/01/06/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>Raspberry Pi Zeroを使って室温湿度や二酸化炭素濃度などを測ってますが、
+これまでブレッドボードとか使って適当に繋いでいたのを
+基盤にまとめてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#raspberry-pi-zeroを使った室内測定器" id="markdown-toc-raspberry-pi-zeroを使った室内測定器">Raspberry Pi Zeroを使った室内測定器</a></li>
+  <li><a href="#基盤作り" id="markdown-toc-基盤作り">基盤作り</a></li>
+  <li><a href="#配線時の失敗" id="markdown-toc-配線時の失敗">配線時の失敗</a></li>
+  <li><a href="#完成品" id="markdown-toc-完成品">完成品</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="raspberry-pi-zeroを使った室内測定器">Raspberry Pi Zeroを使った室内測定器</h2>
+
+<p>Raspberry Pi Zeroに
+BME280とMH-Z19Cという素子を繋いで温度、湿度、気圧、二酸化炭素濃度を測定しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190826_superchart_120_90.jpg" width="120" height="90" alt="20190826_superchart_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/26/computer-iot-raspberrypi/">Raspberry Piで温度湿度気圧を測ってスマホで見る</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS90_CR0,0,120,90_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/">MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>測定値はBlynkというアプリで見たり、
+Google Spreadsheetsに記録してデータポータルで見たりしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01M98R905?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01M98R905&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51KFly5tZ3L._SS90_CR0,0,120,90_.jpg" alt="HiLetgo BME280 温度 センサー 湿度 センサー 気圧 センサー Arduino センサー 大気圧センサ 温湿度センサー ブレイクアウト Arduinoに対応 [並行輸入品]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/13/computer-raspberrypi-iot-google/">Raspberry Piで測定した温度湿度気圧をGoogle Spreadsheetsに記録する</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210115_both_120_90.jpg" width="120" height="90" alt="20210115_both_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/15/computer-raspberrypi-iot-google/">Nature RemoとBME 280 (RaspberryPi)での気温測定の比較</a></div></li></ul>
+
+<p>取り敢えず、といことでこんな感じで接続してありました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspibefore.jpg" alt="20220106_raspibefore.jpg" class="pic" /></p>
+
+<p>一応基盤とかも最初から買ってあってやろうとは思ってはいたものの長い間放置されてましたが、
+ちょっと手を入れてみました。</p>
+
+<h2 id="基盤作り">基盤作り</h2>
+
+<ul>
+  <li><a href="https://akizukidenshi.com/catalog/g/gP-14031/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　ＺＥＲＯ用ユニバーサル基板</a></li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gC-02485/">連結ピンソケット　２×２０（４０Ｐ</a></li>
+</ul>
+
+<p>これらを使って作ります。</p>
+
+<p>まずはピンソケットをボードにはんだ付け。</p>
+
+<p>以下の様につなげました。</p>
+
+<ul>
+  <li>BME280:
+    <ul>
+      <li>VDD: PIN  1 (3.3V)</li>
+      <li>GND: PIN  6 (GND)</li>
+      <li>CSB: PIN 17 (3.3V)</li>
+      <li>SDI: PIN  3 (SDA)</li>
+      <li>SDI: PIN  9 (GND)</li>
+      <li>SDI: PIN  5 (SCL)</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20190826_bme280front.jpg" alt="20190826_bme280front.jpg" class="pic" /></p>
+
+<ul>
+  <li>MH-Z19C:
+    <ul>
+      <li>Vin: PIN  4 (5V)</li>
+      <li>GND: PIN 25 (GND)</li>
+      <li>Tx:  PIN 10 (RXD)</li>
+      <li>Rx:  PIN  8 (TXD)</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="https://rcmdnk.com/images/post/20210918_mhz19c2.jpg" alt="20210918_mhz19c2.jpg" class="pic" /></p>
+
+<blockquote>
+  <p><a href="https://www.raspberrypi.com/documentation/computers/os.html">Raspberry Pi Documentation - Raspberry Pi OS</a></p>
+</blockquote>
+
+<p>基盤の上に素子を</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspiboard1.jpg" alt="20220106_raspiboard1.jpg" class="pic" /></p>
+
+<p>こんな感じで配置して、裏側でPINとつなげるために配線します。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspiboard2.jpg" alt="20220106_raspiboard2.jpg" class="pic" /></p>
+
+<p>各素子の足の横の穴とPINの穴とを繋いで適当な抵抗の足を短く切ってはんだでつなげる感じでやりました。</p>
+
+<p>横から見るとこんな感じ。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspiboard3.jpg" alt="20220106_raspiboard3.jpg" class="pic" /></p>
+
+<p>ちょっと間違えたりして配線がクロスしたりしてます。。。</p>
+
+<p>色合いとかも含めてきれいに出来るなら上で配線すべきとは思いました。</p>
+
+<h2 id="配線時の失敗">配線時の失敗</h2>
+
+<p>一度全部配線終わってから起動してみるとBME280、MH-Z19C両方ともうまく動きませんでした。</p>
+
+<p>MH-Z19Cの方は表の白い部分に赤いランプが付いていて電気は通ってるけど信号を送ると何も返してくれない状態。</p>
+
+<p>テスター使って接続を調べてみると、BME280の方は一箇所、素子の足とそれを繋ぐ配線の横の穴の接続がうまく出来てませんでした。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07GJ891VR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GJ891VR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81kaDZEgnyL._SS200_.jpg" alt="オーム電機(Ohm Electric) 普及型デジタルテスター TST-KJ830" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B07GJ891VR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GJ891VR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">オーム電機(Ohm Electric) 普及型デジタルテスター TST-KJ830</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B07GJ891VR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07GJ891VR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%83%87%E3%82%B8%E3%82%BF%E3%83%AB%E3%83%86%E3%82%B9%E3%82%BF%E3%83%BC%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E3%83%87%E3%82%B8%E3%82%BF%E3%83%AB%E3%83%86%E3%82%B9%E3%82%BF%E3%83%BC%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>MH-Z19Cの方はRxとTxの位置を勘違いして逆にしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS90_CR0,0,120,90_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi/">MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>上の記事はZ19Bですが基本的にZ19Cとピン配列などは一緒です。
+この中で接続の説明が逆になっていてその通りにやって間違えました(自分が悪い)。</p>
+
+<p>何故か下の方にある絵は素子側のPINの位置をRxdとTxdを逆に書いていて結果的にPINの位置と接続線に関しては正しい状態にはなってました。
+(今はそれらは全部正しく治してあります。)</p>
+
+<p>記事書いたのが全部作った後なので、先に正しく認識して繋げていたものの後から記事書く時になんか勘違いしてたようです。</p>
+
+<p>BMD280側の接続とMH-Z19Cの配線ミスを治した所、両方ともちゃんと計測出来るようになりました。</p>
+
+<h2 id="完成品">完成品</h2>
+
+<p>Raspberry Pi Zeroをケースに入れた上でピンをつなげるとこんな感じに。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspifin1.jpg" alt="20220106_raspifin1.jpg" class="pic" /></p>
+
+<p>下に配線いれたせいで基盤がちょっと浮かんでしまっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspifin2.jpg" alt="20220106_raspifin2.jpg" class="pic" /></p>
+
+<p>横から見るとちょっと斜めになってるのが分かる。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220106_raspifin3.jpg" alt="20220106_raspifin3.jpg" class="pic" /></p>
+
+<p>それほど気になるものでもないので取り敢えずはこれで良いかと。</p>
+
+<p>材料費としては秋月電子で揃えて</p>
+
+<ul>
+  <li><a href="https://akizukidenshi.com/catalog/g/gM-12961/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　Ｚｅｒｏ　ＷＨ　（ラズベリーパイゼロ　ダブルエイチ）　本体</a>: 2,160円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gP-12962/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　Ｚｅｒｏ　ケース</a>: 650円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gP-14031/">Ｒａｓｐｂｅｒｒｙ　Ｐｉ　ＺＥＲＯ用ユニバーサル基板</a>: 100円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gC-02485/">連結ピンソケット　２×２０（４０Ｐ</a>: 110円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gM-12001/">スイッチングＡＣアダプター（ＵＳＢ　ＡＣアダプター）　ＭｉｃｒｏＢオス　５Ｖ３Ａ</a>: 700円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gK-09421/">ＢＭＥ２８０使用　温湿度・気圧センサモジュールキット</a>: 1,080円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gM-16142/">ＣＯ２センサーモジュール　ＭＨ－Ｚ１９Ｃ</a>: 2,480円</li>
+  <li><a href="https://www.biccamera.com/bc/item/3353578/">microSDXCカード MXCN64GJVZ3 Class10 /64GB</a>: 2,080円</li>
+</ul>
+
+<p>で合計8660円。(Zeroとかは今は売り切れてます。早くRaspberry Pi Zero 2が売り出されるのを期待<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。)</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/02/05 </strong></p>
+
+  <p>ACアダプターとmicroSDカードを忘れてたので追加。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>後は適当に工作キットがなければ適当に。</p>
+
+<ul>
+  <li><a href="https://akizukidenshi.com/catalog/g/gT-02536/">ニクロムはんだこて　ＫＳ－３０Ｒ（３０Ｗ）</a>: 800円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gT-02538/">こて先クリーナー　ＳＴ－３０</a>: 280円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gT-02594/">はんだ　０．８ｍｍ</a>: 210円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gT-02539/">はんだ吸取線　ＣＰ－３０１５</a>: 200円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gP-06756/">耐熱電子ワイヤー　２ｍ×７色　外径１．２２ｍｍ（ＵＬ３２６５　ＡＷＧ２４）</a>: 480円</li>
+  <li><a href="https://akizukidenshi.com/catalog/g/gM-01287/">デジタルマルチメータ（テスタ）　Ｍ－８３０Ｂ　マニュアルレンジ</a>: 1,000円</li>
+</ul>
+
+<p>なんだかんだ揃えようとすると1万円近く行ってしまいます。</p>
+
+<p>売っているものでスマホとかで確認出来るものだとこんなのが1万円位で売ってます。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09BC3V1ZQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09BC3V1ZQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61SvQgxjUiS._SS200_.jpg" alt="二酸化炭素濃度計 PTH-8" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B09BC3V1ZQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09BC3V1ZQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">二酸化炭素濃度計 PTH-8</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B09BC3V1ZQ?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09BC3V1ZQ&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+PTH-8%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88+PTH-8%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>ただ自由に色々出来ますし、ZeroでもCPUパワー的にはまだ余裕はある感じです。
+(Pin的にこれ以上何か素子を着けるのは難しいとは思いますが。)</p>
+
+<p>Pi4とかだと無駄に電力を食うし熱くなったりするので、これだけであればZero(Zero 2)を使うのがおすすめです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[加湿器と24時間換気の戦い(湿度と二酸化炭素濃度)]]></title>
+    <link href="https://rcmdnk.com/blog/2022/01/03/iot-raspberrypi/"/>
+    <updated>2022-01-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/01/03/iot-raspberrypi</id>
+    <content type="html"><![CDATA[<p>加湿器を付けていて、なかなか湿度が上がりにくいと思っていたんですが、
+マンションについてる24時間換気が結構強力に空気を入れ替えてくれてたようで
+その調整をしてみた話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#家の中の環境" id="markdown-toc-家の中の環境">家の中の環境</a></li>
+  <li><a href="#これまでの通常" id="markdown-toc-これまでの通常">これまでの通常</a></li>
+  <li><a href="#換気口を閉じてみる" id="markdown-toc-換気口を閉じてみる">換気口を閉じてみる</a></li>
+  <li><a href="#換気口を小さく開けてみる" id="markdown-toc-換気口を小さく開けてみる">換気口を小さく開けてみる</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="家の中の環境">家の中の環境</h2>
+
+<p>9畳ほどの部屋で13畳用の気化式の加湿空気清浄機を使ってます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07JG3RZXR?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07JG3RZXR&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61Mmz%2BqChqL._SS90_CR0,0,120,90_.jpg" alt="シャープ 加湿 空気清浄機 プラズマクラスター 25000 ハイグレード 13畳 / 空気清浄 23畳 2018年モデル グレー KI-JS50-H" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/01/25/life-iot-shopping/">加湿器調査: シャープの加湿空気清浄機KI-JS50購入(IoT)</a></div></li></ul>
+
+<p>大体は一人で居る部屋。</p>
+
+<p>部屋にはこんな感じの換気口が付いています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_vent0.jpg" alt="20220103_vent0.jpg" class="pic" /></p>
+
+<p>上のが閉じてる状態で、以下の様な3段階で開けることができます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_vent1.jpg" alt="20220103_vent1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20220103_vent2.jpg" alt="20220103_vent2.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20220103_vent3.jpg" alt="20220103_vent3.jpg" class="pic" /></p>
+
+<p>24時間換気を動かしているので基本的には開けておかないといけないもの。
+1時間に半分ほどの空気が入れ替わるようになってないといけないという法律がるようです。</p>
+
+<blockquote>
+  <p><a href="https://www.homes.co.jp/cont/buy_mansion/buy_mansion_00250/">【ホームズ】今さら聞けないマンションの“24時間換気システム”をおさら い 住まいのお役立ち情報</a></p>
+</blockquote>
+
+<p>部屋のドアを見てみると下に1cmほどの隙間があるのでそこから浴室やトイレの方で動いている換気扇まで空気が流れる様になっています。</p>
+
+<h2 id="これまでの通常">これまでの通常</h2>
+
+<p>二酸化炭素を気にするようになってから、まずは換気が大事だということでいつも換気口を全開で過ごしてました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_vent3.jpg" alt="20220103_vent3.jpg" class="pic" /></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS90_CR0,0,120,90_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/">MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>この状態で過ごしていると二酸化炭素濃度は500ppm程度でとどまっていて、ちょっと外出すればすぐに400ppmまで下がります。</p>
+
+<p>ただ、冬場で外の湿度が20%とかになった時、加湿器を付けると全開で回した状態で40%程度まで上がる状態。</p>
+
+<p>ただ、シャープの加湿空気清浄機は全開で回すと結構煩くて騒音レベルです。</p>
+
+<p>一時的に強くなる程度なら良いのですが、加湿が追いつかないので常に全開な状態で
+普通に過ごすのも辛いので静音状態にして使ってました。</p>
+
+<p>静音で回せばエアコンの風の音よりも小さい位になります。</p>
+
+<p>ただそれだと湿度は悪い時は30%位までしか上がりません。
+ただ無いよりマシかな、ということでたまに気が向いたら強く加湿する程度にしていました。</p>
+
+<h2 id="換気口を閉じてみる">換気口を閉じてみる</h2>
+
+<p>加湿器の水はちゃんと減るので加湿が悪いわけでは無いと思うので
+換気口を閉じたりして試してみることに。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_vent0.jpg" alt="20220103_vent0.jpg" class="pic" /></p>
+
+<p>完全に閉じた状態にしてみると、KI-JS50の<strong>おまかせ</strong>にしておくと
+結構すぐに50%位(温度22度位)まで湿度が上がったところで静か(<strong>中</strong>、程度で
+ちょっと強くエアコンが付いているくらいの)になりました。</p>
+
+<p>この辺の設定は変えられないのでよくわかりませんが、説明書見ると下の(2)の状態にはなっている状態。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_temphum.jpg" alt="20220103_temphum.jpg" class="pic" /></p>
+
+<blockquote>
+  <ul>
+    <li>(1): ウイルスが生存しにくい環境</li>
+    <li>(2): ウイルスが生存可能な環境</li>
+    <li>(3): ウイルスが生存に適した環境</li>
+  </ul>
+</blockquote>
+
+<blockquote>
+  <p>https://jp.sharp/support/air_purifier/doc/kijs70_50_mn.pdf?productId=KI-JS50</p>
+</blockquote>
+
+<p>一方で二酸化炭素を見てみると同じく一気に上がっていって1000ppmを超えました。</p>
+
+<p>なのでやはり閉め切るのは非常に体に悪いので良くないです。</p>
+
+<h2 id="換気口を小さく開けてみる">換気口を小さく開けてみる</h2>
+
+<p>次に一番小さく開けて見ました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220103_vent1.jpg" alt="20220103_vent1.jpg" class="pic" /></p>
+
+<p>これでやってみると<strong>おまかせ</strong>で回すと湿度を50%まで上げることができました。</p>
+
+<p>ただ、キープするのに精一杯のようでずっと全開で回っている状態。</p>
+
+<p>次に<strong>自動</strong>モードにしてみると40%位まで上がったところで静かになりました。</p>
+
+<p>この状態だとたまに湿度が下がってうるさくなりますが大体は<strong>中</strong>程度で運転できていました。</p>
+
+<p>二酸化炭素濃度を見ると500ppm位でキープされていて二酸化炭素に関しては十分換気が効いている状態でした。</p>
+
+<p>なので換気口としては最小限開けておく位で良い感じです。</p>
+
+<p>加湿の方は40%位で良いかな、という感じですが、たまにうるさいと感じてしまうこともあり、
+<strong>静音</strong>で運転するときもあります。</p>
+
+<p><strong>静音</strong>だと湿度35~40%位の間でちょっと足りない感じ。</p>
+
+<p>一応上の表を見る限りギリギリ最低限な湿度は保っていられる状態。
+ただ、部屋が汚れたときも自動的に強くならなりません。</p>
+
+<p>ちょっと匂いの出るものを食べるときなどはむしろ食べ終わるまで<strong>静音</strong>になってて
+終わった後に強くなってほしいので切り替える事もありますが、
+この辺結構微妙なところです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>冬場に湿度を上げたい、というのと二酸化炭素濃度を下げたい、という相反する状態を実現したいので
+なかなか難しいということが分かりますが、
+この辺はきちんと可視化出来てないと調整のしようが無いかと思います。</p>
+
+<p>二酸化炭素濃度と湿度を同時に測れる様な機会もそこそこの値段で手に入るので
+良く居る部屋なんかには置いておいて見ながら換気とかを調整しいところです。</p>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B09K3YSC3L?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09K3YSC3L&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61rUTzFRdjL._SS200_.jpg" alt="Kimwood 高精度 CO2 測定器 二酸化炭素濃度計測器 NDIR方式 co2濃度センサー 温度/湿度測定機能付き 3in1多機能CO2測定器 USB充電式 警報アラーム 大容量電池内蔵 400-5000PPM測定範囲" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B09K3YSC3L?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09K3YSC3L&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Kimwood 高精度 CO2 測定器 二酸化炭素濃度計測器 NDIR方式 co2濃度センサー 温度/湿度測定機能付き 3in1多機能CO2測定器 USB充電式 警報アラーム 大容量電池内蔵 400-5000PPM測定範囲</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B09K3YSC3L?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B09K3YSC3L&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88%E6%B8%AC%E5%99%A8+NDIR%E6%96%B9%E5%BC%8F%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F%E4%BA%8C%E9%85%B8%E5%8C%96%E7%82%AD%E7%B4%A0%E6%BF%83%E5%BA%A6%E8%A8%88%E6%B8%AC%E5%99%A8+NDIR%E6%96%B9%E5%BC%8F%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<p>人が多くなると二酸化炭素濃度の上昇度が大きくなる一方で加湿にはそれほど影響しないので
+より難しい状態にはなるかと思います。
+そうなるとより強力な加湿器を手に入れるしか無いか。。。</p>
+
+<p>後、湿度以外にも温度との戦いもあります。
+上の24時間換気を使う程度だとエアコンの効きが悪くなるとか言う感じはありません。(電気代とかきちんと測ってみたいところですが簡単に測れない。)</p>
+
+<p>24時間換気がついてないと窓を開けたり積極的に換気する必要があるのでその際に一気に寒くなってしまう事もあるかと思います。</p>
+
+<p>また、アクティブに動いていると二酸化炭素をたくさん出すのでその時は別途換気が必要になったり。</p>
+
+<blockquote>
+  <p><a href="https://honeshabri.hatenablog.com/entry/CO2-mini">二酸化炭素を減らすと部屋が寒い (冬なので) - 本しゃぶり</a></p>
+</blockquote>
+
+<p>寒さとの戦いもあり、やはり色々見ながら調整していく必要があります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MH-Z19CとRaspberry Pi Zeroで二酸化炭素濃度を測定する]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi/"/>
+    <updated>2021-09-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/18/computer-iot-raspberrypi</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B094XDFL34?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B094XDFL34&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS200_.jpg" alt="Liseng MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+
+<p>以前、MH-Z19BをRaspberry Pi Zeroにつなげて二酸化炭素を測定できる様にしましたが、
+ちょっと問題があったので別途MH-Z19Cを買って入れ替えました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#以前の設定方法について" id="markdown-toc-以前の設定方法について">以前の設定方法について</a></li>
+  <li><a href="#起こっていた問題" id="markdown-toc-起こっていた問題">起こっていた問題</a></li>
+  <li><a href="#mh-z19c" id="markdown-toc-mh-z19c">MH-Z19C</a></li>
+  <li><a href="#mh-z19bとmh-z19c" id="markdown-toc-mh-z19bとmh-z19c">MH-Z19BとMH-Z19C</a></li>
+  <li><a href="#使用感" id="markdown-toc-使用感">使用感</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="以前の設定方法について">以前の設定方法について</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS90_CR0,0,120,90_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/18/computer-iot-raspberrypi/">MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定する</a></div></li></ul>
+
+<p>こちらで。MH-Z19BとRaspberry Pi Zeroで二酸化炭素濃度を測定できる様にしました。</p>
+
+<p>Pythonのスクリプトで読み取ってGoogle Sheetsに送ったり、
+Blynkに送ってスマホから確認出来るようにしたりしています。</p>
+
+<h2 id="起こっていた問題">起こっていた問題</h2>
+
+<p>MH-Z19Bで測定を開始して割とすぐに測定が止まってしまうことがありました。
+コマンドを送っても接続がうまく出来てないような状況。</p>
+
+<p>Raspberry Pi自体を再起動したりしてもうまく接続できませんでした。</p>
+
+<p>この問題は、MH-Z19BにつながっているVinのピンにつながっているコードを抜き差しすると解決しました。</p>
+
+<p>その後、1週間に1回位起こる現象になっていて、正直常時使うには辛いレベルです。
+Raspberry Piの再起動とか自動で復帰できればよいのですが、物理的に抜き差しすることしか
+解決する方法は見つけれてない状態で。(その部分を外部からスイッチングできる様な装置使えば自動で復帰できるかもしれませんが。。。)</p>
+
+<p>と、そんな中、上の記事に対して</p>
+
+<blockquote>
+  <p>画像のものは偽物ですね
+私も偽のものを掴まされました…</p>
+</blockquote>
+
+<p>というコメントが。。。
+ちょっとどこを見て判断するのかはわかりませんが、裏が緑ではなく黒いところとか？</p>
+
+<p>これの真偽は正直わからないのですが、ただ、買ったサイトはAliExpressで、
+偽物を掴まされたという話もちょくちょく聞く様なところだったですし、
+届いたものも結構作りが雑な感じはしてました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_mhz19b1.jpg" alt="20210218_mhz19b1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20210218_mhz19b2.jpg" alt="20210218_mhz19b2.jpg" class="pic" /></p>
+
+<p>それでもそれっぽい測定出来てたので、もしかしたら単なる個体差かもしれませんが、
+いずれにしろ使いづらいので新しいものを買おう、と。</p>
+
+<h2 id="mh-z19c">MH-Z19C</h2>
+
+<p>とはいえ、またよくわからないものを掴まされても困るので、ちゃんとしたところから買いたいな、
+と思って探していたところ、
+MH-Z19Cの方を秋月電子通商が取り扱いを開始しているのを見つけました。</p>
+
+<blockquote>
+  <p><a href="https://akizukidenshi.com/catalog/g/gM-16142/">ＣＯ２センサーモジュール ＭＨ－Ｚ１９Ｃ: センサ一般 秋月電子通商-電子部品・ネット通販</a></p>
+</blockquote>
+
+<p>しかも現時点(2021/08/29)で税込み2 ,480円とAmazonとかより安い。
+AliExpressを探すともう少し安いのもありますが、安心感が全然違います。
+Amazonもよくわからないところしか販売してないですし。</p>
+
+<p>残念ながらMH-Z19Bの取り扱いは現状内容ですが、下に書くように
+特にMH-Z19Cでも困ることはなさそうなのでこれを買いました。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210918_mhz19c1.jpg" alt="20210830_mhz19c1.jpg" class="pic" />
+<img src="https://rcmdnk.com/images/post/20210918_mhz19c2.jpg" alt="20210830_mhz19c2.jpg" class="pic" /></p>
+
+<p>こんな感じのきれいなものが手に入りました。。。</p>
+
+<p>こちらのCの方は
+表側の白いテープが張ってある部分も赤く光ります。
+また、裏にも電源ランプみたいなものが付いていて、電源が入っていると
+裏の電源の横とVinの横に付いているランプがチカチカと光ります。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210918_mhz19c4.jpg" alt="20210830_mhz19c4.jpg" class="pic" /></p>
+
+<p>ただこれは止められるなら止めたいな、とも思ったり。(嫌ならテープ貼っておくとかで処置するか、と。)</p>
+
+<h2 id="mh-z19bとmh-z19c">MH-Z19BとMH-Z19C</h2>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/6156eNDPz2L._SS200_.jpg" alt="MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">MH-Z19B ピン付き(二酸化炭素(CO2)センサーモジュール、0-5000ppm、赤外線方式(NDIR))</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08HD8XTZP?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08HD8XTZP&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2FMH-Z19B+%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19b.html">MH-Z19B ndir CO2 sensor for indoor air quality monitoring–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/MH-Z19B.pdf">MH-Z19B データシート</a></p>
+</blockquote>
+
+<div class="amazon-box">
+  <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71CEwRXKEoL._SS200_.jpg" alt="Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用" /></a>
+</div>
+
+  <div class="amazon-title">
+    <a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Nrpfell MH-Z19C IR赤外線CO2センサーモジュール二酸化炭素ガスセンサーNDIR、CO2モニター400-5Ppm UART PWM出力用</a>
+  </div>
+  <div class="amazon-txt">
+    <span class="amazon-link"><a href="//www.amazon.co.jp/gp/product/B08RMJQKW1?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08RMJQKW1&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank">Amazonで見る</a></span>
+    <span class="rakuten-link"><a href="//hb.afl.rakuten.co.jp/hgc/111f634c.5fb25e94.111f634d.1a56ae16/?pc=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;m=http%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F+MH-Z19C%2F&amp;scid=af_url_txt&amp;link_type=text&amp;ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRlc3QiLCJjb2wiOjB9" rel="nofollow" target="_blank">楽天市場で見る</a></span>
+  </div>
+</div>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/sensors/co2-sensor/mh-z19c.html">MH-Z19C NDIR CO2 Sensor for HVAC and IAQ–Winsen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.winsen-sensor.com/d/files/infrared-gas-sensor/mh-z19c-pins-type-co2-manual-ver1_0.pdf">MH-Z19C データシート</a></p>
+</blockquote>
+
+<p>見た目も似てますが、中身もかなり同じ様な感じになっています。</p>
+
+<p>生えてるピンも同じなので、Raspberry Pi Zeroとの接続も同じです。
+(BME280が余計に付いてますが気にせず。)</p>
+
+<p><img src="https://rcmdnk.com/images/post/20210218_fritzing.jpg" alt="20210218_fritzing.jpg" class="pic" /></p>
+
+<p>二酸化炭素を測定するために送る信号も2つとも同じです。
+また、Self calibrationと呼ばれる自動キャリブレーション機能のon/offを行う信号も同じになっています。</p>
+
+<p>違う信号として、MH-Z19Bには信号を送ることでキャリブレーションを即座に実行することが出来ますが、
+MH-Z19Cのデータシートにはその信号は明記されていません。</p>
+
+<p>ただ、この直接のキャリブレーションはHDピンとGNDピンをつなげれば行えます。(これは2つとも出来る。)</p>
+
+<p>また、MH-Z19Cの方が後に発売されたものですが、測定範囲が
+MH-Z19Bが0~5000ppm、MH-Z19Cが400~5000ppmとMH-Z19Bの方が広くなっています。</p>
+
+<p>なので、MH-Z19CはMH-Z19Bの簡易版?的な感じもしますが、
+単に余計な機能を落として安定させた、というものかもしれません。</p>
+
+<p>いずれにしろ、既に開発されているMH-Z19B用の測定ツールなどは基本的にそのまま使うことが出来ます。</p>
+
+<h2 id="使用感">使用感</h2>
+
+<p>現在同時に2つ動かせる環境じゃないのでBからCに交換して動かしています。</p>
+
+<p>1ヶ月ほど動かしていますが、今の所一度も測定が止まる様なことはありませんでした。</p>
+
+<p>Bの方だとひどいときは週に2回位起こってましたし、買った直後からも起こっていたので
+全然違います。</p>
+
+<p>Bの方がたまたま不良品だったのか、偽物を掴まされたのかは分かりませんが、
+やはり毎週測定が止まるようなことは異常だったようです。</p>
+
+<p>同時に測定できないので精度や比較をするのは難しいですが、
+人がいる環境で締め切っていると1000ppmを超えてきたり、
+窓を開けると400ppmまで下がったり大体同じ様な動作になっていると思います。</p>
+
+<p>外気で400ppmとして
+何度か外でマニュアルキャリブレーションをしてるのですが、
+Cは実際に400ppm以下の表示は出ないようになっていました。</p>
+
+<p>外気は人が住んでるよ言うなところだと400ppmよりは50~100ppmくらい高い様な感じですが、
+まあ正確にキャリブレーションするのも大変なので誤差+/-100ppm位は許容するということで。</p>
+
+<blockquote>
+  <p><a href="https://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.html">気象庁 二酸化炭素濃度の観測結果</a></p>
+</blockquote>
+
+<p>とりあえずちょくちょくつなげ直す様なことはなくなってよかったです。</p>
+
+<p>MH-Z19BはAmazonでもAliExpressでも出どころが確実なところがありませんが、
+MH-Z19Cであれば秋月電子通商で売ってるので今であればMH-Z19C
+の方が安心かとは思いました。</p>
+]]></content>
+  </entry>
+  
+</feed>

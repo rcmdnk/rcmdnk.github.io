@@ -1,0 +1,1590 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>numpydocでPythonのdocstringをチェック</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="numpydocでPythonのdocstringをチェック">
+  <meta name="description" content="Pythonでdocstring部分の構造をチェクする
+numpydocを使う。">
+  
+  <meta property="og:title" content="numpydocでPythonのdocstringをチェック">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Pythonでdocstring部分の構造をチェクする
+numpydocを使う。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2023/11/24/computer-python/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://rcmdnk.com/images/post/20231124_numpydoc.png">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2023/11/24/computer-python/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="https://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="https://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2023/11/24/computer-python/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="https://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2023-11-24T00:00:00+00:00'><span class='time'>24 Nov 2023</span></time></span>
+    
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/python/"><span>Python</span></a>
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2023/11/24/computer-python/" itemprop="url">numpydocでPythonのdocstringをチェック</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/11/24/computer-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF&url=https://rcmdnk.com/blog/2023/11/24/computer-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/11/24/computer-python/&amp;t=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/11/24/computer-python/&title=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="title-thumbnail">
+        <img itemprop="image" class="square-thumbnail-img" src="/images/post/thumbnail/20231124_numpydoc_200_200.png" width="200" height="200" alt="20231124_numpydoc_200_200">
+      </div>
+      
+      <p>Pythonでdocstring部分の構造をチェクする
+numpydocを使う。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#numpydoc" id="markdown-toc-numpydoc">numpydoc</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#設定ファイル" id="markdown-toc-設定ファイル">設定ファイル</a>    <ul>
+      <li><a href="#check" id="markdown-toc-check">check</a></li>
+      <li><a href="#exclude" id="markdown-toc-exclude">exclude</a></li>
+      <li><a href="#override_ss05" id="markdown-toc-override_ss05">override_SS05</a></li>
+      <li><a href="#override_xxxx" id="markdown-toc-override_xxxx">override_XXXX</a></li>
+    </ul>
+  </li>
+  <li><a href="#特に直したところ" id="markdown-toc-特に直したところ">特に直したところ</a>    <ul>
+      <li><a href="#gl01-先頭の部分がクォート行の次に来ないといけない" id="markdown-toc-gl01-先頭の部分がクォート行の次に来ないといけない">GL01: 先頭の部分がクォート行の次に来ないといけない</a></li>
+      <li><a href="#pr10-型を定義する際にその直前のコロンには前後にスペースを入れる" id="markdown-toc-pr10-型を定義する際にその直前のコロンには前後にスペースを入れる">PR10: 型を定義する際にその直前のコロンには前後にスペースを入れる</a></li>
+      <li><a href="#rt02-returnsセクションで返り値が1つだけの場合は型のみ書く" id="markdown-toc-rt02-returnsセクションで返り値が1つだけの場合は型のみ書く">RT02: Returnsセクションで返り値が1つだけの場合は型のみ書く</a></li>
+    </ul>
+  </li>
+  <li><a href="#設定したもの" id="markdown-toc-設定したもの">設定したもの</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="numpydoc">numpydoc</h2>
+
+<div class="github-widget" data-repo="numpy/numpydoc"></div>
+
+<p><a href="https://numpydoc.readthedocs.io/en/latest/validation.html">Validation — numpydoc</a></p>
+
+<p>Pythonのdocstringの書き方としては
+<a href="https://google.github.io/styleguide/pyguide.html">Google形式</a>、
+<a href="https://numpydoc.readthedocs.io/en/latest/format.html">Numpy形式</a>、
+<a href="https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html">Sphinx形式</a>
+などがあります。</p>
+
+<p>numpydocはそののNumpy形式なdocstringをチェックするための公式ツール。</p>
+
+<p>必要な項目が入っているかどうか、型の定義の仕方、コロンの位置など細かい部分まで
+チェックしてくれます。</p>
+
+<p>コードとは直接関係のないところなので実行結果には基本的に影響が無いところですが
+せっかく書くなら決まったフォーマットになってて欲しいので
+ツールを使ってチェックしていい感じにします。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>pipで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install numpydoc</span></code></pre></td></tr></table></div></figure>
+
+<p>として入れると<code>validate-docstrings</code>というコマンドが使えるようになります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ validate-docstrings test_file.py</span></code></pre></td></tr></table></div></figure>
+
+<p>のような形でファイルをチェックできます。</p>
+
+<p>PythonのプロジェクトをGitで管理している場合にはpre-commit用のhookも用意されているので、
+<strong>.pre-commit-config.yaml</strong>に、</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">-</span><span class="w"> </span><span class="n">repo</span><span class="err">:</span><span class="w"> </span><span class="n">https</span><span class="err">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="err">/</span><span class="n">numpy</span><span class="err">/</span><span class="n">numpydoc</span>
+</span><span class="line"><span class="w">  </span><span class="n">rev</span><span class="err">:</span><span class="w"> </span><span class="n">1</span><span class="p">.</span><span class="n">7</span><span class="p">.</span><span class="n">0</span>
+</span><span class="line"><span class="w">  </span><span class="n">hooks</span><span class="err">:</span>
+</span><span class="line"><span class="w">    </span><span class="n">-</span><span class="w"> </span><span class="n">id</span><span class="err">:</span><span class="w"> </span><span class="n">numpydoc-validation</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書いておけばcommit時にpythonファイルに対して<code>validate-docstrings</code>がかけられます。</p>
+
+<p>また、
+<a href="https://github.com/rcmdnk/pyproject-pre-commit">pyproject-pre-commit</a>
+も対応しているので、特にformatterやlinterを使ってる場合にはこれで一括管理すると便利です。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">repos</span><span class="err">:</span>
+</span><span class="line"><span class="n">-</span><span class="w"> </span><span class="n">repo</span><span class="err">:</span><span class="w"> </span><span class="n">https</span><span class="err">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="err">/</span><span class="n">rcmdnk</span><span class="err">/</span><span class="n">pyproject-pre-commit</span>
+</span><span class="line"><span class="w">  </span><span class="n">rev</span><span class="err">:</span><span class="w"> </span><span class="n">v0</span><span class="p">.</span><span class="n">1</span><span class="p">.</span><span class="n">1</span>
+</span><span class="line"><span class="w">  </span><span class="n">hooks</span><span class="err">:</span>
+</span><span class="line"><span class="w">  </span><span class="n">-</span><span class="w"> </span><span class="n">id</span><span class="err">:</span><span class="w"> </span><span class="n">black</span>
+</span><span class="line"><span class="w">  </span><span class="n">-</span><span class="w"> </span><span class="n">id</span><span class="err">:</span><span class="w"> </span><span class="n">flake8</span>
+</span><span class="line"><span class="w">  </span><span class="n">-</span><span class="w"> </span><span class="n">id</span><span class="err">:</span><span class="w"> </span><span class="n">mypy</span>
+</span><span class="line"><span class="w">  </span><span class="n">-</span><span class="w"> </span><span class="n">id</span><span class="err">:</span><span class="w"> </span><span class="n">numpydoc-validation</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておいて、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install pyproject-pre-commit</span></code></pre></td></tr></table></div></figure>
+
+<p>などでpyproject-pre-commitをインストールしておけば<code>black</code>などとともに
+<code>numpydoc</code>も環境にインストールされ、pre-commit以外でもコマンドを使えるようになって便利です。</p>
+
+<h2 id="設定ファイル">設定ファイル</h2>
+
+<p>チェックする項目などの設定は設定ファイルから行います。</p>
+
+<p>設定ファイルはPythonのプロジェクトで使われる<strong>pyproject.toml</strong>か<strong>setup.cfg</strong>です。</p>
+
+<p>tomlなら<code>tool.numpydoc_validation</code>という項目で、cfgなら<code>tool:numpydoc_validation</code>という項目を作って設定を書いていきます。</p>
+
+<p>設定項目は<code>check</code>, <code>exclude</code>, <code>override_SS05</code>というものがありますが、全て必要な項目をリストで与える形になっています。</p>
+
+<p>tomlなら<code>[a, b, ...]</code>といったリストで、cfgならコンマで区切った<code>a,b,...</code>といった形で。</p>
+
+<h3 id="check">check</h3>
+
+<p>主に使うのは<code>checks</code>という値で、どの項目をチェックするかをリストで与えます。
+何も与えないとすべてチェックしますが、
+結構色々ときつく縛られるので必要なものだけ選ぶような形になるかと思います。</p>
+
+<blockquote>
+  <p><a href="https://numpydoc.readthedocs.io/en/latest/validation.html#built-in-validation-checks">Built-in Validation Checks</a></p>
+</blockquote>
+
+<p>チョット特殊なのが<code>all</code>を最初に与えると、<strong>それ以下のものを除く</strong>、という形になります。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;EX01&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;SA01&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ES01&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>なら<code>EX01</code>, <code>SA01</code>, <code>ES01</code>のみをチェックする、ですが、</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;EX01&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;SA01&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ES01&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>なら、<code>EX01</code>, <code>SA01</code>, <code>ES01</code>を除く他のすべてをチェックする、になります。</p>
+
+<p>調整する場合には<code>all</code>でチェックしてみて、エラーが出たらそのままで良いものだな、と思ったら
+そのCheck IDを<code>checks</code>の<code>all</code>のあとに加えていく、といった形がやりやすいです。</p>
+
+<h3 id="exclude">exclude</h3>
+
+<p>リストで与え、それらの値を
+クラス名や関数名が含んでいたらチェックをスキップするための値。</p>
+
+<p>正規表現が使えて例にある</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">exclude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w">  </span><span class="c1"># don&#39;t report on objects that match any of these regex</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;\.undocumented_method$&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;\.__repr__$&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>だと<code>undocumented_method</code>と<code>__repr__</code>という関数が除外されます。</p>
+
+<p>最初に<code>\.</code>でピリオドから始まるような指定をしていますが、
+クラスの関数であれば<code>&lt;クラス名&gt;.&lt;関数名&gt;</code>となりますし、
+numpydocではファイルの直下に書かれている関数であればそのファイルをモジュールとみなして</p>
+
+<figure class="code"><figcaption><span>test.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">undocumented_method</span><span class="p">():</span>
+</span><span class="line">    <span class="k">pass</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>なら<code>test.undocumented_method</code>という<strong>item</strong>として認識するので
+これで<code>undocumented_method</code>という名前に一致してその前後に別の文字列がついていれば
+スキップされません。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">exclude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s1">&#39;no_doc&#39;</span><span class="w"> </span><span class="p">]</span>
+</span><span class="line"><span class="err">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなシンプルなものにしておけば<code>no_doc</code>を含むあらゆるものが無視されます。</p>
+
+<p>ただ、numpydocの適用を回避するためだけに名前を変えるのは微妙なので、
+無視したい関数がある場合は</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">():</span>  <span class="c1"># numpydoc ignore=GL08</span>
+</span><span class="line">    <span class="k">pass</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>といった感じで<code>numpydoc ignore</code>のコメントでスキップの適用が可能です。</p>
+
+<p><code>GL08</code>はドキュメントが無い時にエラーを出すチェックです。</p>
+
+<p>もし、簡単なコメントだけ書いてあって中身のチェックはしなくて良いと言う場合には
+それらのエラーに関する項目を書く必要があります。</p>
+
+<h3 id="override_ss05">override_SS05</h3>
+
+<p><code>SS05</code>はコメントの一番最初の行のまとめ文に関するチェックで、
+<code>Generates</code>の様な三人称単数現在形にせずに原型の<code>Generate</code>で始めよ、というもの。</p>
+
+<p>が、このチェックが単純なチェックで最後が<code>s</code>で終わるかどうか、だけを見ています。</p>
+
+<blockquote>
+  <p>https://github.com/numpy/numpydoc/blob/13b0f815763b3be13cb1cd34fd285f186fd5a142/numpydoc/validate.py#L676C1-L677C4</p>
+</blockquote>
+
+<p>最後が<code>s</code>で終わる動詞が全て引っかかってしまう状態です。</p>
+
+<p>したがって<code>Process</code>や<code>Access</code>といった単語で始めた場合も<code>SS05</code>のエラーが出てしまいます。
+これを避けるために始まっても良い単語として<code>override_SS05</code>を定義しておきます。</p>
+
+<p>例にある通り、</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">override_SS05</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;^Process &#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;^Assess &#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;^Access &#39;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>辺りは最初から書いておいても良いかと思います。後は必要になったら追加で。</p>
+
+<h3 id="override_xxxx">override_XXXX</h3>
+
+<p>上の<code>override_SS05</code>は<code>SS05</code>に関するスキップ項目の追加ですが、
+他のものでもIDを入れることでスキップ項目を追加できます。</p>
+
+<p><code>SS02</code>は最初のSummary部分が小文字で始まるとエラーとしますが、</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">override_SS02</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s1">&#39;^test &#39;</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、<code>test ...</code>と始まるSummaryに関しては許されます。</p>
+
+<p>ただ他の部分に関してはあまりうまく使えるところは少ないかも。</p>
+
+<h2 id="特に直したところ">特に直したところ</h2>
+
+<h3 id="gl01-先頭の部分がクォート行の次に来ないといけない">GL01: 先頭の部分がクォート行の次に来ないといけない</h3>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">    <span class="s2">&quot;&quot;&quot;Summary of func.</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">    Parameters</span>
+</span><span class="line"><span class="s2">    ----------</span>
+</span><span class="line"><span class="s2">    ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなのはだめで、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">    <span class="s2">&quot;&quot;&quot;</span>
+</span><span class="line"><span class="s2">    Summary of func.</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">    Parameters</span>
+</span><span class="line"><span class="s2">    ----------</span>
+</span><span class="line"><span class="s2">    ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様にクォートの行とは分けないといけません。</p>
+
+<p>これに関しては何かのlinterかドキュメントがクォート行と同じにしろ
+と言っていた気がして敢えてそうしていたのですが、
+改めて
+<a href="https://numpydoc.readthedocs.io/en/latest/format.html">Style guide</a>
+を見てもそのようなことはないし、
+<a href="https://github.com/pycqa/flake8-docstrings">flake8-docstrings</a>
+とかを見ても特にそうったものはないし、
+何かで思い込みをしていたのかも。</p>
+
+<p>見た目としてはむしろ次の行から始まる形の方が見やすいので素直に従って直します。</p>
+
+<h3 id="pr10-型を定義する際にその直前のコロンには前後にスペースを入れる">PR10: 型を定義する際にその直前のコロンには前後にスペースを入れる</h3>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">    <span class="s2">&quot;&quot;&quot;</span>
+</span><span class="line"><span class="s2">    Summary of func.</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">    Parameters</span>
+</span><span class="line"><span class="s2">    ----------</span>
+</span><span class="line"><span class="s2">    x : int</span>
+</span><span class="line"><span class="s2">        X parameter.</span>
+</span><span class="line"><span class="s2">    ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>x: int</code>ではなく<code>x : int</code>。</p>
+
+<p>実際のコード中での定義では逆にコロンの前にスペースを空けないことが推奨されているので
+それとは違う形になり、ちょっと気持ち悪いところですが、
+それに対する答えはここに詳細があります。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/62167540/why-do-definitions-have-a-space-before-the-colon-in-numpy-docstring-sections">python - Why do definitions have a space before the colon in NumPy docstring sections? - Stack Overflow</a></p>
+</blockquote>
+
+<p>reStructuredTextの
+<a href="https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#definition-lists">Definition Lists</a>
+に準拠していて、それがそうなっているから、と。</p>
+
+<p>reStructuredTextではLink関連やblockを作る際にコロンを使うので、
+そういったmarkupと区別するため、markupと解釈されないようにスペースを空けて
+単独のコロンでコロンそのものとみなされるようにしているようです。</p>
+
+<p>Numpy StyleはreStructuredTextに準拠しているので
+<a href="https://www.sphinx-doc.org/en/master/">Sphinx</a>を使ってHTML化することが可能で
+そういった際にきちんと書き方を揃えて置く必要があります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<p>が、実際そういったことをしないことも多いので、
+この辺はもしかしたらみやすさ的に通常コードと同様のスペースなし、というのもありかもしれません。</p>
+
+<p>個人的にはどれもいずれドキュメント化とかするかもしれないので
+一応スペースを空けてしたがっておこうと思ってます。</p>
+
+<h3 id="rt02-returnsセクションで返り値が1つだけの場合は型のみ書く">RT02: Returnsセクションで返り値が1つだけの場合は型のみ書く</h3>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span class="line"><span class="sd">    Summary of func.</span>
+</span><span class="line">
+</span><span class="line"><span class="sd">    Parameters</span>
+</span><span class="line"><span class="sd">    ----------</span>
+</span><span class="line"><span class="sd">    x : int</span>
+</span><span class="line"><span class="sd">        X parameter.</span>
+</span><span class="line">
+</span><span class="line"><span class="sd">    Returns</span>
+</span><span class="line"><span class="sd">    -------</span>
+</span><span class="line"><span class="sd">    int</span>
+</span><span class="line"><span class="sd">        Sum of x and y.</span>
+</span><span class="line"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>返り値が1つの場合にはその定義部分で名前とかをつけずに型だけ書きます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span class="line"><span class="sd">    Returns</span>
+</span><span class="line"><span class="sd">    -------</span>
+</span><span class="line"><span class="sd">    sum : int</span>
+</span><span class="line"><span class="sd">        Sum of x and y.</span>
+</span><span class="line"><span class="sd">    &quot;&quot;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいにしてはだめ。</p>
+
+<p>ただし、2つ以上返すような場合はそれぞれの名前をつけてもOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+</span><span class="line"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span class="line"><span class="sd">    Summary of func.</span>
+</span><span class="line">
+</span><span class="line"><span class="sd">    Parameters</span>
+</span><span class="line"><span class="sd">    ----------</span>
+</span><span class="line"><span class="sd">    x : int</span>
+</span><span class="line"><span class="sd">        X parameter.</span>
+</span><span class="line">
+</span><span class="line"><span class="sd">    Returns</span>
+</span><span class="line"><span class="sd">    -------</span>
+</span><span class="line"><span class="sd">    sum: int</span>
+</span><span class="line"><span class="sd">        Sum of x and y.</span>
+</span><span class="line"><span class="sd">    diff: int</span>
+</span><span class="line"><span class="sd">        Diff of x and y.</span>
+</span><span class="line"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>1つでも名前をつけてる所がほとんどだったので直しました。</p>
+
+<h2 id="設定したもの">設定したもの</h2>
+
+<p>上のものとかを一通り直して、最終的に設定したものは以下のようなもの。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.numpydoc_validation]</span>
+</span><span class="line"><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;all&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1"># report on all checks, except the below</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;EX01&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;No examples section found&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;SA01&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;See Also section not found&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;ES01&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;No extended summary found&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;GL08&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;The object does not have a docstring&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;RT01&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;No Returns section found&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;PR01&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1"># &quot;Parameters {missing_params} not documented&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>EX01</code>, <code>SA01</code>は<code>Exsample</code>, <code>See Also</code>のセクションが無いとエラーになりますが、
+これらに関してはすべてのオブジェクトに無くても良いと思うのでスキップ。</p>
+
+<p><code>SA01</code>は最初にセクションが始まる前、1行summaryの次に1行明けて詳細説明を書くものですが、
+それが無いとエラーになります。
+特に短い関数で1行で簡潔に説明できるならわざわざそれ以上書くのもあれなので
+これもスキップ。</p>
+
+<p><code>GL08</code>はすべてのクラスや関数に関してdocstringを要求します。
+これは<a href="https://pypi.org/project/flake8-docstrings/">flake8-docstrings</a>とかでも検知する
+ものですが、関数内でlambda的に作る関数みたいなものに対しても全てに対して要求するので
+ちょっとスキップ。
+ほかにもクラス内の関数で書いてないものもあったりで全てに要求しなくても良いかな、とも思うので。
+また、モジュールレベル(ファイルレベル)にも無いと怒られるのでちょっときついです。</p>
+
+<p>flake8-docstringsだとクラスのもの、関数のもの、といった感じで個別にスキップできるので
+基本的にクラスのものが無いときだけエラーを出すようにしています。</p>
+
+<p><code>RT01</code>は引数に関しては頑張って書いていても返り値に関して書いてない部分が多いため。
+返り値は関数名や最初のSummaryの説明で自明なものが多いのでそういったものにまで
+わざわざ書かなくても良いかなと思って書いてない部分が結構あり。</p>
+
+<p>今後新たに始めるときにはチェックに入れ手も良いかも、程度で。</p>
+
+<p><code>PR01</code>はクラス継承で
+<a href="https://github.com/rcmdnk/inherit-docstring">inherit-docstring</a>
+を使ってdocstringを継承したりすると、
+書いてない、と怒られてしまうので外してます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2023/11/09/computer-python/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20231109_inheritdocstring_120_90.png" width="120" height="90" alt="20231109_inheritdocstring_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2023/11/09/computer-python/">inherit-docstring: Pythonでdocstringの一部を継承するdecorator</a></div></li></ul>
+
+<p>これはツール側でdocstringを解釈した上でチェックしてもらうよう何かラッパーツールみたいのをつくるとか
+出来たら嬉しいかも。</p>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished dateModified' class='entry-date updated' datetime='2023-11-24T00:00:00+00:00'><span class='date'>24 Nov 2023</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/python/'><span>Python</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/11/24/computer-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF&url=https://rcmdnk.com/blog/2023/11/24/computer-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/11/24/computer-python/&amp;t=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/11/24/computer-python/&title=numpydoc%E3%81%A7Python%E3%81%AEdocstring%E3%82%92%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2023/11/24/computer-python/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2023/11/20/computer-python/" title="Previous Post: Pythonでキーワード引数の展開(**kw)に対するアノテーション">&laquo; Pythonでキーワード引数の展開(**kw)に対するアノテーション</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2023/12/05/computer-evernote-obsidian/" title="Next Post: EvernoteからObsidianへの移行">EvernoteからObsidianへの移行 &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/hz/wishlist/ls/28GLSLW5HE8L8?ref_=wl_share&tag=rcmdnk0c-22">ほしいもの一覧</a>
+
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 265" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 284" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 99.97%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B0DWLN3WH2' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71+JH+T4bOL._SS90_CR0,0,120,90_.jpg' alt='Rust &amp; Python Integrated: Harnessing the Power of Systems and Scripting for High-Performance Development: A Comprehensive Guide 2025'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/23/computer-python-rust/">Python環境をRust製ツールで整える</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2026/02/22/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20260222_googleime_120_90.png" width="120" height="90" alt="20260222_googleime_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/22/computer-mac/">macOSでGoogle日本語入力のアップデート時に再起動を要求されても再起動を避ける</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/04/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251014_mise_120_90.jpg" width="120" height="90" alt="20251014_mise_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/04/computer-ai/">miseでAI CLIツールやMCPもまとめて管理する</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873119324' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS90_CR0,0,120,90_.jpg' alt='入門 Python 3 第2版'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/09/10/computer-python/">Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2026 (2)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2026/02/'>FEB (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2025 (18)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2025/10/'>OCT (2)</a></li><li><a href='/blog/2025/09/'>SEP (1)</a></li><li><a href='/blog/2025/08/'>AUG (3)</a></li><li><a href='/blog/2025/07/'>JUL (3)</a></li><li><a href='/blog/2025/05/'>MAY (2)</a></li><li><a href='/blog/2025/02/'>FEB (1)</a></li><li><a href='/blog/2025/01/'>JAN (6)</a></li></ul></li><li><span class="monthly_archive_year_span">2024 (26)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2024/11/'>NOV (4)</a></li><li><a href='/blog/2024/10/'>OCT (2)</a></li><li><a href='/blog/2024/09/'>SEP (4)</a></li><li><a href='/blog/2024/08/'>AUG (2)</a></li><li><a href='/blog/2024/07/'>JUL (2)</a></li><li><a href='/blog/2024/06/'>JUN (3)</a></li><li><a href='/blog/2024/05/'>MAY (2)</a></li><li><a href='/blog/2024/04/'>APR (2)</a></li><li><a href='/blog/2024/02/'>FEB (4)</a></li><li><a href='/blog/2024/01/'>JAN (1)</a></li></ul></li><li><span class="monthly_archive_year_span">2023 (56)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2023/12/'>DEC (2)</a></li><li><a href='/blog/2023/11/'>NOV (4)</a></li><li><a href='/blog/2023/10/'>OCT (2)</a></li><li><a href='/blog/2023/09/'>SEP (5)</a></li><li><a href='/blog/2023/08/'>AUG (1)</a></li><li><a href='/blog/2023/07/'>JUL (2)</a></li><li><a href='/blog/2023/05/'>MAY (5)</a></li><li><a href='/blog/2023/04/'>APR (9)</a></li><li><a href='/blog/2023/03/'>MAR (8)</a></li><li><a href='/blog/2023/02/'>FEB (9)</a></li><li><a href='/blog/2023/01/'>JAN (9)</a></li></ul></li><li><span class="monthly_archive_year_span">2022 (51)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2022/12/'>DEC (1)</a></li><li><a href='/blog/2022/11/'>NOV (1)</a></li><li><a href='/blog/2022/10/'>OCT (3)</a></li><li><a href='/blog/2022/09/'>SEP (6)</a></li><li><a href='/blog/2022/08/'>AUG (3)</a></li><li><a href='/blog/2022/07/'>JUL (3)</a></li><li><a href='/blog/2022/06/'>JUN (6)</a></li><li><a href='/blog/2022/05/'>MAY (3)</a></li><li><a href='/blog/2022/03/'>MAR (8)</a></li><li><a href='/blog/2022/02/'>FEB (9)</a></li><li><a href='/blog/2022/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2021 (46)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2021/12/'>DEC (3)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (96)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (4)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (70)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (1)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (7)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (150)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (12)</a></li><li><a href='/blog/2016/09/'>SEP (13)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (183)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (12)</a></li><li><a href='/blog/2015/10/'>OCT (17)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (31)</a></li><li><a href='/blog/2015/05/'>MAY (21)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (139)</a></li><li><a href='/blog/categories/computer/'>Computer (1049)</a></li><li><a href='/blog/categories/life/'>Life (69)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.38338658146965%'>AeroFS(2)</a> <a href='/blog/tags/ai/' style='font-size: 101.53354632587859%'>AI(8)</a> <a href='/blog/tags/amazon/' style='font-size: 100.38338658146965%'>Amazon(2)</a> <a href='/blog/tags/analytics/' style='font-size: 100.7667731629393%'>Analytics(4)</a> <a href='/blog/tags/android/' style='font-size: 102.87539936102236%'>Android(15)</a> <a href='/blog/tags/applescript/' style='font-size: 103.06709265175719%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.38338658146965%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 105.75079872204473%'>AutoHotkey(30)</a> <a href='/blog/tags/bash/' style='font-size: 121.85303514376997%'>Bash(114)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19169329073482%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.38338658146965%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.7667731629393%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.57507987220447%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.1182108626198%'>Brew-file(58)</a> <a href='/blog/tags/bsd/' style='font-size: 101.72523961661342%'>BSD(9)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.38338658146965%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.7667731629393%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.7923322683706%'>Chrome(25)</a> <a href='/blog/tags/cli/' style='font-size: 100.19169329073482%'>CLI(1)</a> <a href='/blog/tags/colinux/' style='font-size: 100.38338658146965%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.7667731629393%'>CSS(4)</a> <a href='/blog/tags/cygwin/' style='font-size: 105.94249201277955%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19169329073482%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.38338658146965%'>Desktop(2)</a> <a href='/blog/tags/diy/' style='font-size: 100.19169329073482%'>DIY(1)</a> <a href='/blog/tags/docker/' style='font-size: 100.38338658146965%'>Docker(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.91693290734824%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.57507987220447%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.95846645367412%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.68370607028754%'>Evernote(14)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19169329073482%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.30990415335464%'>Firefox(59)</a> <a href='/blog/tags/gas/' style='font-size: 100.19169329073482%'>GAS(1)</a> <a href='/blog/tags/geektool/' style='font-size: 100.57507987220447%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19169329073482%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 108.05111821086263%'>Git(42)</a> <a href='/blog/tags/github/' style='font-size: 115.52715654952077%'>GitHub(81)</a> <a href='/blog/tags/gmail/' style='font-size: 103.06709265175719%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.53354632587859%'>GNU(8)</a> <a href='/blog/tags/go/' style='font-size: 100.57507987220447%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.83386581469648%'>Google(20)</a> <a href='/blog/tags/gpt/' style='font-size: 100.95846645367412%'>GPT(5)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19169329073482%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 102.49201277955271%'>HHKB(13)</a> <a href='/blog/tags/home/' style='font-size: 100.19169329073482%'>Home(1)</a> <a href='/blog/tags/homebrew/' style='font-size: 118.59424920127796%'>Homebrew(97)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.30031948881789%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.7667731629393%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.38338658146965%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 112.26837060702876%'>IoT(64)</a> <a href='/blog/tags/iphone/' style='font-size: 102.68370607028754%'>iPhone(14)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.7667731629393%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.38338658146965%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.17571884984025%'>JavaScript(27)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.57507987220447%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.7667731629393%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.98402555910543%'>Karabiner(26)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19169329073482%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.53354632587859%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19169329073482%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19169329073482%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.22683706070288%'>Linux(69)</a> <a href='/blog/tags/liquid/' style='font-size: 100.38338658146965%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.57507987220447%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(313)</a> <a href='/blog/tags/markdown/' style='font-size: 102.30031948881789%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.53354632587859%'>Music(8)</a> <a href='/blog/tags/network/' style='font-size: 106.13418530351437%'>Network(32)</a> <a href='/blog/tags/obsidian/' style='font-size: 100.7667731629393%'>Obsidian(4)</a> <a href='/blog/tags/octopress/' style='font-size: 123.96166134185303%'>Octopress(125)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.38338658146965%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.57507987220447%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.7667731629393%'>Pocket(4)</a> <a href='/blog/tags/poetry/' style='font-size: 100.57507987220447%'>Poetry(3)</a> <a href='/blog/tags/powershell/' style='font-size: 101.53354632587859%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 100.57507987220447%'>PR(3)</a> <a href='/blog/tags/prompt/' style='font-size: 100.57507987220447%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.68370607028754%'>PuTTY(14)</a> <a href='/blog/tags/pypi/' style='font-size: 100.19169329073482%'>PyPi(1)</a> <a href='/blog/tags/python/' style='font-size: 114.56869009584665%'>Python(76)</a> <a href='/blog/tags/qi/' style='font-size: 100.19169329073482%'>Qi(1)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.57507987220447%'>Rakuten(3)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 103.45047923322684%'>RaspberryPi(18)</a> <a href='/blog/tags/ruby/' style='font-size: 102.68370607028754%'>Ruby(14)</a> <a href='/blog/tags/rust/' style='font-size: 100.19169329073482%'>Rust(1)</a> <a href='/blog/tags/screen/' style='font-size: 108.05111821086263%'>screen(42)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.68370607028754%'>sentaku(14)</a> <a href='/blog/tags/shell/' style='font-size: 100.19169329073482%'>Shell(1)</a> <a href='/blog/tags/shopping/' style='font-size: 109.96805111821087%'>Shopping(52)</a> <a href='/blog/tags/slack/' style='font-size: 100.57507987220447%'>Slack(3)</a> <a href='/blog/tags/svn/' style='font-size: 100.38338658146965%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.95846645367412%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.38338658146965%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.34185303514377%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.68370607028754%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.95846645367412%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.7667731629393%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 120.89456869009584%'>Vim(109)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.64217252396166%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.15015974440895%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.15015974440895%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.38338658146965%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 130.0958466453674%'>Windows(157)</a> <a href='/blog/tags/word/' style='font-size: 100.19169329073482%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.34185303514377%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 109.96805111821087%'>Zsh(52)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">870 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2024/09/27/computer-windows-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20240927_win3_120_90.jpg" width="120" height="90" alt="20240927_win3_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2024/09/27/computer-windows-mac/">Win/Macそれぞれで特定のウィンドウを最前面に固定する</a><br><span class="views">450 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a><br><span class="views">280 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4022737166' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51lxlVNGLnL._SS90_CR0,0,120,90_.jpg' alt='Suicaが世界を制覇する アップルが日本の技術を選んだ理由 (朝日新書)'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2019/12/17/life-trip/">Suicaで地下鉄に間違って改札を通ってしまった際にすぐに出ればキャンセルされる(こともある)</a><br><span class="views">264 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/02/01/compouter-chrome/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180201_chrome_120_90.png" width="120" height="90" alt="20180201_chrome_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/02/01/compouter-chrome/">Google Chrome上でマウスカーソルが消えてしまう場合の対処法</a><br><span class="views">241 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/52c43ceca0a4932d759487214ea0ca46da9f34e8/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8c14e2043f5305342d429254ec21b66697fd5d50/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a35d63bd4d980f5f21c1757c0eec36670e870795/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/b9941e9c195e57542a07d0dcb7172e57f59fd6cc/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/7dce4ddada0821a856e31680ba3cb7ae0f02274d/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2026 - rcmdnk -
+    <span class="credit">Powered by <a href="https://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+https://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CS5ERMMZ4D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CS5ERMMZ4D');
+</script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2023/11/24/computer-python/';
+  var disqus_url = 'https://rcmdnk.com/blog/2023/11/24/computer-python/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+}
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js" defer></script>
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/python/",
+        "name": "Python"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

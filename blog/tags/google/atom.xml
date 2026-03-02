@@ -1,0 +1,1537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Google | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/google/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Google AnalyticsのUAからGA4への移行]]></title>
+    <link href="https://rcmdnk.com/blog/2023/09/17/blog-google/"/>
+    <updated>2023-09-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/09/17/blog-google</id>
+    <content type="html"><![CDATA[<p>7月まででGoogle Analyticsのユニバーサルアナリティクス(UA)が停止し、
+Googleアナリティクス4(GA4)のみ使える状態になりました。</p>
+
+<p>ちょっと放置してたのですが対応しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#uaからga4へのタグ等の変更" id="markdown-toc-uaからga4へのタグ等の変更">UAからGA4へのタグ等の変更</a></li>
+  <li><a href="#ページビューを取得するプラグインのアップデート" id="markdown-toc-ページビューを取得するプラグインのアップデート">ページビューを取得するプラグインのアップデート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="uaからga4へのタグ等の変更">UAからGA4へのタグ等の変更</h2>
+
+<p>サイトに埋めてあるアナリティクス用のタグに関しては、
+アナリティクス側で元々あるUAのプロパティから新たに作成したGA4のプロパティ
+に接続するとそのままでもGA4側にもデータが送られるようになります。</p>
+
+<p>ということで、とりあえずしばらくはアナリティクス上での操作だけでそのままにしてました。</p>
+
+<ul>
+  <li><a href="https://support.google.com/analytics/answer/13486733?hl=ja">[UA→GA4] 移行ガイド: 初心者向け - アナリティクス ヘルプ</a></li>
+</ul>
+
+<p>この状態でUA、GA4両方のプロパティにデータが送られる状態になってました。</p>
+
+<p>7月でUAの方のデータは停止しましたが、古いタグのままでもGA4にはデータが送られている状態。</p>
+
+<p>このままでも良さそうですが、UA側はもう使えないのでちゃんとGA4のプロパティのタグを導入。</p>
+
+<p>アナリティクスの管理画面上で、該当のプロパティの</p>
+
+<p><strong>管理</strong><i class="fa fa-arrow-right"></i><strong>プロパティ</strong><i class="fa fa-arrow-right"></i><strong>データストリーム</strong><i class="fa fa-arrow-right"></i><code>&lt;該当のストリーム名&gt;</code><i class="fa fa-arrow-right"></i><strong>タグの実装手順を表示する</strong></p>
+
+<p>へ行くと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="cm">&lt;!-- Google tag (gtag.js) --&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">async</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://www.googletagmanager.com/gtag/js?id=&lt;測定ID&gt;&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">window</span><span class="p">.</span><span class="nx">dataLayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">dataLayer</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">[];</span>
+</span><span class="line"><span class="w">  </span><span class="kd">function</span><span class="w"> </span><span class="nx">gtag</span><span class="p">(){</span><span class="nx">dataLayer</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);}</span>
+</span><span class="line"><span class="w">  </span><span class="nx">gtag</span><span class="p">(</span><span class="s1">&#39;js&#39;</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">());</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nx">gtag</span><span class="p">(</span><span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;測定ID&gt;&#39;</span><span class="p">);</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といったタグが得られるのでこれを参考に。</p>
+
+<p>とはいえ、以前のUAでもgtag.jsを使えるようになっているので、すでにgtagを使ってる場合はIDの部分を変えるだけでOK。</p>
+
+<p>analytics.jsを使ってる場合はGA4ではgtag.jsの上記のスクリプトに置き換えないといけません。</p>
+
+<h2 id="ページビューを取得するプラグインのアップデート">ページビューを取得するプラグインのアップデート</h2>
+
+<p>Jekyllでビルドする際にRubyの<a href="https://github.com/googleapis/google-api-ruby-client">google-api-client</a>
+を使ってましたが、
+これを
+<a href="https://github.com/googleapis/google-cloud-ruby/tree/main/google-analytics-data">google-analytics-data</a>
+を使う様に変更。</p>
+
+<p>とりあえず新しいAPIを使うための準備として、</p>
+
+<ul>
+  <li><a href="https://console.cloud.google.com/cloud-resource-manager">Google Cloud Console</a>での準備
+    <ul>
+      <li>他でもAPI関連で使ってるプロジェクトの中でサービスアカウントを追加し、作られたメールアドレスをメモしておく。</li>
+      <li>作ったサービスアカウントの<strong>キー</strong>からJSON形式の鍵を作成して鍵ファイルを入手。
+        <ul>
+          <li><a href="https://cloud.google.com/ruby/docs/reference/google-analytics-data/latest/AUTHENTICATION#creating-a-service-account">Ruby client library  Google Cloud</a></li>
+        </ul>
+      </li>
+      <li>Analyticsを有効にするため、プロジェクトでGoogle analytics Data APIを有効に。</li>
+    </ul>
+  </li>
+  <li><a href="https://analytics.google.com/analytics/web/#/">Analytics</a>での準備
+    <ul>
+      <li>該当するプロパティの<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>プロパティ設定</strong>などに行き、9桁のプロパティIDを取得。</li>
+      <li>該当するプロパティの<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>アカウントのアクセス管理</strong>で上で取得したメールアドレスを追加する(権限は<strong>閲覧者</strong>)。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>これで準備ができたので、
+google-analytics-dataを<code>gem install gogole-analytics-data</code>などでインストールして、
+テストコードを走らせてみます。</p>
+
+<p>Ref: <a href="https://cloud.google.com/ruby/docs/reference/google-analytics-data">Ruby client library Google Cloud</a></p>
+
+<figure class="code"><figcaption><span>get_page_view.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="ch">#!/usr/bin/env ruby</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;google/analytics/data&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span><span class="w"> </span><span class="nf">page_view</span><span class="p">(</span><span class="n">property_id</span><span class="p">,</span><span class="w"> </span><span class="n">credentials</span><span class="p">,</span><span class="w"> </span><span class="n">start_date</span><span class="p">,</span><span class="w"> </span><span class="n">end_date</span><span class="p">)</span>
+</span><span class="line"><span class="w">  </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">.</span><span class="n">analytics_data</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span class="line"><span class="w">      </span><span class="n">config</span><span class="o">.</span><span class="n">credentials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">credentials</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">RunReportRequest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class="line"><span class="w">    </span><span class="ss">property</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;properties/</span><span class="si">#{</span><span class="n">property_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">dimensions</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">Dimension</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pagePath&quot;</span><span class="p">)</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">metrics</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">Metric</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;screenPageViews&quot;</span><span class="p">)</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">date_ranges</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">DateRange</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">start_date</span><span class="p">:</span><span class="w"> </span><span class="n">start_date</span><span class="p">,</span><span class="w"> </span><span class="ss">end_date</span><span class="p">:</span><span class="w"> </span><span class="n">end_date</span><span class="p">)</span><span class="o">]</span>
+</span><span class="line"><span class="w">  </span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">run_report</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">response</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class="line"><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Page: </span><span class="si">#{</span><span class="n">row</span><span class="o">.</span><span class="n">dimension_values</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">, Page view: </span><span class="si">#{</span><span class="n">row</span><span class="o">.</span><span class="n">metric_values</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="n">page_view</span><span class="p">(</span><span class="s2">&quot;&lt;property_id&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&lt;key_file.json&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;30daysAgo&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;today&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じのテストコードを実行してみます。
+(<code>peoperty_id</code>と<code>key_file.json</code>を上で取得したアナリティクスのプロパティIDと保存した鍵ファイルへのパスへ変更。)</p>
+
+<p><code>RunReportRequest</code>で取得する際の設定として</p>
+
+<ul>
+  <li><code>dimensions</code>: <code>pagePath</code>を指定してページごとの値を取得</li>
+  <li><code>metrics</code>: <code>screenPageViews</code>で表示数を取得</li>
+  <li><code>date_ranges</code>: <code>30daysAgo</code>から<code>today</code>まで</li>
+</ul>
+
+<p><code>screenPageViews</code>以外にも色々取れるものは以下を参照。</p>
+
+<ul>
+  <li><a href="https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema?hl=en">API Dimensions &amp; Metrics  Google Analytics Data API  Google for Developers</a>
+    <ul>
+      <li>これは日本語版もありますが、日本語訳の際に変数名まで訳されて意味がわからなくなってるので英語版のほうが見やすい。</li>
+      <li><a href="https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema?hl=ja#metrics">API のディメンションと指標  Google Analytics Data API  Google for Developers</a></li>
+    </ul>
+  </li>
+</ul>
+
+<p>また、<code>date_ranges</code>のところで、以前のAPIだと指定の仕方も色々違いますが、
+値として
+<code>1 month ago</code>, <code>1 day ago</code>といった指定だったのに対してこのAPIでは<code>month</code>とか<code>year</code>とか<code>week</code>とかは使えずに全て<code>days</code>で
+<code>NdaysAgo</code>といった感じで指定するか、<code>yesterday</code>, <code>today</code>での指定、もしくは<code>YYYY-MM-DD</code>での直接日付指定をするようになっています。</p>
+
+<p>これで動いたら適当にこれを使ってプラグインなどを作ります。
+以下関連プラグインの変更点など。</p>
+
+<p><a href="https://github.com/rcmdnk/octopress-page-view/commit/a79c715ac0242dbb79311517efe671ad7755e110">feat: Update Google Analytics API V3-&gt;V4 in page_view.rb · rcmdnk/octopress-page-view@a79c715</a></p>
+
+<p><a href="https://github.com/rcmdnk/octopress-share-numbers/commit/94fed6ef68a991087073c31010251dbcf7393983">feat: update Google Analytics API v3 -&gt; v4 (following octopress-popul… · rcmdnk/octopress-share-numbers@94fed6e</a></p>
+
+<p><a href="https://github.com/rcmdnk/octopress-popular-posts/commit/9c7e364cda5af577d75a8c08c27a996e47b7c104">feat: update Google Analytics API v3 -&gt; v4 · rcmdnk/octopress-popular-posts@9c7e364</a></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150210_popularlist_120_90.jpg" width="120" height="90" alt="20150210_popularlist_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/">Google AnalyticsのView数を取ってきてランキングを作る</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[SlackでChatGPTによるWebページの要約を頼むコマンドをGoogle Apps Scriptで作る]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript/"/>
+    <updated>2023-03-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4862465099?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4862465099&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ydbPeMbxL._SS200_.jpg" alt="BERT/GPT-3/DALL-E 自然言語処理・画像処理・音声処理 人工知能プログラミング実践入門" /></a>
+</div>
+
+<p>OpenAIのAPIを使って
+SlackからWebページの要約を頼むコマンドを作ってみました。</p>
+
+<p>やりとりする場所として簡単に無料で使えるGoogle Apps Scriptを使っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#slack-gpt-url-summary-gas" id="markdown-toc-slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</a></li>
+  <li><a href="#設定方法" id="markdown-toc-設定方法">設定方法</a>    <ul>
+      <li><a href="#slack側" id="markdown-toc-slack側">Slack側</a></li>
+      <li><a href="#gas側" id="markdown-toc-gas側">GAS側</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#改善できそうなところ" id="markdown-toc-改善できそうなところ">改善できそうなところ</a>    <ul>
+      <li><a href="#プロンプト" id="markdown-toc-プロンプト">プロンプト</a></li>
+      <li><a href="#chunkの区切り方" id="markdown-toc-chunkの区切り方">chunkの区切り方</a></li>
+      <li><a href="#トークン数の計算" id="markdown-toc-トークン数の計算">トークン数の計算</a></li>
+      <li><a href="#要約の要約のやり方" id="markdown-toc-要約の要約のやり方">要約の要約のやり方</a></li>
+      <li><a href="#webページからのテキストの抽出" id="markdown-toc-webページからのテキストの抽出">Webページからのテキストの抽出</a></li>
+      <li><a href="#gpt-4" id="markdown-toc-gpt-4">gpt-4</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/slack-gpt-url-summary-gas"></div>
+
+<p>スクリプトは上のレポジトリにあります。</p>
+
+<p>やっていることは</p>
+
+<ul>
+  <li>Google Apps Script(GAS)でWeb appを作り、そのURLにSlackのSlashコマンドでURLを投げる。</li>
+  <li>Slashコマンドは3秒以内に返信がないとエラーになるので、一時的な返信を行い、一方でGASの中で別途実行トリガーをかける。</li>
+  <li>トリガーで実行するジョブの中でOpenAI APIを使ってChatGPT (gpt-3.5-turbo)に受け取ったURLのページのテキストの要約を作るよう頼む。
+    <ul>
+      <li>トークンの制限のため、一気に全部読ませることができないので、適当に区切ってそれらの要約を作らせ、さらに最後に作った要約から全体の要約を作らせる。</li>
+    </ul>
+  </li>
+  <li>できた要約をIncoming Webhookを使ってSlackに投げる。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>Slashコマンドの3秒ルールのため直接返信を返せないのでGASでちょっと工夫が必要です。</p>
+
+<h2 id="設定方法">設定方法</h2>
+
+<h3 id="slack側">Slack側</h3>
+
+<ul>
+  <li>新しいSlashコマンドを作る
+    <ul>
+      <li><a href="https://api.slack.com/apps">Slack API</a>のページから<strong>Create New App</strong>:
+        <ul>
+          <li>From scarchを選んで
+            <ul>
+              <li><strong>App Name</strong>は適当に<strong>Web summary by ChatGPT</strong>とか。</li>
+              <li>インストール先のworkspaceを選ぶ。</li>
+            </ul>
+          </li>
+          <li><del>新しい<a href="https://slack.com/services/new/incoming-webhook">Incoming Webhook</a>を作る。</del>
+            <ul>
+              <li><del>左にあるリンクの中から<strong>Incoming Webhook</strong>へ。</del></li>
+              <li><del><strong>Add New Webhook to Workspace</strong>をクリックし、返信先のチャンネルを設定して、作ったWebhook URLをメモしておく。</del></li>
+              <li>Slashコマンドが送る<code>response_url</code>を使うことで問い合わせたチャンネルに直接返すように変更。
+                <ul>
+                  <li><a href="https://api.slack.com/interactivity/slash-commands">Enabling interactivity with Slash Commands  Slack</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>新しいSlashコマンドを作る。
+            <ul>
+              <li>左のリンクの中から<strong>Slash Commands</strong>のリンクへ飛ぶ。
+                <ul>
+                  <li>Command名は<code>web_sum</code>とか。日本語版では3行の箇条書きでまとめて、ということにしてるので個人的には<code>sangyo</code>というコマンド名にしてます。</li>
+                  <li><strong>Request URL</strong>は後でGASの設定が終わったら入れるのでとりあえずdummyで<strong>https://example.com</strong>とか。</li>
+                  <li><strong>Short description</strong>も適当に<strong>Summarize web page.</strong>とか。</li>
+                  <li><strong>Usage Hint</strong>には<code>URL</code>と。</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>できたら<strong>Install your app</strong>からインストール先のworkspaceにインストール。</li>
+          <li>このページはあとでも使うのですぐにSlashコマンドの編集が出来るように開いたままにしておいた方が楽。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>Incoming Webhookはアプリの中でも作れるのでそっちを使う。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p>Slash commandの<code>response_url</code>を使うのでWebhookのURLはいらないように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>これで<code>/web_sum</code>とかのコマンドがSlackで使えるようになっているはずです。</p>
+
+<h3 id="gas側">GAS側</h3>
+
+<ul>
+  <li><a href="https://script.google.com/home">Goole Apps Script Home</a>から新しいプロジェクトを作成。</li>
+  <li>ライブラリの右にある<code>+</code>ボタンを押して以下のスクリプトIDのライブラリの追加:
+    <ul>
+      <li>Cheerio: <code>1ReeQ6WO8kKNxoaA_O0XEQ589cIrRvEBA9qcWpNqdOP17i47u6N9M5Xh0</code></li>
+    </ul>
+  </li>
+  <li><strong>slack-gas-url</strong>, <strong>params</strong>, <strong>secrets</strong>というスクリプトファイルを作る。</li>
+  <li>上のレポジトリの同じ名前のファイルからそれぞれ内容をコピペ。</li>
+  <li><strong>params.gs</strong>の編集:
+    <ul>
+      <li>受け答えを英語にしたい場合には<code>lang</code>を<strong>en</strong>に変更。</li>
+      <li><code>prompt</code>や返信文も必要であればよしなに変更。</li>
+      <li><code>chunkLength</code>と<code>overlap</code>の調整:
+        <ul>
+          <li>とりあえず最初はデフォルトのままで良いはず。</li>
+          <li>必要であれば調整。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>歯車ボタンからプロジェクトの設定ページへ:
+    <ul>
+      <li>ページ下にあるプロパティの設定で新しく値を追加
+        <ul>
+          <li>名前: <code>OPENAI_API_KEY</code>, 値は https://platform.openai.com/account/api-keys からOpenAIのAPI Keyを取得</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>できたら上の方にある<strong>デプロイ</strong>ボタンから<strong>新しいデプロイ</strong>へ。
+    <ul>
+      <li>左の<strong>種類の選択</strong>から<strong>ウェブアプリ</strong>を選択。</li>
+      <li><strong>説明</strong>には適当に(空欄でもとりあえずはOK)。</li>
+      <li><strong>次のユーザーとして実行</strong>は<strong>自分</strong>。</li>
+      <li><strong>アクセスできるユーザー</strong>は**全員。</li>
+      <li>設定したら<strong>デプロイ</strong></li>
+      <li><strong>ウェブアプリ</strong>のURLが出てくるのでこれをコピー。</li>
+      <li>コピーしたものを上で作ったSlackのSlashコマンドの<strong>Request URL</strong>に入れる。</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p><strong>OPENAI_API_KEY</strong>をプロパティで管理するように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="使い方">使い方</h2>
+
+<p>これでSlackで<code>/web_sum</code>とか自分で決めた名前のコマンドが使えるようになっているはずなので、</p>
+
+<pre><code>/web_sum https://ja.wikipedia.org/wiki/ChatGPT
+</code></pre>
+
+<p>とか打ってみます。</p>
+
+<p>そうするとすぐにアプリから返信が来ますが、そこからしばらく待ちます。
+数分すると、要約がコマンドを打ったチャンネルに送られてきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230326_slackreply.png" alt="20230326_slackreply.png" class="pic" /></p>
+
+<h2 id="改善できそうなところ">改善できそうなところ</h2>
+
+<h3 id="プロンプト">プロンプト</h3>
+<p>主には
+<a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/main/params.gs">params.gs</a>で設定しているパラメーターですが、
+プロンプトに関しては、<strong>あなたは優秀な編集者です</strong>とか役を指定したほうがもっとうまくいったりするかもしれません。</p>
+
+<p>その辺のよりよりプロンプトがあればPull Request出してくれたり何かしらで教えていただけるとありがたいです。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>最初は<code>user</code>のroleで指示出しも要約用のコンテンツも送っていましたが、
+せっかくChat.Completionの
+<code>system</code>というroleで役割を与えて<code>user</code>が与えるコンテンツを要約するように変更。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/commit/9bc17f113cb442e48a75fdf5da6a2866487e3345">feat: use system role, change variable prompet to system · rcmdnk/slack-gpt-url-summary-gas@9bc17f1</a></p>
+  </blockquote>
+
+  <p>promptで文章の場所とかを指定しなくて良い分スッキリとできます。
+返信内容はそれほど変わりないような。<code>system</code>の部分が通常の<code>user</code>として与えるものと何が違うのか、ちょっと理解してないです。。</p>
+
+  <p>ついでに<strong>優れた編集者</strong>とか追加してみたりもしましたがそれでもあまり違いはありませんでした。</p>
+
+  <blockquote>
+    <p><a href="https://platform.openai.com/docs/guides/chat">Chat completion - OpenAI API</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="chunkの区切り方">chunkの区切り方</h3>
+
+<p>後は長文の要約を上に書いたように細切れのchunkに分けて、その要約を集めてきて要約の要約、みたいなことをしているのですが、
+これを作る際のテキストの区切り方の工夫はいくらでもやりようがあるかとは思います。</p>
+
+<p>現状では単に文字数で区切ってます。
+単に文字数なので単語の途中とかで切れることもありますが、句切れ部分の意味を保つために<code>overlap</code>のパラメータ分の文字数を前後のchunk両方に含めて、どちらかでは完全な文レベルで残っているようにしています。</p>
+
+<p>これも長くしすぎればchunkの数が増えて時間もコストもかかりますが結構適当に設定してあります。</p>
+
+<h3 id="トークン数の計算">トークン数の計算</h3>
+
+<p>また、chunkの長さは<code>chunkLength</code>で3000としていますが、現在ChatGPT (gpt-3.5-turbo)はAPIでトークン数で4096の制限があります。
+この数はpromptとchunkの文章、さらには返信の要約文を合わせたものから計算されます。</p>
+
+<p>トークンは英語だと単語数の3/4程度ですが、日本語だと文字数の数10%増しな感じの量になります。</p>
+
+<blockquote>
+  <p><a href="https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them">What are tokens and how to count them?  OpenAI Help Center</a></p>
+</blockquote>
+
+<p>なので日本語のために一旦3000とかにしてありますが、英語のページならもっと大きくした方が
+各chunkの要約の精度が上がるかもしれませんし、問い合わせの回数は減るのでcostと実行時間は確実に減ります。</p>
+
+<p>この部分はGASでトークン数をぱっと調べるのが面倒そうだったので一旦適当にやってますが、
+真面目にトークン数を計算するようにすればもうちょっとギリギリを攻めることも出来ます。</p>
+
+<p>GASのライブラリはまだないと思いますが、
+Node.jsだと<a href="https://github.com/latitudegames/GPT-3-Encoder">GPT-3-Encoder</a>というライブラリで見積もり事はできそう。
+Pythonのパッケージの
+<a href="https://github.com/openai/tiktoken">tiktoken</a>
+のIssueで<a href="https://github.com/openai/tiktoken/issues/22">NPM packageは出さないか?</a>という議題は出てます。</p>
+
+<h3 id="要約の要約のやり方">要約の要約のやり方</h3>
+
+<p>現在は各chunkの要約も最後の要約も同じpromptを使って同じように要約させています。</p>
+
+<p>これに関しては、最初の要約は少し長めにして、最後はぎゅっとまとめるようなことも考えられるかと思います。</p>
+
+<p>単に関数別に作るのが面倒だったので同じにしてあるだけです。。。</p>
+
+<h3 id="webページからのテキストの抽出">Webページからのテキストの抽出</h3>
+
+<p>Webページからのテキスト抽出は
+Cheerioというライブラリを用いて行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798064742?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798064742&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FYffSOBcS._SS90_CR0,0,120,90_.jpg" alt="詳解! Google Apps Script完全入門 [第3版]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/25/computer-google-javascript/">Google Apps Script (GAS)でHTML解析</a></div></li></ul>
+
+<p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/f04d8c9d6d6f252fa7369c178df3d7075d81a8ae/slack-gpt-url.gs#L1">extractMainContent</a>の中で、
+まず<code>div</code>要素で、<code>main</code>, <code>main-article</code>, <code>article-body</code>などといったクラスのものを見つけてそれらがあればその要素の中身を、
+何も無ければ<code>body</code>要素の中身(もしそれもなければHTML全体)からテキストの抽出を行っています。</p>
+
+<p>この辺はウェブサイトを絞ればもっといい感じに抜き出せると思いますが、
+汎用的な感じだとこんな感じで適当に思いつくメインっぽいものを取ってますが
+これももっと良い方法があれば教えて欲しいところだったりします。</p>
+
+<h3 id="gpt-4">gpt-4</h3>
+
+<p>gpt-4が使えればトークン制限が大幅に大きくなるので大概のページが一気に読み込ませられそうです。
+それであれば要約ももっといい感じに出来るのではないか、と。
+(まだwaiting list中…)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Google Apps Script (GAS)でHTML解析]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/25/computer-google-javascript/"/>
+    <updated>2023-03-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/25/computer-google-javascript</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798064742?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798064742&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FYffSOBcS._SS200_.jpg" alt="詳解! Google Apps Script完全入門 [第3版]" /></a>
+</div>
+
+<p>Google Apps Scriptで使えるHTMLを解析しようとしたときに調べた
+ライブラリなどについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#cheeriojs" id="markdown-toc-cheeriojs">cheeriojs</a></li>
+  <li><a href="#parser" id="markdown-toc-parser">Parser</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="cheeriojs">cheeriojs</h2>
+
+<div class="github-widget" data-repo="tani/cheeriogs"></div>
+
+<ul>
+  <li>Script ID: <code>1ReeQ6WO8kKNxoaA_O0XEQ589cIrRvEBA9qcWpNqdOP17i47u6N9M5Xh0</code></li>
+</ul>
+
+<p>Node.jsでjQueryのようにHTMLを扱える
+<a href="https://github.com/cheeriojs/cheerio">cheerio</a>
+をGoogle Apps Scriptで使えるようにしたもの。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span><span class="w"> </span><span class="nx">testCheerio</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">html</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">UrlFetchApp</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">).</span><span class="nx">getContentText</span><span class="p">();</span>
+</span><span class="line"><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">$</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">Cheerio</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">html</span><span class="p">);</span>
+</span><span class="line"><span class="w">  </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;body&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">());</span>
+</span><span class="line"><span class="w">  </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;h1&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">());</span>
+</span><span class="line"><span class="w">  </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span><span class="w"> </span><span class="nx">elm</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">    </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">text</span><span class="p">());</span>
+</span><span class="line"><span class="w">  </span><span class="p">});</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで使えます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">
+</span><span class="line">
+</span><span class="line">    Example Domain
+</span><span class="line">    This domain is for use in illustrative examples in documents. You may use this
+</span><span class="line">    domain in literature without prior coordination or asking for permission.
+</span><span class="line">    More information...
+</span><span class="line">
+</span><span class="line">    Example Domain
+</span><span class="line">    This domain is for use in illustrative examples in documents. You may use this
+</span><span class="line">    domain in literature without prior coordination or asking for permission.
+</span><span class="line">    More information...
+</span><span class="line">---
+</span><span class="line">  Example Domain
+</span><span class="line">---
+</span><span class="line">  This domain is for use in illustrative examples in documents. You may use this
+</span><span class="line">    domain in literature without prior coordination or asking for permission.
+</span><span class="line">---
+</span><span class="line">  More information...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>もとのcheerioの方も含めてドキュメントが余りない感じですが、
+jQueryっぽく使えるという前提と、コード自体は公開されているので後は頑張って見ればどのように使えるか分かります。</p>
+
+<p>上の<code>each</code>のループとかは下のSlack Overflowに例がありました。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/27430267/cheeriojs-looping-through-ul-with-same-class-name">node.js - CheerioJS, looping through &lt;ul&gt; with same class name - Stack Overflow</a></p>
+</blockquote>
+
+<p>jQueryっぽく使えるということで、HTMLの解析としては一通り何でもできそうで十分な感じがします。</p>
+
+<h2 id="parser">Parser</h2>
+
+<ul>
+  <li>Script ID: <code>1Mc8BthYthXx6CoIz90-JiSzSafVnT6U3t0z_W3hLTAX5ek4w0G_EIrNw</code></li>
+</ul>
+
+<p>Parserは日本語でGASでスクレイピング、的なことを検索するとよく出てくるんですが、
+もとのコードは見つけられません。
+そもそもこのIDの出どころが結局よくわからなかい。。。</p>
+
+<p>おそらくGitHubなどには後悔しない状態でライブラリとしてGASで公開しているだけなので
+コードは見えない状態なのかとおもいますが、
+使い方も基本的に誰かが使ってるのを見て知るしかない状態です。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="js"><span class="line"><span></span><span class="kd">function</span><span class="w"> </span><span class="nx">testParser</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">html</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">UrlFetchApp</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">).</span><span class="nx">getContentText</span><span class="p">();</span>
+</span><span class="line"><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">Parser</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="nx">html</span><span class="p">);</span>
+</span><span class="line"><span class="w">  </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;&lt;body&gt;&#39;</span><span class="p">).</span><span class="nx">to</span><span class="p">(</span><span class="s1">&#39;&lt;/body&gt;&#39;</span><span class="p">).</span><span class="nx">build</span><span class="p">());</span>
+</span><span class="line"><span class="w">  </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;&lt;h1&gt;&#39;</span><span class="p">).</span><span class="nx">to</span><span class="p">(</span><span class="s1">&#39;&lt;/h1&gt;&#39;</span><span class="p">).</span><span class="nx">build</span><span class="p">());</span>
+</span><span class="line"><span class="w">  </span><span class="nx">data</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">&#39;&lt;p&gt;&#39;</span><span class="p">).</span><span class="nx">to</span><span class="p">(</span><span class="s1">&#39;&lt;/p&gt;&#39;</span><span class="p">).</span><span class="nx">iterate</span><span class="p">().</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">){</span>
+</span><span class="line"><span class="w">    </span><span class="nx">Logger</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">x</span><span class="p">);</span>
+</span><span class="line"><span class="w">  </span><span class="p">});</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>似たようなことをやろうとするとこんな感じ。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">
+</span><span class="line">&lt;div&gt;
+</span><span class="line">&lt;h1&gt;Example Domain&lt;/h1&gt;
+</span><span class="line">&lt;p&gt;This domain is for use in illustrative examples in documents. You may use this
+</span><span class="line">domain in literature without prior coordination or asking for permission.&lt;/p&gt;
+</span><span class="line">&lt;p&gt;&lt;a href="https://www.iana.org/domains/example"&gt;More information...&lt;/a&gt;&lt;/p&gt;
+</span><span class="line">&lt;/div&gt;
+</span><span class="line">---
+</span><span class="line">Example Domain
+</span><span class="line">---
+</span><span class="line">This domain is for use in illustrative examples in documents. You may use this
+</span><span class="line">domain in literature without prior coordination or asking for permission.
+</span><span class="line">---
+</span><span class="line">&lt;a href="https://www.iana.org/domains/example"&gt;More information...&lt;/a&gt;</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ただし、Parserの方はあくまで<code>from</code>も文字列から<code>to</code>の文字列までを切り取る、
+といったことをするだけっぽいので、テキストだけを抜き出したい場合にはさらに手を加える必要がある部分も出てきます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Google Apps ScriptでHTMLを解析したい場合は
+cheeriogsが便利です。</p>
+
+<p>一方で、Google Apps Scriptはスクリプトをライブラリとして簡単に共有して
+IDだけ知っていれば使えるという点があるのですが、
+中で何をしているのかわからないと使い方がわからない上に情報を抜き出されたり危険なこともあります。</p>
+
+<p>Parserはおそらく問題は無くてもうちょっと真面目に探せば出てくるのかと思いますが結局
+もとに辿り着けなかったんですが誰か知っていたら教えてください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Google Apps Script(GAS)を使ってSlackをSheetsにバックアップする]]></title>
+    <link href="https://rcmdnk.com/blog/2022/08/11/computer-google-slack/"/>
+    <updated>2022-08-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/08/11/computer-google-slack</id>
+    <content type="html"><![CDATA[<div class="app-img"><a href="//itunes.apple.com/jp/app/id618783545?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple112/v4/bf/50/a5/bf50a52e-76ec-3c47-5c4c-2ee6c21f3149/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/200x200bb.jpg" alt="Slack" /></a></div>
+
+<p>Slackが今年の9月から無料プランだと90日より前のメッセージが見れなくなってしまう、ということで
+過去のメッセージをバックアップするシステムをGoogle Apps Scriptを使って作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#slackの個人的な使い方" id="markdown-toc-slackの個人的な使い方">Slackの個人的な使い方</a></li>
+  <li><a href="#google-apps-scriptでやる訳" id="markdown-toc-google-apps-scriptでやる訳">Google Apps Scriptでやる訳</a></li>
+  <li><a href="#slack-gas" id="markdown-toc-slack-gas">Slack-gas</a></li>
+  <li><a href="#定期的な実行" id="markdown-toc-定期的な実行">定期的な実行</a></li>
+  <li><a href="#slack-gasのパラメーター設定" id="markdown-toc-slack-gasのパラメーター設定">Slack-gasのパラメーター設定</a>    <ul>
+      <li><a href="#time_zone" id="markdown-toc-time_zone">TIME_ZONE</a></li>
+      <li><a href="#save_message_json" id="markdown-toc-save_message_json">SAVE_MESSAGE_JSON</a></li>
+      <li><a href="#full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage" id="markdown-toc-full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage">FULL_CHECK/COVERAGE/CHECK_THREAD_TS_IN_SHEET/THREAD_TS_COVERAGE</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他作ってるときに気づいたことやよくわからなかったこと" id="markdown-toc-その他作ってるときに気づいたことやよくわからなかったこと">その他作ってるときに気づいたことやよくわからなかったこと</a>    <ul>
+      <li><a href="#slack-apiのconversations中心への移行" id="markdown-toc-slack-apiのconversations中心への移行">Slack APIの<code>conversations</code>中心への移行</a></li>
+      <li><a href="#bot-oauth-token" id="markdown-toc-bot-oauth-token">Bot OAuth Token</a></li>
+      <li><a href="#scopesの削除は出来ない" id="markdown-toc-scopesの削除は出来ない">Scopesの削除は出来ない?</a></li>
+      <li><a href="#スレッドの取得" id="markdown-toc-スレッドの取得">スレッドの取得</a></li>
+      <li><a href="#user情報" id="markdown-toc-user情報">User情報</a></li>
+      <li><a href="#message情報内のtext" id="markdown-toc-message情報内のtext">message情報内の<code>text</code></a></li>
+      <li><a href="#実体のないfilesの情報" id="markdown-toc-実体のないfilesの情報">実体のないfilesの情報</a></li>
+      <li><a href="#ダウンロードファイルのblob" id="markdown-toc-ダウンロードファイルのblob">ダウンロードファイルのBlob</a></li>
+      <li><a href="#google-driveのfolderのremovefileメソッドの罠" id="markdown-toc-google-driveのfolderのremovefileメソッドの罠">Google DriveのFolderのremoveFileメソッドの罠</a></li>
+      <li><a href="#sheetsでの桁落ち問題" id="markdown-toc-sheetsでの桁落ち問題">Sheetsでの桁落ち問題</a></li>
+      <li><a href="#sheets内にリンクを書き込みたい" id="markdown-toc-sheets内にリンクを書き込みたい">Sheets内にリンクを書き込みたい</a></li>
+      <li><a href="#リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題" id="markdown-toc-リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題">リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="slackの個人的な使い方">Slackの個人的な使い方</h2>
+
+<p>バックアップを取るにしても使い方によって欲しいものが違うと思いますが、個人的には
+ちょっとしたメモ代わりに使っている感じです。</p>
+
+<p>ちゃんとしたメモはEvernoteに。</p>
+
+<p>あとは適当にbotとかにつぶやかせてるものもあったりします。</p>
+
+<p>自分で管理しているのは個人のWorkspaceだけで、無料版で人間ユーザーは自分だけ、という状態です。</p>
+
+<p>なので過去のメッセージが消されてしまってもそれほど問題ないのですが、
+たまにちゃんとメモに残してなかったものをSlackから探したりすることもあるので残ってたら便利だな、程度のもの。</p>
+
+<h2 id="google-apps-scriptでやる訳">Google Apps Scriptでやる訳</h2>
+
+<p>お金払ってやるなら単にSlackに課金すれば良いので、無料で出来る環境を作ります。</p>
+
+<p>無料で定期的にタスクを実行できる環境、となるとHerokuの無料枠とか今ならGitHub Actionsとかも便利だったりしますが、
+Google Apps Scriptも無料で定期的なタスクの実行が可能です。</p>
+
+<p>また、保存先としても、個人的なメインクラウドストレージがGoogle Driveなのでそれに繋げやすいというメリットもあります。</p>
+
+<p>難しい点としてはGoogle Apps Scriptの1つのジョブの実行時間には<a href="https://developers.google.com/apps-script/guides/services/quotas">6分の時間制限</a>があるので
+Slackに大量のメッセージがある場合は処理が一回では終わらない可能性があります。</p>
+
+<p>下にまた書きますが、自分の使い方だとそれほどメッセージの量がないので(数千程度)何回か手動で実行すれば全部詳しいメッセージ情報が取れたのでこれで良いか、という感じですが、
+大量にあるとGoogle Apps Scriptだけでは取り切るのが辛いので別の環境でちょっと改造してNodeでやるとか、Pythonで書き直して作るとかして、少なくとも最初のバックアップは別の環境で行う必要が出てくるかもしれません。</p>
+
+<p>GASでSlackのバックアップを取る、といったものもいくつか見当たりましたが、
+古くて使えなかったり、微妙に動かなかったりしたので、
+自分の欲しい情報を保存出来るように作ってみました。</p>
+
+<h2 id="slack-gas">Slack-gas</h2>
+
+<p>ということで以下のようなスクリプトを作りました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Slack-gas"></div>
+
+<p>使い方としては、まずSlack側:</p>
+
+<ul>
+  <li><a href="https://api.slack.com/apps?new_app=1">Slack API</a>のページから
+    <ul>
+      <li><strong>Create New App</strong><i class="fa fa-arrow-right"></i><strong>From Scratch</strong>で新しいアプリを作成。</li>
+      <li><strong>OAuth &amp; Permissions</strong>に行って、下の方にある<strong>Scopes</strong>でスコープを追加。
+        <ul>
+          <li>以下の<strong>User Token Scopes</strong>を追加:
+            <ul>
+              <li><code>channels:history</code>, <code>channels:read</code>: パブリックチャンネルを読む場合</li>
+              <li><code>groups:history</code>, <code>groups:read</code>: プライベートチャンネルを読む場合</li>
+              <li><code>im:history</code>, <code>im:read</code>: ダイレクトメッセージを読む場合</li>
+              <li><code>mpim:history</code>, <code>mpim:read</code>: 複数人の入ったダイレクトメッセージを読む場合</li>
+              <li><code>users:read</code>: ユーザーリストの取得のため</li>
+              <li><code>files:read</code>: ファイルをダウンロードするため</li>
+            </ul>
+          </li>
+          <li>もしプライベートチャンネルやダイレクトメッセージは必要ない、ということであれば<code>group</code>や<code>im</code>, <code>mpim</code>などは加えなくてもOK。</li>
+        </ul>
+      </li>
+      <li><strong>OAuth &amp; Permissions</strong>の上の方で、<strong>Install to Workspace</strong>を実行して許可。</li>
+      <li><strong>User OAuth Token</strong>をコピー。</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>追記で加えましたがファイルを読み込むために<code>files:read</code>が必要です。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><strong>User Token Scopes</strong>の代わりに<strong>Bot Token Scopes</strong>で同様にスコープを追加して、<strong>Bot OAuth Token</strong>を使ってパブリック、プライベートチャンネルを読むことも出来ますが、BotにするとそのBotを必要なチャンネルに招待しないとメッセージが読めないので、個人用であれば<strong>User Token Scopes</strong>を使ってやるほうが楽です。</p>
+
+<p>また、もし複数人が使っているチャンネルですべてのDMとかも含めてバックアップしたい時は<code>admin</code>系のScopeを使って行う必要があります。</p>
+
+<p>次に、Google Apps ScriptをGoogle Sheetsの機能拡張として用意:</p>
+
+<ul>
+  <li>Google Driveに適当なフォルダを作り、その中にGoogle Sheetsを作る。</li>
+  <li>Google Sheetsの<strong>機能拡張</strong><i class="fa fa-arrow-right"></i><strong>Apps Script</strong>でApps Scriptを起動。</li>
+  <li><strong>main.gs</strong>、<strong>params.gs</strong>、<strong>secrets.gs</strong>の3つのスクリプトファイルを作り、上のレポジトリの各ファイルの内容をコピー。</li>
+  <li><strong>secrets.gs</strong>の<code>&lt;YOUR_SLACK_TOKE&gt;</code>を上で取得した<strong>User OAuth Token</strong>に置き換える。</li>
+</ul>
+
+<p>以上でとりあえずの準備完了。</p>
+
+<p>後は<strong>params.gs</strong>の中身を良しなに変更して実行します。</p>
+
+<p>実行は、<strong>main.gs</strong>を表示した状態で<code>run</code>関数を選んで<strong>実行</strong>ボタンを押してください。</p>
+
+<p>これで、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220811_slack.png" alt="20220811_slack.png" class="pic" /></p>
+
+<p>みたいなチャンネルのメッセージがあるとすると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220811_sheets.png" alt="20220811_sheets.png" class="pic" /></p>
+
+<p>みたいな感じでGoogle Sheetsに記録されます。
+(ここでは<code>SAVE_MESSAGE_JSON=true</code>に設定しています。)</p>
+
+<p>添付ファイルがある場合、<code>Files: ...</code>と言う形でファイル名にリンクが付いた状態で表示されます。
+このファイルはGoogle Driveの中のこのGoogle Sheetsがあるフォルダー内の<code>&lt;channel name&gt;/files</code>フォルダーの中に保存されています。</p>
+
+<p>また、<code>SAVE_MESSAGE_JSON=true</code>とすると、APIでとってきた元の情報をJSON形式でDriveに保存するようになり、
+<code>UnixTime</code>カラムのメッセージのUnixTimeがリンクになり、そのリンク先がJSONファイルになります。
+このファイルはGoogle Driveの中のこのGoogle Sheetsがあるフォルダー内の<code>&lt;channel name&gt;/messages</code>フォルダーの中に保存されています。</p>
+
+<p>スレッドがある場合は<code>ThreadTS</code>カラムにそのスレッドが開始された時間(UnixTime)が記録され、それが同じものが同一スレッド内にあることが分かります。(<code>UnixTime</code>カラムが一番古いものがその親メッセージ。)</p>
+
+<p>もしメッセージが編集されると、<code>Edited</code>カラムに編集時間が記録されます。
+古いメッセージも編集前に取得されていれば記録は残ります。</p>
+
+<h2 id="定期的な実行">定期的な実行</h2>
+
+<p>動くことが確認でき、一定の初期取得が終了したら後は毎日スクリプトを走らせて自動で記録しておくようにします。</p>
+
+<p>Apps Scriptの時計ボタン(トリガー)へ行き、<strong>トリガーを追加</strong>から</p>
+
+<ul>
+  <li>実行する関数を選択: <code>run</code></li>
+  <li>実行するデプロイを選択j: <code>Head</code></li>
+  <li>イベントのソースを選択: <code>時間主導型</code></li>
+  <li>時間ベースのトリガーのタイプを選択: <code>日付ベースのタイマー</code></li>
+  <li>時刻を選択: <code>午前０時～１時</code> (GMT_09:00)</li>
+  <li>エラー通知設定: <code>毎日通知を受け取る</code></li>
+</ul>
+
+<p>と言った感じでトリガーを追加します。</p>
+
+<p>これで毎日深夜にSlackをSheetsにバックアップします。</p>
+
+<h2 id="slack-gasのパラメーター設定">Slack-gasのパラメーター設定</h2>
+
+<p><strong>params.gs</strong>の中で設定できるパラメーターがいくつかありますが、特に重要な項目として以下のものを考慮していただければ、と。</p>
+
+<h3 id="time_zone">TIME_ZONE</h3>
+
+<p>デフォルトでは<code>null</code>になっていて、そのままだとApps Scriptで設定されたタイムゾーンが使われます。
+(Apps Scriptの歯車マーク(プロジェクの設定)内で設定されているもの。)</p>
+
+<p>日本で使っていてもこれが日本標準時になっていない場合もあるので、とりあえず日本なら</p>
+
+<pre><code>const TIME_ZONE = 'Asia/Tokyo';
+</code></pre>
+
+<p>と設定しておくと必ず日本時間になおして時刻を表示してくれるようになります。</p>
+
+<h3 id="save_message_json">SAVE_MESSAGE_JSON</h3>
+
+<p><code>SAVE_MESSAGE_JSON = true</code>とすると元の情報が残るのでこのスクリプトによって十分情報が取り出せてない場合に後から確認できて便利です。</p>
+
+<p>ただ、これを<code>true</code>にしてしまうと実行にかなり時間がかかるようになり、6分の時間制限だと多くて100くらいのメッセージしか取れません。</p>
+
+<p>なので、少なくとも最初の実行では、よほどのことが無い限り<code>SAVE_MESSAGE_JSON = false</code>で実行することをお勧めします。</p>
+
+<p>Slackの<a href="https://slack.com/intl/ja-jp/help/articles/204897248-Slack-%E3%81%AE%E3%82%A4%E3%83%B3%E3%83%9D%E3%83%BC%E3%83%88-%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88%E3%81%AE%E6%89%8B%E6%AE%B5">エクスポート機能</a>があるので、現時点でのすべての記録はこれで一回取っておけばよいかと。</p>
+
+<p>毎日の投稿が数十位であれば<code>SAVE_MESSAGE_JSON = true</code>にしてトリガージョブを実行しても良いかと思います。</p>
+
+<h3 id="full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage">FULL_CHECK/COVERAGE/CHECK_THREAD_TS_IN_SHEET/THREAD_TS_COVERAGE</h3>
+
+<p><code>FULL_CHECK = false</code>とすると、各チャンネルの最後に記録されたものより後のメッセージだけを確認するようになります。</p>
+
+<p>ここでちょっと注意が必要で、このチェックはスレッド内のメッセージとは別なので、
+もし、スレッドの最初のメッセージがチェックされないと、スレッド内に新しいメッセージがあったとしても記録されません。</p>
+
+<p>なのでスレッドをよく使う場合は<code>FULL_CHECK = true</code>にすることをお勧めします。</p>
+
+<p>よほど大量のメッセージがある場合を除いて
+<code>true</code>にしてもそれほど大きく実行時間は変わりません。
+(現時点で過去何年分ものメッセージが大量にある場合は最初の実行以降、<code>false</code>にした方が良いかもしれません。)</p>
+
+<p>また、<code>COVERAGE</code>を使ってメッセージを過去どこまで遡って見るか、を設定することもできます。
+これは秒数なので<code>2592000</code> (<code>60*60*24*30</code>)なら約1ヶ月分だけをチェックすることになります。</p>
+
+<p>1年なら<code>31536000</code> (閏年を含むなら<code>31622400</code>)。</p>
+
+<p>もし現時点で過去何年分もの大量のメッセージがあって、そこまで昔のものは必要ない(もしくはエクスポートしたものだけでとりあえずは良い)という場合は適当な時間を設定してください。</p>
+
+<p><code>FULL_CHECK = true</code>としてもこの<code>COVERAGE</code>の時間までしか遡って取得しません。</p>
+
+<p>もし90日以上続くような長いスレッドがあるような場合は、無料で90日制限がかかると
+そもそもメッセージが取れないので、スレッドが残っていてもそのスレッドの新しいメッセージを取得できなくなります。</p>
+
+<p>この場合、スレッドごと消えてしまうんでしょうか？それとも古いものは削除された形で見れる？</p>
+
+<p>仮にスレッド自体は残る場合、
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>にしておくと、すでに取得したメッセージが取得時点でスレッドを持っていれば
+そのスレッドをチェックする様にしてあるのでスレッド内の新しいメッセージも取得できるようになります。</p>
+
+<p>もし、90日以上続くような長いスレッドを作るような場合は
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>にして、確認するスレッドの期限を<code>THREAD_TS_COVERAGE = 31536000</code>みたいな感じで1年位にしておくとかにすると良いかと思います。</p>
+
+<h2 id="その他作ってるときに気づいたことやよくわからなかったこと">その他作ってるときに気づいたことやよくわからなかったこと</h2>
+
+<p>以下は作ってるときに気づいたことやよくわからなかったことなので、自分で作ってみようと思う人は参考にしていただければ、と。</p>
+
+<h3 id="slack-apiのconversations中心への移行">Slack APIの<code>conversations</code>中心への移行</h3>
+
+<p>2018年なので結構前ですが、それまではプライベート、パブリックチャンネルなど、それぞれでAPIのメソッドが違ったものを、<code>conversations</code>というメソッドで統一してパラメーターでスコープを変更できるようになりました。</p>
+
+<blockquote>
+  <p><a href="https://api.slack.com/changelog/2018-09-more-reasons-to-be-a-conversations-api-convert">The Conversations API is required to work with channels consistently  Slack</a></p>
+</blockquote>
+
+<p>この辺、検索すると未だに古いメソッドを使っているものも結構あるので
+<a href="https://api.slack.com/methods">SlackのAPI methodsページ</a>などを確認して
+<code>Deprecated</code>なものは使わず新しいものを使うように。</p>
+
+<h3 id="bot-oauth-token">Bot OAuth Token</h3>
+
+<p>大概のSlack Appの紹介だと<strong>Bot OAuth Token</strong>を使った方法が紹介されていますが、
+上にも書いたようにこれだと作ったApp(Bot)を各チャンネルに招待しないと、
+APIが</p>
+
+<pre><code>{error=not_in_channel, ok=false}
+</code></pre>
+
+<p>といったエラーを返します。</p>
+
+<p>個人用のWorkspaceであれば個人権限で見れるところを全部見て問題ないので
+今回の用法だと<strong>User OAuth Token</strong>を使った方が楽です。</p>
+
+<p>Scopesで<strong>User Token Scopes</strong>だけを設定しても<strong>Bot OAuth Token</strong>も発行されるので、
+そちらをコピーしてしまうと何も見れないので注意。</p>
+
+<h3 id="scopesの削除は出来ない">Scopesの削除は出来ない?</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>SlackのAPI設定のScopesのところで、一度あるScopeを加えて(Re)Install to Workspaceした後、
+そのScopeを外して再度Reinstall to Workspaceをしても外したScopeの権限も持っている様に振る舞います。</p>
+
+  <p>一度許可してしまった権限を狭めるためには新たなAppを作らないと駄目?</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="スレッドの取得">スレッドの取得</h3>
+
+<p>SlackのAPIでは<a href="https://api.slack.com/methods/conversations.history">conversations.history</a>
+というメソッドを使ってメッセージ一覧を取得できますが、
+スレッド内のメッセージに関しては
+<a href="https://api.slack.com/methods/conversations.replies">conversations.replies</a>
+という別のメソッドで取得する必要があります。</p>
+
+<p>この<code>conversations.replies</code>にはそのスレッドがあるチャンネルのIDのスレッドの開始時刻(最初のメッセージのタイムスタンプ)が入力として必要になります。</p>
+
+<p>チャンネル内の全てのメッセージの<code>ts</code>(タイムスタンプ)の値を取得しておいて、後から<code>replies</code>でチェックする事もできますが、
+スレッドがあるメッセージには<code>thread_ts</code>(スレッドの最初のメッセージでは<code>ts = thread_ts</code>)という値があるためこれ
+があるものだけを取得してスレッドを取得しに行った方が効率的です。</p>
+
+<p>過去のメッセージについたスレッドを探すような場合でも、事前にとっておいた<code>ts</code>に対して全て<code>conversations.replies</code>で試すより
+<code>conversations.replies</code>でもう一度全てのメッセージを取得して<code>thread_ts</code>を抜き出してからそれらに<code>replies</code>をかけたほうが効率的です。</p>
+
+<p>1つだけ、90日のメッセージ保持期限ぎりぎりの元メッセージがあり、それに対して新しいスレッドの返信がついたとすると、
+<code>thread_ts</code>が取得できないのでスレッドの新しい返信も取得できなくなります。</p>
+
+<p>この場合は記録された<code>ts</code>の値を使えばスレッド内の新しいメッセージを取得できる可能性はありますが、
+レアケースなのでとりあえずこのような状況は無視しています。</p>
+
+<p>メッセージ取得時点ですでにスレッドがあって、そのスレッドの親メッセージが90日より前になってしまっても、
+上に書いたように
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>としておけばSheetに記録された<code>thread_ts</code>を使ってスレッドをチェックできるようになっています。
+(ただ、Slackの仕様で仮にスレッドの親メッセージが古いとスレッドごと見れなくなる状態だとすると取得はできないかもしれません。)</p>
+
+<h3 id="user情報">User情報</h3>
+
+<p>通常のユーザーが書いたメッセージであれば
+<code>user</code>という値があり、ユーザーのIDが入っていて、
+<a href="https://api.slack.com/methods/users.list">users.list</a>メソッドを使って別途取ってきた<code>id</code>と<code>name</code>の対応を使って
+ユーザー名を取得することができます。</p>
+
+<p>Botが書いたものだと、代わりに<code>bot_id</code>という値が入っていて、これを使ってbot名を調べることが可能なのですが、
+<code>bots.list</code>みたいなメソッドは用意されていません。</p>
+
+<p>代わりに
+<a href="https://api.slack.com/methods/bots.info">bots.info</a>
+というメソッドがあって、これに対して<code>bot_id</code>を与えてあげるとそのbotの情報をくれて<code>name</code>で名前を調べられます。</p>
+
+<p>また、Botとは別に、Appによるメッセージ、というものもあって、これだと<code>user</code>や<code>bot_id</code>はなく、
+代わりに<code>username</code>という値でAppの名前が入っています。</p>
+
+<p>なんか全部に<code>username</code>を入れてくれれば良いのにと思ったり。。。</p>
+
+<h3 id="message情報内のtext">message情報内の<code>text</code></h3>
+
+<p>APIで取得した各メッセージの情報内には<code>text</code>という値があって、この中にメッセージテキストが入っています。
+Botの場合でも同様。</p>
+
+<p>ただ、Appによる場合は別で、<code>text: ''</code>な状態で、一方で<code>attachments</code>という値が入っています。
+この<code>attachments</code>の中に<code>text</code>という値があり、ここにAppによって書かれたメッセージが入っています。</p>
+
+<h3 id="実体のないfilesの情報">実体のないfilesの情報</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>メッセージに添付ファイルがある場合、APIで取得した各メッセージの情報内には<code>files</code>という値があって
+その中にダウンロード用のURLなどがありそれを使って添付ファイルをダウンロードすることが出来ます。</p>
+
+  <p>最初にやっていたときにはこの<code>files</code>は添付ファイル1つに対して1つ存在し、それらは必ず<code>url_private_download</code>という情報を持っていました。</p>
+
+  <p>が、その後使ってくれた人からも指摘して頂きましたが、自分で再度1つチャンネルを一度消して再取得してみると</p>
+
+  <figure class="code"><figcaption><span>message </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="p">{</span><span class="w"> </span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;message&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;A</span><span class="kc">tta</span><span class="err">chme</span><span class="kc">nts</span><span class="p">:</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="kc">f</span><span class="err">iles</span><span class="p">:</span>
+</span><span class="line"><span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;XXXXXXXXXXX</span><span class="p">,</span><span class="w"> </span><span class="err">mode</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">t</span><span class="err">ombs</span><span class="kc">t</span><span class="err">o</span><span class="kc">ne</span><span class="err">&#39;</span><span class="w"> </span><span class="p">},</span>
+</span><span class="line"><span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;YYYYYYYYYYY&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">na</span><span class="err">me</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;abc.</span><span class="kc">t</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">t</span><span class="err">i</span><span class="kc">tle</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;abc.</span><span class="kc">t</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">mime</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="err">/plai</span><span class="kc">n</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">f</span><span class="err">ile</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">pre</span><span class="kc">tt</span><span class="err">y_</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;プレーンテキスト&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">...</span>
+</span><span class="line"><span class="w">       </span><span class="err">mode</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;s</span><span class="kc">n</span><span class="err">ippe</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">...</span>
+</span><span class="line"><span class="w">       </span><span class="err">url_priva</span><span class="kc">te</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;h</span><span class="kc">tt</span><span class="err">ps</span><span class="p">:</span><span class="c1">//files.slack.com/files-pri/XXXXXXXXXXXXXXXXX/abc.txt&#39;,</span>
+</span><span class="line"><span class="w">       </span><span class="err">url_priva</span><span class="kc">te</span><span class="err">_dow</span><span class="kc">nl</span><span class="err">oad</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;h</span><span class="kc">tt</span><span class="err">ps</span><span class="p">:</span><span class="c1">//files.slack.com/files-pri/XXXXXXXXXXXXXXXXX/download/abc.txt&#39;,</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいな感じで、<code>url_private_download</code>だけでなく、<code>name</code>なども無い<code>id</code>と<code>mode</code>だけのものが存在していました。</p>
+
+  <p><code>mode</code>が<code>tombstone</code>ということなので削除されたファイルの<code>id</code>だけ記録として残している遺物の様です。
+実際ファイルを削除したメッセージを読んでみるとこうなりましたが、
+最初に自分の環境で出てきたメッセージでは特にファイルを削除したわけではなくもとからファイルが付いていたもので以前は<code>tombstone</code>はなかったはずなのですが。</p>
+
+  <p>現状メッセージを見てもファイルが削除されたとはなってないのですが、何か変更を加えたのかもしれません。
+もしくは、Slack側の事情で<code>tombstone</code>が生まれる事があるのかもしれません。</p>
+
+  <p>いずれにしろこれがあるとエラーで止まってしまう状況だったので
+<code>tombstone</code>の場合にはskipするようにしました。</p>
+
+  <p>恐らくそれ以外は<code>url_private_download</code>がちゃんとあるとは思うのですが、
+もしない場合にはwarningを出してskipするようにもしてあります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="ダウンロードファイルのblob">ダウンロードファイルのBlob</h3>
+
+<p>通常のサイトから何かファイルをダウンロードしてGoogle Driveに保存したい、となると、
+Apps Scriptでは</p>
+
+<pre><code>const folder = &lt;drive folder&gt;;
+const fileName = &lt;fileName&gt;;
+const url = &lt;url/of/file&gt;;
+const response = UrlFetchApp.fetch(url);
+let blob = response.getBlob();
+blob = blob.setName(fileName);
+const file = folder.createFile(blob);
+</code></pre>
+
+<p>みたいに、<code>fetch</code>したものから<code>blob</code>を取得して<code>createFile</code>に与えてファイルを作ります。</p>
+
+<p>こで普通にインターネットにあるファイルは保存出来るのですが、Slackの添付ファイルをこれで保存しようと思うとうまくいきません。</p>
+
+<p>メッセージ情報の中にある<code>url_private_download</code>という情報を使うので、まず、</p>
+
+<pre><code>const response = UrlFetchApp.fetch(url, {headers: Authorization: 'Bearer &lt;Token&gt;'});
+</code></pre>
+
+<p>の様にTokenを渡さないとアクセスエラーになりますが、これで取得したものに対して<code>blob</code>を取得してファイルを作ると中身はHTMLみたいな内容になっています。</p>
+
+<p>blobを使わず、</p>
+
+<pre><code>const folder = &lt;drive folder&gt;;
+const url = &lt;url/of/file&gt;;
+const response = UrlFetchApp.fetch(url, {headers: Authorization: 'Bearer &lt;Token&gt;'});
+const file = folder.createFile(response);
+</code></pre>
+
+<p>とすれば上手く行きます。ファイル名も添付ファイルの名前がそのまま使われるのでこれだけでOK。</p>
+
+<p>メッセージの中に情報として、<code>url_private_download</code>の他に<code>url_privaet</code>というURLもありますが、どちらを使っても同じでした。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>これも再度試してみたところ、<code>blob</code>の方法を使ってもちゃんとファイルが書き込めていました。</p>
+
+  <p>HTMLみたいなものが取得されていたのはScopeの問題(<code>files:read</code>が必要)だった可能性があります。</p>
+
+  <p>色々いじってるときに<code>files:read</code>を加えて試して、改めて削除して試して、みたいなことをしていたのですが、
+上にも書いたようにScopeを外してもその権限が残っている様なのでそこで勘違いしていた様です。</p>
+
+  <p><code>createFile</code>に関しては、<code>blob</code>を取り出して渡しても<code>fetch</code>した内容をそのまま渡しても同じ内容のものを作ってくれるようで、
+恐らく中でうまいこと処理してくれている模様。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="google-driveのfolderのremovefileメソッドの罠">Google DriveのFolderのremoveFileメソッドの罠</h3>
+
+<p>Apps Scirptから使えるGoogle DriveのAPIでFolderオブジェクトの<a href="https://developers.google.com/apps-script/reference/drive/folder#removeFile(File)">removeFile</a>というメソッドがあります。</p>
+
+<p>このメソッドは現在はDeprecatedなものになっていますがまだ使えます。</p>
+
+<p>名前からするとフォルダの中から指定したファイルを削除する(ゴミ箱に入れるか完全削除)ものに思えますが、
+実際にはフォルダの中からは消し、Driveのトップフォルダに移す、というものになっています。</p>
+
+<p>移行先のメソッドが<code>File.moveTo</code>なのでまさにそういう意図で作られたメソッドなのですが、
+ファイルの削除だと思ってこれを使っているとDriveのトップフォルダにゴミが溜まっていくので注意。</p>
+
+<p>実際にファイルを削除(というかゴミ箱に移動)したい場合には
+<a href="https://developers.google.com/apps-script/reference/drive/file#settrashedtrashed">File.setTrashed</a>を使います。</p>
+
+<p>この辺はブラウザで操作しているとちょっと直感と合わないですが、
+実際に裏でファイルをどの様に扱っているか、ということを考えればまあ分かる、といったエラーを返します。</p>
+
+<p>いずれにしろ、<code>removeFile</code>という名前は勘違いしやすいので気をつけておいた方が良いです。</p>
+
+<p>上の<code>setTrashed</code>というメソッドに関しては、ドライブがチーム用のものだったりすると
+ちょっとそのままでは上手く行かないこともあるようです。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/55521462/cannot-remove-a-file-from-team-drive-with-apps-script">Cannot remove a file from Team Drive with Apps Script - Stack Overflow</a></p>
+</blockquote>
+
+<h3 id="sheetsでの桁落ち問題">Sheetsでの桁落ち問題</h3>
+
+<p>Apps Scriptの中でSheetsに関するAPIを使って書き込む際、UnixTimeの書き込みで桁落ちが発生して、
+後から比較する際に使えない状態になってしまいました。</p>
+
+<p>この辺、文字列でも数字っぽいと数字と勝手に変換して色々と良さげに保存してくれたりするんですがそれが問題に。</p>
+
+<p>これに関しては</p>
+
+<pre><code>sheet.getRange(x, y, x_length, y_length).setNumberFormat("@").setValues(data);
+</code></pre>
+
+<p>の様に、取得したCell(Range)に対して<code>setNumberFormat("@")</code>を実行してやるとそのまま記録してくれるようになり、問題を解決できました。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/57091209/script-setvalues-method-interprets-strings-as-numbers-in-cells">google sheets - Script ‘setValues’ method interprets strings as numbers in cells - Stack Overflow</a></p>
+</blockquote>
+
+<h3 id="sheets内にリンクを書き込みたい">Sheets内にリンクを書き込みたい</h3>
+
+<p>Sheetsのセル内にリンクを表示するためには<code>newRichTextValue</code>を作って<code>setValues</code>の代わりに<code>setRichTextValues</code>を使って書き込む必要があります。</p>
+
+<pre><code>const url = 'https://example.com';
+const text = "Set Link";
+const richText = SpreadsheetApp.newRichTextValue().setText(test)
+                                                  .setLinkUrl(4, 8, url)
+                                                  .build();
+</code></pre>
+
+<p>の様にしてRichTextを準備します。文字列を用意したら、その中でリンク化したい部分を指定して<code>setLinkUrl</code>します。
+(最初の引数が0スタートの文字の位置(最初の文字が0番目)、2つ目が終わり次の文字の位置。)</p>
+
+<p><code>setLinkUrl</code>は複数指定可能です。</p>
+
+<p>最後に<code>build()</code>を実行するのを忘れないように。</p>
+
+<p>これで作ったRichTextをSheetのCellやRangeのAPIを使って<code>setRichTextValue(s)</code>で書き込んであげると上の例の様にリンクが作れます。</p>
+
+<p><a href="https://developers.google.com/apps-script/reference/spreadsheet/range#setRichTextValues(RichTextValue)">Range.setRichTextValues</a>では全ての入力がRichTextValueである必要があり、、データを書き込む際、一つ一つ書き込むより一気に書き込んだ方が早いので、
+全てのデータを<a href="https://github.com/rcmdnk/Slack-gas/blob/91bb96f15efff2c082b2fdce7bcac6606ae08e0d/main.gs#L333">RichTextに変換して</a>書き込んでいます。</p>
+
+<h3 id="リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題">リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題</h3>
+
+<p><code>Range.setRichTextValues</code>を使ってRichTextを書き込んだとき、
+あるセルにリンクだけ:</p>
+
+<pre><code>const url = 'https://example.com';
+const text = "Link";
+const richText = SpreadsheetApp.newRichTextValue().setText(test)
+                                                  .setLinkUrl(0, 4, url)
+                                                  .build();
+</code></pre>
+
+<p>みたいなものを書き込むと、その次の行に書き込んだ下のセルが、リンクでない部分もすべて青文字下線状態になってしまいます。</p>
+
+<p>これは、<code>Range.setRichTextValues</code>で一気に書き込む場合には起こらず、
+改めて<code>Range.setRichTextValues</code>したり<code>Cell.setRichValue</code>する際、その直上のセルがリンクだけだと、
+その列の以下の全てのセルが青文字下線状態になる状態です。</p>
+
+<p>リンク部分は一応ちゃんとリンクとして機能はしているものの、それ以外も青くなるので実際にリンクなのかどうかよく分からなくなってしまいます。</p>
+
+<p>最初、メッセージのテキスト部分がなく、ファイルだけが添付されたメッセージに関してはリンク付きファイル名だけを記入してましたが
+これだと問題が起こるので、必ず</p>
+
+<pre><code>Files: aaa.txt
+</code></pre>
+
+<p>のようにリンクにならない<code>Files: </code>の部分を用意してやることでこの問題は回避しています。</p>
+
+<p>これに関しては自分のコードがバグってる可能性もあるんですが、色々試してもなんともならないので
+GASのGoogle SheetsのAPIのバグなんじゃないかな、と思ってます。</p>
+
+<p>今のところそれっぽいものはIssueいはないですが: <a href="https://issuetracker.google.com/issues?q=status:open%20componentid:191640%2B%20type:bug%20">status:open componentid:191640+ type:bug - Issue Tracker</a></p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Slackのメッセージが無料だと過去90日までにしか見れなくなる、というで、
+一応メモ代わりに使ってきたものとして消えちゃうと後で困るかもしれないので
+バックアップを取れるようにしました。</p>
+
+<p>自分の使い方的にそれほど重要なこともないので、エクスポート機能で時々とればよいか、ということもあるんですが、
+パット確認出来るようにする、ということと、定期的にバックアップを実行するために、
+Google Apps Script (GAS) + Google Sheets + Google Driveの形でバックアップのシステムを作りました。</p>
+
+<p>添付ファイルなども取れるので、いい感じ。</p>
+
+<p>ただ、GASでやると時間制限がきつくて、今までの制限の1万件近くメッセージがある場合や、
+毎日千件以上の新しいメッセージが作られるような場合はちょっと辛いかもしれません。</p>
+
+<p>そういった場合にはちょっとNode.jsを使って書き直すか、Pythonとかで一から書き直すかして
+別の場所で動かす必要があるかもしれません。</p>
+
+<p>Google Sheets + Google Driveは便利なので、とりあえず一回全部バックアップする分をそれらでやって、
+後はGASで毎日追加分を入れる、というのが一番良い感じはします。</p>
+
+<p>自分の使い方だと<code>SAVE_MESSAGE_JSON = true</code>にして1回では全部取れませんでしたが、何回か手動で実行すれば
+取得できるレベルで、毎日の追加は10件もないような状態なのでGASだけでなんとかなったので楽できて良かったです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[tsd2gspread: 時系列データをGoogle Sheetsに書き込むPythonツール]]></title>
+    <link href="https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google/"/>
+    <updated>2021-04-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/04/13/computer-iot-raspberrypi-google</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00KNRL068?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00KNRL068&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51EQHQnIMUL._SS200_.jpg" alt="現場ですぐ使える時系列データ分析～データサイエンティストのための基礎知識～" /></a>
+</div>
+
+<p>Raspberry Piから色々Google Sheetsに書き込むことが多くなってきたので、
+ちょっと機能をまとめたツール的なものをつくってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#tsd2gspread" id="markdown-toc-tsd2gspread">tsd2gspread</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>    <ul>
+      <li><a href="#ツールとして使う" id="markdown-toc-ツールとして使う">ツールとして使う</a></li>
+      <li><a href="#親クラスとして使う" id="markdown-toc-親クラスとして使う">親クラスとして使う</a></li>
+    </ul>
+  </li>
+  <li><a href="#主なパラメーターなど" id="markdown-toc-主なパラメーターなど">主なパラメーターなど</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="tsd2gspread">tsd2gspread</h2>
+
+<div class="github-widget" data-repo="rcmdnk/tsd2gspread"></div>
+
+<p>Pythonのツールで、pipで</p>
+
+<pre><code>$ pip install tsd2gspread
+</code></pre>
+
+<p>で入れられます。</p>
+
+<p>Google Sheetsに関しては、Pythonでは<a href="https://github.com/burnash/gspread">gspread</a>
+という便利なツールがあって、これを使うと簡単にGoogle SheetsのAPIを使えます。</p>
+
+<p>tsd2gspreadはこのgspreadを使って時系列データを書き込むのに特化したツールです。</p>
+
+<p>gspredをそのまま使っても良かったのですが、別のデータの書き込みに重複部分が増えてきたので
+まとめました。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<h3 id="ツールとして使う">ツールとして使う</h3>
+
+<p>まず、Google Sheets APIにアクセス出来るようサービスアカウントを作成してアカウント情報の入った
+jsonファイルを取得します。</p>
+
+<blockquote>
+  <p><a href="https://gspread.readthedocs.io/en/latest/oauth2.html#for-bots-using-service-account">Authentication — gspread 3.7.0 documentation</a>.</p>
+</blockquote>
+
+<p>これを<strong>~/service_account.json</strong>などに置いておいて、
+以下の様なスクリプトを実行します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">tsd2gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">tsd2gspread</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make function to get data</span>
+</span><span class="line"><span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+</span><span class="line">    <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">    <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">    <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Set data getter</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">get_data</span> <span class="o">=</span> <span class="n">get_data</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで、
+<strong>MySheet</strong>という名前で以下の様な内容を持った
+ワークシート名が<strong>MyWork</strong>のSheetsが出来ます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>datetime</th>
+      <th>foo</th>
+      <th>bar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2021-01-02 03:04:05</td>
+      <td>1</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>あとは<code>tg.write()</code>を実行するたびに、その実行時間と値が書き込まれていきます。</p>
+
+<p>実際に使う際には、この<code>get_data</code>関数を適時必要なものにして渡して、
+データを取得したいタイミングで<code>tg.write()</code>を実行すればOK。</p>
+
+<p>この例ではSheetsがない場合には作成して書き込みを行っていますが、
+その場合はサービスアカウントがオーナーとなってしまい、
+そのアカウントを作ったユーザー自体がアクセス権限を持ってない状態で作られるので、
+<code>share</code>で自分のアカウントを指定して自分がアクセスできるようにしてください。</p>
+
+<pre><code>sheet_name='MySheet',
+</code></pre>
+
+<p>の代わりに既存のSheetsのURLを<code>sheet_url</code>で指定したり
+Key(URLの中にあるランダムな文字列)を<code>sheet_key</code>で指定することも出来ます。</p>
+
+<p>この場合はSheets側で<strong>共有</strong>から、上で取得したサービスアカウントファイルの中にある
+<code>client_email</code>の値に対して編集権限で共有をしておく必要があります。</p>
+
+<p>指定の名前のSheetsがすでにあり、共有設定されていれば上のように名前で指定しても
+既存のファイルに書き込まれます。</p>
+
+<h3 id="親クラスとして使う">親クラスとして使う</h3>
+
+<p>Tsd2Gspreadというクラスがあるので、それを継承する形で使うことも出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">tsd2gspread</span> <span class="kn">import</span> <span class="n">Tsd2Gspread</span>
+</span><span class="line">
+</span><span class="line"><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Tsd2Gspread</span><span class="p">):</span>
+</span><span class="line">    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class="line">        <span class="n">foo</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class="line">        <span class="n">bar</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class="line">        <span class="k">return</span> <span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">tg</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">(</span>
+</span><span class="line">    <span class="n">service_account</span><span class="o">=</span><span class="s1">&#39;~/service_account.json&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;MySheet&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">create</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="line">    <span class="n">worksheet_name</span><span class="o">=</span><span class="s1">&#39;MyWork&#39;</span><span class="p">,</span>
+</span><span class="line">    <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;foo,bar,</span>
+</span><span class="line">    <span class="n">share</span><span class="o">=</span><span class="s1">&#39;rcmdnk@gmail.com&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Write Time Series Data to Google Sheets</span>
+</span><span class="line"><span class="n">tg</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>基本的に定義すべきな関数は<code>get_data</code>で、
+ここで書き込むべき変数を配列なりタプルなりで返す様にします。</p>
+
+<p>これでそのクラスのインスタンスを作って<code>write</code>してあげれば書き込めます。</p>
+
+<h2 id="主なパラメーターなど">主なパラメーターなど</h2>
+
+<p><code>tsd2gspread.get</code>なり<code>Tsd2gspread</code>に渡せるパラメーターについて。</p>
+
+<ul>
+  <li><code>sheet_name</code>, <code>sheet_url</code>, <code>sheet_key</code>: Sheetsを名前かURLかSheetsのKeyで指定できます。新たに作る場合には<code>sheet_name</code>のみが使えます。</li>
+  <li><code>columns</code>: 最初にSheetsを新たに作成する場合には<code>columns</code>に<code>,</code>で分けたカラム名を渡すことで
+カラム名を1行目に書き込むことが出来ます。</li>
+  <li><code>timedelta</code>: デフォルトではUTCの時間を書き込みます。これを日本時間に変更したい場合には<code>timedelta=9</code>などとしてUTCとの差を入れる必要があります。</li>
+</ul>
+
+<p>他にも色々とパラメーターはありますが、これらを<code>config_file</code>というパラメーターにファイルを渡すことでまとめて渡す事もできます。
+<code>config_file</code>の中身は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sheet_name=MySheet
+</span><span class="line">columns=foo,bar
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに<code>OPTION=VALUE</code>の様に書いておきます。</p>
+
+<p>その他詳細は<a href="https://github.com/rcmdnk/tsd2gspread">README</a>で。</p>
+]]></content>
+  </entry>
+  
+</feed>

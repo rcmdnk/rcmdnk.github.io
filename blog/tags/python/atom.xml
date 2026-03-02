@@ -1,0 +1,1785 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Python | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/python/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Python環境をRust製ツールで整える]]></title>
+    <link href="https://rcmdnk.com/blog/2026/02/23/computer-python-rust/"/>
+    <updated>2026-02-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2026/02/23/computer-python-rust</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0DWLN3WH2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DWLN3WH2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71+JH+T4bOL._SS200_.jpg" alt="Rust &amp; Python Integrated: Harnessing the Power of Systems and Scripting for High-Performance Development: A Comprehensive Guide 2025" /></a>
+</div>
+
+<p>Python周りがいつの間にかRust製のツールばかりになってきた状態のまとめ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#python環境構築ツール" id="markdown-toc-python環境構築ツール">Python環境構築ツール</a>    <ul>
+      <li><a href="#uv-ruff" id="markdown-toc-uv-ruff">uv, ruff</a></li>
+      <li><a href="#ty" id="markdown-toc-ty">ty</a></li>
+      <li><a href="#prek" id="markdown-toc-prek">prek</a></li>
+      <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+    </ul>
+  </li>
+  <li><a href="#python-template" id="markdown-toc-python-template">python-template</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="python環境構築ツール">Python環境構築ツール</h2>
+
+<ul>
+  <li>Python管理、パッケージ管理、プロジェクト管理: <a href="https://docs.astral.sh/uv/">uv</a></li>
+  <li>Linter, formatter: <a href="https://docs.astral.sh/ruff/">ruff</a></li>
+  <li>型チェック: <a href="https://docs.astral.sh/ty/">ty</a></li>
+  <li>pre-commitマネージャー: <a href="https://github.com/j178/prek">prek</a></li>
+  <li>uvの管理、仮想環境自動認識: <a href="https://mise.jdx.dev/">mise</a></li>
+</ul>
+
+<h3 id="uv-ruff">uv, ruff</h3>
+<p>uv, ruffはAstral社製のツールで既にかなり広く使われてる印象。個人的には1年ちょっと前位に全面的に
+<a href="https://python-poetry.org/">poetry</a>や
+<a href="https://black.readthedocs.io/en/stable/">black</a>, <a href="https://pycqa.github.io/isort/">isort</a>
+などから移行していきました<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h3 id="ty">ty</h3>
+
+<p>tyは型チェックツールとして
+<a href="https://www.mypy-lang.org/">mypy</a>
+の代替えツールですが、
+これもAstral社製で、昨年末にベータ版がリリースされました<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>mypyはチェックツールの中でも圧倒的に時間を食うツールでしたが、tyはかなり高速で、ruffなどの実行と比べてもそれ程気にならないレベルになります。</p>
+
+<p>設定としては基本的にはデフォルトの設定のままで使ってます。
+最初はmypyで通った部分もいくつかerror/warningを出して修正する必要がありました。
+逆にtyで通った部分がmypyのエラーとして漏れているかどうか、はすぐに判断することは出来ないので、たまにmypyを走らせてみて特にエラーが出ない事を確認したりしていますが今のところは特に漏れはなさそうです。</p>
+
+<p>型チェックツールとしては
+<a href="https://pyrefly.org/">pyrefly</a>
+など他にもありますが、ruffに合わせたい、程度の理由で現状はtyを使っています。</p>
+
+<h3 id="prek">prek</h3>
+
+<p>prekは<a href="https://pre-commit.com/">pre-commit</a>
+の機能をRust製で実装したツールで、pre-commitの設定ファイルをそのまま使うことができます。</p>
+
+<p>すでに有名なプロジェクトもpre-commitからprekに移行していて、
+Astralのruff/tyもprekを使っています。</p>
+
+<blockquote>
+  <p><a href="https://prek.j178.dev/#prek-provides-a-better-user-experience">Who is using prek?</a></p>
+</blockquote>
+
+<p>置き換えは簡単で<code>prek</code>を開発用パッケージとしてインストールして、
+<code>prek install</code>を実行して<strong>.git/hooks/pre-commit</strong>を<code>prek</code>ように置き換えるだけです。
+手動で時刻する際には<code>prek run</code>や<code>prek run --all</code>など、基本的な使い方は<code>pre-commit</code>と同じです。</p>
+
+<p>実際パッケージをインストールしたりする際はpre-commitよりも高速で、
+特に<code>pre-commit</code>との使い勝手などの差は無いので移行がおすすめです。</p>
+
+<h3 id="mise">mise</h3>
+
+<p>miseは
+<a href="https://direnv.net/">direnv</a>
+のような仮想環境自動認識機能や、
+PythonやNode.js製のツールなどを管理したり、
+タスクランナーのような機能もあるツールで、これもRust製です。</p>
+
+<p>レポジトリのトップに<strong>.mise.toml</strong>というファイルを置いておくとuvで管理されてるプロジェクトであれば自動的にuvの仮想環境を認識してactivateした状態にしてくれます。
+レポジトリの外に出れば自動的にdeactivateしてくれるので、仮想環境のactivate/deactivateを意識する必要がなくなります<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<p>また、<code>uv</code>コマンドもmiseで管理しています。</p>
+
+<p>macOSだと色々なものをHomebrewで管理してますが、
+Homebrewだと少しバージョンアップデートが遅いことや、
+今のHomebrewだと古いバージョンのまま留めておく、ということが難しいので、
+バージョンをきちんと管理したいツールなどはmiseで行うようにしています。</p>
+
+<p><code>uv</code>や<code>bun</code>などのパッケージ管理用のCLIツール、<code>codex</code>などのNode.js製のツールなど<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p>mise自体はHomebrewで入れたり必要であれば直接インストールしたりします。</p>
+
+<h2 id="python-template">python-template</h2>
+
+<div class="github-widget" data-repo="rcmdnk/python-template"></div>
+
+<p>上の環境のテンプレートです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4492043721?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4492043721&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/411gDnMJnmL._SS90_CR0,0,120,90_.jpg" alt="テンプレート仕事術 ―日常業務の75%を自動化する" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/03/computer-python/">python-template: Pythonプロジェクト用GitHubレポジトリテンプレート</a></div></li></ul>
+
+<p>現在はデフォルトを主に上のRust製のツールに置き換えた状態にしてあります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2025/09/10/computer-python/"/>
+    <updated>2025-09-10T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/09/10/computer-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873119324?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873119324&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS200_.jpg" alt="入門 Python 3 第2版" /></a>
+</div>
+
+<p><a href="https://docs.astral.sh/uv/">uv</a>でPythonのプロジェクトを管理する際に、
+パッケージの依存関係でextrasなパッケージを<code>optional-dependencies</code>で指定することができます。</p>
+
+<p>それらのパッケージは<code>uv sync</code>ではインストールされないので、
+uvの環境でインストールしたい場合は
+<code>uv sync --extra &lt;EXTRA&gt;</code>でインストールするか、
+<code>dependency-groups</code>で設定してインストールできるようにしておく必要があります。</p>
+
+<p>ただ<code>dependency-groups</code>で指定する場合、
+そのまま同じパッケージを追加するとバージョンなどを複数の箇所に書くことになり
+管理が面倒になります。</p>
+
+<p>そのような重複を避けて書く方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#optional-dependenciesでのextraパッケージの指定" id="markdown-toc-optional-dependenciesでのextraパッケージの指定">optional-dependenciesでのextraパッケージの指定</a></li>
+  <li><a href="#uv-syncでextraパッケージをインストールする方法" id="markdown-toc-uv-syncでextraパッケージをインストールする方法"><code>uv sync</code>でextraパッケージをインストールする方法</a></li>
+  <li><a href="#自己参照して重複無く書く方法" id="markdown-toc-自己参照して重複無く書く方法">自己参照して重複無く書く方法</a></li>
+  <li><a href="#gitの管理などに関してtooluvsourrcesを使う" id="markdown-toc-gitの管理などに関してtooluvsourrcesを使う">gitの管理などに関してtool.uv.sourrcesを使う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="optional-dependenciesでのextraパッケージの指定">optional-dependenciesでのextraパッケージの指定</h2>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest &gt;= 8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの<strong>pyproject.toml</strong>があったとします。</p>
+
+<p>何もない状態から</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add "numpy&gt;=2.3.3"
+</span><span class="line">$ uv add --optional data "pandas&gt;=2.3.2"
+</span><span class="line">$ uv add --dev "pytest"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにパッケージを加えた状態です。</p>
+
+<p>このパッケージは<code>pip</code>などでインストールする際に、<code>my-example-package</code>とだけ指定すると
+<code>numpy</code>だけインストールされ、<code>pandas</code>はインストールされません。</p>
+
+<p><code>my-example-package[data]</code>と指定することで、<code>pandas</code>もインストールされます。</p>
+
+<p>これらの場合は<code>pytest</code>はインストールされません。</p>
+
+<p>一方、<code>uv sync</code>では<code>pytest</code>はインストールされますが<code>pandas</code>はインストールされません。
+<code>uv sync --extra data</code>、もしくは<code>uv sync --all-extras</code>とすることで、<code>pandas</code>もインストールされます。</p>
+
+<p>Extraなパッケージは重いライブラリだったりで、
+不要な時はインストールしないで済むようにするための仕組みです。</p>
+
+<h2 id="uv-syncでextraパッケージをインストールする方法"><code>uv sync</code>でextraパッケージをインストールする方法</h2>
+
+<p>一方、このパッケージを開発する際には<code>pandas</code>も必要になることが多いので
+それも含めた仮想環境を作っておきたいことが多いです。
+その場合に上記のようにオプション追加でインストールするのは面倒なので、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような感じで<code>dev</code>グループに<code>pandas</code>を追加しておけば<code>uv sync</code>でもインストールされます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --dev "pytest"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で追加することも出来ます。</p>
+
+<p>または、<code>pandas</code>がインストールされてない環境も簡単にチェックしたい場合、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように、別途<code>others</code>グループを作ってそこに<code>pandas</code>を追加し、
+<code>tool.uv</code>で<code>default-groups</code>に追加指定しておく方法もあります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>コマンドで追加する場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --group others "pandas&gt;=2.3.2"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>でパッケージ追加出来ます。</p>
+
+<p><code>too.uv</code>の設定は手動で追加する必要があります。</p>
+
+<p>こちらでも<code>uv sync</code>で<code>pandas</code>がインストールされるようになりますし、
+<code>uv sync --no-group others</code>とすることで、<code>pandas</code>がインストールされてない環境を作ることが出来ます。</p>
+
+<p>分かりやすいように名前を変えましたがgroupの方も<code>data</code>としても大丈夫です。(<code>optional-dependencies</code>のextra名とは独立しています。)</p>
+
+<p>ただこの場合、<code>pandas&gt;=2.3.2</code>が重複していて、特にバージョンを変えたい場合などに
+2箇所を変えないといけないのでちょっと面倒です。</p>
+
+<h2 id="自己参照して重複無く書く方法">自己参照して重複無く書く方法</h2>
+
+<p>そこで、これを以下のように書き直すことが出来ます。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;my-example-package[data]&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>others</code>のグループに、自分自身の<code>my-example-package</code>を<code>data</code>のextra付きで指定しています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uv add --group others my-example-package[data]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンドで追加することも出来ます
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>これで、<code>uv sync</code>で<code>pandas</code>がインストールされるようになり、
+また、<code>pandas</code>のバージョン指定は<code>optional-dependencies</code>の方で一箇所だけ書けば良くなります。</p>
+
+<p>このような重複の削除は、バージョン指定以外にも、特にGitHubにあるレポジトリをgitで指定する場合などに便利です。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring @ git+ssh://git@github.com/rcmdnk/inherit-docstring@v0.2.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+<p>みたいな感じで指定するのをgroupsの方でも同様に指定する代わりにまとめて<code>my-example-package[data]</code>を指定するだけで
+良くなるのでだいぶ楽になります。</p>
+
+<p>この方法は循環参照になってしまう感じのする書き方ですが、意図したとおりに動作しますし、
+uvの開発者の方が紹介している方法になります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/astral-sh/uv/issues/9011#issuecomment-2568139247">Question: What’s the difference between <code>optional-dependencies</code> and <code>dependency-groups</code> in <code>pyproject.toml</code>? · Issue #9011 · astral-sh/uv</a></p>
+</blockquote>
+
+<p>もしかすると今後のアップデートでまた違った書き方が出来るようになったり推奨されたりするかもしれませんが、
+現状ではこの方法が一番便利な方法かな、と思ってます。</p>
+
+<h2 id="gitの管理などに関してtooluvsourrcesを使う">gitの管理などに関してtool.uv.sourrcesを使う</h2>
+
+<p>上では直接<code>dependencies</code>の中にGitのURLを入れましたが、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">uv add --optional data git+ssh://git@github.com/rcmdnk/inherit-docstring@v0.2.0</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンドで追加すれば、
+以下のような感じになるはずです。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pandas&gt;=2.3.2&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;my-example-package[data]&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv.sources]</span>
+</span><span class="line"><span class="n">inherit-docstring</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;ssh://git@github.com/rcmdnk/inherit-docstring&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rev</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;v0.2.0&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>uv.sources</code>にGitの情報等とともに<code>inherit-docstring</code>が追加されているのが分かります。</p>
+
+<p>このような形であれば、例えばpandasなしなら、</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[project]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my-example-package&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line"><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+</span><span class="line"><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;numpy&gt;=2.3.3&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[project.optional-dependencies]</span>
+</span><span class="line"><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">[dependency-groups]</span>
+</span><span class="line"><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;pytest&gt;=8.3.0&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">others</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;inherit-docstring&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv]</span>
+</span><span class="line"><span class="n">default-groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;others&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.uv.sources]</span>
+</span><span class="line"><span class="n">inherit-docstring</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;ssh://git@github.com/rcmdnk/inherit-docstring&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rev</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;v0.2.0&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにパッケージ名を直接書いても良いかもしれません。
+こちらの方が循環参照っぽい気持ち悪さも無いので。</p>
+
+<p>ただ、<code>data</code>としてまとめたいものが複数ある場合などは
+自己参照を使った方法の方がまとめて出来て分かりやすいとは思います。</p>
+
+<p>また、こちらはuvの機能としてなので、
+仮にこの<strong>pyproject.toml</strong>を別の管理ツールで使いたいということがある場合などは
+こちらの方法だと理解されない可能性もあります。</p>
+
+<p>そういった意味でも先の方法をまず考えた方が良いかな、と思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Pythonのパッケージ内で、メタ情報からのバージョンを取得する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/08/08/computer-python/"/>
+    <updated>2025-08-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/08/08/computer-python</id>
+    <content type="html"><![CDATA[<p>Pythonのパッケージを作る際、通常pyproject.tomlやsetup.pyにバージョンを記載しますが、
+pythonのコード内でもそのバージョンを取得する方法があります。</p>
+
+<p>ただ、読み込むためのライブラリがちょっと重いので
+必要なときだけ読み込むような工夫も入れてみます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#よくあるバージョン情報記述" id="markdown-toc-よくあるバージョン情報記述">よくあるバージョン情報記述</a></li>
+  <li><a href="#importlibmetadataversion" id="markdown-toc-importlibmetadataversion">importlib.metadata.version</a></li>
+  <li><a href="#__getattr__を使った遅延読み込み" id="markdown-toc-__getattr__を使った遅延読み込み">__getattr__を使った遅延読み込み</a></li>
+  <li><a href="#__getattr__を使う際の注意" id="markdown-toc-__getattr__を使う際の注意"><code>__getattr__</code>を使う際の注意</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="よくあるバージョン情報記述">よくあるバージョン情報記述</h2>
+
+<p>パッケージルートディレクトリの<strong>__init__.py</strong>に</p>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__version__&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書いておくとこれが<code>my_package</code>というパッケージだった場合、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">my_package</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">print</span><span class="p">(</span><span class="n">__version__</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とか、<code>my_package.__version__</code>でバージョンを取得できます。</p>
+
+<p>ただ、<strong>__init__.py</strong>に直接書いてしまうと
+パッケージ内の他のモジュールから参照するのに問題が起こる時があります。</p>
+
+<p>例えば<strong>main.py</strong>の中で<code>__version__</code>を参照したいが、
+<strong>__init__.py</strong>の方で<strong>main.py</strong>の中で定義されている関数などをimportしていると
+循環参照になってしまい、エラーが発生します。</p>
+
+<p>なのでversion情報を別に分けて</p>
+
+<figure class="code"><figcaption><span>version.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">.main</span> <span class="kn">import</span> <span class="n">main_function</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__version__&quot;</span><span class="p">,</span> <span class="s2">&quot;main_function&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>main.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main_function</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">    <span class="o">....</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じにすれば外からは最初のと同様に、
+パッケージ内からも参照できるようになります。</p>
+
+<p>これでコードの中だけにおいてはバージョンを統一的に扱うことが出来ますが、
+管理ツール側で<code>version</code>を定義している場合、
+そちらとの値を同期させる必要があり面倒です。</p>
+
+<h2 id="importlibmetadataversion">importlib.metadata.version</h2>
+
+<p>uvで管理しているプロジェクトで<strong>pyproject.toml</strong>に<code>project.version</code>が定義してあるような場合、
+そのパッケージ内で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">importlib.metadata</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">print</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="n">__package__</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすれば<code>project.version</code>の値が取得できます。</p>
+
+<p>基本的には他の管理ツールでも同様に<code>version</code>の値が取得できます。</p>
+
+<p>これを<strong>version.py</strong>の中に</p>
+
+<figure class="code"><figcaption><span>version.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">import</span> <span class="nn">importlib.metadata</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__version__</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書いておけば、上の例のまま<code>my_package.__version__</code>でバージョンが取れますし、
+管理ツール側で<code>version</code>を更新すればそのまま反映されます。</p>
+
+<p>通常はこれでも十分。</p>
+
+<h2 id="__getattr__を使った遅延読み込み">__getattr__を使った遅延読み込み</h2>
+
+<p>ただ、<code>importlib.metadata</code>をimportするのにちょっと時間がかかるので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+必要なときだけ読み込むようにしたい場合があります。</p>
+
+<p>とは言っても今の普通の環境で0.1秒かからない程度なので通常は無理にやる必要もないかもですが、
+例えばコマンドラインツールを作っていて、<code>my_package --help</code>のようにヘルプを表示したいだけの場合、
+0.1秒でもちょっと気になることがあります。</p>
+
+<p>そのような場合は、<strong>version.py</strong>はそのままで、
+<strong>__init__.py</strong>の方で__getattr__を使ったlazy loadingな実装をしてみます。</p>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.main</span> <span class="kn">import</span> <span class="n">main_function</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__version__&quot;</span><span class="p">,</span> <span class="s2">&quot;main_function&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;__version__&#39;</span><span class="p">:</span>
+</span><span class="line">        <span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">__version__</span>
+</span><span class="line">    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+</span><span class="line">    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように、<code>__version__</code>が参照されたときだけ
+<strong>version.py</strong>をimportするようにします。</p>
+
+<p>ただ、このままだと、<strong>__init__.py</strong>が呼ばれたとき、<strong>main.py</strong>の方も呼ばれて
+結果その中で<strong>version.py</strong>がimportされてしまいます。</p>
+
+<p>なので、</p>
+
+<figure class="code"><figcaption><span>main.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span class="line">    <span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">return</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">main_function</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="line">    <span class="o">....</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような感じでこちらもimportを関数の中に隠す必要があります。</p>
+
+<p>実際に
+<code>importlib.metadata</code>のimportで気になるような場合は
+他の外部ライブラリの読み込みもすべて必要なときだけにしたい場合が多いので、
+その場合は時間がかかるものをすべて関数内など必要な部分に隠すことになるかと思います。</p>
+
+<p>ただモジュール自体が呼ばれなければ良いので、
+例えばnumpyとか大量に使うモジュールでトップに書いておきたい場合などは
+そのモジュールをimportする側で関数内に隠すなどの工夫をすることもありだと思います。</p>
+
+<h2 id="__getattr__を使う際の注意"><code>__getattr__</code>を使う際の注意</h2>
+<p><code>__getattr__</code>を使う際の注意として、
+<code>__getattr__</code>での指定はファイルでのモジュール名の指定よりも優先度が低くなる点。</p>
+
+<p>どういうことかというと、例えば、<strong>version.py</strong>ではなく、</p>
+
+<p><strong>__version__</strong>.py<strong>というファイル名にした場合、
+仮に、</strong><strong>init</strong>.py<strong>の中で<code>__version__</code>に関して何も指定していなければ、
+<code>my_package.__version__</code>は</strong><strong>version</strong>.py**のファイル自体をモジュールとしたものになります。</p>
+
+<p>中の<code>__version__</code>の値は
+<code>my_package.__version__.__version__</code>で取得できます。</p>
+
+<p><strong>__init__.py</strong>の中で、</p>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="kn">from</span> <span class="nn">.__version__</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__version__&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<strong>__version__.py</strong>の中の<code>__version__</code>をimportして<code>__all__</code>に追加しておけば、
+<code>my_package.__version__</code>は<strong>__version__.py</strong>の中の<code>__version__</code>の値を参照することになります。</p>
+
+<p>この場合、<code>my_package.__version__.__version__</code>でも同じ値が取得できます。</p>
+
+<p>一方、上のように<code>__getattr__</code>を使っている場合、
+<code>my_package.__version__</code>はまず<strong>__version__.py</strong>を参照するので、
+<code>my_package.__version__</code>は<strong>__version__.py</strong>のモジュール自体を参照することになります。</p>
+
+<p>この<code>__getattr__</code>に関してはちょっと不思議な挙動になります。</p>
+
+<p>簡易的に直接バージョンを書いた<strong>__version__.py</strong>を用意してimportされたときに<code>print</code>するようにしてみます。</p>
+
+<figure class="code"><figcaption><span>__version__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading __version__.py&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><strong>__init__.py</strong>の方は</p>
+
+<figure class="code"><figcaption><span>__init__.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__version__&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span class="line">    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;__version__&#39;</span><span class="p">:</span>
+</span><span class="line">        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;__getattr__ is called for __version__&#39;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">        <span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">return</span> <span class="n">__version__</span>
+</span><span class="line">    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+</span><span class="line">    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>print</code>を入れておきます。</p>
+
+<p>直接<code>my_package.__version__</code>をimportした場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">my_package.__version__</span>
+</span><span class="line"><span class="n">Loading</span> <span class="n">__version__</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">my_package</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+</span><span class="line"><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;my_package.__version__&#39;</span> <span class="kn">from</span> <span class="s1">&#39;.../my_package/src/my_package/xyz/__version__.py&#39;</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>__getattr__</code>は呼ばれず、<strong>__version__.py</strong>が直接読み込まれます。</p>
+
+<p><code>from my_package import __version__</code>のようにした場合、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">my_package</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line"><span class="fm">__getattr__</span> <span class="ow">is</span> <span class="n">called</span> <span class="k">for</span> <span class="n">__version__</span>
+</span><span class="line"><span class="n">Loading</span> <span class="n">__version__</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">__version__</span><span class="p">)</span>
+</span><span class="line"><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;my_package.__version__&#39;</span> <span class="kn">from</span> <span class="s1">&#39;.../my_package/src/my_package/__version__.py&#39;</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>__getattr__</code>は呼ばれているものの、<code>__version__</code>は<strong>__version__.py</strong>のモジュール自体を参照しています。</p>
+
+<p>最後に、<code>my_package</code>だけimportしてその属性値として<code>__version__</code>を参照した場合、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">my_package</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">__version__</span> <span class="o">=</span> <span class="n">my_package</span><span class="o">.</span><span class="n">__version__</span>
+</span><span class="line"><span class="fm">__getattr__</span> <span class="ow">is</span> <span class="n">called</span> <span class="k">for</span> <span class="n">__version__</span>
+</span><span class="line"><span class="n">Loading</span> <span class="n">__version__</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">__version__</span><span class="p">)</span>
+</span><span class="line"><span class="mf">0.1.0</span>
+</span><span class="line"><span class="o">&gt;&gt;&gt;</span> <span class="n">__version__</span> <span class="o">=</span> <span class="n">my_package</span><span class="o">.</span><span class="n">__version__</span>
+</span><span class="line"><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;my_package.__version__&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/.../my_package/src/my_package/__version__.py&#39;</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように、最初に呼ばれたときは<code>__version__.__version__</code>の値が取得されますが、
+その後は<strong>__version__.py</strong>のモジュール自体を参照するようになります。</p>
+
+<p>いずれにしろこういった感じで把握出来てない挙動を避けるため、
+ファイル名は<code>__getattr__</code>で指定する名前とは異なる名前にしておくのが無難です。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[.pre-commit-config.yamlがあるレポジトリで自動的にずpre-commit installされた状態にする]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/27/computer-python/"/>
+    <updated>2025-07-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/27/computer-python</id>
+    <content type="html"><![CDATA[<p>Gitのレポジトリに<strong>.pre-commit-config.yaml</strong>ファイルが用意されていて
+pre-commitでリンターなどがかけられるようになっていても、
+<code>pre-commit install</code>を忘れてしまうとpre-commitが動作しません。</p>
+
+<p>手動でやろうとするとどうしても忘れてしまうので、
+自動化する方法についていくつかやってみたものについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pre-commit" id="markdown-toc-pre-commit">pre-commit</a></li>
+  <li><a href="#git-alias" id="markdown-toc-git-alias">Git alias</a></li>
+  <li><a href="#git-inittemplatedir" id="markdown-toc-git-inittemplatedir">Git init.templateDir</a></li>
+  <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pre-commit">pre-commit</h2>
+
+<p>Gitのhookの機能で<strong>.git/hooks/pre-commit</strong>にスクリプトを置いておくと
+コミット時に自動的に実行され、問題があるとコミットが中断されるようになります。</p>
+
+<p>その実行内容を簡単に管理できるようにするのが
+その名も<a href="https://pre-commit.com/">pre-commit</a>というツール。</p>
+
+<p><code>pre-commit install</code>を実行すると
+pre-commitツールが管理するツールを実行するための
+<strong>.git/hooks/pre-commit</strong>がインストールされます。</p>
+
+<p><code>pre-commit</code>コマンドは
+レポジトリルートに置かれた
+<strong>.pre-commit-config.yaml</strong>という設定ファイルに従って
+ツールを実行します。</p>
+
+<p><strong>.pre-commit-config.yaml</strong>や中で使うツールの設定などを適時レポジトリ内に追加しておけば
+コミット時に必要なチェックが行われ必要な形を担保できます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873119324?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873119324&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41JjzCF-UFL._SS90_CR0,0,120,90_.jpg" alt="入門 Python 3 第2版" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/07/computer-python/">Pythonレポジトリ用のpre-commit環境を整える</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4814400179?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4814400179&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Xh3Xdtg-L._SS90_CR0,0,120,90_.jpg" alt="ロバストPython ―クリーンで保守しやすいコードを書く" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/01/computer-python/">pyproject-pre-commit: Pythonプロジェクト用のpre-commit集</a></div></li></ul>
+
+<p>ただ、<code>pre-commit install</code>を忘れてしまうとコミット時のチェックが行われません。</p>
+
+<p>結構忘れたまま過ごしてしまうこともあるので、Gitのレポジトリを取ってきたら中で必ず
+<code>pre-commit install</code>が実行された状態になるような方法をいくつか試してみました。</p>
+
+<p>基本的にはPythonで
+<a href="https://docs.astral.sh/uv/">uv</a>
+を使って管理されているレポジトリを想定していますが、
+Pythonじゃなくてもそのまま使える部分もありますし
+必要に応じて調整すれば使えるはずです。</p>
+
+<h2 id="git-alias">Git alias</h2>
+
+<p><strong>~/.gitconfig</strong>に以下のようなaliasを設定します。</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[alias]</span>
+</span><span class="line"><span class="w">  </span><span class="n">cl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git clone </span><span class="se">\&quot;</span><span class="s2">$@</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    ret=$?;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ </span><span class="se">\&quot;</span><span class="s2">$ret</span><span class="se">\&quot;</span><span class="s2"> != 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return $ret;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    for last_arg; do :; done; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -d </span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      d=</span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    else </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      d=</span><span class="se">\&quot;</span><span class="s2">$(basename </span><span class="se">\&quot;</span><span class="s2">$last_arg</span><span class="se">\&quot;</span><span class="s2"> .git)</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    cd </span><span class="se">\&quot;</span><span class="s2">$d</span><span class="se">\&quot;</span><span class="s2">; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $? -ne 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      echo </span><span class="se">\&quot;</span><span class="s2">Failed to change directory to $d</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if type uv &gt; /dev/null 2&gt;&amp;1 &amp;&amp; [ -f uv.lock ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      uv sync;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -f .pre-commit-config.yaml ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      if uv run which pre-commit &gt; /dev/null 2&gt;&amp;1;then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">        uv run pre-commit install;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      elif type pre-commit &gt; /dev/null 2&gt;&amp;1;then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">        pre-commit install;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>git clone</code>の代わりに<code>git cl</code>を使うと、
+レポジトリをクローンした後に
+特に最後の部分でレポジトリの中に<strong>.pre-commit-config.yaml</strong>があれば<code>pre-commit install</code>を実行するようにしています。</p>
+
+<p><code>pre-commit</code>コマンドはuvで管理される仮想環境化にあるのであればそれを使い、
+そこにない場合にはグローバルにインストールされていればそれを使います。</p>
+
+<p>そのため、その上で<strong>.uv.lock</strong>があれば<code>uv sync</code>を実行して
+仮想環境の準備もしておきます。</p>
+
+<p>この方法だと<strong>.gitconfig</strong>さえdotfilesなどで管理しておけば
+どの環境でもどうように使えますし、
+また<code>uv</code>などに関しても必要なものがあれば初期設定を追加することも出来ます。</p>
+
+<p>これが一番簡単で確実な方法かな、と思います。
+pre-commitに関してはこれでほぼほぼ問題ないはず。</p>
+
+<p>ただ、あくまでaliasなので、普通に<code>git clone</code>したら出来ないですし、
+<a href="https://github.com/x-motemen/ghq">ghq</a>みたいなレポジトリ管理ツールなどを使う場合にも
+適用されないので
+それらのときでも同様のことをするためには必要に応じてwrapperを作るなどする必要があります。</p>
+
+<h2 id="git-inittemplatedir">Git init.templateDir</h2>
+
+<p>Gitでは<code>init.templateDir</code>を<strong>.gitconfig</strong>に設定しておくと、
+その中にある<strong>hooks</strong>などのディレクトリにあるファイルを
+<strong>.git/hooks</strong>などにコピーしてくれます。</p>
+
+<p><strong>.git</strong>の中には<strong>hoooks</strong>や<strong>info</strong>といったディレクトリが作られますが、
+その中にあるファイルは元々Gitをインストールしたときに一緒にインストールされる
+<strong>git-core/templates</strong>の中にあるものがコピーされます。</p>
+
+<p>通常は<code>$(git --exec-path)/../share/git-core/templates)</code>のような場所にあります。
+ここの<strong>hooks</strong>には<strong>pre-commit.sample</strong>などのhookのサンプルが置かれていて、
+クローンしたレポジトリの<strong>.git/hooks/pre-commit</strong>はそのサンプルが入っている状態になります。</p>
+
+<p><code>init.templateDir</code>にファイルを置いておくとこれらの代わりに<code>init.templateDir</code>で指定したディレクトリの中にあるファイルが
+<strong>.git</strong>にコピーされるようになります。</p>
+
+<p>この設定のため、まず、<strong>.gitconfig</strong>に</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[init]</span>
+</span><span class="line"><span class="w">  </span><span class="n">templateDir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">~/.config/git-templates</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような設定を追加するか、もしくはコマンドで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git config --global init.templateDir ~/.config/.git-templates</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を実行して設定を追加します。</p>
+
+<p>テンプレートディレクトリの場所はどこでも良いのでHOME直下に<strong>.git-templates</strong>として作ったり好きなように。</p>
+
+<p><code>pre-commit</code>コマンドには<code>init-templatedir</code>というサブコマンドがあり、これによって指定したテンプレートディレクトリに<strong>pre-commit</strong>ファイルを追加することができます。</p>
+
+<p>もし<code>pre-commit</code>コマンドがグローバルにインストールされているのであれば、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit init-templatedir ~/.config/git-templates</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で、<strong>~/.config/git-templates/hooks/pre-commit</strong>にpre-commitファイルが追加され、
+次にCloneする際にこのファイルが追加されます。</p>
+
+<p>一方、uvなどで管理している仮想環境化に<code>pre-commit</code>コマンドがインストールされている場合には、
+これだと別のものになってしまいます。
+逆にその仮想環境化で作った<strong>pre-commit</strong>ファイルはそのレポジトリ専用のものになってしまいます。</p>
+
+<figure class="code"><figcaption><span>pre-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="c1"># start templated</span>
+</span><span class="line"><span class="nv">INSTALL_PYTHON</span><span class="o">=</span>&lt;/path/to&gt;/python3
+</span><span class="line"><span class="nv">ARGS</span><span class="o">=(</span>hook-impl<span class="w"> </span>--config<span class="o">=</span>.pre-commit-config.yaml<span class="w"> </span>--hook-type<span class="o">=</span>pre-commit<span class="o">)</span>
+</span><span class="line"><span class="c1"># end templated</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">HERE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nv">ARGS</span><span class="o">+=(</span>--hook-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HERE</span><span class="s2">&quot;</span><span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INSTALL_PYTHON</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exec</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INSTALL_PYTHON</span><span class="s2">&quot;</span><span class="w"> </span>-mpre_commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">elif</span><span class="w"> </span><span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>pre-commit<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exec</span><span class="w"> </span>pre-commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;`pre-commit` not found.  Did you forget to activate your virtualenv?&#39;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初の<code>INSTALL_PYTHON</code>が<code>&lt;repo&gt;/.venv/bin/python3</code>のような
+Pythonのパスになってたりします。</p>
+
+<p>これをいろいろな環境で完璧に合わせるのは難しいので最小限の状態にして
+かつ、pre-commitが設定されてないレポジトリでは実行しないように、</p>
+
+<figure class="code"><figcaption><span>pre-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>root<span class="k">)</span><span class="s2">/.pre-commit-config.yaml&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ARGS</span><span class="o">=(</span>hook-impl<span class="w"> </span>--config<span class="o">=</span>.pre-commit-config.yaml<span class="w"> </span>--hook-type<span class="o">=</span>pre-commit<span class="o">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nv">HERE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ARGS</span><span class="o">+=(</span>--hook-dir<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HERE</span><span class="s2">&quot;</span><span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exec</span><span class="w"> </span>pre-commit<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">ARGS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようなスクリプトにしておくと
+基本的にグローバルにインストールされている<strong>pre-commit</strong>コマンドが実行され、
+必要であればレポジトリで仮想環境下に入って実行、もしくはuvなら<code>uv run git commit</code>などすれば
+その仮想環境下の<code>pre-commit</code>コマンドが実行されるようになります。</p>
+
+<p>すべてのレポジトリにインストールされるので、<strong>.pre-commit-config.yaml</strong>がないレポジトリでは
+実行しないようにしておく必要があります。</p>
+
+<h2 id="mise">mise</h2>
+
+<p><a href="https://mise.jdx.dev/">mise</a>はPythonだけでなく様々な言語の仮想環境を管理できるツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p>この<a href="https://mise.jdx.dev/">mise</a>を使っている場合に使える方法。</p>
+
+<p>miseを有効にするために、レポジトリ<strong>.mise.toml</strong>を作成しておく必要がありますが、
+それを以下のような設定にしておきます。</p>
+
+<figure class="code"><figcaption><span>.mise.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[env]</span>
+</span><span class="line"><span class="n">_</span><span class="p">.</span><span class="n">python</span><span class="p">.</span><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.venv&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[settings]</span>
+</span><span class="line"><span class="n">experimental</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[hooks]</span>
+</span><span class="line"><span class="n">enter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;[ -x </span><span class="se">\&quot;</span><span class="s2">$(git rev-parse --git-path hooks/pre-commit)</span><span class="se">\&quot;</span><span class="s2"> ] || uv run pre-commit install &gt;/dev/null&quot;</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>miseにも<a href="https://mise.jdx.dev/hooks.html">hooks</a>という機能がありますが、現状正式版にはなっていないため、
+使うためには<code>experimental = true</code>を設定しておく必要があります。</p>
+
+<p>hooksはmiseの古いバージョンだと使えないかもしれないので
+使えない場合はmiseのバージョンを更新してみてください。
+(少なくともversion 2025.7.4だと使える)</p>
+
+<p>hooksはディレクトリを移動するたびに実行される<code>cd</code>や特定のファイルが変更されたときに実行される<code>watch_files</code>などがありますが、
+<code>enter</code>/<code>leave</code>といったレポジトリ内に入った際や出た際に実行されるものもあります。</p>
+
+<p>この<code>enter</code>を使って<code>pre-comimt install</code>を実行するようにしておきます。</p>
+
+<p>ここでは<code>pre-commit</code>コマンドがuvで仮想環境にインストールされるようになっているレポジトリを仮定しています。
+もし、<code>pre-commit</code>コマンドをレポジトリ依存ではなくグローバルなものとして使ってる場合には単に<code>pre-commit install</code>に変更してください。</p>
+
+<p>この方法の利点としては
+レポジトリ側での設定なのでレポジトリごとに必要に応じた設定ができること。</p>
+
+<p>また、<code>enter</code>の指定なので、仮に間違って<strong>.git/hooks/pre-commit</strong>ファイルを消してしまっても
+次にそのレポジトリに入ったときに追加されます。</p>
+
+<p>上の2つのGitだけの設定に比べると一般性は下がりますが、
+その分レポジトリごとに必要な設定ができるので便利です。</p>
+
+<p>欠点としてはmiseを使ってないと意味がないということと、
+<code>enter</code>はレポジトリ下に入るたびに実行されるのでちょっと冗長かもしれないということ。</p>
+
+<p><code>uv run pre-cmmit install</code>は場合によっては実行時間が気になることもあるかもしれません。
+なので上のように<strong>pre-commit</strong>がインストールされてないときだけ実行するようにしてあります。</p>
+
+<p>また、毎回<code>uv run</code>してしまうと<code>uv sync</code>相当のことが毎回行われるのも場合によっては問題になるかもしれないので
+基本的にはこのように必要なときだけ実行するようにしておいが方が良いと思います。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>cloneするときに、という点では最初のようなaliasを使えば
+pre-commitだけでなく、必要なものを自由に設定できるので
+便利です。</p>
+
+<p>ただ、<code>cl</code>意外を使ってしまう場合があれば適用されないので
+その場合を把握しておく必要があります。</p>
+
+<p><code>init.templateDir</code>を使う方法は
+pre-commitに関しては割と確実な方法ではありますが、
+pre-commit関係ないレポジトリでも入れてしまったり、
+どの環境のpre-commitを使うかで場合によって動かないこともあるので注意が必要です。</p>
+
+<p>miseを使う方法だとレポジトリごとに必要な設定もできるので便利です
+ただmiseを使っていないと意味がないという欠点があります。
+またレポジトリ側の設定なので自分で管理できるレポジトリでの話になります。</p>
+
+<p>個人的な現状の設定としてはaliasとmiseの方法を入れてあります</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"/>
+    <updated>2024-11-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/11/27/computer-python-screen</id>
+    <content type="html"><![CDATA[<p>Pythonのプロジェクト管理ツールをuvにした際に、
+uvにはpoetryのように<code>poetry shell</code>のような仮想環境を自動認識する機能がないため、ちょっと調べた結果、
+<a href="https://mise.jdx.dev/">mise</a>というツールを試しています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pythonプロジェクト下での仮想環境下でのコマンド実行の必要性" id="markdown-toc-pythonプロジェクト下での仮想環境下でのコマンド実行の必要性">Pythonプロジェクト下での仮想環境下でのコマンド実行の必要性</a></li>
+  <li><a href="#uvの仮想環境" id="markdown-toc-uvの仮想環境">uvの仮想環境</a></li>
+  <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+  <li><a href="#miseのインストール" id="markdown-toc-miseのインストール">miseのインストール</a></li>
+  <li><a href="#pythonプロジェクト下でのmiseの使い方" id="markdown-toc-pythonプロジェクト下でのmiseの使い方">Pythonプロジェクト下でのmiseの使い方</a></li>
+  <li><a href="#プロンプトへの表示" id="markdown-toc-プロンプトへの表示">プロンプトへの表示</a></li>
+  <li><a href="#gnu-screenのcaptionに仮想環境名を表示" id="markdown-toc-gnu-screenのcaptionに仮想環境名を表示">GNU screenのCaptionに仮想環境名を表示</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pythonプロジェクト下での仮想環境下でのコマンド実行の必要性">Pythonプロジェクト下での仮想環境下でのコマンド実行の必要性</h2>
+
+<p>Pythonのプロジェクトを作る際、自分のやり方として
+<a href="https://pre-commit.com/">pre-commit</a>を使って
+コードをチェックするようにしています。</p>
+
+<p>pre-commit用のツールはpre-commit自体に管理してもらう事もできますが、
+フォーマッターとかをコマンドラインから直接使ったりもしたいので
+それらのツールはプロジェクトのdevelopment用の依存関係に入れておいてインストールするようにしています。</p>
+
+<p>そのようなツールも毎回書くのが大変なので
+以下のようなパッケージを作ってまとめてインストールできるようにもしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4814400179?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4814400179&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Xh3Xdtg-L._SS90_CR0,0,120,90_.jpg" alt="ロバストPython ―クリーンで保守しやすいコードを書く" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/01/computer-python/">pyproject-pre-commit: Pythonプロジェクト用のpre-commit集</a></div></li></ul>
+
+<p>で、これらのツールは仮想環境の中にインストールされるわけで、
+直接実行するには仮想環境内に居る必要があります。</p>
+
+<p>これはエディタなど開いた際なども仮想環境下でそのプロジェクトに必要なツールにパスが通っていることでそれを使えるので
+pre-commitに直接管理してもらうよりも便利です。</p>
+
+<p>というわけで仮想環境下に簡単に入れるようにしたい、という話。</p>
+
+<h2 id="uvの仮想環境">uvの仮想環境</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/08/computer-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241108_uv_120_90.jpg" width="120" height="90" alt="20241108_uv_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/08/computer-python/">Pythonのプロジェクト管理ツールをPoetryからuvに移行</a></div></li></ul>
+
+<p>uvは通常<strong>pyproject.toml</strong>ファイルのあるディレクトリに<strong>.venv</strong>ディレクトリを作成し、その中に仮想環境を作成します。</p>
+
+<p>仮想環境を有効にするには、<code>.venv/bin/activate</code>を実行します。
+出るには<code>deactivate</code>を実行します。
+ただしこの場合はプロジェクトのルートディレクトリに居るか、そこをきちんと指定する必要があります。</p>
+
+<p>また、プロジェクトのディレクトリ以下にいる場合は<code>uv run &lt;command&gt;</code>で仮想環境下としてコマンドを実行できます。</p>
+
+<p><strong>poetry</strong>の場合はデフォルトではキャッシュディレクトリに仮想環境を作成しますが、
+同様に<strong>poetry run <command /></strong>で仮想環境下としてコマンドを実行できます。</p>
+
+<p>一方、<code>activate</code>を実行するにはキャッシュディレクトリ下の仮想環境ディレクトリを参照する必要がありますが、
+<strong>poetry</strong>では直接そこを参照する方法はなく
+(<code>poetry env info</code>から取得することは出来ますが)、
+通常は<code>poetry shell</code>というコマンドで仮想環境を有効にします。</p>
+
+<p>ただし、この場合は仮想環境が有効なシェルを新たに立ち上げている形です。なので環境を出るときにはシェルを出るとき同様<code>exit</code>などで出ます。</p>
+
+<p>この<code>poetry shell</code>に相当する機能が<strong>uv</strong>にはありません。</p>
+
+<p>これは今のところ意図的な仕様で、Issueにはなってますが、
+導入は見送られそうな雰囲気です。</p>
+
+<p><a href="https://github.com/astral-sh/uv/issues/1910">Add a command to activate the virtual environment, e.g., <code>uv shell</code> · Issue #1910 · astral-sh/uv</a></p>
+
+<p>一応、<code>uv run $SHELL</code>とすれば現在のシェルと同じシェルを仮想環境下で立ち上げることになるので<code>poetry shell</code>と同じような事ができます。</p>
+
+<p><code>poetry shell</code>が実際どの程度のことをしているかはわからないですが、実用上は同じ状態だと思って良いはず。</p>
+
+<p>上のIssueでは新たなプロセスを立ち上げることに懸念点があり、その際にどの程度今の環境を引き継ぐべきか、シェルやOSなど毎に何を考慮すればよいのか、など考えることが沢山あって難しいという感じです。</p>
+
+<p>確かにそうだな、と思うのと、逆に実用上は<code>uv run $SHELL</code>で事足りるので、無理に入れる必要はなさそう。</p>
+
+<p>必要ならこれのエイリアスとか作って簡単に実行できるようにしておけばよいかと。</p>
+
+<h2 id="mise">mise</h2>
+
+<p><code>uv run $SHELL</code>、もしくは<code>activate</code>することでも良いのですが、
+せっかくなのでこれを機に仮想環境を自動認識するツールを使ってみることにしました。</p>
+
+<p>このような仮想環境を自動認識するツールとしては
+<a href="https://direnv.net/">direnv</a>
+が有名で古くから良く使われているものだと思います。</p>
+
+<p>direnvは以前ちょっと使ったことがあったのでまた使い始めようかと思って調べてたところ、
+<a href="https://mise.jdx.dev/">mise</a>
+という同じ様なことが出来る新しいツールがあるとのことで試しています。</p>
+
+<p>流行りのRust製で高速。</p>
+
+<p>なんとなく、<code>mice</code>的な感じで<strong>マイス</strong>と読むのかな、と思っていたら、
+フランス語で料理などの準備をする、的な意味で
+<strong>ミーズ</strong>と読むようです。</p>
+
+<p>いろいろな機能があって、pyenvのように必要なバージョンのPythonをインストールしたり、poetryのように仮想環境を管理したり、direnvのようにプロジェクトのディレクトリ下に入った際に自動で環境を切り替えたり、といったことが出来ます。</p>
+
+<p>取り敢えず現状は環境の切り替えだけのために使っています。</p>
+
+<h2 id="miseのインストール">miseのインストール</h2>
+
+<p>Homebrewがあれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>install<span class="w"> </span>mise
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で。</p>
+
+<p>直接インストールスクリプトでいれる場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>curl<span class="w"> </span>https://mise.run<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>など、いろいろな方法でのインストール方法が用意されています。</p>
+
+<p><a href="https://mise.jdx.dev/installing-mise.html">Installing Mise</a></p>
+
+<p>インストールしたらシェルのセットアップファイルに必要な設定を追加します。</p>
+
+<p>Bashなら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;eval &quot;$(mise activate bash)&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>中身を見てみるとわかりますが、<code>PROMPT_COMMAND</code>に<code>_mise_hook</code>関数を追加しています。</p>
+
+<p>この関数の中では、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>mise<span class="w"> </span>hook-env<span class="w"> </span>-s<span class="w"> </span>bash<span class="k">)</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようなコマンドを実行しています。
+これは基本的に<code>export PATH=...</code>といったようにPATHを設定します。</p>
+
+<p>これによって、<code>cd</code>とかでディレクトリを変更した際、そこがプロジェクトのディレクトリ下であるかどうかを判定し、
+ディレクトリ下ならそのプロジェクトの仮想環境のPATHを設定し、
+逆にそこから出た際には元のPATHに戻す、といったことを行っています。</p>
+
+<p><code>uv</code>のプロジェクトだけなら<code>&lt;project&gt;/.venv/bin</code>をPATHに追加したり外したりするだけなので
+その分だけ自作しても良いかな、とも思いましたが、
+<code>uv</code>のプロジェクトのディレクトリ下かどうか、と判定するのは割と面倒で
+やっぱりmiseを使おう、と
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h2 id="pythonプロジェクト下でのmiseの使い方">Pythonプロジェクト下でのmiseの使い方</h2>
+
+<p>プロジェクトのルートディレクトリに<strong>.mise.toml</strong>ファイルを作成します。</p>
+
+<figure class="code"><figcaption><span>.mise.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[env]</span>
+</span><span class="line"><span class="n">_</span><span class="p">.</span><span class="n">python</span><span class="p">.</span><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.venv&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでそのプロジェクト下に入った際、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>mise<span class="w"> </span>ERROR<span class="w"> </span>error<span class="w"> </span>parsing<span class="w"> </span>config<span class="w"> </span>file:<span class="w"> </span>&lt;path/to/project&gt;/.mise.toml
+</span><span class="line">mise<span class="w"> </span>ERROR<span class="w"> </span>Config<span class="w"> </span>file<span class="w"> </span>&lt;path/to/project&gt;/.mise.toml<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>trusted.
+</span><span class="line">Trust<span class="w"> </span>it<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>mise<span class="w"> </span>trust<span class="sb">`</span>.
+</span><span class="line">mise<span class="w"> </span>ERROR<span class="w"> </span>Run<span class="w"> </span>with<span class="w"> </span>--verbose<span class="w"> </span>or<span class="w"> </span><span class="nv">MISE_VERBOSE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>more<span class="w"> </span>information
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と言われるので<code>mise trust</code>を実行します。</p>
+
+<p>そうするとそれ以降、そのプロジェクト下に入った際に自動的に仮想環境が有効になります。
+また、そのプロジェクトから出た際には元の環境に戻ります。</p>
+
+<h2 id="プロンプトへの表示">プロンプトへの表示</h2>
+
+<p><code>. .venv/bin/activate</code>を実行した際にはシェルのプロンプトに仮想環境の名前が表示されるようになります。</p>
+
+<p><code>poetry shell</code>の場合も同じようにプロンプトに仮想環境の名前が表示されます。</p>
+
+<p>miseを使った場合にはプロンプトは変更されません。</p>
+
+<p>direnvの場合も直接プロンプトは変更されませんが、
+プロジェクト下に入った際、仮想環境が有効化されると
+<code>VIRTUAL_ENV</code>以外に<code>VIRTUAL_ENV_PROMPT</code>という環境変数が設定されるので、それを使ってプロンプトを変更することが出来ます。</p>
+
+<p><a href="https://github.com/direnv/direnv/wiki/PS1">PS1 · direnv/direnv Wiki</a></p>
+
+<p>miseの場合は<code>VIRTUAL_ENV</code>は設定されるのですが、<code>VIRTUAL_ENV_PROMPT</code>は設定されません。</p>
+
+<p>なのでちょっと手をいれる必要があります。</p>
+
+<p><a href="https://github.com/jdx/mise/issues/2027">Python environments activating, but zsh prompt not updated · Issue #2027 · jdx/mise</a></p>
+
+<p>一旦Pythonのvenv限定ですが、
+以下の様な関数でプロンプトに仮想環境の名前を表示することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>_venv_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV_PROMPT</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span>prompt
+</span><span class="line"><span class="w">    </span><span class="nv">prompt</span><span class="o">=</span><span class="k">$(</span>grep<span class="w"> </span><span class="s2">&quot;^prompt *=&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/pyvenv.cfg&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;=&quot;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">2</span><span class="p">|</span>sed<span class="w"> </span><span class="s1">&#39;s/^ *//&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="nv">prompt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;(%s) &#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">PS1</span><span class="o">=</span><span class="s1">&#39;$(_venv_prompt)&#39;</span><span class="nv">$PS1</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>uvで作る場合、通常<strong>.venv/pyvenv.cfg</strong>に<code>prompt = ...</code>という行が追加されそこにプロジェクト名があるのでそれを使っています。</p>
+
+<p>また、ちょっと手動で仮想環境を作ってactivateしたとか、直接activateした場合、プロンプトが設定されるので重複してしまいますが、
+その場合には<code>VIRTUAL_ENV_PROMPT</code>が設定されているので、その場合は上の関よる追加は無いようにしています。</p>
+
+<p>これで、<code>my_project</code>というプロジェクトのディレクトリ下に入ると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">(</span>my_project<span class="o">)</span><span class="w"> </span>$
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにプロンプトが変更されます。</p>
+
+<h2 id="gnu-screenのcaptionに仮想環境名を表示">GNU screenのCaptionに仮想環境名を表示</h2>
+
+<p>とプロンプトに表示も出来ますが、
+個人的にプロンプト部分に色々表示されて変わるのは好きではないです。</p>
+
+<p>また、ターミナル作業は基本的に常にGNU screenを使っているので、
+そのCaptionに仮想環境名を表示するようにしてみます。</p>
+
+<p>まず、<strong>.screenrc</strong>では<code>caption</code>に<code>%h</code>を含めてウィンドウのhardstatusを表示するようにしておきます。</p>
+
+<p>このhardstatusは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>$<span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\e]0;%s\a&quot;</span><span class="w"> </span><span class="s2">&quot;hardstatus&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにすることでコマンドで変更することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/21/prompt-command/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/21/prompt-command/">PS1とPROMPT_COMMAND, GNU screenでの活用も</a></div></li></ul>
+
+<p><code>%t</code>でタイトルを表示できますが、こちらは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>$<span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\ek%s\e\134&quot;</span><span class="w"> </span><span class="s2">&quot;hardstatus&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で変更できます。</p>
+
+<p>どちらでも同じようなものなのですが、<code>%h</code>の方は大概のターミナルアプリ自体のタイトルに表示されるものでもあるのでそちらへも表示できるよう<code>%h</code>を使うことにします。</p>
+
+<p>逆に<code>%h</code>は全体の<code>hardstatus</code>の設定の方にいれておきます。
+こちらには全ウィンドウの情報が表示されるようにするのでなるべく情報は少ないほうが良いので。</p>
+
+<p>これを使って、<strong>.bashrc</strong>とかに以下のような設定を追加します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>_venv_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV_PROMPT</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span>prompt
+</span><span class="line"><span class="w">    </span><span class="nv">prompt</span><span class="o">=</span><span class="k">$(</span>grep<span class="w"> </span><span class="s2">&quot;^prompt *=&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/pyvenv.cfg&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;=&quot;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">2</span><span class="p">|</span>sed<span class="w"> </span><span class="s1">&#39;s/^ *//&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="nv">prompt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;(%s) &#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="nv">$TERM</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span>screen<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span>_screen_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">dir</span><span class="o">=</span><span class="si">${</span><span class="nv">PWD</span><span class="p">/#</span><span class="nv">$HOME</span><span class="p">/</span><span class="se">\~</span><span class="si">}</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\ek%s %s\e\134&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>hostname<span class="w"> </span>-s<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\e]0;%s %s%s\a&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>hostname<span class="w"> </span>-s<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>_venv_prompt<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nv">PROMPT_COMMAND</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PROMPT_COMMAND</span><span class="p">:+</span><span class="si">${</span><span class="nv">PROMPT_COMMAND</span><span class="si">}</span><span class="p">;</span><span class="si">}</span><span class="s2">_screen_prompt&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><strong>.screenrc</strong>の関連部分は以下のようにしています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="c1"># Caption for each window</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%F&quot;</span><span class="w">     </span><span class="c1"># if the window has the focus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{= 0;255}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {dim, black on white}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%:&quot;</span><span class="w">       </span><span class="c1"># else</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{=d 0;240}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {dim, black on gray}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%P&quot;</span><span class="w">     </span><span class="c1"># if copy/paste mode</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{+ 0;012}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {on bright blue}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%n&quot;</span><span class="w">       </span><span class="c1"># window number</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2"> &quot;</span><span class="w">        </span><span class="c1"># space</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%L=&quot;</span><span class="w">      </span><span class="c1"># Mark the position for the next truncation</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%h&quot;</span><span class="w">       </span><span class="c1"># window&#39; hardstatus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%L&gt;&quot;</span><span class="w">      </span><span class="c1"># Truncate %L= ~ %L&gt;, &#39;L&#39; for &gt; gives marks at the truncation point</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%=&quot;</span><span class="w">       </span><span class="c1"># With the last %-0=, it makes right alignment for following lines</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%P&quot;</span><span class="w">     </span><span class="c1"># if copy/paste mode</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">  *copy/paste*&quot;</span><span class="w"> </span><span class="c1"># draw this sentence</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%E&quot;</span><span class="w">     </span><span class="c1"># if the escape character has  been pressed</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">  ***command**&quot;</span><span class="w"> </span><span class="c1"># draw this sentence</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-0=&quot;</span><span class="w">     </span><span class="c1"># pad the string to the display&#39;s width. &quot;-0&quot; means</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># start from the rightest side</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># (e.g. 10=: 10% from left, 010, 10 characters from left</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># (     -10=: 10% from right)</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># With %L&gt;, %= above, screen tries to truncates the part </span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># in the left of &quot;%L&gt;&quot;</span>
+</span><span class="line">caption<span class="w"> </span>always<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">&quot;</span>
+</span><span class="line">unsetenv<span class="w"> </span>a
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="c1"># hardstatus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{=d 0;240}&quot;</span><span class="w"> </span><span class="c1"># set attribute = {black(k) on bright Black(K)}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-w&quot;</span><span class="w">     </span><span class="c1"># windows&#39; list up to the current window (shown as &quot;%n %t&quot;)</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%40&gt;&quot;</span><span class="w">    </span><span class="c1"># Mark here as a point to move when truncation</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># Try to move this point to the 40% point</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{= 0;255}&quot;</span><span class="w"> </span><span class="c1"># set attribute = {black(k) on bright Write(W)}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%n&quot;</span><span class="w">      </span><span class="c1"># current window number</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2"> &quot;</span><span class="w">       </span><span class="c1"># space</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%t&quot;</span><span class="w">      </span><span class="c1"># current window title</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{-}&quot;</span><span class="w">    </span><span class="c1"># remove the set from the current attributes</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%+w&quot;</span><span class="w">     </span><span class="c1"># windows&#39; list starting with the window after the current one (shown as &quot;%n %t&quot;)</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-0=&quot;</span><span class="w">    </span><span class="c1"># pad the string to the display&#39;s width.</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># About Truncation/Padding(=,&lt;,&gt;)</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># http://aperiodic.net/screen/truncation_padding_escapes</span>
+</span><span class="line">hardstatus<span class="w"> </span>alwayslastline<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">&quot;</span>
+</span><span class="line">unsetenv<span class="w"> </span>a
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、環境外だと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20241128_misenonactive.jpg" alt="20241128_misenonactive.jpg" class="pic" /></p>
+
+<p>環境内に入ると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20241128_miseactive.jpg" alt="20241128_miseactive.jpg" class="pic" /></p>
+
+<p>といった感じにウィンドウのCaption部分に仮想環境名が表示されるようになります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

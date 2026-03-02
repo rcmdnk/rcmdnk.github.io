@@ -1,0 +1,1732 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: AI | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/ai/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[codexでgithub-mcp-serverを直接使う]]></title>
+    <link href="https://rcmdnk.com/blog/2025/10/16/computer-ai/"/>
+    <updated>2025-10-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/10/16/computer-ai</id>
+    <content type="html"><![CDATA[<p>codexにStreamable HTTPなMCP Serverに対するサポートが追加されたので
+それを使ってこれまで直接使えなかったGitHub公式のMCP Serverを使う設定を追加。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#experimental_use_rmcp_client" id="markdown-toc-experimental_use_rmcp_client">experimental_use_rmcp_client</a></li>
+  <li><a href="#github公式mcp-serverをcodexで直接使う" id="markdown-toc-github公式mcp-serverをcodexで直接使う">GitHub公式MCP Serverをcodexで直接使う</a></li>
+  <li><a href="#oauthがうまく行かない" id="markdown-toc-oauthがうまく行かない">OAuthがうまく行かない</a></li>
+  <li><a href="#experimental_use_rmcp_clientの設定がなかったときの設定" id="markdown-toc-experimental_use_rmcp_clientの設定がなかったときの設定">experimental_use_rmcp_clientの設定がなかったときの設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="experimental_use_rmcp_client">experimental_use_rmcp_client</h2>
+
+<blockquote>
+  <p><a href="https://github.com/openai/codex/blob/main/docs/config.md#streamable-http">Streamable HTTP</a></p>
+</blockquote>
+
+<p><code>experimental_use_rmcp_client</code>というオプションが追加されていて、これを<code>true</code>にすると
+Streamable HTTPなMCP Serverを使えるようになります。</p>
+
+<h2 id="github公式mcp-serverをcodexで直接使う">GitHub公式MCP Serverをcodexで直接使う</h2>
+
+<blockquote>
+  <p><a href="https://github.com/github/github-mcp-server">github/github-mcp-server: GitHub’s official MCP Server</a></p>
+</blockquote>
+
+<p>これまではこれをcodexで直接使うことは出来ず、
+<a href="https://github.com/sparfenyuk/mcp-proxy">mcp-proxy</a>
+などを使った方法が紹介されていました。</p>
+
+<p>これを<code>experimental_use_rmcp_client</code>を使うと</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">experimental_use_rmcp_client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://api.githubcopilot.com/mcp&quot;</span>
+</span><span class="line"><span class="n">bearer_token_env_var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;GITHUB_MCP_API_TOKEN&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と設定を書くだけで使えるようになります。</p>
+
+<p>ここで、<code>GITHUB_MCP_API_TOKEN</code>はGitHubのPersonal Access Tokenを格納した環境変数の名前で、
+その環境変数をcodexが中で解釈している形になります。</p>
+
+<p><code>$GITHUB_MCP_API_TOKEN</code>と変数展開の形では書かずに直接変数名だけ書きます。
+このことから分かるように、文字列であるTOKENを直接設定ファイルに書くことは出来ず、環境変数に入れておく必要があります。</p>
+
+<p>これでcodexを起動して<code>/mcp</code>コマンドを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">  • Server: github-mcp-server
+</span><span class="line">    • Status: enabled
+</span><span class="line">    • Auth: Bearer token
+</span><span class="line">    • URL: https://api.githubcopilot.com/mcp
+</span><span class="line">    • Tools: add_comment_to_pending_review, add_issue_comment, add_sub_issue, assign_copilot_to_issue,
+</span><span class="line">create_and_submit_pull_request_review, create_branch, create_issue, create_or_update_file,
+</span><span class="line">create_pending_pull_request_review, create_pull_request, create_repository, delete_file,
+</span><span class="line">delete_pending_pull_request_review, fork_repository, get_commit, get_file_contents, get_issue, get_issue_comments,
+</span><span class="line">get_label, get_latest_release, get_me, get_release_by_tag, get_tag, get_team_members, get_teams, list_branches,
+</span><span class="line">list_commits, list_issue_types, list_issues, list_label, list_pull_requests, list_releases, list_sub_issues, list_tags,
+</span><span class="line">merge_pull_request, pull_request_read, push_files, remove_sub_issue, reprioritize_sub_issue, request_copilot_review,
+</span><span class="line">search_code, search_issues, search_pull_requests, search_repositories, search_users, submit_pending_pull_request_review,
+</span><span class="line">update_issue, update_pull_request, update_pull_request_branch</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じで確認でき、適当なレポジトリで<code>codex</code>を起動して、
+<code>現在openなIssueを一覧表示して</code>などと入力するとIssueの一覧が表示されます。</p>
+
+<h2 id="oauthがうまく行かない">OAuthがうまく行かない</h2>
+
+<p><code>bearer_token_env_var</code>を設定しておかないと、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">■ MCP client for `github-mcp-server` failed to start: handshaking with MCP server failed: Send message error Transport
+</span><span class="line">[rmcp::transport::worker::WorkerTransport&lt;rmcp::transport::streamable_http_client::StreamableHttpClientWorker&lt;reqwest::as
+</span><span class="line">ync_impl::client::Client&gt;&gt;] error: Auth required, when send initialize request</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>見たい感じで<code>github-mcp-server</code>の起動に失敗します。</p>
+
+<p><code>github-mcp-server</code>はOAuthでの認証もサポートしていて、
+codexでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ codex mcp login github-mcp-server</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすることでOAuth認証を行うことも出来るようですが、やってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ codex mcp login github-mcp-server
+</span><span class="line">Dynamic registration failed: Registration failed: HTTP 404 Not Found: 404 page not found
+</span><span class="line">
+</span><span class="line">Authorize `github-mcp-server` by opening this URL in your browser:
+</span><span class="line">https://api.githubcopilot.com/authorize?response_type=code&amp;client_id=mcp-client&amp;state=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&amp;code_challenge_method=S256&amp;redirect_uri=http%3A%2F%2F127.0.0.1%3A46863%2Fcallback</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようになってうまくいかない状態。</p>
+
+<h2 id="experimental_use_rmcp_clientの設定がなかったときの設定">experimental_use_rmcp_clientの設定がなかったときの設定</h2>
+
+<p>以前は以下のような設定が紹介されていました。</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mcp-proxy&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;--transport&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;streamablehttp&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;-H&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Bearer &lt;TOKEN&gt;&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;https://api.githubcopilot.com/mcp/&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ここでは<code>&lt;TOKEN&gt;</code>の部分には直接TOKENを書く必要があります。</p>
+
+<p>これで上と同じように使えはするのですが、これだとTOKENを直接設定ファイルに書く必要があります。
+<code>mcp-proxy</code>では認証部分を</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.github-mcp-server]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mcp-proxy&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;--transport&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;streamablehttp&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="s2">&quot;https://api.githubcopilot.com/mcp/&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="p">]</span>
+</span><span class="line"><span class="n">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">API_ACCESS_TOKEN</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;&lt;TOKEN&gt;&quot;</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように、<code>API_ACCESS_TOKEN</code>を別途環境変数として渡す事もできますが、
+いずれにしろそれに渡すTOKENを直接書く必要があります。</p>
+
+<p>このあたりはmcp-proxyの仕様で、
+codexもこれらの値に関しては特別外から環境変数を持ってきて解釈するようなことはしないみたいなので
+仕方ないところ<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>このmcp-proxyを使ったGitHubのMCP Serverの利用は、使っているいくつかのLinux環境だと動いたのですが、
+何故かmacOSの環境下だと動かず。
+mcp-proxyのバグなのかcodexのバグなのか、なにか自分の環境の問題なのか結局よくわからずじまい。</p>
+
+<p><strong>~/.codex/config.toml</strong>をdotfilesに入れたいのでTOKENを書けないの<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+このmacOSの問題もあったのでこれまでcodexではGitHubのMCP Serverは使ってませんでした。</p>
+
+<p>一応
+<a href="https://github.com/cli/cli#installation">gh</a>
+コマンドを使える環境にしてあるのである程度のことは<code>gh</code>で出来てたので無理に使わずとも良いか、という感じではありました。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>というわけで、今までも一応使えましたが、新しい方法だと
+TOKENをcodexの設定ファイルに直接書かずに済むようになり使いやすくなります。</p>
+
+<p>OAuth認証は自分の環境でうまく言ってませんが、もし使えるならTOKENを取らずにすぐに使えて便利。
+バグでそのうち治るかもしれません。</p>
+
+<p>まだ<code>experimental_</code>がついているオプションなので、将来変わる可能性もありますが、
+とりあえずこんな設定で行けます。</p>
+
+<p>個人的にはこれまで使えてなかったのがやっと使えるようになったので良かったです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[miseでAI CLIツールやMCPもまとめて管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2025/10/04/computer-ai/"/>
+    <updated>2025-10-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/10/04/computer-ai</id>
+    <content type="html"><![CDATA[<p>codexなどのツールのインストールはHomebrewなどでも簡単にできるようになっていますが、
+MCPサーバー用のツールは別途管理する必要があります。</p>
+
+<p>多くはPythonやNode.jsのパッケージとしてuvx/npxなどを使って使う方法が
+紹介されていますが、
+全部まとめてmiseで管理するようにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#よくある方法" id="markdown-toc-よくある方法">よくある方法</a></li>
+  <li><a href="#miseで全部管理する" id="markdown-toc-miseで全部管理する">miseで全部管理する</a></li>
+  <li><a href="#miseの設定ファイルについて" id="markdown-toc-miseの設定ファイルについて">miseの設定ファイルについて</a>    <ul>
+      <li><a href="#tools" id="markdown-toc-tools">tools</a></li>
+      <li><a href="#pipx-uvx" id="markdown-toc-pipx-uvx">pipx (uvx)</a></li>
+      <li><a href="#npm-bun" id="markdown-toc-npm-bun">npm (bun)</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="よくある方法">よくある方法</h2>
+
+<p>MCPサーバー用のツールはPythonやNode.jsのパッケージとして公開されていることが多いです。</p>
+
+<p>これらのツールは隔離された開発環境に<code>pip</code>や<code>npm</code>で直接インストールすることはありますが、
+グローバルインストールする方法はあまり推奨されていません。
+色々なツールをインストールしているとバージョンの競合などが起きやすくなるためです。</p>
+
+<p>そこでよくある方法としては<code>uvx</code>や<code>npx</code>を使って実行する方法。</p>
+
+<p>codexの設定だと</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.serena]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;uvx&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--from&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;git+https://github.com/oraios/serena&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serena&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start-mcp-server&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--context&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;codex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--enable-web-dashboard&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.context7]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;npx&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@upstash/context7-mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--api-key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${CONTEXT7_API_KEY}&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じでコマンドに<code>uvx</code>や<code>npx</code>を指定して設定する方法がよく紹介されています。</p>
+
+<p>これらのツールの公式でもこのように紹介されています。</p>
+
+<ul>
+  <li><a href="https://github.com/oraios/serena?tab=readme-ov-file#codex">oraios/serena: A powerful coding agent toolkit providing semantic retrieval and editing capabilities (MCP server &amp; other integrations)</a></li>
+  <li><a href="https://github.com/upstash/context7?tab=readme-ov-file#requirements">upstash/context7: Context7 MCP Server – Up-to-date code documentation for LLMs and AI code editors</a></li>
+</ul>
+
+<p>これらは<code>serena</code>だったり<code>context7-mcp</code>というCLIツールを使ってMCPサーバーを起動しますが、
+それらを<code>uvx</code>や<code>npx</code>で直接実行しています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ uvx --from git+https://github.com/oraios/serena serena
+</span><span class="line">$ npx -y @upstash/context7-mcp</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これらのコマンドを実行すると、もし<code>PATH</code>の中やNode.jsの場合は<code>node_modules/.bin</code>にそのコマンドがあった場合は
+そちらを優先して実行します。</p>
+
+<p>無い場合、実際には最初の実行時に、<strong>~/.cache/uv/</strong>や<strong>~/.npm/_npx/</strong>にパッケージがインストールされ、それを使ってコマンドが実行されます。</p>
+
+<p>それらのインストール時には各コマンド毎に隔離した環境が作られるため、複数のツールを使ってもバージョンの競合などは起きません。</p>
+
+<p>インストールせずに実行できる、みたいに書いてあるものもありますが、実際には上に書いたように
+実態がインストールされてから実行されるので、
+初めて実行しようとすると少し時間がかかります。</p>
+
+<p>これを直接codexのMCPサーバーとして実行しようとすると時間がかかりすぎてタイムアウトエラーになることがあります。
+<code>startup_timeout_ms = 60000</code>
+などしてタイムアウトを長くして回避することも出来ますが、
+できれば先に用意しておいたほうが色々とトラブルを避けられます。</p>
+
+<h2 id="miseで全部管理する">miseで全部管理する</h2>
+
+<p><a href="https://mise.jdx.dev/">mise</a>(ミーズ)は
+開発環境の管理ツールです。</p>
+
+<p>結構機能が盛りだくさんで、</p>
+
+<ul>
+  <li>開発ツールの管理</li>
+  <li>プロジェクトごとの開発環境の管理</li>
+  <li>仮想環境の自動認識</li>
+  <li>タスクの自動化</li>
+</ul>
+
+<p>などが出来ます。</p>
+
+<p>もともと使い始めたのは仮想環境の自動認識のためでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p>それ以外だと<code>pre-commit</code>を使うレポジトリに最初に入るときに自動で<code>pre-commit install</code>を実行する設定
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+をしたりする程度でしたが、
+MCPサーバー用のツールもまとめて管理したら便利そうだったのでまとめてみました。</p>
+
+<p>以下の様な設定ファイルを用意します。</p>
+
+<figure class="code"><figcaption><span>~/config/mise/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tools]</span>
+</span><span class="line"><span class="n">node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;24.9.0&quot;</span>
+</span><span class="line"><span class="n">uv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8.22&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;npm:@openai/codex&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.42.0&quot;</span>
+</span><span class="line"><span class="s2">&quot;npm:@upstash/context7-mcp&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0.20&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを<strong>~/config/mise/config.toml</strong>に保存して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$<span class="w"> </span>mise<span class="w"> </span>install
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>すれば<code>codex</code>コマンドと共に、<code>context7-mcp</code>と<code>serena</code>コマンドもインストールされます。</p>
+
+<p><a href="https://mise.jdx.dev/getting-started.html#activate-mise">miseのsetup</a>
+が済んでいれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>.local/share/mise/installs/npm-openai-codex/0.42.0/bin/codex
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>などにインストールされているコマンドへの<code>PATH</code>が通って<code>codex</code>だけで実行できるようになっているはずです。</p>
+
+<p><code>serena</code>などもそのまま実行できるようになったので、上の
+<strong>~/.codex/config.toml</strong>は</p>
+
+<figure class="code"><figcaption><span>~/.codex/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[mcp_servers.context7]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;context7-mcp&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--api-key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${CONTEXT7_API_KEY}&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[mcp_servers.serena]</span>
+</span><span class="line"><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;serena&quot;</span>
+</span><span class="line"><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;start-mcp-server&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--context&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;codex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--enable-web-dashboard&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このように直接コマンドを使うように書き換えられます。</p>
+
+<p>この方法の利点としては</p>
+
+<ul>
+  <li>事前に必要なツールが<code>mise</code>のみ。</li>
+  <li><code>mise install</code>を実行しておくことで<code>codex</code>起動時には即座に各MCPサーバーが起動できる。</li>
+  <li>バージョン管理が一元化できる
+    <ul>
+      <li><code>mise upgrade --bump</code>とすると全てのツールを最新にできる。設定ファイルも自動で更新。</li>
+    </ul>
+  </li>
+  <li><code>codex</code>などもバージョンも含めきちんと管理することができる。
+    <ul>
+      <li>HomebrewだとHomebrewに登録された最新バージョンのみ。実際のリリースより遅れることもあり、古いバージョンを(簡単に)使うことは出来ない。</li>
+    </ul>
+  </li>
+  <li><strong>~/.config/mise/config.toml</strong>を<a href="https://github.com/rcmdnk/dotfiles">dotfiles</a>などで管理しておけば複数の環境で同じ環境を簡単に再現できる。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<h2 id="miseの設定ファイルについて">miseの設定ファイルについて</h2>
+
+<p>miseの設定ファイルについてもう少し捕捉。</p>
+
+<h3 id="tools">tools</h3>
+
+<p>今回のファイルだと
+<code>tools</code>セクションのみのファイルになっていますが、
+<code>uv</code>, <code>node</code>という管理する側のツールもここで管理します。
+別途インストールされて<code>PATH</code>に入っていればPATHの設定次第でそちらが使われる事もあるので、
+<strong>.bashrc</strong>の中などに追加する<code>_mise_hook</code>などの設定と他の<code>PATH</code>の設定の順序などちょっと注意が必要です。
+基本的に最新のものを使っている状態ならそれ程細かく気にする必要はないかもしれませんが。</p>
+
+<p>後は、<code>npm</code>や<code>pipx</code>でインストールするツールを指定しています。</p>
+
+<h3 id="pipx-uvx">pipx (uvx)</h3>
+
+<p><code>pipx</code>と書いてありますが、miseで<code>pipx</code>と書いた場合、<code>uv</code>が入っていればdefaultでは<code>uvx</code>がコマンド管理ツールとして使われます。</p>
+
+<blockquote>
+  <p><a href="https://mise.jdx.dev/dev-tools/backends/pipx.html">pipx Backend</a></p>
+</blockquote>
+
+<p><code>uvx</code>コマンドがなければ<code>pipx</code>コマンドが使われますが、<code>uvx</code>があっても<code>pipx</code>を使痛い場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.pipx]</span>
+</span><span class="line"><span class="n">uvx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と設定すれば<code>pipx</code>が必ず使われます。</p>
+
+<p>ただ<code>uvx</code>の方が高速なので無理にこの設定をすることは無いと思います。</p>
+
+<p><code>pipx</code>の形ではPyPIに公開されているパッケージの他にGitHubに公開されているパッケージや
+別のGitリポジトリに公開されているパッケージもインストールできます。
+また、zipファイルになっているパッケージもインストールできます。</p>
+
+<p>GitHubに関しては、上にあるように</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と<code>&lt;user&gt;/&lt;repo&gt;</code>の形で指定できます。</p>
+
+<p>このserenaの場合、<code>latest</code>で指定していますが、
+現状</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;v0.1.4&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>などと書いて、指定バージョンをインストールすることは出来ますが、
+この状態で<code>mise upgrade --bump</code>を実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="n">mise</span><span class="w"> </span><span class="n">WARN</span><span class="w">  </span><span class="n">Error</span><span class="w"> </span><span class="n">getting</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="n">for</span><span class="w"> </span><span class="n">pipx</span><span class="err">:</span><span class="n">oraios</span><span class="err">/</span><span class="n">serena</span><span class="err">:</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="n">found</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というwarningが出てアップグレードもされません。</p>
+
+<p><code>latest</code>にしておくと<code>mise ls</code>で確認するとちゃんと最新バージョンが入っていて、
+新しいバージョンがリリースされるときちんと更新されるのでここは<code>latest</code>にしてあります。</p>
+
+<p>PyPIからインストールするような</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="s2">&quot;pipx:mcp-proxy&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.9.0&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかであればバージョンを書いても<code>mise upgrade --bump</code>で更新されます。</p>
+
+<p>ここで<code>uvx</code>などを使ってインストールされる際には
+<strong>~/.cache/uv/</strong>ではなく
+<strong>~/.local/share/mise/installs</strong>
+の下にインストールされるようになっていて、
+miseのsetupが済んでいればインストールされると
+自動的にそのコマンドのあるディレクトリへの<code>PATH</code>が通るようになっています。</p>
+
+<p><code>npm</code>などの場合も同様です。</p>
+
+<h3 id="npm-bun">npm (bun)</h3>
+
+<p><code>npm</code>の場合は通常<code>npm</code>コマンドが使われますが、<code>bun</code>を使うことも出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.npm]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tools]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.23&quot;</span>
+</span><span class="line"><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じに<code>settings.npm.bun</code>を<code>true</code>にして<code>bun</code>をインストールすれば<code>bun</code>が使われます。
+この場合は<code>bun</code>がないとエラーになります。</p>
+
+<p><code>bun</code>の方が高速なので<code>bun</code>を使うのも良いと思います。</p>
+
+<p><code>bun</code>を使う場合はこんな感じになります。</p>
+
+<figure class="code"><figcaption><span>~/config/mise/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[settings.npm]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tools]</span>
+</span><span class="line"><span class="n">bun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.23&quot;</span>
+</span><span class="line"><span class="n">node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;24.9.0&quot;</span>
+</span><span class="line"><span class="n">uv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8.22&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;npm:@openai/codex&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.42.0&quot;</span>
+</span><span class="line"><span class="s2">&quot;npm:@upstash/context7-mcp&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0.20&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="s2">&quot;pipx:oraios/serena&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでなるべく外部依存を減らしてAIのAPIを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2025/01/27/computer-ai/"/>
+    <updated>2025-01-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/01/27/computer-ai</id>
+    <content type="html"><![CDATA[<p>コマンドラインからさっとAIのAPIを使うためのシェルスクリプトを
+なるべく外部依存を減らして作って通常のUnix環境なら即使えるようなものとして作ってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#スクリプト" id="markdown-toc-スクリプト">スクリプト</a></li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#モデルを変えてみる" id="markdown-toc-モデルを変えてみる">モデルを変えてみる</a></li>
+  <li><a href="#ちょっと長めの質問返信を試す" id="markdown-toc-ちょっと長めの質問返信を試す">ちょっと長めの質問、返信を試す</a></li>
+  <li><a href="#gitのcommitメッセージを生成する" id="markdown-toc-gitのcommitメッセージを生成する">Gitのcommitメッセージを生成する</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="スクリプト">スクリプト</h2>
+
+<p><code>jq</code>とか使えばJSONのパースとか簡単で複雑なことも確実にできるのですが、
+そういうの使わずにやってみます。</p>
+
+<p>ない可能性があるものとしては<code>curl</code>と<code>sed</code>くらいかな、と思いますが、
+<code>sed</code>に関してはGNU版でもmacOSなどに入ってるBSD版でも動くようにしているので
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、
+ネットワークさえ繋がっていれば殆どの場合で使えるはずです。</p>
+
+<p>こんな感じ。</p>
+
+<script src="https://gist.github.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3.js"></script>
+
+<p>重要なのは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">function</span><span class="w"> </span>encode<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">str</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="se">\\</span><span class="p">/</span><span class="se">\\\\</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="se">\&quot;</span><span class="p">/</span><span class="se">\\\&quot;</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\t&#39;</span><span class="p">/</span><span class="se">\\</span><span class="nv">t</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\n&#39;</span><span class="p">/</span><span class="se">\\</span><span class="nv">n</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nv">str</span><span class="o">=</span><span class="si">${</span><span class="nv">str</span><span class="p">//</span><span class="s1">$&#39;\r&#39;</span><span class="p">/</span><span class="si">}</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$str</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">function</span><span class="w"> </span>extract<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">key</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">shift</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">json</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="p">|</span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;s/.*&quot;&#39;</span><span class="nv">$key</span><span class="s1">&#39;&quot;:[[:space:]]*&quot;\([^&quot;\\]*\(\\.[^&quot;\\]*\)*\)&quot;.*/\1/p&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="postscript">
+  <p><strong>追記: 2025/02/15 </strong></p>
+
+  <p>Windowsで作業する際に改行コードがCRLFが混じってdiffに入るとエラーになることがあるので
+それを削除するために<code>$'\r'</code>を削除する部分を追加。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>と</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">content</span><span class="o">=</span><span class="k">$(</span>encode<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$content</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">input_json</span><span class="o">=</span><span class="s1">&#39;{&quot;model&quot;: &quot;&#39;</span><span class="nv">$MODEL</span><span class="s1">&#39;&quot;, &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;&#39;</span><span class="s2">&quot;</span><span class="nv">$content</span><span class="s2">&quot;</span><span class="s1">&#39;&quot;}]}&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">json</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ENDPOINT</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$key</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$input_json</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>log
+</span><span class="line">
+</span><span class="line"><span class="nv">output</span><span class="o">=</span><span class="k">$(</span>extract<span class="w"> </span>content<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Failed to get a response from the API (ENDPOINT=</span><span class="nv">$ENDPOINT</span><span class="s2">, MODEL=</span><span class="nv">$MODEL</span><span class="s2">).&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span>extract<span class="w"> </span>message<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$json</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$output</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の部分。</p>
+
+<p><code>encode</code>で入力をエスケープして改行も<code>\n</code>に変換してJSONとして扱えるようにします。</p>
+
+<p>出力は<code>extract</code>で<code>$key</code>に対応する値を取り出します。</p>
+
+<p><code>model</code>, <code>message[0].role</code>, <code>message[0].content</code>をJSONにして<code>curl</code>を使ってAPIに送ります。</p>
+
+<p>ChatGPTなどのAPIは<code>.../chat/completions</code>というエンドポイントを叩くと、
+返してくるJSON形式のデータの中に<code>choices[0].message.content</code>に出力があるので<code>content</code>を取り出します。
+最後に<code>printf</code>でエスケープされてる文字なども直して出力します。</p>
+
+<p>ここでは一回問いかけをするだけのデータを送ってるので返ってくるchoicesは1つなのでシンプルに最初に見つかったものだけを取り出していますが、
+複数になるとこのようにやるのはけっこう大変にはなってしまいます。</p>
+
+<p>失敗した際には<code>message</code>にエラーメッセージが入っているのでそれを取り出して表示します。</p>
+
+<p>あとの部分はモデルやエンドポイント、またAPIキーなどを設定して実行するだけです。</p>
+
+<p><code>https://api.openai.com/v1/chat/completions</code>と同じ使い方のできるAPIであれば別のAPIでも使えるようになっています。
+DeepSeekやローカルLLMのollamaなども基本的にOpenAIと互換性をもたせるような形を作ってくれているので
+このスクリプトで使うことができます。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>スクリプトは
+<a href="https://gist.github.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3">Simple Chat API call script</a>
+のページからRAWのURLを取得して、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ curl -s -O https://gist.githubusercontent.com/rcmdnk/0c1132b8ac95382c66d988932bd32bc3/raw/40c2092404150649bfb55be8dca8c9a37d1b2d18/chat.sh</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>`</p>
+
+<p>とするかZIPでダウンロードして展開して使ってください。</p>
+
+<p>コピペでやろうとするとエスケープした部分とかが変わってしまう可能性があるので注意。</p>
+
+<p>使い方としては引数として質問を与えるか、パイプでつなげて標準入力として与えることができます。
+両方与えた場合は標準入力のあとに引数で与えた入力を改行した後につなげます。</p>
+
+<p>オプションは</p>
+
+<ul>
+  <li><code>-m [MODEL]</code>: モデル指定。デフォルトは<code>gpt-4o</code>。</li>
+  <li><code>-e [ENDPOINT]</code>: エンドポイント指定。デフォルトは<code>https://api.openai.com/v1/chat/completions</code>。</li>
+  <li><code>-k [KEY_NAME]</code>: APIキーを入れた環境変数名の指定。デフォルトは<code>OPENAI_API_KEY</code>。</li>
+  <li><code>-v</code>: 詳細モード。入力に使ったJSONデータと出力のJSONデータそのものも表示する。</li>
+  <li><code>-h</code>: ヘルプ表示。</li>
+</ul>
+
+<p><code>MODEL</code>, <code>ENDPOINT</code>, <code>KEY_NAME</code>は<strong>~/.config/chat/config</strong>でも変更できます。</p>
+
+<p>例えば</p>
+
+<figure class="code"><figcaption><span>~/.config/chat/config </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">MODEL</span><span class="o">=</span>deepseek-chat
+</span><span class="line"><span class="nv">ENDPOINT</span><span class="o">=</span>https://api.deepseek.ai/v1/chat/completions
+</span><span class="line"><span class="nv">KEY_NAME</span><span class="o">=</span>DEEPSEEK_API_KEY
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかすればDeepSeekのAPIを使うようになります。</p>
+
+<p>OpenAIとDeepSeekに関しては、ENDPOINTを指定しなくても
+<code>gpt*</code>, <code>chatgpt*</code>, <code>o1-*</code>の場合はOpenAIのAPIを、
+<code>deepseek*</code>の場合はDeepSeekのAPIを使うようにしています。</p>
+
+<p>これら以外でENDPOINTを指定しないとローカル、
+<code>http://localhost:11434/v1/chat/completions</code>を使うようにしています。
+これはollamaのデフォルトのエンドポイントです。</p>
+
+<p>必要に応じて</p>
+<ul>
+  <li><code>-M</code>: max_completion_tokens</li>
+  <li><code>-t</code>: temperature</li>
+</ul>
+
+<p>などのオプションを追加してもいいかもしれませんが、
+この辺おオプションはdeepseekだとまだ<code>max_tokens</code>しかなかったり
+OpenAIだと<code>temperature</code>しかなかったりするので
+デフォルトでは入れずに指定されたらjsonに追加するようにする、的な感じが良いかと思います。</p>
+
+<h2 id="モデルを変えてみる">モデルを変えてみる</h2>
+
+<p>というわけで、実際に使ってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./chat.sh who are you
+</span><span class="line">I am OpenAI's language model, designed to assist with a wide range of queries by providing information, answering questions, and engaging in conversation. How can I help you today?
+</span><span class="line">$ ./ask.sh -m deepseek-chat who are you
+</span><span class="line">I am DeepSeek-V3, an artificial intelligence assistant created by DeepSeek. I'm at your service and would be delighted to assist you with any inquiries or tasks you may have.
+</span><span class="line">$ ./chat.sh -m llama3.2 who are you
+</span><span class="line">I'm an artificial intelligence model known as Llama. Llama stands for "Large Language Model Meta AI."</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じでモデルの変更もしながら簡単に使えます。
+まあ、各モデルが嘘をつくこともあるので、
+この返信で正しいという確実な保証はできませんが<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<h2 id="ちょっと長めの質問返信を試す">ちょっと長めの質問、返信を試す</h2>
+
+<p>長めの質問をする場合はファイルに書いておいて中身を標準入力で渡すのが楽です。</p>
+
+<figure class="code"><figcaption><span>question.txt </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>pythonでtodo<span class="w"> </span>listを作るプロジェクトを作ってください。
+</span><span class="line">
+</span><span class="line"><span class="m">1</span>.<span class="w"> </span>プロジェクトのディレクトリ構造を決める。
+</span><span class="line"><span class="m">2</span>.<span class="w"> </span>各ディレクトリ内に適当なファイルを作る。
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな質問をしてみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/70ca8154b6b487caef02d7f393bb361d">結果</a></p>
+
+<p>~15秒位。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh -m deepseek-chat</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/e2777160a9a5ce1187b51ca477d9e822">結果</a></p>
+
+<p>~45秒位。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ &lt; question.txt ./chat.sh -m llama3.2</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><a href="https://gist.github.com/rcmdnk/3b4b5d1a177a6b57048dc9a7229470d2">結果</a></p>
+
+<p>~20秒位(グラボはRTX 2070 Super)。</p>
+
+<p>結構古いグラボであれですが、一応ollama使ってllima3.2でやってみてもこんな感じでできました。
+deepseek-chat (deepseek-v3)は結構時間がかかりましたが一番複雑な構造になっています。</p>
+
+<p>まあ、こういった使い方するのであれば普通にウェブでやったほうがその後のやり取りも出来るので
+無理にシェルスクリプトでやる必要はありませんが。</p>
+
+<h2 id="gitのcommitメッセージを生成する">Gitのcommitメッセージを生成する</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1642350125?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1642350125&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41r1CJwhCVL._SS90_CR0,0,120,90_.jpg" alt="git commit murder" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt/">git-gpt-commit: ChatGPTにGitのcommitを書かせる</a></div></li></ul>
+
+<p>の記事でChatGPTを使ってGitのcommitメッセージを生成するスクリプトを作りましたが、
+この中では
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+というPythonスクリプトを使ってAPIを叩いていました。</p>
+
+<p>これが入ってないと動かないので、これを<code>curl</code>でやる上の方法に変更しました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/git-gpt-commit"></div>
+
+<p><a href="https://github.com/rcmdnk/git-gpt-commit/blob/main/bin/git-gpt-commit">git-gpt-commit/bin/git-gpt-commit</a>
+のスクリプトをダウンロードしてPATHの通ったところに置いて使ってください。</p>
+
+<p>もしくはHomebrewでインストールすることもできます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install rcmdnk/rcmdnkpac/git-gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、<code>git gpt-commit</code>というGitのサブコマンドが使えるようになります。</p>
+
+<p>長いので、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">[alias]
+</span><span class="line">  c = gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかのエイリアスを設定して使ってます。</p>
+
+<p>これで、<code>commit</code>の代わりに<code>c</code>を使えば<code>git dif --cached</code>の出力を使ってcommitメッセージを生成してくれて、
+作られたメッセージがデフォルトで記入された状態でcommitメッセージを編集するためにエディタが起動します。</p>
+
+<p>gpt-commitでMODEL等を変更したい場合は<strong>~/.config/git_gpt_commit/config</strong>に書くことで変更できます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ChatGPT同士で議論させる]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/19/computer-python-ai-gpt/"/>
+    <updated>2023-04-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/19/computer-python-ai-gpt</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4938910896?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4938910896&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/517xmag-b+L._SS200_.jpg" alt="議論法―探求と弁論 (比較社会文化叢書 (3)) (比較社会文化叢書 3)" /></a>
+</div>
+
+<p>ChatGPT同士で議論を色々させる。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#chatgpt-prompt-wrapper" id="markdown-toc-chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a></li>
+  <li><a href="#discussコマンド" id="markdown-toc-discussコマンド">discussコマンド</a></li>
+  <li><a href="#やってること" id="markdown-toc-やってること">やってること</a></li>
+  <li><a href="#discussモードのコマンド作成" id="markdown-toc-discussモードのコマンド作成">discussモードのコマンド作成</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</h2>
+
+<div class="github-widget" data-repo="rcmdnk/chatgpt-prompt-wrapper"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BZN234H6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BZN234H6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511ynifXJYL._SS90_CR0,0,120,90_.jpg" alt="【GPT-4対応】【入門書】小学生でもわかるようにChatGPTを教えて: 「万能プロンプト」「登録方法〜使い方」「仕事にすぐ使える活用例」「便利な拡張機能」まで、この一冊だけで使いこなせる【図解版】入門書＆実践書！" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt/">chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う</a></div></li></ul>
+
+<p><code>cg</code>コマンドで簡単にChatGPTのAPIを叩くためのコマンドラインツール。</p>
+
+<p><code>ask</code>という一回質問して答えてもらうモードと、<code>chat</code>というWebのChatGPTみたいにAIと会話するモードを作ってましたが、
+ここに<code>discuss</code>というChatGPT同士で会話させるモードを追加しました。</p>
+
+<h2 id="discussコマンド">discussコマンド</h2>
+
+<p><code>discuss</code>モードではテーマを与えて、それに対して賛成派、反対派、など立場を別々に与えたAI同士で会話させます。</p>
+
+<p><code>cg discuss</code>コマンドでは、2つのChatGPTにはそれぞれ</p>
+
+<ul>
+  <li>Please engage in the discussion as a supporter. (賛成派として議論してください。)</li>
+  <li>Please engage in the discussion as a opponent. (反対派としてぎろんしてください。)</li>
+</ul>
+
+<p>という指示がデフォルトで与えられています(英語部分のみ)。</p>
+
+<p>後はコマンドライン引数で議論させたいテーマを与えてあげればOK。</p>
+
+<p>実行すると、<code>Enter</code>を押すたびに2つのChatGPTが別の立場から発言してくれます。</p>
+
+<p>長いので折りたたんであるので見たい場合は下のコマンド部分をクリックして開けてください。</p>
+
+<details>
+    <summary><code>$ cg discuss ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg discuss ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。
+</span><span class="line">Theme: ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; 私はChatGPTを教育現場で積極的に使用することに賛成です。ChatGPTは、学生が質問を投げかけるか、理解するための補完材料を求めるなど、学習プロセスを促進することができます。また、教師が生徒に迅速に反応し、効果的な支援を提供することができます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; 私は、ChatGPTが教育現場で使用される場合の注意点について懸念しています。ChatGPTは、人工知能による言葉の理解と生成によって機能するため、誤解や誤った情報を提供する可能性があります。また、ChatGPTを使用することで、生徒が自分で考えるのではなく、あくまで回答を得ることに重点を置いてしまう恐れがあります。し たがって、教師が適切に監視し、正確な情報を提供するように指導する必要があると思います。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; 確かにそういった懸念はありますね。しかし、ChatGPTはあくまでツールの一つであり、教師が総合的な教育プログラムの一部として導入することが重要です。 生徒がChatGPTを使って回答を得る際には、教師が正しい使用方法や問題解決の方法を教えることが必要です。また、生徒が自分で考える力を育てるために、ChatGPTを使用する前提として、教師が先に正しい思考方法を示すことも重要です。これらの対策が適切に実施されれば、ChatGPTを教育現場で積極的に活用することは有益な結果を生むでし ょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; 確かに、ChatGPTを使うことは、学生の自己学習プロセスを促進することができます。しかし、ChatGPTの技術はまだ発展段階にあり、すべての質問に適切かつ正確な回答を提供することができない場合があります。そのため、教師は生徒がChatGPTを使う際に、適切な質問をすることを指導し、学生に適切で信頼性の高い情報源を選択 することを教える必要があります。また、ChatGPTはあくまでサポートツールであり、生徒が独立した学習能力を確立するために、教師は適切な課題を提供し、問題解決方法 を指導することが必要です。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; その通りです。ChatGPTを使う場合は、教師が適切なガイダンスや指導を行い、生徒とともに利用する方法を模索する必要があります。さらに、生徒が適切な情 報源を選択するために、教師がオンラインリソースの信頼性を評価する方法を教えることも重要です。最終的には、教師がChatGPTを教育に活用することによって、生徒の知 識水準や問題解決能力を向上させることが期待されます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。このように、教師がChatGPTを適切に活用することによって、生徒の自己学習能力、情報ソースの評価能力などのスキルを向上させることができ ます。さらに、ChatGPTを利用することによって、教師が生徒の進捗状況を把握し、必要に応じて個別の支援を行うこともできます。そのため、教育現場で積極的にChatGPTを活用することは、生徒の学習成果を向上させ、より充実した教育環境を整備するために必要な取り組みです。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そうですね。ChatGPTは教育現場において有用なツールの一つとして注目されています。教師が適切に指導し、生徒が質問や疑問に対してChatGPTを活用することで、学習の柔軟性や自己学習のスキルを向上させることができます。ChatGPTを使うことで、教育現場での学習がより充実したものになり、生徒が将来に向けて必要なスキル を身につけることができるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。ChatGPTを教育現場で積極的に活用することは、生徒がより効果的な学術成果を発揮するためのツールとして、教師が持つ教育力を発揮する手段 として、ますます注目されることが予想されます。教育現場では、ChatGPTの活用によって得られるメリットについて、より具体的に検証や実践を行っていくことが必要とさ れます。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そうですね。ChatGPTを教育現場で積極的に活用するためには、教育の現場に合わせた適切な指導やカリキュラムの設計が必要です。また、ChatGPTの技術の発展とともに、活用方法がどんどん進化しています。教育現場でのChatGPTの利用方法をより良く理解し、指導法や技術的な支援を充実させることで、より効果的な学習環境が構 築できるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。ChatGPTを教育現場で適切に活用するために、指導法やカリキュラム、技術的なサポートの充実が必要です。教師は、生徒に適切な使用方法を指 導し、生徒がChatGPTを活用して独自の学習プロセスを作り上げることができるようにサポートする必要があります。また、ChatGPTは次々と進化する技術であるため、その使用方法も進化していくことが予想されます。教育現場は、新しい技術について常に最新情報やアップデートについて学んでいく必要があります。最終的には、教育現場がChatGPTの潜在能力を最大限に引き出し、生徒の教育に積極的に活用することによって、より豊かな学習環境を構築できるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そのように、ChatGPTを最大限に活用するためには、教師が生徒に対して適切に指導を行うことが不可欠です。それに加え、ChatGPTの技術の進歩に合わせた継続的な教育やトレーニングも必要です。教育現場が適切にChatGPTを活用することによって、生徒の自己学習能力や情報評価能力が向上し、より充実した教育環境を実現するこ とができます。将来的には、ChatGPTが教育現場に必要不可欠なツールの一つとして定着し、生徒の学習成果を確実に向上させることが期待されます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。教育現場がChatGPTを適切に活用することで、生徒の自己学習能力や情報評価能力を向上させ、よりコアなスキルを身につけることができます。 教師は、生徒に適切な情報源の選択やChatGPTの利用方法について指導することで、生徒がより効果的な学習プロセスを作り上げることを支援する役割を果たします。また、 教育現場は継続的な教育やトレーニングを通じて、ChatGPTの技術進展に対応し、生徒の学習効果を最大化するための取り組みを行う必要があります。将来的には、教育現場 が適切にChatGPTを活用することによって、より充実した学習環境を整備し、生徒の学習成果を確実に向上させることができるでしょう。
+</span><span class="line">Assistant&gt; Bye!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+こんな感じで議論してくれます。</p>
+
+<p>ちょっとやってみた感じ、単に賛成派、反対派、みたいな指示だと
+どんなテーマでも
+途中から結構相手の言っていることに同感して妥協点見たいのをお互いに見出して行く感じがあります。</p>
+
+<p>「確かに」、「その考えには同意します」みたいな感じで、まず相手を肯定する状態にすぐに落ち着くような感じ。</p>
+
+<p>結構強めに、「絶対に相手に同意しない」などの指示を出すとある程度さけてくれますが、それでも
+なるべく相手の言っていることを受け入れようとする感じ。</p>
+
+<p>おそらくChatGPTを作るにあたってユーザーに対して強い否定をしたりして負の体験を負わせることがないように
+「良い人」な返信をするものに重みが付けられてるのでしょうかね。</p>
+
+<h2 id="やってること">やってること</h2>
+
+<p>中でやっていることは、</p>
+
+<ul>
+  <li>2つの別のメッセージリストを作る</li>
+  <li>最初にテーマを入れ、次にそれぞれ別の立場の指示のメッセージを入れる。(role=systemとして)</li>
+  <li>1つ目のメッセージリストをAPIに投げる。</li>
+  <li>回答を表示し、回答をUserのメッセージとして2つ目のメッセージリストに入れる。</li>
+  <li>1つ目のメッセージリストをAPIに投げる。</li>
+  <li>回答を表示し、回答をUserのメッセージとして1つ目のメッセージリストに入れる。</li>
+  <li>以下繰り返し。</li>
+  <li>長くなってtokenの数が限界を超えたら、最初のテーマ、立場のメッセージは残しそれ以外で一番古いメッセージを削除して続ける。</li>
+</ul>
+
+<p>長くなってくると古い会話は忘れるので後は流れ次第になります。</p>
+
+<p>上の例だと日本語で一回300字程度でtoken数にすると400くらい。
+なのでテーマや立場が短いとしても自分と相手合わせて10回分くらいの会話だけを覚えている状態です。</p>
+
+<p>現状<code>min_max_tokens</code>という値が200になっていて、返答に対して最低200 tokensは残すようにしていますが、
+上の会話を見る限り500位は残すか、もう少し短めの返答を促すようにしないと
+途中から十分な返信が出来なかったりトークン制限で返答が切れたりしちゃうかもなのでもうちょい大きな値にしても良いかも。</p>
+
+<p>コマンドラインからなら<code>--min_max_tokens</code>または<code>-T</code>で指定可能、もしくは下のコマンド作成であれば各テーブル内で<code>min_max_tokens</code>の値を変更可能です。</p>
+
+<h2 id="discussモードのコマンド作成">discussモードのコマンド作成</h2>
+
+<p>chatgpt-prompt-wrapperでは<strong>~/.config/cg/config.toml</strong>
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+でサブコマンドの追加設定などが出来ますが、ここに以下のようなものを書くと議論の設定ができます。</p>
+
+<figure class="code"><figcaption><span>~/.config/cg/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[ve]</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim v.s. Emacs&quot;</span>
+</span><span class="line"><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="s1">&#39;discuss&#39;</span>
+</span><span class="line"><span class="k">[ve.names]</span>
+</span><span class="line"><span class="n">gpt1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim&quot;</span>
+</span><span class="line"><span class="n">gpt2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Emacs&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;theme&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim v.s. Emacsの議論を行ってください。一回の発言は短く。&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt1&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたはVim派です。EmacsよりVimの方が優れているという立場で議論してください。絶対にEmacsは認めない、という気持ちを持っています。&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt2&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたはEmacs派です。VimよりEmacsの方が優れているという立場で議論してください。絶対にVimは認めない、という気持ちを持っています。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>まず、サブコマンド名にしたいものを名前にしたテーブルを作ります。</p>
+
+<p>議論させたい場合は`mode = ‘discuss’を設定。</p>
+
+<p><code>discuss</code>の場合、<code>messages</code>では<code>theme</code>, <code>gpt1</code>, <code>gpt2</code>の3つの<code>role</code>を用意する必要があります。
+<code>theme</code>の<code>content</code>に議論のテーマを、<code>gpt1</code>、<code>gpt2</code>にそれぞれ別の立場を与えます。</p>
+
+<p>これらは最終的にAPIに渡すmessageの中では<code>role=user</code>とか<code>role=assistant</code>に変更されます。</p>
+
+<p>また、表示させる名前として<code>names</code>で<code>gpt1</code>、<code>gpt2</code>に名前を与えることもできます。(与えないと<code>gpt1</code>、<code>gpt2</code>と表示。)</p>
+
+<p>ここでは割りと強めに相手を認めないように、と指示していますが、実際にやってみると、</p>
+
+<details>
+    <summary><code>$ cg ve</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg ve
+</span><span class="line">Theme: Vim v.s. Emacsの議論を行ってください。一回の発言は短く。
+</span><span class="line">
+</span><span class="line">       Vim&gt; Vimはキーボード操作に特化し、短いコマンドで高速に編集できる点が魅力的です。また、プラグインによる拡張性も非常に高く、ユーザーが自由にカスタマイ ズできます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 確かにVimはキーボード操作に特化したエディタですが、EmacsはVimに劣らずにキーボード操作に対応しています。EmacsにはVimのキーバインディングを真似たEvilモードが用意されており、Vimと同じような操作感を得ることができます。また、EmacsはVimよりも多機能であり、プログラミング言語の実行、コンパイル、インタプリタの起動、デバッグなどを行うこともできます。さらに、EmacsはElispというプログラミング言語を用いた拡張性が高い点も魅力的です。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かにEvilモードのおかげでEmacsでもVimライクな操作が可能になっているという点は認めますが、Vimに比べると学習コストが高いと思います。一方でVimは初心者でも比較的簡単に始めることができ、しかし一度習得するとスピードや生産性が飛躍的に向上します。また、Emacsは多機能であるがゆえに重たくなりがちで、Vimの軽快な動作に比べると疲れやすいとも言えます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; Emacsの学習コストが高いとの指摘については、確かに初めは習得するのに時間がかかるかもしれません。しかし、その分高度なカスタマイズや機能ありますか ら、時間をかけて学習する価値があると思います。また、Emacsが重くなる原因として、多数のプラグインを導入しすぎた場合がありますが、必要最低限のプラグインを選択 することで軽くすることもできます。Vimのユーザーが効率的かつ高速に作業をこなすことができる点には同意しますが、Emacsもユーザーがカスタマイズすることで同様に作業効率の高いエディタになることができます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かに、Emacsのカスタマイズ性と拡張性は非常に高く、必要なプラグインを選択することで軽量化もできるという点も理解しています。ただ、私の観点からはVimの方が直感的に理解しやすく、学習コストが比較的低いと思っています。また、本来エディタは編集に特化したツールとしての役割を果たすべきであり、そこに過剰な機能を追加することがあまり望ましくないと考えます。Vimはその点で編集ツールとしてとてもシンプルであり、効率的な編集を可能にしています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 確かにVimは直感的に理解しやすく、効率的な編集が可能です。しかし、Emacsも編集に特化したツールであり、多数の編集機能（置換、正規表現、re-builderなど）を備えています。ただし、それ以外の追加機能は、自分で必要なものを選択してカスタマイズすることができます。つまり、本来必要でない機能を追加する必要はないので、シンプルな編集ツールとして利用することも可能です。Emacsの拡張性は、自分が必要とする機能を自由に追加しながら、自分だけのカスタマイズ環境を構築できるとい う点で、使い勝手にも優れています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かにEmacsも多数の編集機能を備えており、自由度の高いカスタマイズ環境を構築できる点が魅力的ですね。ただし、私はVimの方がキーボード操作に特化している分、高速かつ直感的な操作が可能な点が気に入っています。また、Vimを使うことで、コマンド操作に慣れてしまうと、GUIのエディタよりも高速に編集できるため、効率的な作業ができると思います。最終的には、個人的な好みによって選択するべきだと思いますが、私の場合はVimを愛用しています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 私もあなたの意見には理解できます。Vimはキーボード操作に特化しており、高速で直感的な操作が可能な点が魅力的です。また、コマンド操作に慣れることでGUIのエディタより高速に編集ができるというのもVimの大きな特徴です。最終的には個人的な好みによって選択するべきというのは正しい考え方だと思います。どちらが優れ ているという議論は難しい問題ですが、VimもEmacsもそれぞれに魅力的な点があるので、自分に合ったエディタを選んで使い続けることが重要だと思います。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 同感です。VimもEmacsも、それぞれに優れた特徴があり、どちらが優れているということではなく、使いやすさや個人的な好みに合わせて選んで使用することが大切です。双方の利点を活かして、快適な編集環境を構築したいと思います。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; そうですね。利点を活かした編集環境を作ることで、より効率的な作業が可能となりますね。私たちはお互いの好みを尊重しながら、エディタの使い方やカスタマイズ方法などを共有して、より使いやすい編集環境を構築していきましょう。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; その通りです。お互いに情報を共有し、より快適な編集環境を構築していきましょう。ありがとうございました。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 私もこちらこそ、ありがとうございました。エディタ選びは個人的な好みや使い勝手に拠る部分が大きいですが、それぞれに優れた点があることを再確認することができました。またどうかお力になれたら幸いです。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+見てもらうとわかりますが、割りと早めにどっちということではなく、良い環境を作れば良いよね、という結論に陥っています。。。</p>
+
+<p><code>discuss</code>モードとしてますが、議論ではなくて二人で普通の会話をさせることも可能です。</p>
+
+<figure class="code"><figcaption><span>~/.config/cg/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[child]</span>
+</span><span class="line"><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;discuss&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[child.names]</span>
+</span><span class="line"><span class="n">gpt1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;さっちゃん&quot;</span>
+</span><span class="line"><span class="n">gpt2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;パパ&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;theme&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。&quot;</span>
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt1&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたは子供で親に対して不思議に思ったことを純粋な気持ちで質問します。きちんと分かるまで根掘り葉掘り質問します。相手のことはパパと呼びます。まず最初に１つ質問してください。&quot;</span>
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt2&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたは親で子供の質問に対して答えます。きちんと分かるまで頑張って答えます。相手が５歳なので分かりやすい言葉で伝えます。相手のことはさっちゃんと呼びます。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<details>
+    <summary><code>$ cg child</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg child
+</span><span class="line">Theme: 親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; パパ、夜はなぜ暗くなるの？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; さっちゃん、夜が暗くなるのは、太陽が山の向こうに隠れてしまって、光が届かなくなるからだよ。太陽がなくなると、空に星がたくさん見えるようになるんだ。星座を見たり、月を見たりするのも、夜にならないとできないんだね。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; なるほど、そうだったんだね。ありがとうパパ！星はたくさんあるから、また見に行きたいな。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; そうだね、星はたくさんあるから、いつでも見に行けるよ。次はどんな星を見るか、一緒に考えてみようね。でも、夜は暗いから、ママかパパが一緒についていてね。
+</span><span class="line">
+</span><span class="line">^C
+</span><span class="line"> Assistant&gt; Bye!
+</span><span class="line">$ cg child
+</span><span class="line">Theme: 親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; パパ、虹ってどうして出るの？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; そうですね、虹は空に光が当たって、光が色に分かれるから出ます。光が色に分かれるのは、太陽から出る白い光が、雨粒などの水滴に当たると、色に分かれて反射されるためです。虹は、赤・橙・黄・緑・青・藍・紫の7色に分かれて見えますよ。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; さっちゃん、分かりましたか？虹は太陽から出る白い光が、雨粒や水滴などに当たって色に分かれて反射されるから出るんだよ。7つの色に分かれて見えるから、とてもキレイでしょう？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; さっちゃん、分かりましたか？分かりました、虹って太陽から出る白い光が、雨粒や水滴などに当たって色に分かれて反射されるから出るんだよ。7つの色に 分かれて見えるから、とてもキレイだよね！ありがとう、パパ！
+</span><span class="line">
+</span><span class="line">^C
+</span><span class="line"> Assistant&gt; Bye!
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+こんな感じで親子の会話もできます。毎回違う質問をしてくれて、それに対して丁寧に答えてくれます。</p>
+
+<p>ただ2回目はなぜかパパが敬語っぽい話し方をしていて、かと思ったらさっちゃんは「さっちゃん」と呼びかけお前は誰だ、状態になったし、
+最後にパパは「さっちゃん」と呼びかけてるにも関わらず最後に「ありがとう、パパ」ということでまたお前は誰だ、になってます。</p>
+
+<p>最後のところとかは立場の指定が軽視されて最初のテーマの情況から、自分自身で親子の会話を両方行ってしまっているような状態だと思います。</p>
+
+<p>この辺プロンプトが難しい。。。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>勝手に話が進んでいくのは面白いですが、
+議論させると割りとお互いの歩み寄り率が高くてちょっとその辺議論としてはつまらないものになりがちです。</p>
+
+<p>ChatGPTがそういうふうに寄せられているから仕方ないところだとは思いますが、
+実際に自分がユーザーとして尋ねる際にもそういった自分に同調しがちな相手だということは頭にちょっと入れておいたほうが良いかも、とも。</p>
+
+<p>テーマをもっと議論しがいのあるものにしたり、立場も話し方や態度などを詳細に決めたりするとまたおもしろものも出来るかもしれません。</p>
+
+<p>また今回あまり試してませんが、<code>temperature</code>や<code>top_p</code>、<code>presence_penalty</code>、 <code>frequency_penalty</code>などの値を
+変えればまた違う雰囲気になるかと思います。
+（これらはchagtpt-prompt-wrapperではコマンド作成時であればコマンドのテーブルにてこれらの値を設定可能です。)</p>
+
+<p>議論だけでなく最後みたいなロールプレイも勝手に進めてくれるので色々遊べそう。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[git-gpt-commit: ChatGPTにGitのcommitを書かせる]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt/"/>
+    <updated>2023-04-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1642350125?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1642350125&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41r1CJwhCVL._SS200_.jpg" alt="git commit murder" /></a>
+</div>
+
+<p>ChatGPTにGit commitのmessageを書かせる。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gitのcommit-messageを書くには" id="markdown-toc-gitのcommit-messageを書くには">Gitのcommit messageを書くには</a></li>
+  <li><a href="#git-gpt-commit" id="markdown-toc-git-gpt-commit">git-gpt-commit</a></li>
+  <li><a href="#準備" id="markdown-toc-準備">準備</a>    <ul>
+      <li><a href="#インストール" id="markdown-toc-インストール">インストール</a></li>
+      <li><a href="#その他の準備" id="markdown-toc-その他の準備">その他の準備</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#オプション設定" id="markdown-toc-オプション設定">オプション設定</a>    <ul>
+      <li><a href="#commitメッセージを作るための命令" id="markdown-toc-commitメッセージを作るための命令">commitメッセージを作るための命令</a></li>
+      <li><a href="#命令部分" id="markdown-toc-命令部分">命令部分</a></li>
+      <li><a href="#diffの出力" id="markdown-toc-diffの出力">diffの出力</a></li>
+      <li><a href="#テンプレートメッセージ" id="markdown-toc-テンプレートメッセージ">テンプレートメッセージ</a></li>
+      <li><a href="#chatgptモデル" id="markdown-toc-chatgptモデル">ChatGPTモデル</a></li>
+    </ul>
+  </li>
+  <li><a href="#-cchangeオプション" id="markdown-toc--cchangeオプション">-c/–changeオプション</a></li>
+  <li><a href="#その他" id="markdown-toc-その他">その他</a>    <ul>
+      <li><a href="#コミットのキャンセル" id="markdown-toc-コミットのキャンセル">コミットのキャンセル</a></li>
+      <li><a href="#pre-commit" id="markdown-toc-pre-commit">pre-commit</a></li>
+      <li><a href="#alias" id="markdown-toc-alias">alias</a></li>
+    </ul>
+  </li>
+  <li><a href="#aicommits" id="markdown-toc-aicommits">aicommits</a></li>
+  <li><a href="#感想" id="markdown-toc-感想">感想</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gitのcommit-messageを書くには">Gitのcommit messageを書くには</h2>
+
+<p>必要な情報としては変更点に関する記述なので<code>git diff</code>の結果を見て何が変わったかを書けば良い、
+という比較的形式的にはわかりやすいものです。</p>
+
+<p>コマンドラインからChatGPTを簡単に使えるツールを作ったのでそこに<code>git diff</code>の結果を与えて
+いい感じのcommit messageを考えてもらえば良さそう。</p>
+
+<div class="github-widget" data-repo="rcmdnk/chatgpt-prompt-wrapper"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BZN234H6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BZN234H6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511ynifXJYL._SS90_CR0,0,120,90_.jpg" alt="【GPT-4対応】【入門書】小学生でもわかるようにChatGPTを教えて: 「万能プロンプト」「登録方法〜使い方」「仕事にすぐ使える活用例」「便利な拡張機能」まで、この一冊だけで使いこなせる【図解版】入門書＆実践書！" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt/">chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う</a></div></li></ul>
+
+<h2 id="git-gpt-commit">git-gpt-commit</h2>
+
+<div class="github-widget" data-repo="rcmdnk/git-gpt-commit"></div>
+
+<p><code>git</code>のサブコマンドとして<code>gpt-commit</code>というコマンドを追加するツールです。</p>
+
+<p>コミットメッセージをあらかじめ用意する以外は基本的に<code>git commit</code>と同じように使えて、
+<code>-a</code>とかオプションもそのまま使えます。</p>
+
+<p>中身は簡単なシェルスクリプトです。</p>
+
+<h2 id="準備">準備</h2>
+
+<h3 id="インストール">インストール</h3>
+
+<p>インストールはHomebrewを使っていれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install rcmdnk/rcmdnkpac/git-gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+も依存先として一緒にインストールされます。</p>
+
+<p>直接入れる場合は<strong>bin</strong>ディレクトリにある<a href="https://github.com/rcmdnk/git-gpt-commit/blob/main/bin/git-gpt-commit">git-gpt-commit</a>を
+PATH下に置けば<code>git gpt-comit</code>が使えるようになります。</p>
+
+<p>ただし、直接入れる場合は
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+も手動でいれる必要があります。</p>
+
+<h3 id="その他の準備">その他の準備</h3>
+
+<p><a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+を使うにあたってOpenAIのAPI Keyが必要になります。</p>
+
+<p>OpenAIでアカウントを作って
+<a href="https://platform.openai.com/account/api-keys">ここ</a>
+からAPI Keyを取得して
+環境変数として</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export OPENAI_API_KEY="sk-..."</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように設定しておきます。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>何かしら変更を行ったレポジトリの中で、変更したファイルを<code>git add</code>して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすると、ChatGPTが<code>git diff</code> を見て考えたcommit messageがあらかじめ書かれた状態で
+commit messageの編集画面に入ります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">feat: Added ability to exclude files from git diff
+</span><span class="line">docs: Updated README with information about new feature and defaults
+</span><span class="line">style: Updated formatting of default config values in README
+</span><span class="line">refactor: Renamed PROMPT default value to _PROMPT
+</span><span class="line">test: Added missing tests for new file exclusion feature
+</span><span class="line">fix: Fixed issue with canceling commits when using '-a' option
+</span><span class="line">
+</span><span class="line"># Please enter the commit message for your changes. Lines starting
+</span><span class="line"># with '#' will be ignored, and an empty message aborts the commit.
+</span><span class="line">#
+</span><span class="line"># On branch main
+</span><span class="line"># Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
+</span><span class="line">#   (use "git pull" to update your local branch)
+</span><span class="line">#
+</span><span class="line"># Changes to be committed:
+</span><span class="line">#       modified:   README.md
+</span><span class="line">#       modified:   bin/git-gpt-commit
+</span><span class="line">#</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>`</p>
+
+<p>こんな感じのメッセージが準備された状態になります。</p>
+
+<p>あとはこれを適当に編集して保存すればcommit出来ます。</p>
+
+<h2 id="オプション設定">オプション設定</h2>
+
+<h3 id="commitメッセージを作るための命令">commitメッセージを作るための命令</h3>
+
+<p>デフォルトでは以下のようなプロンプトを使っています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Please make git commit messages for the following diff output.
+</span><span class="line">
+</span><span class="line">Each commit message must be one line starting with one of the following words.
+</span><span class="line">
+</span><span class="line">* feat: (new feature for the user, not a new feature for build script)
+</span><span class="line">* fix: (bug fix for the user, not a fix to a build script)
+</span><span class="line">* docs: (changes to the documentation)
+</span><span class="line">* style: (formatting, missing semi colons, etc; no production code change)
+</span><span class="line">* refactor: (refactoring production code, eg. renaming a variable)
+</span><span class="line">* test: (adding missing tests, refactoring tests; no production code change)
+</span><span class="line">* chore: (updating grunt tasks etc; no production code change)
+</span><span class="line">
+</span><span class="line">### diff
+</span><span class="line">
+</span><span class="line">$(git diff --cached $exclude_list)</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="命令部分">命令部分</h3>
+
+<p>まず、命令部分ですが、ここは好きに設定すべきところではありますが、
+ここでは<a href="https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716">Semantic Commit Messages</a>
+を使って書き方を指示しています。</p>
+
+<p>こういった形の形式張った書き方はアルゴリズム相手には相性が良いのでいい感じにまとめてくれます。</p>
+
+<p>この部分は設定で変えることが出来て、<code>PROMPT</code>という環境変数に指示を書いておくと
+上の<code>### diff</code>より上の部分を置き換えることができます。</p>
+
+<p>または<strong>~/.config/git_gpt_commit/config</strong>(もし<code>XDG_CONFIG_HOME</code>が指定されていたらそれの下の<strong>git_gpt_commit/config</strong>)
+に設定を書いておけばそれが反映されます。</p>
+
+<p>日本語で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">PROMPT</span><span class="o">=</span><span class="s2">&quot;以下のgit diffの出力を見てコミットメッセージを簡潔かつ分かりやすく書いてください。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかでもOK。</p>
+
+<h3 id="diffの出力">diffの出力</h3>
+
+<p>最後の部分で<code>git diff</code>を渡しています。
+<code>--cached</code>で<code>add</code>したものとHEADとの比較をします。</p>
+
+<p>もし<code>-a</code>が渡された場合には先に<code>git add -u</code>を実行して変更があったファイルを<code>add</code>するようにしているので、
+これで必ず必要な部分のdiffが取れるようになっています。</p>
+
+<p>また、<code>$exclude_list</code>が渡されていますが、これはデフォルトでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">-- :(exclude)$(git rev-parse --show-toplevel)*.lock</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>になっています。
+<strong>poetry.lock</strong>とか<strong>Gemfile.lock</strong>とか、パッケージを管理するlockファイルは
+1つパッケージを変更しただけでも依存関係で大きく内容が変わってしまいますが
+その変更を逐次確認してcommit messageに入れることは通常無いと思うので省いています。</p>
+
+<p>特にgpt-3.5-turboだとlockファイルの変更だけでもtoken数の制限にかかっちゃたりもするので。</p>
+
+<p>もし排除するファイルを変更したい倍には
+<code>EXCLUDE</code>という環境変数に設定します。もしくは
+<strong>config</strong>に書きます。</p>
+
+<p>上のデフォルトは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">EXCLUDE="*.lock"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となっています。
+<code>:(exclude)$(git rev-parse --show-toplevel)</code>は勝手に追加されます。</p>
+
+<p>複数指定したい場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">EXCLUDE="*.lock,README.md"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じでコンマ区切りで。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">-- :(exclude)$(git rev-parse --show-toplevel) *.lock:(exclude)$(git rev-parse --show-toplevel)README.md</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように展開されます。</p>
+
+<h3 id="テンプレートメッセージ">テンプレートメッセージ</h3>
+
+<p>上の例だと入ってませんが、<strong>.gitconfig</strong>などで<code>commit.template</code>を指定して
+commit message編集時に表示させるようにしている場合これも準備されたcommit messagesの下に表示されるようになっています。</p>
+
+<p>別途<code>git gpt-commit</code>のときは別のテンプレートを使いたい場合は
+<code>MESSAGE</code>という環境変数に設定、もしくは
+<strong>config</strong>に書きます。</p>
+
+<p><code>MESSAGE</code>を設定しない場合に<code>commit.template</code>が設定されているとそれを使いますが、
+<code>MESSAGE=""</code>のように空にすればテンプレートはひょうじされなくなります。</p>
+
+<h3 id="chatgptモデル">ChatGPTモデル</h3>
+
+<p><a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+では現在デフォルトでgpt-3.5-turboを使うようになっていますが、
+<a href="https://github.com/rcmdnk/git-gpt-commit">git-gpt-commit</a>では
+<code>MODEL</code>という環境変数に<code>gpt-4</code>とか指定すればモデルを変更できます。</p>
+
+<h2 id="-cchangeオプション">-c/–changeオプション</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2023/04/19 </strong></p>
+
+  <p><code>-c</code>/<code>--change</code>というオプションを追加しました。
+これに続いて今回のcommitの概要てきなものを教えてあげる事ができます。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rcmdnk/git-gpt-commit#example">Example</a></p>
+  </blockquote>
+
+  <p>例えばこの変更を入れたときに使ったものが上の例ですが、
+何も指定せず<code>git gpt-commit</code>だと</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">refactor: Add option to include change descriptions in commit messages</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>というメッセージになって<code>change</code>オプションという部分は入ってますが、まず、最初が<code>refactor</code>になっているし
+文章もちょっと意味が分かりません。</p>
+
+  <p>これに対して、</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git gpt-commit -c "add -c/--change options"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>とすると</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">feat: Add -c/--change option to specify contents of changes in commit message</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>となり、これはそのまま使えるレベルです。</p>
+
+  <p>日本語で、</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git c -a -c "-c/--changeというオプションを加え、あらかじめ変更を伝えることができるようにする"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>と入れても同じドラフトが出来ました。</p>
+
+  <p>どうやってるかというと、<code>-c</code>/<code>--change</code>のオプションがあるとその内容を
+PROMPTの前に</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">This commit is for: ...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>という形で加えるようにしてあるだけです。</p>
+
+  <p>あまり詳細に書けるならそのままメッセージを書けば良いじゃん、ということで恩恵が浅いですが、
+上の<code>add ...</code>程度を書いてちゃんとした文章に直してくれるのであれば
+結構使う意味はあるんじゃないかな、と。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="その他">その他</h2>
+
+<h3 id="コミットのキャンセル">コミットのキャンセル</h3>
+
+<p>commit messageをエディタで開いた状態からやっぱりやめたい場合には
+<code>#</code>でコメントアウトしてある部分以外を全て削除して終了すればキャンセルになります。
+(<code>--allow-empty-message</code>を設定していない限り。)</p>
+
+<p>この際、<code>git gpt-commit -a</code>のようにstageされてないものも<code>add</code>するようになっていても、
+キャンセル時には<code>add</code>したものだけ<code>git restore --staged</code>で戻すようになっています。</p>
+
+<h3 id="pre-commit">pre-commit</h3>
+
+<p>pre-commitをインストールしている場合にはChatGPTに送る前にpre-commit単独で走らせてチェックして
+失敗した場合にはその場でcommitを辞めるようにしています。</p>
+
+<h3 id="alias">alias</h3>
+
+<p><code>git gpt-commit</code>はちょっと長いので、個人的には<strong>~/.gitconfig</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">[alias]
+</span><span class="line">  c = gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として<code>git c</code>コマンドとして使ってます。実際よく使うのは<code>git c -a</code>。</p>
+
+<p><code>gc</code>にしたかったけど<code>git-gc</code>は最初からあるので、1文字コマンドは微妙かと思いつつ他に良いのもないので<code>c</code>で。</p>
+
+<h2 id="aicommits">aicommits</h2>
+
+<p>gpt-3.5のAPIが使えるようになってわりかしすぐに出来ていた同じようなcommit message作成ツール。</p>
+
+<div class="github-widget" data-repo="Nutlope/aicommits"></div>
+
+<p>この中では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Write a git commit message in present tense for the following diff without prefacing it with anything. Do not be needlessly verbose and make sure the answer is concise and to the point. The response must be in the language ${locale}:\n${diff}`;</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいなプロンプトが使われています。
+オプションで変えられる言語のための<code>locale</code>という変数と<code>git diff</code>の結果の<code>diff</code>という変数が入っていますが、
+<strong>簡潔にまとめよ</strong>、的な感じの命令です。</p>
+
+<p>このあたりの命令部分を自分で決めたかったのと、
+APIを使う部分を外に出して<code>git commit</code>の<code>-m</code>でメッセージのドラフトとして入れてすぐに編集出来る状態にした方が
+やりやすいかな、ということでgit-gpt-commitを作ってみました。</p>
+
+<p>多分ほかにも色々とあるとは思いますが、
+プロンプト部分を簡単に変えられるのと、
+API部分はchatgpt-prompt-wrapperにまかせてgit-gpt-commit自体はシンプルなので
+好きなように変更して使ったりするにも良いんじゃないかな、と。</p>
+
+<h2 id="感想">感想</h2>
+
+<p>ちょっとした変更だと編集なしでもOKなのが多いですが、
+多少複雑だと手直ししたくなるのも多いので、
+まだ完全自動というよりドラフトを書いてもらって
+すぐに手直しできる状態にするやり方が一番しっくりきています。</p>
+
+<p>とりあえずこれ使ってcommitするようにしているので、意味のない<code>fix</code>とか<code>update</code>とかだけの
+commitもだいぶ減らせて良い感じです。</p>
+
+<p>あとはやっぱり自由に書かせるよりは
+Semantic Commit Messagesのようなある程度ちゃんとした決まりがあった方が
+出来上がったものをそのまま使える状態になる確率が高いかな、という感じ。</p>
+]]></content>
+  </entry>
+  
+</feed>

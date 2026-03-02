@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GAS | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/gas/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Oura ringの情報をGASを使ってSheetsに保存する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/07/14/computer-iot/"/>
+    <updated>2024-07-14T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/07/14/computer-iot</id>
+    <content type="html"><![CDATA[<p>以前ちょっと作っておいたGoogle Apps Scriptを使ってOura ringの情報をGoogle Sheetsに
+保存しておくツールをアップデートしたのでその話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#api--gas--sheets" id="markdown-toc-api--gas--sheets">API + GAS + Sheets</a></li>
+  <li><a href="#oura-api" id="markdown-toc-oura-api">Oura API</a></li>
+  <li><a href="#oura-gas" id="markdown-toc-oura-gas">Oura-gas</a></li>
+  <li><a href="#gasでのoauth20認証を使ったapiの利用" id="markdown-toc-gasでのoauth20認証を使ったapiの利用">GASでのOAuth2.0認証を使ったAPIの利用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="api--gas--sheets">API + GAS + Sheets</h2>
+
+<p>APIを公開しているサービスなら、GASを使ってそのAPIを叩いて情報を取得して
+Google Sheetsに保存する、というのが
+無料で情報を保存しておくのに一番手軽な方法だと思います。</p>
+
+<p>csvでexportできたりそもそもアプリで見れば十分なものもありますが、
+取り敢えず一度設置しておけば常にSheetsに最新情報が保存されてる状態に
+なるので、何かと便利です。</p>
+
+<h2 id="oura-api">Oura API</h2>
+
+<blockquote>
+  <p><a href="https://cloud.ouraring.com/docs/">Oura API</a></p>
+</blockquote>
+
+<p>2024年にV1 APIが廃止されて現在はV2 APIが提供されています。</p>
+
+<p>この変更もあって、以前のスクリプトは使えなくなったので、
+新しいスクリプトを作り直しました。</p>
+
+<p>基本的な使い方はV1/V2でそれほど変わらないと思います。</p>
+
+<p>一つひっかっかった点として、</p>
+
+<blockquote>
+  <p><a href="https://cloud.ouraring.com/v2/docs">Oura API Documentation (2.0)</a></p>
+</blockquote>
+
+<p>このAPIのドキュメントの中にある</p>
+
+<p>各APIの説明の<code>GET</code>のところを押すと見れるURLがAPIのURLとは違う点。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240715_ouraapi.jpg" alt="20240715_ouraapi.jpg" class="pic" /></p>
+
+<p><code>https://cloud.ouraring.com/...</code></p>
+
+<p>となってますが、これは
+<a href="https://cloud.ouraring.com/">Oura on the web</a>のURLで
+その下のV2…などは無いように見えます。</p>
+
+<p>実際には<code>cloud</code>ではなく<code>api</code></p>
+
+<p><code>https://api.ouraring.com/...</code></p>
+
+<p>すぐ下のcURLなどの実際の使用例を見ればURLが<code>api</code>になっているのでそちらを最初から参照すれば良いですが、
+最初、この<code>cloud...</code>の方を使ってしまって少しハマりました。</p>
+
+<h2 id="oura-gas">Oura-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/Oura-gas"></div>
+
+<p>ということで作り直したスクリプト集がこれ。</p>
+
+<p>使い方はREADME参照。</p>
+
+<p>現状は以下のような関数があります。</p>
+
+<ul>
+  <li><code>fillPerosnalInfo</code>: 入力した年齢や身長などの個人情報、</li>
+  <li><code>fillDailyReadiness</code>: 日毎のスコア、及び関連するデータ</li>
+  <li><code>fillDailySleep</code>: 日毎の睡眠スコア、及び関連するデータ</li>
+  <li><code>fillDailyStress</code>: 日毎のストレスデータ</li>
+  <li><code>fillSleep</code>: 睡眠ごとのデータ</li>
+</ul>
+
+<p>これらの関数を適当なTriggerで1日1回実行するなりしてデータをSheetsに保存しておくことができます。</p>
+
+<p>睡眠のデータに関して、<strong>Daily Sleep Routes</strong>という項目が<code>fillDailySleep</code>で保存できるようになってますが、
+これで取れるデータは日毎の睡眠総合スコアに加えて<code>contributors</code>という項目があります。
+その中に<code>total_sleep</code>や<code>deep_sleep</code>といったデータが入っていますが、
+これらは睡眠時間とかではなく、0~100までの値が入っています。</p>
+
+<p>アプリとかで睡眠の項目を見ると<strong>睡眠コントリビューター</strong>という欄があって<strong>合計時間</strong>や<strong>深い睡眠</strong>という項目がありますが、
+実際の時間とともに色のついたバーがあると思いますが、これが0~100で高いほうが良いスコアでそれらを統合して総合スコアを出しているようです。</p>
+
+<p>合計時間がどれくらいならスコアがいくつになるかは人それぞれでなにか計算しているようです。</p>
+
+<p>Oura APIの公式にはこの辺書いてませんが、取得できるデータはアプリやOura on the web
+で得られる情報が全てっぽいので
+それらと比べながら見てみるとどれがどの値を示しているか大体分かると思います。</p>
+
+<p>Oura APIの説明してるブログとかだとこのコントリビューターの値を”時間”と言い切ってるものも結構あるので注意。</p>
+
+<h2 id="gasでのoauth20認証を使ったapiの利用">GASでのOAuth2.0認証を使ったAPIの利用</h2>
+
+<p>同じようなことは他のAPIでも使えます。</p>
+
+<p>認証の仕方に関してGoogleが色々とサンプルを提供してくれてるので有名どころは
+直接使えるものもあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/googleworkspace/apps-script-oauth2/tree/main/samples">apps-script-oauth2/samples</a></p>
+</blockquote>
+
+<p>以下はこれまでに作ったもの。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Withings-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201006_withingsapi_120_90.jpg" width="120" height="90" alt="20201006_withingsapi_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/06/computer-iot-google/">Withings APIをとGASを使って体重変化などをGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<p>OuraのようにWithingsに記録されたデータをGoogle Sheetsに保存するスクリプト。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Slack-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="app-img"><a href="//itunes.apple.com/jp/app/id618783545?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple112/v4/bf/50/a5/bf50a52e-76ec-3c47-5c4c-2ee6c21f3149/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/120x90bb.jpg" alt="Slack" /></a></div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2022/08/11/computer-google-slack/">Google Apps Script(GAS)を使ってSlackをSheetsにバックアップする</a></div></li></ul>
+
+<p>Slackが無料利用で90日より前のメッセージが見れなくなってしまったのでバックアップしておくシステム。</p>
+
+<div class="github-widget" data-repo="rcmdnk/NatureRemo-gas"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20201009_natureremo_120_90.jpg" width="120" height="90" alt="20201009_natureremo_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/10/09/computer-iot-google/">NatureRemo APIとGASを使って温度や家電の状態をGoogle Spreadsheetsに保存する</a></div></li></ul>
+
+<p>NatureRemoの情報を保存しておくスクリプト。</p>
+
+<div class="github-widget" data-repo="rcmdnk/GitHub-gas"></div>
+
+<p>GitHubのOrganization内のmemberのこれまでに得たstarの数やPRなどのアクティビティを取得するスクリプト。</p>
+]]></content>
+  </entry>
+  
+</feed>

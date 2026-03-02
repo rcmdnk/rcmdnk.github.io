@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Shell | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/shell/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[pre-commitでShellCheckを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2023/01/09/computer-shell-python/"/>
+    <updated>2023-01-09T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/01/09/computer-shell-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4297122677?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4297122677&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51F6w9FoosL._SS200_.jpg" alt="1日1問、半年以内に習得 シェル・ワンライナー160本ノック (Software Design plusシリーズ)" /></a>
+</div>
+
+<p>Gitのcommit時などに自動でlinterなどを動かしてコードを直したり警告を出したりしてくれる
+<a href="https://pre-commit.com/">pre-commit</a>でシェルスクリプトの文法チェッカーである
+<a href="https://www.shellcheck.net/">ShellCheck</a>を使う方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pre-commit" id="markdown-toc-pre-commit">pre-commit</a></li>
+  <li><a href="#shellcheck" id="markdown-toc-shellcheck">ShellCheck</a></li>
+  <li><a href="#pre-commitのsupported-hooksに載っているもの" id="markdown-toc-pre-commitのsupported-hooksに載っているもの">pre-commitのSupported hooksに載っているもの</a>    <ul>
+      <li><a href="#jumanjihousepre-commit-hooks-or-syntaqxgit-hooks" id="markdown-toc-jumanjihousepre-commit-hooks-or-syntaqxgit-hooks">jumanjihouse/pre-commit-hooks or syntaqx/git-hooks</a></li>
+      <li><a href="#shellcheck-py" id="markdown-toc-shellcheck-py">shellcheck-py</a></li>
+    </ul>
+  </li>
+  <li><a href="#shellcheck公式のpre-commit-hook" id="markdown-toc-shellcheck公式のpre-commit-hook">shellcheck公式のpre-commit hook</a></li>
+  <li><a href="#直接自分でコマンドを走らせる" id="markdown-toc-直接自分でコマンドを走らせる">直接自分でコマンドを走らせる</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pre-commit">pre-commit</h2>
+
+<p><a href="https://pre-commit.com/">pre-commit</a>はPython製のGit hookを使ってcommit時などにlinter等を実行するツールです。</p>
+
+<p>Python製ですが他の言語の文法チェックなども行えます。</p>
+
+<p>pipで</p>
+
+<pre><code>$ pip install pre-commit
+</code></pre>
+
+<p>とインストールすることも出来ますし、
+Homebrewで</p>
+
+<pre><code>$ brew install pre-commit
+</code></pre>
+
+<p>でもインストールできます。</p>
+
+<h2 id="shellcheck">ShellCheck</h2>
+
+<p><a href="https://www.shellcheck.net/">ShellCheck</a>
+はシェルスクリプトの文法チェッカーで一番有名なツールだと思います。
+(このツール自体はHaskell製。)</p>
+
+<p>インストールは<code>apt</code>や<code>yum</code>などLinuxでのパッケージマネージャーを使っても出来ますし、Homebrewを使ってインストールすることも出来ます。
+その他いろいろな方法でインストールできますし、
+<a href="https://www.shellcheck.net/">shellcheck.net</a>
+でWeb上のエディタでチェックすることも出来ます。</p>
+
+<p>加えて、下にも書きますが、Pythonのパッケージマネージャーの<code>pip</code>でもインストールすることが出来ます。</p>
+
+<h2 id="pre-commitのsupported-hooksに載っているもの">pre-commitのSupported hooksに載っているもの</h2>
+
+<p>公式のページにリストされているhooksを見てみると</p>
+
+<blockquote>
+  <p><a href="https://pre-commit.com/hooks.html">Supported hooks</a></p>
+</blockquote>
+
+<p>以下の3つがShellCheckを含んでいるようです。</p>
+
+<ul>
+  <li><a href="https://github.com/shellcheck-py/shellcheck-py">shellcheck-py/shellcheck-py: python3/pip3 wrapper for installing shellcheck</a></li>
+  <li><a href="https://github.com/jumanjihouse/pre-commit-hooks">jumanjihouse/pre-commit-hooks: git pre-commit hooks that work with http://pre-commit.com/</a></li>
+  <li><a href="https://github.com/syntaqx/git-hooks">syntaqx/git-hooks: A collection of git hooks for use with pre-commit</a></li>
+</ul>
+
+<h3 id="jumanjihousepre-commit-hooks-or-syntaqxgit-hooks">jumanjihouse/pre-commit-hooks or syntaqx/git-hooks</h3>
+
+<p>下2つに関して見てみると、例えばjumanjihouse/pre-commit-hooksの方は
+<a href="https://github.com/jumanjihouse/pre-commit-hooks/blob/master/.pre-commit-hooks.yaml">.pre-commit-hooks.yaml</a>
+を見てみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Test shell scripts with shellcheck</span>
+</span><span class="line"><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Shell scripts conform to shellcheck</span>
+</span><span class="line"><span class="w">  </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hooks/shellcheck.sh</span>
+</span><span class="line"><span class="w">  </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">script</span>
+</span><span class="line"><span class="w">  </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">shell</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="nt">exclude_types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">csh</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">perl</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">python</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">ruby</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">tcsh</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">zsh</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-e</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">SC1091</span><span class="p p-Indicator">]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>な感じになっていて、スクリプトを別途呼び出しています。
+このスクリプトの中身は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">readonly</span><span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span><span class="si">${</span><span class="nv">DEBUG</span><span class="k">:-</span><span class="nv">unset</span><span class="si">}</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEBUG</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="nb">unset</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">set</span><span class="w"> </span>-x
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>shellcheck<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;This check needs shellcheck from https://github.com/koalaman/shellcheck&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line">shellcheck<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>な感じで<code>shellcheck</code>を呼び出しているだけです。</p>
+
+<p>警告があるように<code>shellcheck</code>自体は自分で入れる必要があります。</p>
+
+<p>個人的な開発ではshellcheckを入れておけば良いのでこの辺を使うのもありですが、できれば<code>pre-commit install</code>などで必要なツールは勝手に入れてくれるようにしてもらいたいところ。</p>
+
+<p>一方でpre-commitを自分で作ることはこれまでしたことありませんでしたが、これらのレポジトリのものはスクリプトを実行するだけのもので、それをいくつか用意して1つのパッケージ化したような感じです。</p>
+
+<p>おそらくそれぞれ個人的な用途で作ったもので、中身も網羅的というよりはおそらくこの人達が必要だったんだろうな、という感じのものの集まりで、他にもこういったレポジトリがいくつか<a href="https://pre-commit.com/hooks.html">Supported hooks</a>のページには載っています。</p>
+
+<p>Suported hooksには自分で作ったものを載せたければPull Requestして載せてもらう感じで結構なんでも載せてくれる感じみたいです。</p>
+
+<p>色々あるのでちょっとノイズなものもありますが、自分用にちょっとpre-commitを用意しようと思う場合にはこれらは参考になるかも。</p>
+
+<h3 id="shellcheck-py">shellcheck-py</h3>
+
+<p><a href="https://github.com/shellcheck-py/shellcheck-py">shellcheck-py/shellcheck-py</a>
+はこのレポジトリ自体はpre-commitのためのレポジトリ、の前に<a href="https://pypi.org/project/shellcheck-py/">shellcheck-py</a>のPythonパケージレポジトリになっています。</p>
+
+<p>このshellcheck-pyはpipで</p>
+
+<pre><code>$ pip shellcheck-py
+</code></pre>
+
+<p>でインストールでき、Pythonのインストール先の<code>bin</code>ディレクトリに<code>shellcheck</code>コマンドがインストールされます。</p>
+
+<p>Pythonで作り直したものかと思いきや</p>
+
+<blockquote>
+  <p><a href="https://github.com/shellcheck-py/shellcheck-py/blob/main/setup.py">shellcheck-py/setup.py at main · shellcheck-py/shellcheck-py</a></p>
+</blockquote>
+
+<p>を見てみると<code>shellcheck</code>をダウンロードしてきて、そのバイナリファイルをそのままコピーしてインストールしているだけのようです。</p>
+
+<p>こういう方法がありなのか、と言う感じですが、この方法を使えば原理的にあらゆるコマンドをpipでインストールできるようになります。
+自分で使うところはあるかわからないですがちょっと覚えておきたいところ。</p>
+
+<p>で、このレポジトリにはpre-commitから呼べるように
+<a href="https://github.com/shellcheck-py/shellcheck-py/blob/main/.pre-commit-hooks.yaml">.pre-commit-hooks.yaml</a>が用意されていて<code>language</code>が<code>python</code>になっているので、このhookを自分の<code>.pre-commimt-config.yaml</code>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/shellcheck-py/shellcheck-py</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.9.0.2</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w">   </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで書いておけば<code>pre-commit install</code>でpre-commitの作る仮想環境の中に<code>shellcheck</code>コマンドがインストールされます。</p>
+
+<p>なので現状ではこのhookが一番良いのではないかな、と思ってます。</p>
+
+<h2 id="shellcheck公式のpre-commit-hook">shellcheck公式のpre-commit hook</h2>
+
+<p>上のSupported hooksには載っていませんがShellCheckの作者がpre-commit用のhookを作っています。</p>
+
+<ul>
+  <li><a href="https://github.com/koalaman/shellcheck-precommit">koalaman/shellcheck-precommit: Pre-commit hook for ShellCheck</a></li>
+</ul>
+
+<p>こちらはどうやっているかというと
+<a href="https://github.com/koalaman/shellcheck-precommit/blob/master/.pre-commit-hooks.yaml">.pre-commit-hooks.yaml</a>
+を見てみると<code>language</code>が<code>docker_image</code>になっています。</p>
+
+<p>shellcheckの入ったdockerイメージを使うので、これもshellcheckを別途インストールする必要はありません。
+仮想環境にもインストールはされない状態です。</p>
+
+<p>一方で<code>docker</code>が使える状態になってないと使えません。</p>
+
+<p>dockerが使える環境であれば一番クリーンな状態のまま使うことは出来ますが、
+ちょっとした環境でやりたい時に<code>docker</code>がないと走らせられないことになります。</p>
+
+<h2 id="直接自分でコマンドを走らせる">直接自分でコマンドを走らせる</h2>
+
+<p>最初のスクリプトを走らせるだけのものがありましたが、
+それらは<code>shellcheck</code>を自分でインストールしておく必要がありました。</p>
+
+<p>もし<code>shellcheck</code>を別途インストールするのであれば、直接それを使うhookを作ってしまった方がシンプルかと思います。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">shell</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じの<code>repo</code>を<code>local</code>にした<code>hooks</code>に<code>shellcheck</code>を作ってあげれば良いだけ。
+<code>types</code>などのオプションは<code>hooks</code>が用意されているレポジトリを使う際に自分で指定することが無いのでちょっと調べる必要がありますが、
+上記の<code>shellcheck</code>を含むレポジトリの
+<strong>.pre-commit-hooks.yaml</strong>を参考にしたり
+<a href="https://pre-commit.com/">pre-commit</a>のドキュメントを読んだりすればそれほど難しいものではないです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>shellcheckをpre-commitで使う方法ですが、
+<a href="https://github.com/shellcheck-py/shellcheck-py">shellcheck-py/shellcheck-py</a>
+を使って、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/shellcheck-py/shellcheck-py</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.9.0.2</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w">   </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<code>shellcheck</code>コマンドもpre-commitによって管理してもらうようにするのが一番便利だと思いました。</p>
+
+<p><code>shellcheck</code>は必ず環境に入っている前提だ、という場合には</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">shell</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として直接環境の<code>shellcheck</code>を使うようにしてあげるのもありかな、と思います。</p>
+]]></content>
+  </entry>
+  
+</feed>

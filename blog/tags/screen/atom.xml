@@ -1,0 +1,1353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: screen | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/screen/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim v0.11とGNU screen 5.0.0の組み合わせで`+q4D73`が表示され崩れるのを治す]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/03/computer-vim-screen/"/>
+    <updated>2025-05-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/03/computer-vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovimをv0.11.0にアップデートしたところGNU screen内で立ち上げると
+表示が崩れるようになってしまうことに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-500とneovim-v010での表示問題" id="markdown-toc-gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</a></li>
+  <li><a href="#neovim-v011での表示問題" id="markdown-toc-neovim-v011での表示問題">Neovim v0.11での表示問題</a></li>
+  <li><a href="#neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard" id="markdown-toc-neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</h2>
+
+<p>今回v0.11にアップデートしたところまた問題が起こったというところなのですが、
+v0.10のときにも似たような問題が起こっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<p>上記でTruecolor対応にしたところ</p>
+
+<p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+<p>といった表示が出てscreen全体の表示が崩れるような状態になっていました。</p>
+
+<p>いつも出るわけではなく、
+ウィンドウを縦横に分割して、左側のウィンドウで開くときに表示が崩れる状態です。</p>
+
+<p>これに関しては上のポストでは<code>notermguicolors</code>を設定して対処するとしていますが、
+その後、クリップボードを無効にすることで対処していました。</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.<span class="nb">clipboard</span> <span class="p">=</span> false
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでNeovim v0.10では表示が問題なくできるようになっていました。</p>
+
+<p>Ref: <a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+
+<h2 id="neovim-v011での表示問題">Neovim v0.11での表示問題</h2>
+
+<p>Neovim v0.11にアップデートしたところ、また表示が崩れるようになってしまいました。</p>
+
+<p><code>+q4D73</code>といった表示が出て、表示が崩れるようになっています。</p>
+
+<p>これに関しては上のIssueにあるように、
+<a href="https://github.com/neovim/neovim/pull/31730">#31730</a>がmergeされたため、別途</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line">local termfeatures <span class="p">=</span> <span class="k">vim</span>.<span class="k">g</span>.termfeatures or {}
+</span><span class="line">termfeatures.osc52 <span class="p">=</span> false
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.termfeatures <span class="p">=</span> termfeatures
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の設定が必要になります。</p>
+
+<p>ただ、v0.10ではこの設定だと治らないので両方使う可能性がある場合は両方入れておく必要があります。</p>
+
+<p>OSC52はコピーに使われるシーケンスでその処理に関してGNU screenでは処理しないために
+そのまま表示されたりして表示が崩れてしまうようです。</p>
+
+<blockquote>
+  <p><a href="https://zenn.dev/link/comments/111f73802a8971">OSC52</a></p>
+</blockquote>
+
+<h2 id="neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</h2>
+
+<p>クリップボードに関してはVim内のものとOSのクリップボードを共有したりはしないので
+この辺特に気にせずoffにして問題ない状態です。
+Neovimは基本的にターミナル内で使っていて、かつGNU screen内で使うことが殆どで、
+OSのクリップボードに出したい場合はGNU screenのコピー機能でコピーして、
+それをOSに共有するような形にしています。</p>
+
+<p>そのために以下のツールをつかっています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/multi_clipboard"></div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"/>
+    <updated>2024-11-27T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/11/27/computer-python-screen</id>
+    <content type="html"><![CDATA[<p>Pythonのプロジェクト管理ツールをuvにした際に、
+uvにはpoetryのように<code>poetry shell</code>のような仮想環境を自動認識する機能がないため、ちょっと調べた結果、
+<a href="https://mise.jdx.dev/">mise</a>というツールを試しています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#pythonプロジェクト下での仮想環境下でのコマンド実行の必要性" id="markdown-toc-pythonプロジェクト下での仮想環境下でのコマンド実行の必要性">Pythonプロジェクト下での仮想環境下でのコマンド実行の必要性</a></li>
+  <li><a href="#uvの仮想環境" id="markdown-toc-uvの仮想環境">uvの仮想環境</a></li>
+  <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+  <li><a href="#miseのインストール" id="markdown-toc-miseのインストール">miseのインストール</a></li>
+  <li><a href="#pythonプロジェクト下でのmiseの使い方" id="markdown-toc-pythonプロジェクト下でのmiseの使い方">Pythonプロジェクト下でのmiseの使い方</a></li>
+  <li><a href="#プロンプトへの表示" id="markdown-toc-プロンプトへの表示">プロンプトへの表示</a></li>
+  <li><a href="#gnu-screenのcaptionに仮想環境名を表示" id="markdown-toc-gnu-screenのcaptionに仮想環境名を表示">GNU screenのCaptionに仮想環境名を表示</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="pythonプロジェクト下での仮想環境下でのコマンド実行の必要性">Pythonプロジェクト下での仮想環境下でのコマンド実行の必要性</h2>
+
+<p>Pythonのプロジェクトを作る際、自分のやり方として
+<a href="https://pre-commit.com/">pre-commit</a>を使って
+コードをチェックするようにしています。</p>
+
+<p>pre-commit用のツールはpre-commit自体に管理してもらう事もできますが、
+フォーマッターとかをコマンドラインから直接使ったりもしたいので
+それらのツールはプロジェクトのdevelopment用の依存関係に入れておいてインストールするようにしています。</p>
+
+<p>そのようなツールも毎回書くのが大変なので
+以下のようなパッケージを作ってまとめてインストールできるようにもしています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4814400179?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4814400179&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Xh3Xdtg-L._SS90_CR0,0,120,90_.jpg" alt="ロバストPython ―クリーンで保守しやすいコードを書く" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/01/computer-python/">pyproject-pre-commit: Pythonプロジェクト用のpre-commit集</a></div></li></ul>
+
+<p>で、これらのツールは仮想環境の中にインストールされるわけで、
+直接実行するには仮想環境内に居る必要があります。</p>
+
+<p>これはエディタなど開いた際なども仮想環境下でそのプロジェクトに必要なツールにパスが通っていることでそれを使えるので
+pre-commitに直接管理してもらうよりも便利です。</p>
+
+<p>というわけで仮想環境下に簡単に入れるようにしたい、という話。</p>
+
+<h2 id="uvの仮想環境">uvの仮想環境</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/08/computer-python/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241108_uv_120_90.jpg" width="120" height="90" alt="20241108_uv_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/08/computer-python/">Pythonのプロジェクト管理ツールをPoetryからuvに移行</a></div></li></ul>
+
+<p>uvは通常<strong>pyproject.toml</strong>ファイルのあるディレクトリに<strong>.venv</strong>ディレクトリを作成し、その中に仮想環境を作成します。</p>
+
+<p>仮想環境を有効にするには、<code>.venv/bin/activate</code>を実行します。
+出るには<code>deactivate</code>を実行します。
+ただしこの場合はプロジェクトのルートディレクトリに居るか、そこをきちんと指定する必要があります。</p>
+
+<p>また、プロジェクトのディレクトリ以下にいる場合は<code>uv run &lt;command&gt;</code>で仮想環境下としてコマンドを実行できます。</p>
+
+<p><strong>poetry</strong>の場合はデフォルトではキャッシュディレクトリに仮想環境を作成しますが、
+同様に<strong>poetry run <command /></strong>で仮想環境下としてコマンドを実行できます。</p>
+
+<p>一方、<code>activate</code>を実行するにはキャッシュディレクトリ下の仮想環境ディレクトリを参照する必要がありますが、
+<strong>poetry</strong>では直接そこを参照する方法はなく
+(<code>poetry env info</code>から取得することは出来ますが)、
+通常は<code>poetry shell</code>というコマンドで仮想環境を有効にします。</p>
+
+<p>ただし、この場合は仮想環境が有効なシェルを新たに立ち上げている形です。なので環境を出るときにはシェルを出るとき同様<code>exit</code>などで出ます。</p>
+
+<p>この<code>poetry shell</code>に相当する機能が<strong>uv</strong>にはありません。</p>
+
+<p>これは今のところ意図的な仕様で、Issueにはなってますが、
+導入は見送られそうな雰囲気です。</p>
+
+<p><a href="https://github.com/astral-sh/uv/issues/1910">Add a command to activate the virtual environment, e.g., <code>uv shell</code> · Issue #1910 · astral-sh/uv</a></p>
+
+<p>一応、<code>uv run $SHELL</code>とすれば現在のシェルと同じシェルを仮想環境下で立ち上げることになるので<code>poetry shell</code>と同じような事ができます。</p>
+
+<p><code>poetry shell</code>が実際どの程度のことをしているかはわからないですが、実用上は同じ状態だと思って良いはず。</p>
+
+<p>上のIssueでは新たなプロセスを立ち上げることに懸念点があり、その際にどの程度今の環境を引き継ぐべきか、シェルやOSなど毎に何を考慮すればよいのか、など考えることが沢山あって難しいという感じです。</p>
+
+<p>確かにそうだな、と思うのと、逆に実用上は<code>uv run $SHELL</code>で事足りるので、無理に入れる必要はなさそう。</p>
+
+<p>必要ならこれのエイリアスとか作って簡単に実行できるようにしておけばよいかと。</p>
+
+<h2 id="mise">mise</h2>
+
+<p><code>uv run $SHELL</code>、もしくは<code>activate</code>することでも良いのですが、
+せっかくなのでこれを機に仮想環境を自動認識するツールを使ってみることにしました。</p>
+
+<p>このような仮想環境を自動認識するツールとしては
+<a href="https://direnv.net/">direnv</a>
+が有名で古くから良く使われているものだと思います。</p>
+
+<p>direnvは以前ちょっと使ったことがあったのでまた使い始めようかと思って調べてたところ、
+<a href="https://mise.jdx.dev/">mise</a>
+という同じ様なことが出来る新しいツールがあるとのことで試しています。</p>
+
+<p>流行りのRust製で高速。</p>
+
+<p>なんとなく、<code>mice</code>的な感じで<strong>マイス</strong>と読むのかな、と思っていたら、
+フランス語で料理などの準備をする、的な意味で
+<strong>ミーズ</strong>と読むようです。</p>
+
+<p>いろいろな機能があって、pyenvのように必要なバージョンのPythonをインストールしたり、poetryのように仮想環境を管理したり、direnvのようにプロジェクトのディレクトリ下に入った際に自動で環境を切り替えたり、といったことが出来ます。</p>
+
+<p>取り敢えず現状は環境の切り替えだけのために使っています。</p>
+
+<h2 id="miseのインストール">miseのインストール</h2>
+
+<p>Homebrewがあれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>install<span class="w"> </span>mise
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で。</p>
+
+<p>直接インストールスクリプトでいれる場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>curl<span class="w"> </span>https://mise.run<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>など、いろいろな方法でのインストール方法が用意されています。</p>
+
+<p><a href="https://mise.jdx.dev/installing-mise.html">Installing Mise</a></p>
+
+<p>インストールしたらシェルのセットアップファイルに必要な設定を追加します。</p>
+
+<p>Bashなら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;eval &quot;$(mise activate bash)&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>中身を見てみるとわかりますが、<code>PROMPT_COMMAND</code>に<code>_mise_hook</code>関数を追加しています。</p>
+
+<p>この関数の中では、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>mise<span class="w"> </span>hook-env<span class="w"> </span>-s<span class="w"> </span>bash<span class="k">)</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようなコマンドを実行しています。
+これは基本的に<code>export PATH=...</code>といったようにPATHを設定します。</p>
+
+<p>これによって、<code>cd</code>とかでディレクトリを変更した際、そこがプロジェクトのディレクトリ下であるかどうかを判定し、
+ディレクトリ下ならそのプロジェクトの仮想環境のPATHを設定し、
+逆にそこから出た際には元のPATHに戻す、といったことを行っています。</p>
+
+<p><code>uv</code>のプロジェクトだけなら<code>&lt;project&gt;/.venv/bin</code>をPATHに追加したり外したりするだけなので
+その分だけ自作しても良いかな、とも思いましたが、
+<code>uv</code>のプロジェクトのディレクトリ下かどうか、と判定するのは割と面倒で
+やっぱりmiseを使おう、と
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h2 id="pythonプロジェクト下でのmiseの使い方">Pythonプロジェクト下でのmiseの使い方</h2>
+
+<p>プロジェクトのルートディレクトリに<strong>.mise.toml</strong>ファイルを作成します。</p>
+
+<figure class="code"><figcaption><span>.mise.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[env]</span>
+</span><span class="line"><span class="n">_</span><span class="p">.</span><span class="n">python</span><span class="p">.</span><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.venv&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでそのプロジェクト下に入った際、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>mise<span class="w"> </span>ERROR<span class="w"> </span>error<span class="w"> </span>parsing<span class="w"> </span>config<span class="w"> </span>file:<span class="w"> </span>&lt;path/to/project&gt;/.mise.toml
+</span><span class="line">mise<span class="w"> </span>ERROR<span class="w"> </span>Config<span class="w"> </span>file<span class="w"> </span>&lt;path/to/project&gt;/.mise.toml<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>trusted.
+</span><span class="line">Trust<span class="w"> </span>it<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>mise<span class="w"> </span>trust<span class="sb">`</span>.
+</span><span class="line">mise<span class="w"> </span>ERROR<span class="w"> </span>Run<span class="w"> </span>with<span class="w"> </span>--verbose<span class="w"> </span>or<span class="w"> </span><span class="nv">MISE_VERBOSE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>more<span class="w"> </span>information
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と言われるので<code>mise trust</code>を実行します。</p>
+
+<p>そうするとそれ以降、そのプロジェクト下に入った際に自動的に仮想環境が有効になります。
+また、そのプロジェクトから出た際には元の環境に戻ります。</p>
+
+<h2 id="プロンプトへの表示">プロンプトへの表示</h2>
+
+<p><code>. .venv/bin/activate</code>を実行した際にはシェルのプロンプトに仮想環境の名前が表示されるようになります。</p>
+
+<p><code>poetry shell</code>の場合も同じようにプロンプトに仮想環境の名前が表示されます。</p>
+
+<p>miseを使った場合にはプロンプトは変更されません。</p>
+
+<p>direnvの場合も直接プロンプトは変更されませんが、
+プロジェクト下に入った際、仮想環境が有効化されると
+<code>VIRTUAL_ENV</code>以外に<code>VIRTUAL_ENV_PROMPT</code>という環境変数が設定されるので、それを使ってプロンプトを変更することが出来ます。</p>
+
+<p><a href="https://github.com/direnv/direnv/wiki/PS1">PS1 · direnv/direnv Wiki</a></p>
+
+<p>miseの場合は<code>VIRTUAL_ENV</code>は設定されるのですが、<code>VIRTUAL_ENV_PROMPT</code>は設定されません。</p>
+
+<p>なのでちょっと手をいれる必要があります。</p>
+
+<p><a href="https://github.com/jdx/mise/issues/2027">Python environments activating, but zsh prompt not updated · Issue #2027 · jdx/mise</a></p>
+
+<p>一旦Pythonのvenv限定ですが、
+以下の様な関数でプロンプトに仮想環境の名前を表示することが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>_venv_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV_PROMPT</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span>prompt
+</span><span class="line"><span class="w">    </span><span class="nv">prompt</span><span class="o">=</span><span class="k">$(</span>grep<span class="w"> </span><span class="s2">&quot;^prompt *=&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/pyvenv.cfg&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;=&quot;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">2</span><span class="p">|</span>sed<span class="w"> </span><span class="s1">&#39;s/^ *//&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="nv">prompt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;(%s) &#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">PS1</span><span class="o">=</span><span class="s1">&#39;$(_venv_prompt)&#39;</span><span class="nv">$PS1</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>uvで作る場合、通常<strong>.venv/pyvenv.cfg</strong>に<code>prompt = ...</code>という行が追加されそこにプロジェクト名があるのでそれを使っています。</p>
+
+<p>また、ちょっと手動で仮想環境を作ってactivateしたとか、直接activateした場合、プロンプトが設定されるので重複してしまいますが、
+その場合には<code>VIRTUAL_ENV_PROMPT</code>が設定されているので、その場合は上の関よる追加は無いようにしています。</p>
+
+<p>これで、<code>my_project</code>というプロジェクトのディレクトリ下に入ると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">(</span>my_project<span class="o">)</span><span class="w"> </span>$
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにプロンプトが変更されます。</p>
+
+<h2 id="gnu-screenのcaptionに仮想環境名を表示">GNU screenのCaptionに仮想環境名を表示</h2>
+
+<p>とプロンプトに表示も出来ますが、
+個人的にプロンプト部分に色々表示されて変わるのは好きではないです。</p>
+
+<p>また、ターミナル作業は基本的に常にGNU screenを使っているので、
+そのCaptionに仮想環境名を表示するようにしてみます。</p>
+
+<p>まず、<strong>.screenrc</strong>では<code>caption</code>に<code>%h</code>を含めてウィンドウのhardstatusを表示するようにしておきます。</p>
+
+<p>このhardstatusは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>$<span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\e]0;%s\a&quot;</span><span class="w"> </span><span class="s2">&quot;hardstatus&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにすることでコマンドで変更することが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/21/prompt-command/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/21/prompt-command/">PS1とPROMPT_COMMAND, GNU screenでの活用も</a></div></li></ul>
+
+<p><code>%t</code>でタイトルを表示できますが、こちらは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>$<span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\ek%s\e\134&quot;</span><span class="w"> </span><span class="s2">&quot;hardstatus&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で変更できます。</p>
+
+<p>どちらでも同じようなものなのですが、<code>%h</code>の方は大概のターミナルアプリ自体のタイトルに表示されるものでもあるのでそちらへも表示できるよう<code>%h</code>を使うことにします。</p>
+
+<p>逆に<code>%h</code>は全体の<code>hardstatus</code>の設定の方にいれておきます。
+こちらには全ウィンドウの情報が表示されるようにするのでなるべく情報は少ないほうが良いので。</p>
+
+<p>これを使って、<strong>.bashrc</strong>とかに以下のような設定を追加します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>_venv_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV_PROMPT</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span>prompt
+</span><span class="line"><span class="w">    </span><span class="nv">prompt</span><span class="o">=</span><span class="k">$(</span>grep<span class="w"> </span><span class="s2">&quot;^prompt *=&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/pyvenv.cfg&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;=&quot;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">2</span><span class="p">|</span>sed<span class="w"> </span><span class="s1">&#39;s/^ *//&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="nv">prompt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;(%s) &#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prompt</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="nv">$TERM</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span>screen<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span>_screen_prompt<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">dir</span><span class="o">=</span><span class="si">${</span><span class="nv">PWD</span><span class="p">/#</span><span class="nv">$HOME</span><span class="p">/</span><span class="se">\~</span><span class="si">}</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\ek%s %s\e\134&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>hostname<span class="w"> </span>-s<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;\e]0;%s %s%s\a&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>hostname<span class="w"> </span>-s<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>_venv_prompt<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nv">PROMPT_COMMAND</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PROMPT_COMMAND</span><span class="p">:+</span><span class="si">${</span><span class="nv">PROMPT_COMMAND</span><span class="si">}</span><span class="p">;</span><span class="si">}</span><span class="s2">_screen_prompt&quot;</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><strong>.screenrc</strong>の関連部分は以下のようにしています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="c1"># Caption for each window</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%F&quot;</span><span class="w">     </span><span class="c1"># if the window has the focus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{= 0;255}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {dim, black on white}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%:&quot;</span><span class="w">       </span><span class="c1"># else</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{=d 0;240}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {dim, black on gray}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%P&quot;</span><span class="w">     </span><span class="c1"># if copy/paste mode</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{+ 0;012}&quot;</span><span class="w"> </span><span class="c1">#   set attribute = {on bright blue}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%n&quot;</span><span class="w">       </span><span class="c1"># window number</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2"> &quot;</span><span class="w">        </span><span class="c1"># space</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%L=&quot;</span><span class="w">      </span><span class="c1"># Mark the position for the next truncation</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%h&quot;</span><span class="w">       </span><span class="c1"># window&#39; hardstatus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%L&gt;&quot;</span><span class="w">      </span><span class="c1"># Truncate %L= ~ %L&gt;, &#39;L&#39; for &gt; gives marks at the truncation point</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%=&quot;</span><span class="w">       </span><span class="c1"># With the last %-0=, it makes right alignment for following lines</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%P&quot;</span><span class="w">     </span><span class="c1"># if copy/paste mode</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">  *copy/paste*&quot;</span><span class="w"> </span><span class="c1"># draw this sentence</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?%E&quot;</span><span class="w">     </span><span class="c1"># if the escape character has  been pressed</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">  ***command**&quot;</span><span class="w"> </span><span class="c1"># draw this sentence</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%?&quot;</span><span class="w">       </span><span class="c1"># end if</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-0=&quot;</span><span class="w">     </span><span class="c1"># pad the string to the display&#39;s width. &quot;-0&quot; means</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># start from the rightest side</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># (e.g. 10=: 10% from left, 010, 10 characters from left</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># (     -10=: 10% from right)</span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># With %L&gt;, %= above, screen tries to truncates the part </span>
+</span><span class="line"><span class="w">                      </span><span class="c1"># in the left of &quot;%L&gt;&quot;</span>
+</span><span class="line">caption<span class="w"> </span>always<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">&quot;</span>
+</span><span class="line">unsetenv<span class="w"> </span>a
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="c1"># hardstatus</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{=d 0;240}&quot;</span><span class="w"> </span><span class="c1"># set attribute = {black(k) on bright Black(K)}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-w&quot;</span><span class="w">     </span><span class="c1"># windows&#39; list up to the current window (shown as &quot;%n %t&quot;)</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%40&gt;&quot;</span><span class="w">    </span><span class="c1"># Mark here as a point to move when truncation</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># Try to move this point to the 40% point</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{= 0;255}&quot;</span><span class="w"> </span><span class="c1"># set attribute = {black(k) on bright Write(W)}</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%n&quot;</span><span class="w">      </span><span class="c1"># current window number</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2"> &quot;</span><span class="w">       </span><span class="c1"># space</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%t&quot;</span><span class="w">      </span><span class="c1"># current window title</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%{-}&quot;</span><span class="w">    </span><span class="c1"># remove the set from the current attributes</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%+w&quot;</span><span class="w">     </span><span class="c1"># windows&#39; list starting with the window after the current one (shown as &quot;%n %t&quot;)</span>
+</span><span class="line">setenv<span class="w"> </span>a<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">%-0=&quot;</span><span class="w">    </span><span class="c1"># pad the string to the display&#39;s width.</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># About Truncation/Padding(=,&lt;,&gt;)</span>
+</span><span class="line"><span class="w">                     </span><span class="c1"># http://aperiodic.net/screen/truncation_padding_escapes</span>
+</span><span class="line">hardstatus<span class="w"> </span>alwayslastline<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$a</span><span class="s2">&quot;</span>
+</span><span class="line">unsetenv<span class="w"> </span>a
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで、環境外だと</p>
+
+<p><img src="https://rcmdnk.com/images/post/20241128_misenonactive.jpg" alt="20241128_misenonactive.jpg" class="pic" /></p>
+
+<p>環境内に入ると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20241128_miseactive.jpg" alt="20241128_miseactive.jpg" class="pic" /></p>
+
+<p>といった感じにウィンドウのCaption部分に仮想環境名が表示されるようになります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU Screen 5.0.0リリース(20年ぶりのメジャーアップデート?)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/08/29/computer-screen/"/>
+    <updated>2024-08-29T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/08/29/computer-screen</id>
+    <content type="html"><![CDATA[<p>ターミナルマルチプレクサであるGNU Screenの20年ぶり?のメジャーリリースである5.0.0がリリースされました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-500" id="markdown-toc-gnu-screen-500">GNU Screen 5.0.0</a></li>
+  <li><a href="#500の変更点" id="markdown-toc-500の変更点">5.0.0の変更点</a>    <ul>
+      <li><a href="#true-color" id="markdown-toc-true-color">true color</a></li>
+      <li><a href="#文字化け問題" id="markdown-toc-文字化け問題">文字化け問題</a></li>
+      <li><a href="#captionhardstatusの色設定" id="markdown-toc-captionhardstatusの色設定">caption/hardstatusの色設定</a></li>
+      <li><a href="#その他のfix" id="markdown-toc-その他のfix">その他のfix</a></li>
+    </ul>
+  </li>
+  <li><a href="#インストール" id="markdown-toc-インストール">インストール</a></li>
+  <li><a href="#true-color-1" id="markdown-toc-true-color-1">true color</a></li>
+  <li><a href="#captionhardstatusの色設定-1" id="markdown-toc-captionhardstatusの色設定-1">caption/hardstatusの色設定</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-500">GNU Screen 5.0.0</h2>
+
+<blockquote>
+  <p><a href="https://savannah.gnu.org/news/?id=10668">GNU Screen - News [Savannah]</a></p>
+</blockquote>
+
+<p>2024年8月28日リリース。</p>
+
+<p>前回リリースがあったのが4.9.1で2023年8月20日。
+なのでリリースとしては1年ぶりの新しいリリースです。</p>
+
+<ul>
+  <li>4.9.1: 2023年8月20日</li>
+  <li>4.9.0: 2022年1月30日</li>
+  <li>4.8.0: 2020年2月5日</li>
+  <li>4.7.0: 2019年10月2日</li>
+  <li>4.6.0: 2017年6月28日</li>
+  <li>4.5.0: 2016年12月10日</li>
+  <li>4.4.0: 2016年6月19日</li>
+  <li>4.3.0: 2015年6月13日</li>
+  <li>4.2.0: 2014年4月17日</li>
+  <li>4.0.3: 2008年8月7日</li>
+  <li>4.0.2: 2004年1月27日</li>
+  <li>3.9.15: 2003年3月13日
+…</li>
+  <li>3.5.1: 1993年7月31日</li>
+</ul>
+
+<blockquote>
+  <p><a href="https://savannah.gnu.org/news/?group_id=4235">GNU Screen - News [Savannah]</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://git.savannah.gnu.org/cgit/screen.git/tree/src/ChangeLog">ChangeLog\src - screen.git - screen</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://ftp.gnu.org/gnu/screen/">Index of /gnu/screen</a></p>
+</blockquote>
+
+<p>4.0.2が出た頃にすでにまだ開発してたんだ、という感じもしましたが、
+その後4年かけてパッチアップデートだけで、もはや消えゆく感じすらありました。</p>
+
+<p>tmuxが2007年にリリースされ、2014年の頃にはGNU Screenがもうアップデートされないような雰囲気もあって
+後発のtmuxの方にかなりのユーザーが移行していった感じがありました。</p>
+
+<p>そこへ2014年に4.2.0への大幅アップデート。</p>
+
+<p>そこから比較的頻繁にリリースが続き、現在まで至ります。</p>
+
+<p>そんななかで、おそらく20年ぶりになるメジャーアップデート。</p>
+
+<h2 id="500の変更点">5.0.0の変更点</h2>
+
+<p>あまりたくさんのアップデートが入ったわけではないので
+リリースノートでもすぐに把握できますが、
+以下主に気になる点。</p>
+
+<h3 id="true-color">true color</h3>
+<p>個人的に一番大きいのはtrue colorのサポートが追加されたことです。</p>
+
+<p>ターミナルでtrue colorが使えるようになったのがいつなのかもはや知りませんが、
+GNU Screenを使う限りtrue colorが使えず、
+Vimでもcolorschemeをtrue colorなしとして考えて選択したり設定しなくてはいけないので
+ちょっと悲しいところでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<p>これで何年遅れかわかりませんが、やっとtrue colorを意識した環境つくりができるようになります。。。</p>
+
+<p>Vim用colorshemeもアップデートしたい。</p>
+
+<h3 id="文字化け問題">文字化け問題</h3>
+
+<p>後は4.Xまでは日本語を扱う際に文字化け問題あり、パッチをあてて使う必要がありましたが、</p>
+
+<ul>
+  <li>Use wcwdith() instead of UTF-8 hard-coded tables</li>
+</ul>
+
+<p>この辺の話でそのあたりも治っていそう。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/22/screen-install/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130322_screen_char_non_120_90.jpg" width="120" height="90" alt="20130322_screen_char_non_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/11/19/computer-mac-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20191119_macutf3_120_90.jpg" width="120" height="90" alt="20191119_macutf3_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/11/19/computer-mac-screen/">Macで濁点とかが起こす文字化け問題について</a></div></li></ul>
+
+<p>今のところそのまま使っても以前あったような文字化けは起こっていません。
+また、以前は横分割などした際、日本語が一旦表示されると表示がくずれたままになってしまうことがありましたが、
+そういった事も今のところなくなったとように見えます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/10/02 </strong></p>
+
+  <p>macOSでGoogle Driveでmountしたディレクトリ内で<code>ls</code>すると</p>
+
+  <p><img src="https://rcmdnk.com/images/post/20240829_garbled.png" alt="20240829_garbled.png" class="pic" /></p>
+
+  <p>こんな感じで文字化けしてました。</p>
+
+  <p>iTerm/Terminalなど共に。</p>
+
+  <p>screenなしなら文字化けしません。さらにはmacOSにもとからある<code>/usr/bin/screen</code>を使っても文字化けしません。</p>
+
+  <p>4.9.1をビルドしてパッチ無しでつかってみましたがそれでも文字化けしません。</p>
+
+  <p>なのでなにかまた別の問題な模様?</p>
+
+  <p>さらに見てみると、Google Driveのディレクトリ下で<code>*.gsheet</code>や<code>*gscript</code>などGoogleサービスのファイルなどが日本語だと文字化けしてました。</p>
+
+  <p>一方でpdfとか他の通常ファイルは同じ日本語でも(拡張子以外を同じにしても)文字化けしません。</p>
+
+  <p>さらには上の<strong>マイドライブ</strong>, <strong>共有ドライブ</strong>といった名前のディレクトリを別のところに作っても文字化けしません。</p>
+
+  <p>また、WindowsのWSLだとGoogle Drive下でも文字化けしません。</p>
+
+  <p>Google Driveのマウントが影響をしているように見えますが、ちょっとよくわかってません。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="captionhardstatusの色設定">caption/hardstatusの色設定</h3>
+
+<p>それ以外だとリリースノートには書かれてませんが、
+captionなどを表示する際の色の設定の仕方が変わり、
+設定している場合は<strong>.screenrc</strong>を変更が必要になるのでアップグレードに少し注意が必要です。</p>
+
+<h3 id="その他のfix">その他のfix</h3>
+
+<ul>
+  <li>Fixes:
+    <ul>
+      <li>Screen buffers ESC keypresses indefinitely</li>
+      <li>Crashes after passing through a zmodem transfer</li>
+      <li>Fix double -U issue</li>
+    </ul>
+  </li>
+</ul>
+
+<p>この辺の話もすぐに実感出来るわけでは無いわけですが
+今まで、ん？と思ってたようなことが減るのではないかと。</p>
+
+<h2 id="インストール">インストール</h2>
+
+<p>現状まだHomebrewなどのアップデートは来てませんが、おそらく数日中には来ると思うので待ってもよいかもしれませんが、
+すぐ使いたい場合は自分でビルドしてインストールする必要があります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/09/02 </strong></p>
+
+  <p>Homebrewでもcoreのscreenが5.0.0にアップデートされています。</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install screen</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>で5.0.0が入ります。</p>
+
+  <p>これまで文字化け対策用にpatchをあてるFormula(<a href="https://github.com/rcmdnk/homebrew-rcmdnkpac/blob/master/screenutf8.rb">rcmdnk/rcmdnkpac/screenutf8</a>)を別途用意して使っていましたが、
+こちらはもう必要ないのでdeprecatedにしておきました。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/22/screen-install/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130322_screen_char_non_120_90.jpg" width="120" height="90" alt="20130322_screen_char_non_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<blockquote>
+  <p><a href="https://ftp.gnu.org/gnu/screen/">Index of /gnu/screen</a></p>
+</blockquote>
+
+<p>からv5.0.0のソースをダウンロードしてビルド。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">wget https://ftp.gnu.org/gnu/screen/screen-5.0.0.tar.gz
+</span><span class="line">tar zxf screen-5.0.0.tar.gz
+</span><span class="line">cd screen-5.0.0
+</span><span class="line">./autogen.sh
+</span><span class="line">./configure --prefix=$HOME/usr/
+</span><span class="line">make &amp;&amp; make install</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>macOSでHomebrewでscreenをインストールしている場合はおそらくライブラリとかは問題なく揃っているはず。</p>
+
+<p>WndowsのWSL環境でUbuntu 24.04であれば以下のパッケージが必要。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ sudo apt install -y autoconf gcc make libncurses-dev libpam0g-dev</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>18.04だとgccが7で色々面倒なので途中でやめました。。。</p>
+
+<h2 id="true-color-1">true color</h2>
+
+<p>true colorを有効にするには<strong>.screenrc</strong>で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">truecolor on</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定します。</p>
+
+<p>以前、256colorが使える様になった時、ビルド時に<code>--enable-colors256</code>を指定する必要があったのですが、
+5.0.0ではビルド時の指定は不要で、<strong>.screenrc</strong>で設定するだけで使えるようになります。
+(逆にデフォルトでは有効になってないのできちんと設定する必要があります。)</p>
+
+<p>この値は4.9.1で書いてもエラーにはなりませんが何も起こりません。</p>
+
+<p>これを設定したうえでテストしてみます。</p>
+
+<div class="github-widget" data-repo="rcmdnk/escape_sequence"></div>
+
+<p>このレポジトリの<code>colcheck</code>コマンドを使ってみると</p>
+
+<p>GNU Screen 4.9.1:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240829_gnuscreen4truecolor.png" alt="20240829_gnuscreen4truecolor.png" class="pic" /></p>
+
+<p>GNU Screen 5.0.0:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240829_gnuscreen5truecolor.png" alt="20240829_gnuscreen5truecolor.png" class="pic" /></p>
+
+<p>ということで、最後の部分を見て分かる通り、5.0.0だときちんとtrue colorが使えるようになっています。</p>
+
+<p>上記はmacOSのiTerm2ですが、WindowsでHyperを使った環境などでも元のターミナルがtrue color対応しているものであれば
+GNU Screen 5.0.0でtrue colorが使えるようになります。</p>
+
+<h2 id="captionhardstatusの色設定-1">caption/hardstatusの色設定</h2>
+
+<p>GNU Screenでcaptionなどの表示で色を変える際、<code>{}</code>で囲った中に指定を行います。</p>
+
+<p>4.9.1までは黒なら<code>k</code>、白なら<code>w</code>など文字を使った指定で、大文字の<code>K</code>や<code>W</code>は明るい色になります。
+また、文字速と背景色は<code>Wk</code>のように指定すると、背景が明るい白、文字が黒になります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">   k      black
+</span><span class="line">   r      red
+</span><span class="line">   g      green
+</span><span class="line">   y      yellow
+</span><span class="line">   b      blue
+</span><span class="line">   m      magenta
+</span><span class="line">   c      cyan
+</span><span class="line">   w      white
+</span><span class="line">   d      default color
+</span><span class="line">   .      leave color unchanged</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これが5.0.0からはこの文字指定がなくなり、数字で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">   0      black
+</span><span class="line">   1      red
+</span><span class="line">   2      green
+</span><span class="line">   3      yellow
+</span><span class="line">   4      blue
+</span><span class="line">   5      magenta
+</span><span class="line">   6      cyan
+</span><span class="line">   7      white</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の対応。または256色colorに対応する3桁の数字、xから始まる16進数などで指定するようになりました。</p>
+
+<p>この辺はmanに詳しくあります。</p>
+
+<p>また、文字色、背景色は<code>;</code>で区切って指定します。
+さらに注意が必要なことに、4.Xでは<code>背景色</code>, <code>文字色</code>の順でしたが、5.0.0からは<code>文字色;背景色</code>の順です。</p>
+
+<p><code>wk</code>に対応するには<code>0;7</code>となります。</p>
+
+<p>また、明るい色、という指定は<code>i</code>をつけると出来る、とのことで、
+これは4.9.1でもmanに書いてあることなんですが
+自分の環境だと4.9.1でも5.0.0でも<code>0;i7</code>とかしても違いはありませんでした。</p>
+
+<p><code>i0</code>としても明るい黒、的にはならず。</p>
+
+<p>仕方が無いので256色指定で適当な色を指定するようにしています。</p>
+
+<ul>
+  <li><code>k</code> <i class="fa fa-arrow-right"></i> <code>0</code></li>
+  <li><code>W</code> <i class="fa fa-arrow-right"></i> <code>255</code></li>
+  <li><code>K</code> <i class="fa fa-arrow-right"></i> <code>240</code></li>
+  <li><code>B</code> <i class="fa fa-arrow-right"></i> <code>012</code></li>
+</ul>
+
+<p><a href="https://github.com/rcmdnk/dotfiles/commit/935ae415d21e7dcbba16582790b4973eab4f2d03">style: enable true color support in .screenrc configuration · rcmdnk/dotfiles@935ae41</a></p>
+
+<p>GNU Screen 4.9.1:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240829_gnuscreen4caption.png" alt="20240829_gnuscreen4caption.png" class="pic" /></p>
+
+<p>GNU Screen 5.0.0:</p>
+
+<p><img src="https://rcmdnk.com/images/post/20240829_gnuscreen5caption.png" alt="20240829_gnuscreen5caption.png" class="pic" /></p>
+
+<p>こんな感じでだいたい同じような色に。</p>
+
+<p>true colorが使えるようになったのでもっと繊細な色を使っても良いわけですが、まあ、一旦。</p>
+
+<p>この変更は互換性がないので、4.9.1と5.0.0で同じ<strong>.screenrc</strong>を使うことができません。</p>
+
+<p>エラーにはならないので、captionやhardstatusが見えづらくても良いならどちらかのままで共通のものを使うこともできますが、
+共通のdotfilesなどでの設定を使う場合にはできるだけ早くバージョンを揃えた方が良いです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ついにGNU Screen 5.0.0がリリースされ、true colorが使えるようになりました。</p>
+
+<p>多くの変更が入ったわけではないですが、大きな欠点が解消され、
+20年ぶりのメジャーアップデートに適うアップデートだと思います。</p>
+
+<p>これでまたGNU Screenを使い続けられますね。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0415827809?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0415827809&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41FFCSpQXWL._SS90_CR0,0,120,90_.jpg" alt="Pros and Cons: A Debaters Handbook" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/01/08/computer-screen-tmux/">tmuxとscreenのそれぞれの優れてる点</a></div></li></ul>
+
+<p>(tmuxどころかターミナルを直接使ってる人すらいなくなってきている今日このごろですが。。。)</p>
+
+<p>ちょっとまだscreen用のスクリプトとか設定とかでアップデートが必要な部分がありそうですが、随時アップデートしていきます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim 0.10でのtruecolorの取り扱いの変更に対する対応]]></title>
+    <link href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"/>
+    <updated>2024-05-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/05/19/vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovim 0.10がリリースされましたが
+導入したところシンタックスハイライトがまともに効かない状態になっていたので
+取り敢えずの対応について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#neovim-010" id="markdown-toc-neovim-010">Neovim 0.10</a></li>
+  <li><a href="#termguicolorsのデフォルト値の変更" id="markdown-toc-termguicolorsのデフォルト値の変更">termguicolorsのデフォルト値の変更</a></li>
+  <li><a href="#iterm2--gnu-screenでのtrue-color対応" id="markdown-toc-iterm2--gnu-screenでのtrue-color対応">iTerm2 + GNU Screenでのtrue color対応</a></li>
+  <li><a href="#gnu-screenでのtrue-color対応" id="markdown-toc-gnu-screenでのtrue-color対応">GNU Screenでのtrue color対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="neovim-010">Neovim 0.10</h2>
+
+<p><a href="https://neovim.io/doc/user/news-0.10.html">News-0.10 - Neovim docs</a></p>
+
+<p>結構いろいろな変更が入っていて、
+<a href="https://neovim.io/doc/user/news-0.10.html#_-breaking-changes">BREAKING CHANGES</a>
+の項目にもいろいろな変更が含まれています。</p>
+
+<h2 id="termguicolorsのデフォルト値の変更">termguicolorsのデフォルト値の変更</h2>
+
+<p>この中で個人的に問題になったのが</p>
+
+<blockquote>
+  <p>‘termguicolors’ is enabled by default when Nvim is able to determine that the host terminal emulator supports 24-bit color.</p>
+</blockquote>
+
+<p>これまではこの設定を明に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">set</span> termguicolors
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と設定していなければターミナル上では24-bitのtrue colorは無効になっていましたが
+0.10からは環境を見てTrue colorがサポートされているとみなされるとこれが自動的に有効になるようになりました。</p>
+
+<p>現在多くの端末エミュレータはtrue colorに対応しているので
+これまで上記の設定をしてなかった人は0.10にアップデートした時点で
+シンタックスハイライトが少し変わった表示になっているかもしれません。</p>
+
+<p>デフォルトのカラースキーマ自体が変わったので
+そちらの影響で変わっている部分もあるかもしれません。</p>
+
+<p>とはいえ、true colorが使えるのであれば使った方がより繊細な表示で
+最近のカラースキーマはGUIを中心としてtrule color前提で作られているものが多いので
+使えるなら使ったほうが良いとは思います。</p>
+
+<h2 id="iterm2--gnu-screenでのtrue-color対応">iTerm2 + GNU Screenでのtrue color対応</h2>
+
+<p>macOSのもともと入っているターミナルアプリはtrue colorに対応していませんが
+<a href="https://iterm2.com/">iTerm2</a>ではtrue colorに対応しています。</p>
+
+<blockquote><p><div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span><br /><span class="line-number">2</span><br /><span class="line-number">3</span><br /><span class="line-number">4</span><br /><span class="line-number">5</span><br /><span class="line-number">6</span><br /><span class="line-number">7</span><br /><span class="line-number">8</span><br /><span class="line-number">9</span><br /><span class="line-number">10</span><br /><span class="line-number">11</span><br /><span class="line-number">12</span><br /><span class="line-number">13</span><br /><span class="line-number">14</span><br /><span class="line-number">15</span><br /></pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>awk<span class="w"> </span>-v<span class="w"> </span><span class="nv">term_cols</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">width</span><span class="k">:-$(</span>tput<span class="w"> </span>cols<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="m">80</span><span class="k">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-v<span class="w"> </span><span class="nv">term_lines</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">height</span><span class="k">:-</span><span class="nv">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s1">&#39;BEGIN{</span><br /></span><span class="line"><span class="s1">    s=&quot;/\\&quot;;</span><br /></span><span class="line"><span class="s1">    total_cols=term_cols*term_lines;</span><br /></span><span class="line"><span class="s1">    for (colnum = 0; colnum&lt;total_cols; colnum++) {</span><br /></span><span class="line"><span class="s1">        r = 255-(colnum*255/total_cols);</span><br /></span><span class="line"><span class="s1">        g = (colnum*510/total_cols);</span><br /></span><span class="line"><span class="s1">        b = (colnum*255/total_cols);</span><br /></span><span class="line"><span class="s1">        if (g&gt;255) g = 510-g;</span><br /></span><span class="line"><span class="s1">        printf &quot;\033[48;2;%d;%d;%dm&quot;, r,g,b;</span><br /></span><span class="line"><span class="s1">        printf &quot;\033[38;2;%d;%d;%dm&quot;, 255-r,255-g,255-b;</span><br /></span><span class="line"><span class="s1">        printf &quot;%s\033[0m&quot;, substr(s,colnum%2+1,1);</span><br /></span><span class="line"><span class="s1">        if (colnum%term_cols==term_cols) printf &quot;\n&quot;;</span><br /></span><span class="line"><span class="s1">    }</span><br /></span><span class="line"><span class="s1">    printf &quot;\n&quot;;</span><br /></span><span class="line"><span class="s1">}&#39;</span><br /></span></code></pre></td></tr></table></div></figure></notextile></div>bash</p><footer><strong>terminal - Print true color (24-bit) test pattern - Unix &amp; Linux Stack Exchange</strong> <cite><a href="https://unix.stackexchange.com/questions/404414/print-true-color-24-bit-test-pattern">unix.stackexchange.com/404414/&hellip;</a></cite></footer></blockquote>
+
+<p>こんな感じのスクリプトでなだらかに色が表示されてればOK。
+対応していなければ色が飛び飛びの状態になります。</p>
+
+<p>True color
+<img src="https://rcmdnk.com/images/post/20240519_truecolor.png" alt="20240519_truecolor.png" class="pic" /></p>
+
+<p>Non-true color
+<img src="https://rcmdnk.com/images/post/20240519_nontruecolor.png" alt="20240519_nontruecolor.png" class="pic" /></p>
+
+<p>また、
+iTerm2上でNeovim 0.10を使うとたしかに<code>termguicolors</code>が有効になっていました。</p>
+
+<p>コマンドモードで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="p">:</span> <span class="k">set</span> termguicolors?
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で確認出来ます。</p>
+
+<p>0.9でやってみると<code>notermguicolors</code>になっているのに対して
+0.10では<code>termguicolors</code>になっていました。</p>
+
+<p>実際シンタックスハイライトもtrue colorで表示されているようで
+これまでの表示よりも繊細な色が出ています。</p>
+
+<p>が、問題はGNU Screenです。</p>
+
+<p>GNU Screenは現在の4.9.1でもtrue colorに対応していないので
+true colorは無効な状態で使う必要があります。</p>
+
+<p>使えない状態なのでこれまで通り<code>termguicolors</code>を無効のまま使っていれば
+問題ないわけですが、
+0.10にアップデートしたところシンタックスハイライトがまともに効かない状態になってしまいました。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="p">:</span> <span class="k">set</span> termguicolors?
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で確認すると<code>termguicolors</code>になっています。</p>
+
+<p>GNU screenには<code>truecolor on</code>という設定がありますが、
+このオプションは少なくとも現状のステーブルバージョンでは意味がない設定になっています。</p>
+
+<p>ですが、このオプションをonにしてもoffにしても上の状況は変わらず。</p>
+
+<p>Windowsでは
+<a href="https://hyper.is/">Hyper</a>
+を使っていますが、こちらもtrue color対応で、そのままだとNeovimで0.10ではtrue colorが使われていますが、
+Gnu Screenを使っているとtrue colorが使われていない状態になっています。</p>
+
+<p>実際<code>notermguicolors</code>になっていました。</p>
+
+<p>ということでGNU Screenの設定など以外で何かiTermの場合だけscreen内でもtrue colorが有効だと勘違いする設定があるみたいです。</p>
+
+<p>問題なのは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">COLORTERM</span><span class="o">=</span>truecolor
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という環境変数が設定されていることでした。</p>
+
+<p>hyperでは設定されてません。</p>
+
+<p>この環境変数がGNU Screenの中でも引き継がれてNeovimが勘違いしていたようです。</p>
+
+<p>実際、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">unset</span><span class="w"> </span>COLORTERM
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として変更してNeovimを起動すると<code>termguicolors</code>が無効になりました。</p>
+
+<p>他のターミナル上で<code>COLORTERM</code>が設定されていなくてもこれまで特に不満はなかったので
+取り敢えずはこれで対応しておきます。</p>
+
+<h2 id="gnu-screenでのtrue-color対応">GNU Screenでのtrue color対応</h2>
+
+<p>GNU Screenでtrue colorが有効にできればよいわけですが、ちょっとやった感じうまくいってません。</p>
+
+<p>上にも書いたように<code>truecolor on</code>という設定があるのですが、それは現状バージョンでは意味がない設定になっています。</p>
+
+<blockquote>
+  <p><a href="https://bbs.archlinux.org/viewtopic.php?id=249670">GNU Screen : True color (24bit) support / Applications &amp; Desktop Environments / Arch Linux Forums</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://arstechnica.com/civis/threads/truecolor-support-in-screen-on-ubuntu.1425567/">truecolor support in screen? (on ubuntu)  Ars OpenForum</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-03/msg01152.html">bug#62237: 28.1 or higher: 24-bit true color breaks colours in Emacsen b</a></p>
+</blockquote>
+
+<p>version 5では有効になる？といった話もあり、
+masterブランチの最新版を使えば有効になっているとの話もあったのですが、
+以下からmasterブランチをとってきてビルドしてみたところ、
+<code>trulecolor on</code>のオプションを設定して
+neovimを立ち上げたところ、<code>COLORTERM</code>を設定していない状態では
+<code>notermguicolors</code>になっていました。</p>
+
+<blockquote>
+  <p><a href="https://git.savannah.gnu.org/cgit/screen.git">screen.git - screen</a></p>
+</blockquote>
+
+<p>また、上の<code>awk</code>コマンドを実行してみると、薄緑一色が表示される状態で明らかになにかおかしな状態。</p>
+
+<p>さらにNeovimを立ち上げて<code>set termguicolors</code>を設定すると
+なにもないところでも変な色が表示されるようになりました。</p>
+
+<p>どうもまともに色付けが働いてない状態です。</p>
+
+<p>現在のmasterは2024/03/27のコミットが最終コミットで、
+どこかの状態だとうまく動いているのもあるのかもしれませんが。</p>
+
+<p>もしくは何かしらビルド時のオプションや、設定のほうでなにかあるのかも。</p>
+
+<p>ぱっとではうまくいかなかったので、またそのうち調べてみます。</p>
+
+<p>ChatGPTに聞いてみたら、<code>truecolor</code>オプションなど教えてくれましたが、
+うまくいかないというとtmux使え、と言い出してしまい。。。</p>
+
+<p>上のリンクの中でもそういった話の流れもあるのでまあそういうのを学んでいるのだと思いますが、
+ちょっと悲しい。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/05/24 </strong></p>
+
+  <p><code>unset COLORTERM</code>で対応していたところ、GNU screen内からNeovimを立ち上げると一瞬、</p>
+
+  <p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+  <p>みたいな何か文字化けのような変なものが見えるようになりました。</p>
+
+  <p><strong>init.vim</strong>で色々設定しているとその作業でこれが消えた状態に最終的になりますが、
+<strong>.init.vim</strong>を空にして見てみるとこの表示が一番上に残った状態で始まります。</p>
+
+  <p>ただし、これが書き込まれているわけではなく画面を動かすと消えるようなもの。</p>
+
+  <p>どうもこれは</p>
+
+  <blockquote>
+    <p><a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+  </blockquote>
+
+  <p>ここで問題にされている問題のようで、GNU Screenで対応できていない(?)エスケープシーケンスを使って
+truecolorをチェックしていることによりそれがそのまま表示されてしまうといった問題の模様(きちんとは理解していない)。</p>
+
+  <p>概要としては0.10.0からtruecolorかどうかを動的にチェックするようになって、
+その過程で行う作業で出てくるものとのこと。</p>
+
+  <p><code>set notermguicolors</code>として明示的にtruecolorをoffにしておけばこのチェックを行わないので
+これが出ません。</p>
+
+  <p>ということで、<strong>init.vim</strong>の中で<code>notermguicolors</code>をセットしておくことにしました。</p>
+
+  <p><code>COLORTERM</code>に関しては特にどっちでも変わらない状況ではありますが、
+setしてあっても困らないので一旦GNU screenに入るときでもunsetせずにそのままにしておくように。</p>
+
+  <p>これによってGNU screenを使わないときでもtruecolorを使えない状態にはなりますが、
+基本的にGNU screen内で作業するので、きれいな表示だとしても下手に違う表示になる方が気持ち悪いので
+全てでnotermguicolorsでやるほうが良いだろう、という言い訳をしてそうしておきます。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2024/05/29 </strong></p>
+
+  <p>Windows上で
+<a href="https://hyper.is/">Hyper™</a>
+を使ってWSL2上のNeovimを使っているのですが、
+この際、<code>COLORTERM</code>はあらかじめセットされていない状態で、
+この状態だとGNU screen内で<code>set notermguicolors</code>をしていても上のエスケープシーケンスが表示されるようになってしまいました。</p>
+
+  <p><code>COLORTERM</code>がセットされていない状態だと最初にチェックを行うようになっているのか、
+そのチェックの過程でエスケープシーケンスが表示されるようです。</p>
+
+  <p><code>COLORTERM</code>の値ですが、<code>truecolor</code>もしくは<code>24bit</code>が取れるようですが、</p>
+
+  <blockquote>
+    <p><a href="https://gitlab.com/gnachman/iterm2/-/issues/5294">export COLORTERM=truecolor (#5294) · イシュー · George Nachman / iterm2 · GitLab</a></p>
+  </blockquote>
+
+  <p>このどちらにしても<code>notermguicolors</code>になっていなければNeovim上ではtruecolorが有効になりました。</p>
+
+  <p><code>COLORTERM</code>をunsetするか、0や1といった意味のない(ターミナルによっては意味がある?)値にすると
+<code>notermguicolors</code>をセットしなくてもtruecolorは無効になりますが
+エスケープシーケンスが表示される状態になります。</p>
+
+  <p>Hyperではtruecolorをサポートしていますが、直接立ち上げた状態では<code>COLORTERM</code>はセットされていませんが
+<code>notermguicolors</code>をセットしなければtruecolorが有効になり、かつきちんと表示されます。</p>
+
+  <p>ということで、GNU screenを立ち上げる際、逆に</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">COLORTERM</span><span class="o">=</span>24bit
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>を明示して立ち上げるようなスクリプトにしておきました。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2024/06/05 </strong></p>
+
+  <p><a href="https://github.com/neovim/neovim/pull/29197">fix(tui): move $COLORTERM check to _defaults.lua by gpanders · Pull Request #29197 · neovim/neovim</a></p>
+
+  <p>やはりCOLORTERMに<code>24bit</code>もしくは<code>truecolor</code>がセットされている場合にはそれを使い、
+それ以外の値がセットされているか値がない場合にはtruecolorが使えるかどうかチェックしに行くようになっっているみたいです。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GNU Screen 4.8.0リリース]]></title>
+    <link href="https://rcmdnk.com/blog/2020/02/07/computer-screen/"/>
+    <updated>2020-02-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/02/07/computer-screen</id>
+    <content type="html"><![CDATA[<p>ターミナルマルチプレクサであるGNU Screenの安定版がアップデートされ、4.8.0がリリースされました。</p>
+
+<!-- MORE -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-480" id="markdown-toc-gnu-screen-480">GNU Screen 4.8.0</a></li>
+  <li><a href="#アップデート内容" id="markdown-toc-アップデート内容">アップデート内容</a></li>
+  <li><a href="#screenutf8" id="markdown-toc-screenutf8">screenutf8</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-480">GNU Screen 4.8.0</h2>
+
+<blockquote>
+  <p><a href="https://savannah.gnu.org/forum/forum.php?forum_id=9665">GNU Screen - News: GNU Screen v.4.8.0 [Savannah]</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://git.savannah.gnu.org/cgit/screen.git/log/?h=v.4.8.0">screen.git - screen</a></p>
+</blockquote>
+
+<p>4.6.0から4.7.0は2年以上空いていのリリースでしたが、
+4.8.0は前回2019年10月1日に4.7.0がリリースされてから
+4ヶ月ほどでのリリースで、その前のリリース間隔に比べても非常に早いリリースです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5512811339?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5512811339&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/4152ZaEO1SL._SS90_CR0,0,120,90_.jpg" alt="Gnu Screen" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/10/31/computer-screen/">GNU Screen 4.7.0リリース</a></div></li></ul>
+
+<p>ということで、何かしら問題とかがあってのリリースかな、という感じです。</p>
+
+<h2 id="アップデート内容">アップデート内容</h2>
+
+<ul>
+  <li>Improves startup time by only polling for already open files to close</li>
+  <li>Fixes:
+    <ul>
+      <li>Fix for segfault if termcap doesn’t have Km entry</li>
+      <li>Make screen exit code be 0 when checking –version</li>
+      <li>Fix potential memory corruption when using OSC 49</li>
+    </ul>
+  </li>
+</ul>
+
+<p>ということですが、今回はパフォーマンス向上、バグフィックス的なもので、
+特に最後のものはメモリ操作でクラッシュする恐れがあるもので
+少なくともv4.2.0からはあったもの、だそうです。</p>
+
+<blockquote>
+  <p><a href="https://git.savannah.gnu.org/cgit/screen.git/commit/?h=v.4.8.0&amp;id=68386dfb1fa33471372a8cd2e74686758a2f527b">Fix out of bounds access when setting w_xtermosc after OSC 49</a></p>
+</blockquote>
+
+<pre><code>echo -e "\e]49\e;                                    \n\ec"
+</code></pre>
+
+<p>とかするとクラッシュしちゃうよ、ということですが、
+4.7.0でやってもすぐにはクラッシュしませんでした。(たまたま書き込むメモリが問題なかっただけ、かもしれないし、もしかすると変な影響が出てるかもしれないので試すのはおすすめしませんが。)</p>
+
+<p>OSC(Operating system command) 49というのが何なのか、ということで
+調べてみたのですが特に設定されてない?</p>
+
+<blockquote>
+  <p><del>エスケープシーケンス一覧: http://nanno.dip.jp/softlib/man/rlogin/ctrlcode.html#OSC</del></p>
+</blockquote>
+
+<p>上のリリースノートにも書いてありますが、実際この様なものが送られる可能性があるかどうかは
+分からないですがバグはバグなので直した方が良いもの、ということで。</p>
+
+<p>それ以外でも単純なスタート時のパフォーマンス向上もあるのでアップデートしておいた方が良いです。</p>
+
+<h2 id="screenutf8">screenutf8</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/22/screen-install/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130322_screen_char_non_120_90.jpg" width="120" height="90" alt="20130322_screen_char_non_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/22/screen-install/">Macでの文字化け対策用のGNU screenのインストール</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/11/19/computer-mac-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20191119_macutf3_120_90.jpg" width="120" height="90" alt="20191119_macutf3_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/11/19/computer-mac-screen/">Macで濁点とかが起こす文字化け問題について</a></div></li></ul>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-rcmdnkpac">rcmdnk/homebrew-rcmdnkpac: Repository for Homebrew Tap, including Formulae of rcmdnk’s packages.</a></p>
+</blockquote>
+
+<p>日本語を使う場合に文字化け対策が必要ですが、それをHomebrewでインストールするためのFormulaもアップデートしました。</p>
+
+<pre><code>$ brew install rcmdnk/rcmdnkpac/screenutf8
+</code></pre>
+
+<p>で入れられます。Linuxでも入れられます。</p>
+
+<p>本家のFormula(screen)も6日に早速アップデートされていたようです。</p>
+]]></content>
+  </entry>
+  
+</feed>

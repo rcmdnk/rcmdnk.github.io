@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: PyPi | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/pypi/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[PoetryでPython CLIツールを簡単にPyPiに登録する]]></title>
+    <link href="https://rcmdnk.com/blog/2019/02/04/computer-python/"/>
+    <updated>2019-02-04T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/02/04/computer-python</id>
+    <content type="html"><![CDATA[<p>Pythonのパッケージ管理といえばpipが一般的ですが、pipでインストールできるパッケージは
+<a href="https://pypi.org/">PyPI</a>で管理されています。
+ここには誰でもパッケージを登録することができますが、実際にアップロードするには
+色々と体裁を整える必要があります。
+特にコマンドラインツールを作ろうと思うと一工夫必要です。</p>
+
+<p>その点、Poetryを使うと設定項目を自分でほとんど書くことなくPyPI用
+パッケージを作りアップロードすることができます。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#poetry" id="markdown-toc-poetry">Poetry</a></li>
+  <li><a href="#インストール" id="markdown-toc-インストール">インストール</a>    <ul>
+      <li><a href="#スクリプトget-poetrypy" id="markdown-toc-スクリプトget-poetrypy">スクリプトget-poetry.py</a></li>
+      <li><a href="#pip" id="markdown-toc-pip">pip</a></li>
+      <li><a href="#補完" id="markdown-toc-補完">補完</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a>    <ul>
+      <li><a href="#雛形作成" id="markdown-toc-雛形作成">雛形作成</a></li>
+      <li><a href="#install" id="markdown-toc-install">install</a></li>
+      <li><a href="#pytest" id="markdown-toc-pytest">pytest</a></li>
+      <li><a href="#依存パッケージの追加削除" id="markdown-toc-依存パッケージの追加削除">依存パッケージの追加/削除</a></li>
+      <li><a href="#コマンドラインツールcliの作成" id="markdown-toc-コマンドラインツールcliの作成">コマンドラインツール(CLI)の作成</a></li>
+      <li><a href="#poetry-shell" id="markdown-toc-poetry-shell">poetry shell</a></li>
+      <li><a href="#パッケージのビルド" id="markdown-toc-パッケージのビルド">パッケージのビルド</a></li>
+      <li><a href="#パッケージの登録" id="markdown-toc-パッケージの登録">パッケージの登録</a>        <ul>
+          <li><a href="#testpypiへの登録" id="markdown-toc-testpypiへの登録">TestPyPIへの登録</a></li>
+          <li><a href="#pypiへの登録" id="markdown-toc-pypiへの登録">PyPIへの登録</a></li>
+          <li><a href="#ビルドと登録を同時に行う" id="markdown-toc-ビルドと登録を同時に行う">ビルドと登録を同時に行う</a></li>
+        </ul>
+      </li>
+      <li><a href="#設定ファイル" id="markdown-toc-設定ファイル">設定ファイル</a></li>
+      <li><a href="#pipでインストールされたcliパッケージ" id="markdown-toc-pipでインストールされたcliパッケージ">pipでインストールされたCLIパッケージ</a></li>
+      <li><a href="#設定ファイル-pyprojecttoml" id="markdown-toc-設定ファイル-pyprojecttoml">設定ファイル: pyproject.toml</a></li>
+    </ul>
+  </li>
+  <li><a href="#エラー対処" id="markdown-toc-エラー対処">エラー対処</a>    <ul>
+      <li><a href="#no-json-object-could-be-decoded" id="markdown-toc-no-json-object-could-be-decoded">No JSON object could be decoded</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="poetry">Poetry</h2>
+
+<div class="github-widget" data-repo="sdispater/poetry"></div>
+
+<p><a href="https://poetry.eustace.io/">Poetry - Python dependency management and packaging made easy.</a></p>
+
+<p>PoetryはPythonのプロジェクトの依存関係などを管理するためのツール。</p>
+
+<p>PyPIなどにパッケージを登録する際には<strong>setup.py</strong>とか<strong>requirements.txt</strong>とか
+色々と用意しないといけないものがあります。</p>
+
+<p>それらを自分で用意するのはとても大変で、大概はどこかにある例をとりあえずコピーして、
+みたいに始めると思いますがそれでも調整するのが大変だったりします。</p>
+
+<p>Poetryでは<strong>pyproject.toml</strong>というファイルでパッケージ管理を行いますが、
+まずディレクトリ構造を含め雛形を用意してくれて
+<strong>pyproject.toml</strong>の雛形も用意されます。
+また、依存関係のあるパッケージ等の追加がコマンドから自動でできる様になっていたりして
+ほとんど自分で設定ファイルを書くことなく進めていくことができます。</p>
+
+<p>また、パッケージを管理するとともに、そこにvirtualenvの環境を自動で作ります。
+これによりその場で依存関係のパッケージをインストールして
+必要な環境下でのテストが可能になります。</p>
+
+<h2 id="インストール">インストール</h2>
+
+<h3 id="スクリプトget-poetrypy">スクリプトget-poetry.py</h3>
+
+<p>インストールはGitHubにあるスクリプトを使って</p>
+
+<pre><code>$ curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+</code></pre>
+
+<p>もしcurlで直接やるのが憚れる場合はスクリプトをダウンロードして
+ももちろんできます。</p>
+
+<pre><code>$ wget https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
+$ cat get-poetry.py
+....
+$ python get-poetry.py
+</code></pre>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/02/24/computer-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140224_curl_120_90.jpg" width="120" height="90" alt="20140224_curl_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/02/24/computer-github/">cURLを使ったインストール方法の危険性</a></div></li></ul>
+
+<p>この方法でインストールすると<strong>$HOME</strong>ディレクトリに<strong>~/.poetry/</strong>というディレクトリができ、
+<strong>~/.poetry/bin/poetry</strong>という実行ファイルがインストールされます。</p>
+
+<p>また、UNIX系の場合には</p>
+
+<pre><code>export PATH="$HOME/.poetry/bin:$PATH"
+</code></pre>
+
+<p>という行が自動で<strong>~/.bash_profile</strong>または<strong>~/.profile</strong>などに追加される様になっています。</p>
+
+<p>これに関して、最初に</p>
+
+<pre><code>Before we start, please answer the following questions.
+You may simply press the Enter key to leave unchanged.
+Modify PATH variable? ([y]/n)
+</code></pre>
+
+<p>と聞かれるのですが、ここで<code>n</code>または<code>no</code>とか入れても
+メッセージが変わるだけで(PATHに入れてください、というのが出るようになる)
+<strong>~/.bash_profile</strong>等への書き込みは行われてしまいます。</p>
+
+<p>バグですが、簡単に治るところだと思ってPull Requestしようとしたら
+すでにありました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/sdispater/poetry/pull/787/commits/679bfe3b77a7fe019e541b37f775579e28ab2224">Fix PATH being altered after installation even though choose not to by tdloi · Pull Request #78 sdispater/poetry</a></p>
+</blockquote>
+
+<p>IssuesもPull Requestsも大量に貯まっていてさばききれてない感が。。。</p>
+
+<p>ともあれ、<strong>.bash_profile</strong>とかに余計なものを入れたくない人はちょっと注意が必要です。</p>
+
+<p>自分の環境では<strong>.bash_profile</strong>に追加されたものを消して</p>
+
+<pre><code>if [ -f $HOME/.poetry/env ];then
+  source $HOME/.poetry/env
+fi
+</code></pre>
+
+<p>といった行を<strong>.bashrc</strong>に書いています。</p>
+
+<p>アンインストールする場合には</p>
+
+<pre><code>$ wget https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
+</code></pre>
+
+<p>とかで<code>get-poetry.py</code>を取ってきて</p>
+
+<pre><code>$ python get-poetry.py --uninstall
+</code></pre>
+
+<p>とします。これをすると<strong>~/.poetry</strong>を削除し、<strong>~/.bash_profile</strong>などにpoetryのexport行があると
+それを削除します。</p>
+
+<p>これも勝手に<strong>.bash_profile</strong>をいじるのでちょっと注意が必要です。</p>
+
+<h3 id="pip">pip</h3>
+
+<p><code>pip</code>を使ってもインストールできます。</p>
+
+<pre><code>$ pip install poetry
+</code></pre>
+
+<p>またはユーザーレベルで</p>
+
+<pre><code>$ pip install --user poetry
+</code></pre>
+
+<p>後者の場合は<strong>~/Library/Python/2.7/bin</strong>(Mac)や<strong>~/.local/bin</strong>などに
+インストールsれるのでそれらをPATHに入れておく必要があります。</p>
+
+<p>ただし、これで入れるとpipでpoetryが依存するパッケージを入れることになり
+それが余計なことをする可能性があるのでスクリプトでインストールする方がおすすめされています。</p>
+
+<p>こちらのアンインストールは</p>
+
+<pre><code>$ pip uninstall poetry
+</code></pre>
+
+<h3 id="補完">補完</h3>
+
+<p><code>poetry</code>コマンドではサブコマンドを与えていろいろと実行しますが、それを補完するためのファイルの内容を
+<code>poetry completion</code>で吐き出すことが出来ます。</p>
+
+<pre><code>$ poetry completion bash # for bash
+$ poetry completion zsh # for zsh
+$ poetry completion fish # for fish
+</code></pre>
+
+<p>これをシステムにそのまま入れたい場合には</p>
+
+<pre><code>$ poetry completions bash &gt; /etc/bash_completion.d/poetry.bash-completion (Linux)
+$ poetry completions bash &gt; $(brew --prefix)/etc/bash_completion.d/poetry.bash-completion (Mac)
+$ poetry completions fish &gt; ~/.config/fish/completions/poetry.fish
+$ poetry completions zsh &gt; ~/.zfunc/_poetry
+</code></pre>
+
+<p>とかしてシステムの補完ファイルディレクトリに入れれれば良いですが、
+自分用に</p>
+
+<pre><code>$ poetry completions bash &gt;&gt; ~/.bashrc
+</code></pre>
+
+<p>とかでも大丈夫です。(ただし結構長いので別ファイルにしたほうが良いかも。)</p>
+
+<h2 id="使い方">使い方</h2>
+
+<h3 id="雛形作成">雛形作成</h3>
+
+<p><code>poetry new &lt;package&gt;</code>で新たにパッケージの雛形を作れます。</p>
+
+<pre><code>$ poetry new --src rcmdnk-package
+Created package rcmdnk-package in rcmdnk-package
+$ ls
+rcmdnk-package
+$ cd rcmdnk-package/
+$ tree
+   |-- README.rst
+   |-- pyproject.toml
+   |-- src
+   |    |-- rcmdnk_package
+   |    |    |-- __init__.py
+   |-- tests
+   |    |-- __init__.py
+   |    |-- test_rcmdnk_package.py
+$ cat pyproject.toml
+[tool.poetry]
+name = "rcmdnk-package"
+version = "0.1.0"
+description = ""
+authors = ["rcmdnk &lt;rcmdnk@gmail.com&gt;"]
+
+[tool.poetry.dependencies]
+python = "^2.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+
+[build-system]
+requires = ["poetry&gt;=0.12"]
+build-backend = "poetry.masonry.api"
+</code></pre>
+
+<p>ここで<code>--src</code>オプションはパッケージ直下に<strong>rcmdnk_package</strong>ディレクトリを置かず
+<strong>src</strong>を挟んで置くようにするためのオプション。</p>
+
+<p>これがないと<strong>rcmdnk-package/rcmdnk_package/__init__.py</strong>のような構造になります。</p>
+
+<p>pytestなどを使う際などにこの<strong>src</strong>が入った構造が勧められていて
+特に理由がない限り*src**入にしておいたほうが良いです。</p>
+
+<blockquote>
+  <p><a href="https://docs.pytest.org/en/latest/goodpractices.html">Good Integration Practices — pytest documentation</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure">Packaging a python library  ionel’s codelog</a></p>
+</blockquote>
+
+<p><strong>pyproject.toml</strong>の中にあるメールアドレス等はデフォルトでは<strong>~/.gitconfig</strong>のユーザー名、メールアドレスを取ってきているようで
+それがなければ<strong>[“Your Name <a href="mailto:you@example.com">you@example.com</a>”]</strong>みたいになります。</p>
+
+<p>このパッケージでは<strong>__init__.py</strong>に</p>
+
+<pre><code>__version__ = '0.1.0'
+</code></pre>
+
+<p>というバージョン情報が入っていて、testの中では</p>
+
+<figure class="code"><figcaption><span>test_rcmdnk_package.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="kn">from</span> <span class="nn">rcmdnk_package</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span> <span class="nf">test_version</span><span class="p">():</span>
+</span><span class="line">    <span class="k">assert</span> <span class="n">__version__</span> <span class="o">==</span> <span class="s1">&#39;0.1.0&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というpytest用のテストが用意されています。</p>
+
+<h3 id="install">install</h3>
+
+<p>雛形を作ったら、まず</p>
+
+<pre><code>$ poetry install
+Creating virtualenv test-py2.7 in .../Library/Caches/pypoetry/virtualenvs
+Updating dependencies
+Resolving dependencies... (0.2s)
+...
+</code></pre>
+
+<p>を実行してみます。
+これでこのディレクトリ用のvirtualenv環境が作られ、
+poetryを動かす上で最低限必要なパッケージ(pytestなど)がインストールされます。</p>
+
+<h3 id="pytest">pytest</h3>
+
+<p>テストは</p>
+
+<pre><code>$ poetry run pytest
+</code></pre>
+
+<p>で実行することが出来ます。これで<strong>tests</strong>フォルダにある全ての<strong>test_*.py</strong>ファイルの中身を実行します。</p>
+
+<p>特定のファイルだけ実行したい場合には</p>
+
+<pre><code>$ poetry run pytest ./tests/test_rcmdnk_package.py
+</code></pre>
+
+<h3 id="依存パッケージの追加削除">依存パッケージの追加/削除</h3>
+
+<p>依存パッケージを追加したい場合には</p>
+
+<pre><code>$ poetry add fire
+</code></pre>
+
+<p>の様にします。
+これでvirtualenvの環境にパッケージが追加され、
+また以下のように</p>
+
+<pre><code>[tool.poetry.dependencies]
+python = "^2.7"
+fire = "^0.1.3"
+</code></pre>
+
+<p><strong>pyproject.toml</strong>の
+<code>dependencies</code>のセクションに追加されます。</p>
+
+<p>この<strong>pyproject.toml</strong>があれば、別の環境で<code>poetry install</code>をした時に
+ここにあるパッケージも同時にインストールされます。(<code>python</code>以外)</p>
+
+<p>逆にここにパッケージを自分で書いてから<code>poetry install</code>をしても
+同じ状態になります。</p>
+
+<p>逆に削除したい場合は</p>
+
+<pre><code>$ poetry remove fire
+</code></pre>
+
+<p>で出来ます。</p>
+
+<p>現在インストールされているパッケージについては</p>
+
+<pre><code>$ poetry show
+</code></pre>
+
+<p>で見ることが出来ます。</p>
+
+<h3 id="コマンドラインツールcliの作成">コマンドラインツール(CLI)の作成</h3>
+
+<p>次の様なファイルを作ります。</p>
+
+<figure class="code"><figcaption><span>src/rcmdnk_package/cli.py  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="py"><span class="line"><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span><span class="line">    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rcmdnk package test&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">main</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを直接呼ぶには<code>poetry run</code>を使って</p>
+
+<pre><code>$ poetry run python src/rcmdnk_package/cli.py
+rcmdnk package test
+</code></pre>
+
+<p>といった感じに呼べます。</p>
+
+<p>これがパッケージとしてインストールされたとき、<code>rcmdnk_cli</code>という名前で呼ばれるようにするには
+<strong>pyproject.toml</strong>に</p>
+
+<pre><code>[tool.poetry.scripts]
+rcmdnk_cli = "rcmdnk_package.cli:main"
+</code></pre>
+
+<p>という行を追加します。</p>
+
+<p>これで</p>
+
+<pre><code>$ poetry run rcmdnk_cli
+rcmdnk package test
+</code></pre>
+
+<p>と同じ様に<code>rcmdnk_cli</code>だけで呼べる様になります。</p>
+
+<h3 id="poetry-shell">poetry shell</h3>
+
+<p><code>poetry shel</code>とするとvirtualenv環境に入って直接コマンドを使ったり出来るようになります。</p>
+
+<pre><code>$ poetry install # rcmdnk_cliなどもちゃんとインストールしておく
+...
+$ poetry shell
+Virtual environment already activated: /Users/user/Library/Caches/pypoetry/virtualenvs/rcmdnk-package-py2.7
+$ rcmdnk_cli
+rcmdnk package test
+</code></pre>
+
+<h3 id="パッケージのビルド">パッケージのビルド</h3>
+
+<p>PyPIなどに登録するにはこの他色々と設定ファイルが必要ですが、
+これは</p>
+
+<pre><code>$ poetry build
+</code></pre>
+
+<p>で作成することが出来ます。</p>
+
+<p>これで<strong>dist/rcmdnk-package-0.1.0.tar.gz</strong>、<strong>dist/rcmdnk_package-0.1.0-py2.py3-none-any.whl</strong>というファイルが作成されます。
+<strong>rcmdnk-package-0.1.0.tar.gz</strong>を展開して中身を見てみると<strong>PKG-INFO</strong>、<strong>setup.py</strong>ができてるのが分かります。</p>
+
+<h3 id="パッケージの登録">パッケージの登録</h3>
+
+<h4 id="testpypiへの登録">TestPyPIへの登録</h4>
+
+<p>これですでにパッケージを登録する準備が出来ましたが、
+TestPyPI<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>というテスト用のレポジトリがあるので
+まずはそちらに上げてテストしてみます。</p>
+
+<p>まずは<a href="https://test.pypi.org/">TestPyPI</a>のページにある<strong>Register</strong>リンクからアカウント登録を行っておきます。</p>
+
+<p>次に、poetryにレポジトリ情報を渡します。</p>
+
+<pre><code>$ poetry config repositories.testpypi https://test.pypi.org/legacy/
+</code></pre>
+
+<p>これで<code>testpypi</code>という名前で登録が出来ました。</p>
+
+<p>登録は<code>poetry publish -r testpypi</code>
+で行います。</p>
+
+<pre><code>$ poetry publish -r testpypi
+
+Publishing rcmdnk-package (0.1.0) to testpypi
+Username: rcmdnk
+
+
+
+Password:
+
+ - Uploading rcmdnk-package-0.1.0.tar.gz 100%
+ - Uploading rcmdnk_package-0.1.0-py2.py3-none-any.whl 100%
+</code></pre>
+
+<p>UsernameとPasswordを入力して
+<a href="https://test.pypi.org/project/rcmdnk-package/">rcmdnk-package · TestPyPI</a>
+にアップロードできました。</p>
+
+<p>これをインストールするには</p>
+
+<pre><code>$ pip install --index-url https://test.pypi.org/simple/ rcmdnk-package
+</code></pre>
+
+<p>の様に<code>--index-url</code>で<code>https://test.pypi.org/simple/</code>を指定します。
+(最後のところが登録の部分では<code>legacy</code>なのに対してこちらでは<code>simple</code>なことに注意)。</p>
+
+<p>この登録のところで</p>
+
+<pre><code>$ poetry config http-basic.testpypi &lt;username&gt; &lt;password&gt;
+</code></pre>
+
+<p>と事前にユーザー名とパスワードを登録しておくと毎回それらを打たずに済みますが、
+これらのファイルは平文で保存されるので人が見る可能性のあるシステムではできれば避けた方が良いです。</p>
+
+<p>また、</p>
+
+<pre><code>$ poetry publish -r testpypi --username &lt;username&gt; --password &lt;password&gt;
+</code></pre>
+
+<p>と<code>publish</code>コマンドに引数として渡すことも出来ます。</p>
+
+<h4 id="pypiへの登録">PyPIへの登録</h4>
+
+<p>PyPIのレポジトリはデフォルトとして登録されているので
+<a href="https://pypi.org/">PyPI</a>の方でアカウントを登録し(TestPyPIとは別)、</p>
+
+<pre><code>$ poetry publish
+</code></pre>
+
+<p>とすればPyPIの方へアップロードされます。</p>
+
+<h4 id="ビルドと登録を同時に行う">ビルドと登録を同時に行う</h4>
+
+<pre><code>$ poetry publish --build
+</code></pre>
+
+<p>の様に<code>--build</code>オプションを使うことでアップロード時にbuildを同時に行うことも出来ます。</p>
+
+<h3 id="設定ファイル">設定ファイル</h3>
+
+<p><code>poetry config</code>で加えた設定は以下のディレクトリに保存されています。</p>
+
+<ul>
+  <li>Linux: <strong>~/.config/pypoetry</strong></li>
+  <li>macOS: <strong>~/Library/Application Support/pypoetry</strong></li>
+  <li>Windows: <strong>C:\Users&lt;username&gt;\AppData\Roaming\pypoetry</strong></li>
+</ul>
+
+<p><code>repositories</code>などの情報は<strong>config.toml</strong>、<code>http-basic</code>の情報は<strong>auth.toml</strong>
+に保存されています。</p>
+
+<p><strong>config.toml</strong>の情報は<code>poetry config --list</code>でも見ることが出来ます。
+(加えていくつかデフォルトの設定値も表示されます。)</p>
+
+<p>設定を削除するにはこれらのファイルを削除するか</p>
+
+<pre><code>$ poetry config --unset http-basic.testpypi
+</code></pre>
+
+<p>の様に<code>--unset</code>を使います。</p>
+
+<h3 id="pipでインストールされたcliパッケージ">pipでインストールされたCLIパッケージ</h3>
+
+<p>Macで</p>
+
+<pre><code>$ pip install --user --index-url https://test.pypi.org/simple/ rcmdnk-package
+</code></pre>
+
+<p>しました。
+<code>--user</code>を使うと、Macでは**~/Library/Python/<version>/**に、
+Linuxとかだと**~/.local/**などにインストールされます。</version></p>
+
+<pre><code>$ ls ~/Library/Python/2.7/bin/rcmdnk_cli
+/Users/user/Library/Python/2.7/bin/rcmdnk_cli
+$ ls ~/Library/Python/2.7/lib/python/site-packages/rcmdnk_package
+__init__.py  __init__.pyc cli.py       cli.pyc
+$
+</code></pre>
+
+<p>この<code>rcmdnk_cli</code>は自動でできたファイルですが、こんな内容</p>
+
+<figure class="code"><figcaption><span>rcmdnk_cli </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/usr/local/opt/python@2/bin/python2.7</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># -*- coding: utf-8 -*-</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">re</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line">
+</span><span class="line"><span class="kn">from</span> <span class="nn">rcmdnk_package.cli</span> <span class="kn">import</span> <span class="n">main</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(-script\.pyw?|\.exe)?$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<h3 id="設定ファイル-pyprojecttoml">設定ファイル: pyproject.toml</h3>
+
+<p>直接書く必要があるものとしては
+最初の</p>
+
+<pre><code>[tool.poetry]
+name = "rcmdnk-package"
+version = "0.1.0"
+description = ""
+authors = ["rcmdnk &lt;rcmdnk@gmail.com&gt;"]
+</code></pre>
+
+<p>の項目にある<code>description</code>位。
+GitHubのユーザー名とかから保管されていなければ(もしくは違うものを使いたければ)<code>authors</code>も。</p>
+
+<p>加えて</p>
+
+<pre><code>repository = "http://github.com/rcmdnk/rcmdnk_package"
+homepage = "http://github.com/rcmdnk/rcmdnk_package"
+readme = "READDME.md"
+license = "Apache-2.0"
+keywords = [...]
+</code></pre>
+
+<p>などを定義しておくと良いです。</p>
+
+<p><code>readme</code>はデフォルトでは<code>README.rst</code>でSphinx使うreStructuredText形式です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<p>変更したければ<code>readme</code>の設定で<code>md</code>にしても変換して
+PyPIのページで表示してくれます。</p>
+
+<p><code>license</code>は<a href="https://spdx.org/licenses/">SPDX License List</a>
+にあるIdentifierを指定するとパッケージに自動で含めてくれます。</p>
+
+<p>後は<code>version</code>を必要に応じて更新していきます。
+(その際、<strong>src/rcmdnk_package/__init__.py</strong>や<strong>tests/test_rcmdnk_package.py</strong>などにある
+バージョンの更新も忘れずに。)</p>
+
+<p>それから自動で作ると<code>poetry new</code>したときのPythonのバージョンのみに対応になりますが、変更したければ</p>
+
+<pre><code>[tool.poetry.dependencies]
+python = "^2.7 || ^3.4"
+</code></pre>
+
+<p>の様に3系なども加えたりしておきます。</p>
+
+<blockquote>
+  <p><a href="https://python-poetry.org/docs/dependency-specification/">Dependency specification  Documentation  Poetry - Python dependency management and packaging made easy</a></p>
+</blockquote>
+
+<h2 id="エラー対処">エラー対処</h2>
+
+<h3 id="no-json-object-could-be-decoded">No JSON object could be decoded</h3>
+
+<p>Macで使ってる時に</p>
+
+<pre><code>$ poetry build
+
+[ValueError]
+No JSON object could be decoded
+
+build [-f|--format FORMAT]
+</code></pre>
+
+<p>というのが出る様になりました。<code>run</code>や<code>shell</code>などどのコマンドでも同じエラーが出ます。
+唯一<code>config</code>だけが動いてる状態。</p>
+
+<p>どうも<code>config</code>だけが動いている、ということからもvirtualenv環境がおかしくなってしまったようで、</p>
+
+<pre><code>$ rm -rf  /Users/user/Library/Caches/pypoetry/
+</code></pre>
+
+<p>としたら治りました(<code>run</code>コマンドなどを打つとvirtualenv環境を作り直していた)。</p>
+]]></content>
+  </entry>
+  
+</feed>

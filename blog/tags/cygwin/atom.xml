@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Cygwin | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/cygwin/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Windows Subsystem for Linux (WSL)でのリンクの扱い]]></title>
+    <link href="https://rcmdnk.com/blog/2019/09/02/computer-windows-cygwin-linux/"/>
+    <updated>2019-09-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/09/02/computer-windows-cygwin-linux</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07QLJ19J4?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07QLJ19J4&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41IenjjoIcL._SS200_.jpg" alt="Amazon.co.jp： Windows Subsystem for Linux（WSL）によるLAMP環境簡単構築 eBook: 小松　祐一: Kindleストア" /></a>
+</div>
+
+<p>Windows Subsystem for Linux(WSL)は結構積極的にアップデートされてる感じで、
+Windowsの中のファイルの操作みたいなこともだいぶ出来る様になってきています。</p>
+
+<p>その際に面倒なのがショートカットとかシンボリックリンクと言ったものがどうなってるかという点。</p>
+
+<p>以前Cygwinとかからリンクを作る際にどうなるか的なことを調べたりしてましたが、
+WSLではどうなってるかという話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#windowsのショートカット" id="markdown-toc-windowsのショートカット">Windowsのショートカット</a></li>
+  <li><a href="#cygwinのシンボリックリンク" id="markdown-toc-cygwinのシンボリックリンク">Cygwinのシンボリックリンク</a></li>
+  <li><a href="#windows-subsystem-for-linuxでのシンボリックリンク" id="markdown-toc-windows-subsystem-for-linuxでのシンボリックリンク">Windows Subsystem for Linuxでのシンボリックリンク</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="windowsのショートカット">Windowsのショートカット</h2>
+
+<p>Windowsでは通常ファイルのショートカットとう形でファイルなどへ別の場所からアクセス出来るようなものを作る事ができます。</p>
+
+<p>ただ、Linuxとかで作るシンボリックリンクとかの様に
+単にファイルの別名の様なものではなく、
+プロパティから起動引数を指定することが出来たりします。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/30/computer-windows/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130720_magicformation_120_90.jpg" width="120" height="90" alt="20130720_magicformation_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/30/computer-windows/">Windowsでのショートカットの起動オプション for MagicFormation</a></div></li></ul>
+
+<p><strong>test.txt</strong>みたいなテキストファイルを作って、
+右クリックから<strong>shortcut.txt</strong>という名前のショートカットを作成して
+Cygwinとかから見ると
+<strong>shortcut.txt.lnk</strong>と言った<strong>lnk</strong>という拡張子の付いたファイルに見えます。</p>
+
+<p>これはエクスプローラーで拡張子を表示するオプションを付けていても
+<strong>shortcut.txt</strong>としか見えないファイルです。</p>
+
+<p>さらに中身はバイナリファイルになっていて
+<code>cat</code>とかで見ようとしてももとのテキストファイルの内容は見えません。</p>
+
+<p>このファイルをWSL (Ubuntu)の中から見てみると
+Cygwinの中からと同じ様に<strong>.lnk</strong>というファイルに見え、バイナリファイルとして見えていました。</p>
+
+<h2 id="cygwinのシンボリックリンク">Cygwinのシンボリックリンク</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/06/25/computer-windows-cygwin/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130625_symboliclink_120_90.jpg" width="120" height="90" alt="20130625_symboliclink_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/06/25/computer-windows-cygwin/">Cygwin内外でリンクを共有する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/02/07/computer-windows-cygwin/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160207_gedit_120_90.jpg" width="120" height="90" alt="20160207_gedit_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/07/computer-windows-cygwin/">Windows 10でシンボリックリンクを利用する</a></div></li></ul>
+
+<p>上記参照。</p>
+
+<p>何もせずに</p>
+
+<pre><code>$ ln -s test.txt cyg_ln.txt
+</code></pre>
+
+<p>とシンボリックリンクを作るとWindowsのエクスプローラーでは
+種類がもとの<strong>test.txt</strong>同様<strong>テキストドキュメント</strong>として認識されますが、
+中身は<strong>test.txt</strong>という文字が中に入っているような文字化けた内容になっています。</p>
+
+<p>なのでWindows側からはまともに使えない状態。</p>
+
+<p>そこで</p>
+
+<pre><code>$ export CYGWIN=winsymlinks:nativestrict
+</code></pre>
+
+<p>と環境変数を設定して</p>
+
+<pre><code>$ ln -s test.txt cyg_symlink.txt
+</code></pre>
+
+<p>とすると、とりあえずCygwinの中では同じシンボリックリンクに見えます。</p>
+
+<p>もしくは<code>mklink</code>というコマンドプロンプトコマンドを呼んで</p>
+
+<pre><code>$ cmd /c mklink cyg_mklink.txt test.txt
+symbolic link created for cyg_mklink.txt &lt;&lt;===&gt;&gt; test.txt
+</code></pre>
+
+<p>とすれば環境変数を設定せずにもシンボリックリンクを作れます。
+(引数として元のファイルとターゲットファイルが逆になってるので注意。)</p>
+
+<p>Cygwinの中からはどちらも通常のシンボリックリンクの様に見えます。</p>
+
+<pre><code>$ file cyg_ln.txt cyg_symlink.txt cyg_mklink.txt test txt
+cyg_ln.txt:      symbolic link to test.txt
+cyg_symlink.txt: symbolic link to test.txt
+cyg_mklink.txt:  symbolic link to test.txt
+test.txt:        ASCII text
+</code></pre>
+
+<p>これをエクスプローラーから見てみると<strong>.symlink</strong>という種類になっていて、
+テキストエディタで開いてみるとちゃんともとの<strong>test.txt</strong>の内容が見えます。</p>
+
+<p>Windowsではショートカット以外にもシンボリックリンク(<strong>symlink</strong>)もサポートしていて、
+Windowsの中でも
+<a href="http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html">Link Shell Extension</a>
+とか使うとシンボリックリンクを作ることが出来ます。
+(もしくはコマンドプロンプトなどのコマンドで。)</p>
+
+<p>単にファイルの別名を作りたいのであればこちらの方がCygwinでも使えて便利です。</p>
+
+<h2 id="windows-subsystem-for-linuxでのシンボリックリンク">Windows Subsystem for Linuxでのシンボリックリンク</h2>
+
+<p>WSLはLinuxなので中で<code>ln</code>を使うことが出来ます。</p>
+
+<pre><code>$ ln -s test.txt wsl_ln.txt
+</code></pre>
+
+<p>としてみるとWSLの中ではもちろんシンボリックリンクとして扱えます。</p>
+
+<p>これをエクスプローラーとかから見てみると、
+Cygwinで<code>CYGWIN=winsymlinks:nativestrict</code>
+を設定したとき同様<strong>symlink</strong>ファイルになっています。</p>
+
+<p>WSLでは何もしなくてもシンボリックリンクを作るとWindows側でもシンボリックリンクとして
+認識されるファイルが作成される様になっているようです。</p>
+
+<p>Cygwinで<code>CYGWIN=winsymlinks:nativestrict</code>として作られたシンボリックリンクは
+WSL側でもシンボリックリンクとして扱えます。</p>
+
+<p>一方、何もせずにWindowsから見えない形のシンボリックリンクだと
+WSLからもまともに見えず、通常ファイルの様に見え、中身は</p>
+
+<pre><code>$ cat cyg_ln.txt
+!&lt;symlink&gt;t e s t . t x t
+$ file cyg_ln.txt
+cyg_ln.txt: data
+</code></pre>
+
+<p>の様にバイナリファイルっぽい感じの中身に見えます。</p>
+
+<p>WSLで作ったシンボリックリンクはCygwin側でもシンボリックリンクとして見えます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>WSLでシンボリックを作るとWindowsと互換性のあるシンボリックリンクとして作成される、ということでした。</p>
+
+<p>Cygwinなどでは何も設定しないとWindows側との互換性のないものになりますが、
+WSLではシステムとしてシンボリックリンクがWinodws互換のものを作るようになっているようです。
+(ファイルシステムかなにかが通常のubuntuと違う?)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mintty(Cygwin)でのDelete sends DELの設定]]></title>
+    <link href="https://rcmdnk.com/blog/2017/09/02/computer-windows-cygwin/"/>
+    <updated>2017-09-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/09/02/computer-windows-cygwin</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B074DWM74J?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B074DWM74J&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61jwJbZDS1L._SS200_.jpg" alt="Amazon.co.jp： Mintty The 1st Single (Already Go Lady): Mintty: デジタルミュージック" /></a>
+</div>
+
+<p>CygwinでDeleteを送ろうとしたらBackspaceの様な動作をしておかしいな、と思ったら
+<strong>Delete sends DEL</strong>という設定をONにしたせいでした。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#delete-sends-del-option-of-mintty" id="markdown-toc-delete-sends-del-option-of-mintty">Delete sends DEL option of Mintty</a></li>
+  <li><a href="#backarrow-sends-h" id="markdown-toc-backarrow-sends-h">Backarrow sends ^H</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="delete-sends-del-option-of-mintty">Delete sends DEL option of Mintty</h2>
+
+<p>Cygwinを入れると通常ターミナルはMinttyを使うことになると思いますが、
+これの環境設定(ウィンドウバーの右クリックから行ける<strong>Options</strong>)の中の
+<strong>Keys</strong>という設定項目の中に<strong>Delete sends DEL</strong>という設定があります。</p>
+
+<p>なんとなしに<code>DEL</code>を送った方が正しい様な気がしたので
+これを有効にしてましたが、
+自分の環境で普段使ってる他のターミナルなどでの通常操作に合わせるにはこの項目はOFFにすべきものでした。</p>
+
+<blockquote>
+  <p><a href="https://mintty.github.io/mintty.1.html">mintty</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://github.com/mintty/mintty/issues/406">Literal next (^V) - bug or feature - ALWAYS returns system xterm value – · Issue #406 · mintty/mintty</a></p>
+</blockquote>
+
+<p>この項目がOFFならVT100 Remove (<code>^[[3~</code>)が送られます。
+ONだとASCII DEL(<code>^?</code>)が送られます。</p>
+
+<p>これを変更して試してみると、
+VT100 Removeでは現在カーソルがある所の文字が削除され、
+逆にASCII DELだと前の文字、つまりBackspace的な動作になります。</p>
+
+<p>もちろんソフトによってはこれらの動作が変わることもありますが、
+通常のコマンドラインやVim上ではそういった操作感になります。</p>
+
+<p>また、VT100 Removeの動きは大概の場所でCtlr-D (<code>^D</code>)と同じ動作になります。</p>
+
+<p>ということで感覚的にDeleteはBackspaceと違って次の文字を消す、というのがるので
+チェックしない方が思い通りの操作になります。</p>
+
+<p>チェックしたのは多分なんとなくで、実際にはDeleteキーそのものはほとんど使う事がないので
+(Ctrl-Dを使う)今まで気にしてませんでした。</p>
+
+<p>ちょっとAutoHotkey絡みでテストしてて気づいた次第です。</p>
+
+<h2 id="backarrow-sends-h">Backarrow sends ^H</h2>
+
+<p>ついでに同じところに
+<strong>Backarrow sends ^H</strong>という項目もありますが、
+こちらはチェックしておいた方が他と合うことが多いと思います。</p>
+
+<p>チェックしないとASCII DEL(<code>^?</code>)が送られます。
+この場合は殆どのソフトとかで普通のBackspaceとして使えますが、
+readlineを使ったソフトとかでASCII DELだと消せなかったりします。</p>
+
+<p>なので、</p>
+
+<ul>
+  <li><strong>Backarrow sends ^H</strong>: ON</li>
+  <li><strong>Delete sends DEL</strong>: OFF</li>
+</ul>
+
+<p>が素直な使い方かな、と思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Cygwin(Bash/Zsh)からPowerShellスクリプトを直接実行するbashrc/zshrc設定]]></title>
+    <link href="https://rcmdnk.com/blog/2017/04/28/computer-windows-cygwin-powershell/"/>
+    <updated>2017-04-28T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/04/28/computer-windows-cygwin-powershell</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873113822?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873113822&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51YZUMi%2BAsL._SS200_.jpg" alt="Windows PowerShellクックブック" /></a>
+</div>
+
+<p>Windows 10のCreators Updateから標準コマンドシェルがPowerShell
+になりましたが、やはり主にWindowsでしか使わないPowerShellだと慣れてない人も多いはずです。</p>
+
+<p>PowerShellスクリプトの編集などをCygwin等のBash環境などから行って
+その中ですぐにスクリプトを実行できると割と便利です。</p>
+
+<p>というわけで、CygwinのBashの中からPowerShellなスクリプトを指定した場合に
+直接実行できる様にする設定について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#bash-commad_not_found_handle" id="markdown-toc-bash-commad_not_found_handle">Bash: commad_not_found_handle</a></li>
+  <li><a href="#シェルcygwinの特別仕様" id="markdown-toc-シェルcygwinの特別仕様">シェル@Cygwinの特別仕様?</a></li>
+  <li><a href="#シェバンを設定して使う" id="markdown-toc-シェバンを設定して使う">シェバンを設定して使う</a></li>
+  <li><a href="#zsh-alias--s-suffix-alias" id="markdown-toc-zsh-alias--s-suffix-alias">Zsh: alias -s (suffix alias)</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="bash-commad_not_found_handle">Bash: commad_not_found_handle</h2>
+
+<p>Bash 4から<code>command_not_found_handle</code>という、
+指定されたコマンドが無かった場合に実行される関数が実装されていています。</p>
+
+<p>この中でコマンドとしてファイルなどを指定した際、その拡張子を見て
+実際に実行するコマンドを指定したりすることが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/150050033X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=150050033X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51BLr1w7qoL._SS90_CR0,0,120,90_.jpg" alt="Dictionary of Prefixes and Suffixes: Useful English Affixes (English Word Power)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/05/26/computer-bash/">BashでZshのsuffix aliasやauto cdを実現する</a></div></li></ul>
+
+<p>詳しくは上のポストにありますが、
+上のポストでは<code>.md</code>や<code>.cc</code>など、通常のファイルを直接実行しようとすると
+<code>vim</code>で開くように設定してあります。</p>
+
+<p>これに手を加えてこんな感じにします。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_VERSINFO</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-ge<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nv">_suffix_vim</span><span class="o">=(</span>md<span class="w"> </span>markdown<span class="w"> </span>txt<span class="w"> </span>text<span class="w"> </span>tex<span class="w"> </span>cc<span class="w"> </span>c<span class="w"> </span>C<span class="w"> </span>cxx<span class="w"> </span>h<span class="w"> </span>hh<span class="w"> </span>java<span class="w"> </span>py<span class="w"> </span>rb<span class="w"> </span>sh<span class="o">)</span>
+</span><span class="line"><span class="w">  </span>alias_function<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">() </span><span class="k">$(</span><span class="nb">declare</span><span class="w"> </span>-f<span class="w"> </span><span class="si">${</span><span class="nv">2</span><span class="si">}</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>1d<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">type</span><span class="w"> </span>-a<span class="w"> </span>orig_command_not_found_handle<span class="w"> </span>&gt;<span class="p">&amp;</span><span class="w"> </span>/dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span>-a<span class="w"> </span>command_not_found_handle<span class="w"> </span>&gt;<span class="p">&amp;</span><span class="w"> </span>/dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span>alias_function<span class="w"> </span>orig_command_not_found_handle<span class="w"> </span>command_not_found_handle
+</span><span class="line"><span class="w">    </span><span class="k">else</span>
+</span><span class="line"><span class="w">      </span>orig_command_not_found_handle<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;bash: </span><span class="nv">$1</span><span class="s2">: command not found&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="m">127</span>
+</span><span class="line"><span class="w">      </span><span class="o">}</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="w">  </span>command_not_found_handle<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nv">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nv">args</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$cmd</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; </span><span class="si">${</span><span class="nv">_suffix_vim</span><span class="p">[*]</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">cmd</span><span class="p">##*.</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span>-a<span class="w"> </span>vim<span class="w"> </span>&gt;<span class="p">&amp;</span><span class="w"> </span>/dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">          </span>vim<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="k">return</span><span class="w"> </span><span class="nv">$?</span>
+</span><span class="line"><span class="w">        </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">cmd</span><span class="p">##*.</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ps1&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span>-a<span class="w"> </span>powershell<span class="w"> </span>&gt;<span class="p">&amp;</span><span class="w"> </span>/dev/null<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">          </span>powershell<span class="w"> </span>-F<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="k">return</span><span class="w"> </span><span class="nv">$?</span>
+</span><span class="line"><span class="w">        </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span>orig_command_not_found_handle<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="w">  </span><span class="nb">shopt</span><span class="w"> </span>-s<span class="w"> </span>autocd<span class="w"> </span><span class="c1"># cd to the directory, if it is given as a command.</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>vim</code>の設定に加えて<code>ps1</code>という拡張子の場合に<code>powershell</code>コマンドへ突っ込む、というだけです。</p>
+
+<p>これで、</p>
+
+<figure class="code"><figcaption><span>example.ps1  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>Write-Output<span class="w"> </span><span class="s2">&quot;PowerShell example!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかいうスクリプトを作ったとすると、
+これがあるフォルダで</p>
+
+<pre><code>$ example.ps1
+PowereShell example!
+</code></pre>
+
+<p>と実行できます。実際には</p>
+
+<pre><code>$ powershell -F example.ps1
+</code></pre>
+
+<p>が実行されてるわけです。</p>
+
+<p>上の設定をしなければ</p>
+
+<pre><code>-bash: example.ps1: command not found
+</code></pre>
+
+<p>的なコマンドが見つからないというエラー(エラーコード127)が出ます。</p>
+
+<p>Cygwinではデフォルトで</p>
+
+<pre><code>/cygdrive/c/WINDOWS/System32/WindowsPowerShell/v1.0
+</code></pre>
+
+<p>というフォルダ(もしくは現状のバージョン)へのPATHが通っていて
+この中に<code>powershell</code>コマンドがあるので
+デフォルトで使えるはずです。</p>
+
+<p>一応コマンドのチェックは入れています。</p>
+
+<p>現在ではWindows以外の環境でもPowerShellを使えるため
+この設定をしておけばWindows以外でもBashから直接PowerShellなスクリプトを
+呼ぶことが出来ます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873113822?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873113822&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51YZUMi%2BAsL._SS90_CR0,0,120,90_.jpg" alt="Windows PowerShellクックブック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/08/19/computer-windows-mac-linux-powershell/">PowerShellがオープンソース化しMacやLinuxでも使える様になった</a></div></li></ul>
+
+<p>ので、この設定をしておけば他の環境でも
+もしPowerShellがインストールしてあれば使えます。</p>
+
+<p>上に書いた<a href="https://rcmdnk.com/blog/2015/05/26/computer-bash/">BashでZshのsuffix aliasやauto cdを実現する</a>の
+中で、最初Bash 3の場合についても書いてましたが、
+ちょっと勘違いしていて最後に実行したコマンドを取ってくるのが簡単には出来ないので
+Bash 4の場合だけにしてあります。</p>
+
+<p>やろうと思えば<code>history</code>を使って取ってきたりすることは可能だとは思いますが。</p>
+
+<p><code>powershell</code>に関してちょっと補足として、
+<code>-F</code>を入れなくても</p>
+
+<pre><code>$ powershell ./example.ps1
+</code></pre>
+
+<p>とすればスクリプトを実行できますが、</p>
+
+<pre><code>$ powershell example.ps1
+example.ps1 : The term 'example.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ example.ps1
++ ~~~~~
+    + CategoryInfo          : ObjectNotFound: (example.ps1:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+</code></pre>
+
+<p>の様にカレントディレクトリにあるファイルを<code>./</code>省略して書くと
+ファイルではなくPowerShellの中のパス内にあるcmdlet等を探しに行って
+無い、というエラーを吐いてきます。</p>
+
+<p>ということでスクリプトを実行する時は基本的にはきちんと<code>-F</code>を使ってファイルを与えるべきです。</p>
+
+<h2 id="シェルcygwinの特別仕様">シェル@Cygwinの特別仕様?</h2>
+
+<p>ただし、ちょっと注意が必要なのはこの方法を設定してあっても</p>
+
+<pre><code>$ ./example.ps1
+./example.ps1: line 1: Write-Output: command not found
+</code></pre>
+
+<p>と、コマンド入力時に実行ファイルの様にしてしまうとこんな感じのエラーが出ます。</p>
+
+<p>Cygwinの場合、何故かCygwin内での実行権限に関係なく
+ファイルを指定するとその内容をシェルスクリプトとして実行してしまうようです。</p>
+
+<p>試しにこんなことをやってみると</p>
+
+<pre><code>$ echo 'echo $SHELL; echo $$' &gt; example.txt
+$ chmod 644 example.txt
+$ ./example.txt
+/bin/bash
+123456
+$ echo $$
+9876
+</code></pre>
+
+<p>の様に、サブシェルを立ち上げてその中でファイルの内容を実行するという
+状態になっています。</p>
+
+<p>このシェルは必ず<strong>/bin/bash</strong>になるらしく、
+zshに切り替えた環境で同じことをやっても<strong>/bin/bash</strong>を使う様です。</p>
+
+<p>通常、他のUnixだと実行権限が無ければ</p>
+
+<pre><code>$ ./example.txt
+bash: ./example.txt: Permission denied
+$
+</code></pre>
+
+<p>みたいなエラーコード126のエラーで終わるはずです。</p>
+
+<p>これがあるので、もしPowerShellが現在居るディレクトリとは別の場所にあると
+上の方法ではどうしようもありません。
+(どうしても<code>/</code>が入ってくると実行ファイルとして受け取られ<code>Permission denied</code>が出てしまいます。)</p>
+
+<p>ちなみに、
+MobaXtermでやってみても同じように実行権限が無くてもシェルスクリプトとして実行されました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/01/24/computer-windows-remote/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150124_mobaxterm_120_90.jpg" width="120" height="90" alt="20150124_mobaxterm_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/01/24/computer-windows-remote/">MobaXterm: Windowsでのcygwinに代わるターミナル環境</a></div></li></ul>
+
+<p>一方、<code>powereshell</code>へのパスは通っているのですが、実行しようとすると、</p>
+
+<pre><code>$ example.ps1
+. : File C:\Users\user\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 cannot be loaded because running
+scripts is disabled on this system. For more information, see about_Execution_Policies at http://go.microsoft.com/fwlin
+k/?LinkID=135170.
+At line:1 char:3
++ . 'C:\Users\user\Documents\WindowsPowerShell\Microsoft.PowerShell_p ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+./example.ps1 : File C:\cygwin64\home\user\example.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at http://go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ ./example.ps1
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+$
+</code></pre>
+
+<p>みたいなエラーが出ました。
+何やら使おうとしてるスクリプトがMobaXtermの環境だと使えないということらしいです。</p>
+
+<h2 id="シェバンを設定して使う">シェバンを設定して使う</h2>
+
+<p>これまでのファイルはShebangが書いてないものですが、
+Shebangが書いてあると、</p>
+
+<pre><code>$ echo '#!/usr/bin/env powershell'  &gt; example.txt
+$ echo 'echo $SHELL; echo $$' &gt;&gt; example.txt
+$ chmod 644 example.txt
+$ ./example.txt
+/bin/bash
+12309
+</code></pre>
+
+<p>の様にShebangに従ってスクリプトを実行する様です。
+(他のシステムではShebangがあろうとなかろうと実行権限が無ければエラーになります。)</p>
+
+<p>なので、上の設定に加えて単にPowerShellのスクリプトの先頭に</p>
+
+<pre><code>#!/usr/bin/env powershell
+</code></pre>
+
+<p>と書いておけば上の様に<code>/</code>が入ってもきちんとShebangに従って実行してくれるので
+上手く行きます。
+これなら他のディレクトリにあっても大丈夫です。</p>
+
+<p>というよりも、そもそも彼園とディレクトリのファイルを
+<code>./</code>無しで呼ぶ、というのも気持ち悪い話でなので
+この方法の方が素直です。</p>
+
+<p>ただし、Windows以外の環境だと、実行権限が付与されてないと実行されないので、
+その場合は上の<code>command_not_found_handle</code>を使った方法が便利だったりします。</p>
+
+<p>もしくはPowerShellのスクリプトも実行権限がついてないと実行しないようにしたい、
+というのであれば逆にこの設定は邪魔になるのでやめた方が良いかも、という場合も。</p>
+
+<h2 id="zsh-alias--s-suffix-alias">Zsh: alias -s (suffix alias)</h2>
+
+<p>Zshの場合は簡単で</p>
+
+<pre><code>alias -s ps1='powershell -F'
+</code></pre>
+
+<p>と設定しておくと</p>
+
+<pre><code>$ example.ps1
+</code></pre>
+
+<p>で</p>
+
+<pre><code>$ powershell -F example.ps1
+</code></pre>
+
+<p>を呼ぶことになります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>PowerShellスクリプトをCygwinの中とかから呼べたら便利なので
+より簡単に呼べる様に考えてみましたが、
+一番シンプルで分かりやすいのはスクリプトにShebang書いておくことかな、という感じがしました。</p>
+
+<p>ShebangはPowerShellスクリプト自体には単なるコメントで何も意味をなさないので
+特に弊害も無いので自分で書くPowerShellスクリプトにはShebangを書いておくかな、と。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Cygwinのapt-cyg開発者が完全に開発終了を宣言]]></title>
+    <link href="https://rcmdnk.com/blog/2017/01/31/computer-windows-cygwin/"/>
+    <updated>2017-01-31T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2017/01/31/computer-windows-cygwin</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/988840623X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=988840623X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41rIbDSZXxL._SS200_.jpg" alt="Cygwin User Guide" /></a>
+</div>
+
+<p>色々とごちゃごちゃのあった
+Cygwinのパッケージをコマンドラインベースで管理できる
+apt-cygですが、ちょっとレポジトリを見に行った所
+開発者の人が開発終了宣言を出していました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#apt-cyg" id="markdown-toc-apt-cyg">apt-cyg</a></li>
+  <li><a href="#apt-cygのごたごた" id="markdown-toc-apt-cygのごたごた">apt-cygのごたごた</a></li>
+  <li><a href="#終了宣言" id="markdown-toc-終了宣言">終了宣言</a></li>
+  <li><a href="#今後のapt-cyg" id="markdown-toc-今後のapt-cyg">今後のapt-cyg</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="apt-cyg">apt-cyg</h2>
+
+<div class="github-widget" data-repo="transcode-open/apt-cyg"></div>
+
+<p>Cygwinではインストーラーであるsetup.exeを通じてパッケージを
+インストールできますが、いちいちGUIを立ち上げてチェックを入れたり結構面倒です。
+せっかくのコマンドラインツールにも関わらず。</p>
+
+<p>apt-cygはそのsetup.exeで管理できるパッケージをCygwinのコマンドラインから
+管理できる様にしてくれるシェルスクリプトです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/483991169X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=483991169X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51RXWWX296L._SS90_CR0,0,120,90_.jpg" alt="Cygwinコンパクトリファレンス (Compact reference) 単行本 – 2003/8" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/06/24/computer-windows-git-cygwin/">apt-cygの使い方: Cygwinでコマンドラインからパッケージをインストールしたり管理をする</a></div></li></ul>
+
+<h2 id="apt-cygのごたごた">apt-cygのごたごた</h2>
+
+<p>もともと
+<a href="https://code.google.com/archive/p/apt-cyg/">Google Code project</a>
+で公開されていたコードですが、
+2014年頃に他のプロジェクト同様Google Code projectのサービス終了を受けて
+GitHubの方へプロジェクトを移しています。</p>
+
+<p>この際にライセンスもGPL v2からMITに変わったり。</p>
+
+<p>丁度この時期にCygwin側での変更があって元々のapt-cygが動かなくなる、と言った問題も発生。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/08/computer-windows-cygwin/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/08/computer-windows-cygwin/">apt-cygでsetup.iniが404 Not Foundになった</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/479732175X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=479732175X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51I5elcEP3L._SS90_CR0,0,120,90_.jpg" alt="Cygwin―Windowsで使えるUNIX環境" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/02/20/computer-cygwin-windows/">本家apt-cygがアップデートされた</a></div></li></ul>
+
+<p>GitHub上でPull Request等も出来る様になったことで
+結構活発に開発が進んで行ってる様な感じでしたが、
+このGitHubに移した時点で一度元々の開発者の人が後はForkとかして開発していってね、
+という宣言をしています。</p>
+
+<p>一応この公式レポジトリで開発は進んでいましたが
+この頃元々の開発者の人は既にあまりアクティブにアップデートなどを行っておらず、
+別の人がアクティブにアップデートを行っていました。</p>
+
+<p>で、しばらくして問題が発生。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/059515364X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=059515364X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31oKga%2B4AhL._SS90_CR0,0,120,90_.jpg" alt="Dmca: The Digital Millenium Copyright Act" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/01/computer-windows-cygwin/">apt-cygのGitHubレポジトリが閉鎖されてる</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B009WLM66O?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B009WLM66O&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FqF8Z4ZHL._SS90_CR0,0,120,90_.jpg" alt="APT対策入門　新型サイバー攻撃の検知と対応 Next Publishing (NextPublishing)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/16/computer-windows-cygwin/">apt-cygを奪い去ろうとしたsageをMITライセンス違反だとして元に戻そうとしてるレポジトリがあった</a></div></li></ul>
+
+<p>そのアクティブにコミットとかしてる人がある意味乗っ取りの様な感じの事を行い
+レポジトリの一時閉鎖の様な事態に。</p>
+
+<p>これに関しては元々の開発者の人がGitHubに直訴することで
+正しく事態を把握したGitHub側がオリジナルのレポジトリの閉鎖を解除してくれました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0002ZEVS0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0002ZEVS0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FB1TB7VXL._SS90_CR0,0,120,90_.jpg" alt="復活 [DVD]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/03/16/computer-windows-cygwin/">apt-cygのオリジナルレポジトリ復活</a></div></li></ul>
+
+<p>取り敢えず復帰はしましたが、その後はPull Requestの処理などが
+あまり活発に行われない様になっていました。</p>
+
+<h2 id="終了宣言">終了宣言</h2>
+
+<p>apt-cygをcloneしてるレポジトリで<code>git pull</code>をしたら色々変わってconflictが起きていたので
+何の変更があったのやらとふとレポジトリを見に行ってみたら
+こんなファイルが加わっていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/transcode-open/apt-cyg/blob/master/status.md">apt-cyg/status.md</a></p>
+</blockquote>
+
+<p>内容は作者の人がもう開発には関わりません、と言うこと。
+また、上のごたごたで疲れてしまった、と言う感じの事も書いてあります。</p>
+
+<p>今後の開発はForkなどしてやっていってください、とのことも。</p>
+
+<h2 id="今後のapt-cyg">今後のapt-cyg</h2>
+
+<p>というわけなのでこのレポジトリは今後はアップデートは行われない模様です。</p>
+
+<p>作者の人がForkして使ってください、ということなんですが、
+上に書いたGitHub移行時に沢山のFork版が出来てバラバラしてたりもしてあれだったので
+今後はどこか1つに集中されたら良いな、という所は皆が思ってる所だと思います。</p>
+
+<blockquote>
+  <p><a href="https://github.com/transcode-open/apt-cyg/issues/74">Future of apt-cyg · Issue #74 · transcode-open/apt-cyg</a></p>
+</blockquote>
+
+<p>ここの最後に載ってる通り、下のレポジトリが
+一番活発に開発を続けている感じです。</p>
+
+<div class="github-widget" data-repo="kou1okada/apt-cyg"></div>
+
+<p>このレポジトリでは早い段階から色々と本家にないサブコマンドを導入していて
+独自に進化してきた感がありますが、
+最近もアクティブにアップデートしてる感じです。</p>
+
+<p>こちらの方が便利感はあったのですが、本家も続けてる感じもあったので
+本家の方を使ってましたが、今後はこちらのレポジトリのものを使っていこうかな、と思います。</p>
+
+<p>できれば<code>apt-cyg</code>とかユーザーネームを取得してちゃんと公式っぽくまとめて
+皆のPull Requestとかが集まる様になると良いとは思いますが。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>WindowsでもBashが使える様になった、という話はありますが、
+現状のものはバーチャルマシンの軽量版みたいなもので
+Bashの中からWindows側の操作をすることは殆ど出来ません。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160605_bashonubuntuonwindows_120_90.jpg" width="120" height="90" alt="20160605_bashonubuntuonwindows_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/06/05/computer-windows-ubuntu-bash/">Windowsに採用されたBash (Ubuntu)を試してみる</a></div></li></ul>
+
+<p>Cygwinは以前ほど余り使われなくなってきたと思いますが、
+<code>cmd</code>コマンドとかを通してWindowsに直接命令を送ることも出来るので
+まだ代替の効かない使い方があると思います。</p>
+
+<p>特にそういった使い方をしてる人(どれ位居るか分かりませんが。。。)にはapt-cygの様なツールは必須だと思いますし
+今後もFork版でメンテナンスされていくでしょう。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[apt-cygのオリジナルレポジトリ復活]]></title>
+    <link href="https://rcmdnk.com/blog/2016/03/16/computer-windows-cygwin/"/>
+    <updated>2016-03-16T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2016/03/16/computer-windows-cygwin</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0002ZEVS0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0002ZEVS0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FB1TB7VXL._SS200_.jpg" alt="復活 [DVD]" /></a>
+</div>
+
+<p>1月末位にDMCA takedown状態に入っていたCygwinの
+パッケージマネージャーであるapt-cygのオリジナルのレポジトリですが、
+ちょっと前に復活したみたいです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#apt-cygの復活" id="markdown-toc-apt-cygの復活">apt-cygの復活</a></li>
+  <li><a href="#一方元のメンテナの人" id="markdown-toc-一方元のメンテナの人">一方元のメンテナの人</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="apt-cygの復活">apt-cygの復活</h2>
+
+<div class="github-widget" data-repo="transcode-open/apt-cyg"></div>
+
+<p>apt-cygはLinuxのapt-getの様にコマンドラインから簡単にパッケージをインストール
+したりアンインストールしたり出来るCygwinのパッケージマネージャーです。</p>
+
+<p>数年前からGitHubにコードが移され開発が続いていましたが、
+元々の作者の人はメンテナンス作業から離れ、
+別の人が主にアップデートをしているような状態でした。</p>
+
+<p>ただ、その主にメンテナンスをしてる人が急に反乱?を起こし、
+別のレポジトリに勝手にコピーして本家にDMCA noticeを叩きつけ、
+GitHub側はこれに取り敢えずアクセス禁止処置の対応を付けていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/059515364X?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=059515364X&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/31oKga%2B4AhL._SS90_CR0,0,120,90_.jpg" alt="Dmca: The Digital Millenium Copyright Act" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/01/computer-windows-cygwin/">apt-cygのGitHubレポジトリが閉鎖されてる</a></div></li></ul>
+
+<p>ただ、元々MITライセンスだった物からライセンスを外してたり
+色々とめちゃくちゃな状態。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B009WLM66O?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B009WLM66O&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FqF8Z4ZHL._SS90_CR0,0,120,90_.jpg" alt="APT対策入門　新型サイバー攻撃の検知と対応 Next Publishing (NextPublishing)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/02/16/computer-windows-cygwin/">apt-cygを奪い去ろうとしたsageをMITライセンス違反だとして元に戻そうとしてるレポジトリがあった</a></div></li></ul>
+
+<p>で、そのうちGitHubがちゃんと見てくれればすぐに戻るだろう、と思ってましたが
+ちょっと時間がかかりましたが結果的に戻ってきたようです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/transcode-open/apt-cyg/issues/73">Welcome back! apt-cyg!!! · Issue #73 · transcode-open/apt-cyg</a></p>
+</blockquote>
+
+<p>これを見ると丁度2週間程前に復活したみたいです。</p>
+
+<blockquote>
+  <p><a href="https://github.com/transcode-open/apt-cyg/issues/74">Future of apt-cyg · Issue #74 · transcode-open/apt-cyg</a></p>
+</blockquote>
+
+<p>同時にこんなIssueも上がっていますが、
+実際元の作者の人はもうメンテナンスをしない宣言をしてますし、
+ここ数年メンテしてた人はアレなのでどうしていくんでしょう？</p>
+
+<p>出来ればバラバラ開発するよりはここで残してやっていってもらいたいな、とは思いますが。</p>
+
+<p>シェルスクリプトで作っている物なので手伝えることなら手伝いたいところではあります。</p>
+
+<h2 id="一方元のメンテナの人">一方元のメンテナの人</h2>
+
+<p>GitHubに移ってから主にメンテナンスをしてた人は上に書いたとおり
+反乱を起こしsageという名前で自分のレポジトリを開いて
+公開をしていますが、
+ライセンスに関して理解してない感じなのと、</p>
+
+<blockquote>
+  <p><del>license file · Issue #15 · svnpenn/sa: ](https://github.com/svnpenn/sage/issues/15</del></p>
+</blockquote>
+
+<p>さらには少しでも気に障ったらユーザーを永久追放するという。。。
+(というかlockとか言う機能を初めて知った。。。)</p>
+
+<blockquote>
+  <p><del>What is the license for sage? · Issue #13 · svnpenn/sage: https://github.com/svnpenn/sage/issues/13</del></p>
+</blockquote>
+
+<blockquote>
+  <p><del>Whats the relation of this repo to apt-cyg? · Issue #3 · svnpenn/sage: https://github.com/svnpenn/sage/issues/3</del></p>
+</blockquote>
+
+<blockquote>
+  <p><del>How does sage compares to apt-cyg ? · Issue #2 · svnpenn/sage: https://github.com/svnpenn/sage/issues/2</del></p>
+</blockquote>
+
+<p>なかなか凄いっぷりです。
+確かに最近のapt-cygをアップデートしてきたのは彼なんでしょうが、
+元はあったわけでさらにそこにラインセンス事項もあるので彼のものではないわけで。</p>
+
+<p>後、未だに本家のREADMEにも残ってますが、
+彼の個人の口座に入る様な寄付金用のボタンを付けてるのはどうかと。
+(本家の方からは外して欲しいものですが、何らか経緯が元の作者の人とあるかもしれないので
+外から言って良いのかどうかと言う所も。)</p>
+
+<p>まあ、なんか大変でしたが、取り敢えず本家が復活するという正しい判断が
+されてよかったですね。</p>
+]]></content>
+  </entry>
+  
+</feed>

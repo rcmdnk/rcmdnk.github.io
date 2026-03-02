@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GitHub | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/github/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Poetryで管理しているパッケージテストをGitHub ActionsでPoetry及びDockerで行う]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/18/computer-github-python-poetry-docker/"/>
+    <updated>2024-02-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/18/computer-github-python-poetry-docker</id>
+    <content type="html"><![CDATA[<p>Poetryで管理しているPythonのパッケージをGitHub Actionsでテストする方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#poetryで管理しているpythonパッケージのテスト" id="markdown-toc-poetryで管理しているpythonパッケージのテスト">Poetryで管理しているPythonパッケージのテスト</a></li>
+  <li><a href="#poetryで環境を作りテストを行う" id="markdown-toc-poetryで環境を作りテストを行う">Poetryで環境を作りテストを行う</a></li>
+  <li><a href="#docker環境で共通のテストを行う" id="markdown-toc-docker環境で共通のテストを行う">Docker環境で共通のテストを行う</a>    <ul>
+      <li><a href="#dockerfileの準備" id="markdown-toc-dockerfileの準備">Dockerfileの準備</a></li>
+      <li><a href="#テスト部分の共通化" id="markdown-toc-テスト部分の共通化">テスト部分の共通化</a></li>
+      <li><a href="#poetry用actionsファイル" id="markdown-toc-poetry用actionsファイル">Poetry用Actionsファイル</a></li>
+      <li><a href="#docker用actionsファイル" id="markdown-toc-docker用actionsファイル">Docker用Actionsファイル</a></li>
+    </ul>
+  </li>
+  <li><a href="#push時にはpoetryで手動テストでdocker環境も使えるようにする" id="markdown-toc-push時にはpoetryで手動テストでdocker環境も使えるようにする">push時にはpoetryで、手動テストでDocker環境も使えるようにする</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="poetryで管理しているpythonパッケージのテスト">Poetryで管理しているPythonパッケージのテスト</h2>
+
+<p>Poetryで管理しているPythonパッケージで、
+<strong>tests</strong>ディレクトリにテストがあり<code>pytest</code>でテストを行うようなものを考えます。</p>
+
+<p>ルートディレクトリで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">poetry install
+</span><span class="line">poetry run pytest</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすればテストを行うことが出来る状態。</p>
+
+<h2 id="poetryで環境を作りテストを行う">Poetryで環境を作りテストを行う</h2>
+
+<p>以下のような<strong>.github/workflows/test.yml</strong>を作成します。</p>
+
+<figure class="code"><figcaption><span>.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Make poetry environment</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run pytest</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poetry run pytest</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これで<code>push</code>されたときに<code>poetry</code>で環境を作って<code>pytest</code>を実行することが出来ます。</p>
+
+<p>ちなみにこの辺のPytestはほとんどの場所で共通して使ってるので
+下にあるようなactionを作って共通化して使ってます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B097TJKSWB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B097TJKSWB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71fGbIN3ETL._SS90_CR0,0,120,90_.jpg" alt="ACTION! (初回限定盤B)(DVD付)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/02/computer-python/">python-action: pytestなどを実行するGitHub Action</a></div></li></ul>
+
+<h2 id="docker環境で共通のテストを行う">Docker環境で共通のテストを行う</h2>
+
+<h3 id="dockerfileの準備">Dockerfileの準備</h3>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240217_pythonpoetrydocker_120_90.jpg" width="120" height="90" alt="20240217_pythonpoetrydocker_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/02/17/computer-python-poetry-docker/">Poetryを使ったDocker環境構築について</a></div></li></ul>
+
+<p>でやったPoetryで管理しているプロジェクトの環境構築のDockerfileを使います。</p>
+
+<p><strong>pyrproject.toml</strong>は上のものに加え、テスト用の<code>pytest</code>を
+<code>dev</code>のグループに追加しておきます。</p>
+
+<figure class="code"><figcaption><span>pyproject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.poetry]</span>
+</span><span class="line"><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;myproject&quot;</span>
+</span><span class="line"><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.0.1&quot;</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;rcmdnk &lt;rcmdnk@gmail.com&gt;&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.dependencies]</span>
+</span><span class="line"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^3.11&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.group.dev.dependencies]</span>
+</span><span class="line"><span class="n">pytest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^8.0.0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[build-system]</span>
+</span><span class="line"><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;poetry-core&gt;=1.0.0&quot;</span><span class="p">]</span>
+</span><span class="line"><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;poetry.core.masonry.api&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.scripts]</span>
+</span><span class="line"><span class="n">hello</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;myproject:main&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これに対応するDockerfileは以下のようになります。</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>builder
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">PIP_NO_CACHE_DIR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PIP_DISABLE_PIP_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>poetry-plugin-export
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>pyproject.toml<span class="w"> </span>poetry.lock<span class="w"> </span>src<span class="w"> </span>./
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--with<span class="w"> </span>dev<span class="w"> </span>--without-hashes<span class="w"> </span>--format<span class="o">=</span>requirements.txt<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">RUN<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;./&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">&quot;</span>
+</span><span class="line">RUN<span class="w"> </span>.<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VIRTUAL_ENV</span><span class="s2">/bin/activate&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span><span class="line">
+</span><span class="line"><span class="c1">#########</span>
+</span><span class="line">
+</span><span class="line">FROM<span class="w"> </span>python:3.12-slim-bookworm<span class="w"> </span>as<span class="w"> </span>runtime
+</span><span class="line">
+</span><span class="line">ENV<span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/app/.venv<span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span class="line"><span class="nv">USER_NAME</span><span class="o">=</span>appuser
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span><span class="nv">$VIRTUAL_ENV</span><span class="w"> </span><span class="nv">$VIRTUAL_ENV</span>
+</span><span class="line">
+</span><span class="line">WORKDIR<span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">RUN<span class="w"> </span>useradd<span class="w"> </span>-r<span class="w"> </span>-u<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="nv">$USER_NAME</span>
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/app
+</span><span class="line">
+</span><span class="line">USER<span class="w"> </span><span class="nv">$USER_NAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>変えたのは</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--with<span class="w"> </span>dev<span class="w"> </span>--without-hashes<span class="w"> </span>--format<span class="o">=</span>requirements.txt<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の部分だけで、<code>--with dev</code>が追加されています。
+これで<code>dev</code>のグループに含まれる<code>pytest</code>もインストールされます。</p>
+
+<h3 id="テスト部分の共通化">テスト部分の共通化</h3>
+
+<p>共通のテストにするため、テスト実行部分を別途actionsとして作成します。</p>
+
+<figure class="code"><figcaption><span>.github/actions/test/action.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line"><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">runs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">using</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;composite&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest</span>
+</span><span class="line"><span class="w">      </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで<code>pytest</code>を実行するだけのcomposite actionを作っておきます。</p>
+
+<p>必要であればここで色々と実行するコマンドを追加しておきます。</p>
+
+<p>これでレポジトリをcheckoutした後なら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と指定すると<code>pytest</code>が実行されます。</p>
+
+<h3 id="poetry用actionsファイル">Poetry用Actionsファイル</h3>
+
+<p>上のactionを使って、Poetry用のactionを作ります。</p>
+
+<figure class="code"><figcaption><span>.github/workflows/poetry-test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poetry test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">with</span><span class="p p-Indicator">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Make poetry environment</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">        </span><span class="no">echo &quot;$(poetry show -v 2&gt;/dev/null|grep &#39;Using virtualenv:&#39;|awk &#39;{print $3}&#39;)/bin&quot; &gt;&gt; $GITHUB_PATH</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初の場合は最後に<code>poetry run</code>で<code>pytest</code>を実行することで仮想環境下での実行を行っていましたが、
+この場合ではtest actionの中ではpoetryを使ってません。</p>
+
+<p>test actionの引数として<code>poetry run</code>を使うかどうか、を指定しても良いかもしれませんが、
+ごちゃごちゃするので、ここでは全体の環境の<code>PATH</code>に
+poetryの仮想環境の<code>bin</code>ディレクトリを追加しています。</p>
+
+<p>あとは最後の
+最後の<code>pytest</code>部分をactionに置き換えるだけです。</p>
+
+<h3 id="docker用actionsファイル">Docker用Actionsファイル</h3>
+
+<figure class="code"><figcaption><span>.github/workflows/docker-test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-build</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span class="line"><span class="w">      </span><span class="nt">packages</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/login-action@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">registry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/setup-buildx-action@v3</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/build-push-action@v5</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span class="line"><span class="w">        </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./Dockerfile</span>
+</span><span class="line"><span class="w">        </span><span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-build</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">container</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/$/test-image:$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">credentials</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$</span>
+</span><span class="line"><span class="w">      </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">--user root</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>まず、<code>docker-build</code>ジョブでイメージをビルドしています。</p>
+
+<p>GitHubでは
+<a href="https://github.com/features/packages">GitHub Packages</a>
+でContainer registoryが提供されていて、
+<strong>ghcr.io</strong>でアクセス出来るレジストリで
+Dockerイメージを保存したり公開したりすることが出来ます。</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/ja/packages/working-with-a-github-packages-registry/working-with-the-container-registry">コンテナレジストリの利用 - GitHub Docs</a></p>
+</blockquote>
+
+<p>それを使うため、
+<strong>login-action</strong>でログインし、<strong>build-push-action</strong>でイメージをビルドしてpushしています。
+<strong>setup-buildx-action</strong>はDocker Buildxを使うためのもので、
+今回の例では無理に使う必要はないかもしれませんが入れておきました。</p>
+
+<p>これでレポジトリの環境をDockerイメージとしてビルドし、
+Container registoryに登録されます。</p>
+
+<p>次に<code>docker-test</code>ジョブで
+<code>docker-build</code>ジョブでビルドしたイメージを使ってテストを行います。</p>
+
+<p><code>container</code>で作ったイメージを指定して
+後はレポジトリをcheckoutしてテストを実行するだけです。</p>
+
+<p>ここで、イメージ名など共通なので<code>env</code>とかで変数化したいところですが、
+<code>steps</code>内では使えるもののこの上の<code>container</code>などの階層部分では
+<code>Unrecognized named-value: 'env'.</code>なエラーになってしまいます。</p>
+
+<p>レポジトリの設定の
+<strong>Actions secrets and variables</strong>で設定した変数であれば
+<code>vars.&lt;変数名&gt;</code>で使え、これは<code>container</code>の中でも使えるので
+それを設定すればよりきれいに書くことは出来ます。</p>
+
+<p>イメージが複数になるような場合にはそのようなことをした方が良いかもしれません。</p>
+
+<p>テストのステップに関してはまず
+actionsやtestsディレクトリを取得するために
+レポジトリをcheckoutしています。</p>
+
+<p>もしこのDockerfileがGitHub Actions専用であればDockerfileの中で</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>.github
+</span><span class="line">COPY<span class="w"> </span>.github/actions<span class="w"> </span>./.github/
+</span><span class="line">COPY<span class="w"> </span>tests<span class="w"> </span>./
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにしておけば
+<code>docker-test</code>側の<code>checkout</code>は不要になります。</p>
+
+<p>今回はなんらか別に使うものでそのテストも兼ねるということで上のような形でイメージに余計なものを入れないようにしています。</p>
+
+<p>containerの部分で<code>--user root</code>を指定していますが、
+これはGitHub Actionsで<code>checkout</code>を行う際、
+<code>root</code>権限でないとcheckoutできないためです。</p>
+
+<p>今回のDockefileでは<code>USER</code>を指定しているため、
+そのままだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: EACCES: permission denied, open '/__w/_temp/_runner_file_commands/save_state_XXXXXXXX-XXXX-XXXX-XXXX-XXXX[XX](https://github.com/SensoftInc/xxxxxxxxxxxx/actions/runs/xxxxxxxxxx/jobs/xxxxxxxxxx#step:x:xx)xxxxxx'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というエラーが出てしまいます。</p>
+
+<blockquote>
+  <p><a href="https://github.com/actions/checkout/issues/1014">Error: EACCES: permission denied in container on self hosted Linux runner · Issue #1014 · actions/checkout</a></p>
+</blockquote>
+
+<p>これに関しては上のIssueで
+上のように<code>--user root</code>を指定するか、
+中で<strong>/__w</strong>を作って実行するユーザー(もしくは全員)に権限をもたせる方法が
+紹介されていますが、上のIssueにあるような</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>-m<span class="w"> </span><span class="m">1777</span><span class="w"> </span>/__w
+</span></code></pre></td></tr></table></div></figure>
+
+<p>をしても同じエラーになりました。</p>
+
+<figure class="code"><figcaption><span>Dockefile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>RUN<span class="w"> </span>mkdir<span class="w"> </span>/__w
+</span><span class="line">RUN<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER_NAME</span>:<span class="nv">$USER_NAME</span><span class="w"> </span>/__w
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなのもうまくいきません。</p>
+
+<p>何かおまじないがあるのか…</p>
+
+<p>というわけで、ちょっと環境変えてしまうことにもなってしまいますが
+一旦<code>--user root</code>で対応しています。</p>
+
+<p>実行するコマンドによってはユーザーが誰か、で結果が変わるようなこともあると思うので、
+そういった場合は最初からDockerfileの定義で<code>USER</code>を指定せずに
+rootで実行するようにして正しく動作するように設定したが方が良いです。</p>
+
+<h2 id="push時にはpoetryで手動テストでdocker環境も使えるようにする">push時にはpoetryで、手動テストでDocker環境も使えるようにする</h2>
+
+<figure class="code"><figcaption><span>.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">workflow_dispatch</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">exe_env</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Execution</span><span class="nv"> </span><span class="s">environment.&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">choice</span>
+</span><span class="line"><span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="line"><span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;docker&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">options</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;docker&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;poetry&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-build</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ (github.event_name == &#39;workflow_dispatch&#39; &amp;&amp; github.event.inputs.exe_env == &#39;docker&#39;) }}</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span class="line"><span class="w">      </span><span class="nt">packages</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/login-action@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">registry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.actor }}</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/setup-buildx-action@v3</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker/build-push-action@v5</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span class="line"><span class="w">        </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./Dockerfile</span>
+</span><span class="line"><span class="w">        </span><span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/${{ github.repository }}/test-image:${{ github.sha }}</span>
+</span><span class="line"><span class="w">  </span><span class="nt">docker-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ (github.event_name == &#39;workflow_dispatch&#39; &amp;&amp; github.event.inputs.exe_env == &#39;docker&#39;) }}</span>
+</span><span class="line"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-build</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">container</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/${{ github.repository }}/test-image:${{ github.sha }}</span>
+</span><span class="line"><span class="w">      </span><span class="nt">credentials</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.actor }}</span>
+</span><span class="line"><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span class="line"><span class="w">      </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">--user root</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span><span class="line"><span class="w">  </span><span class="nt">poetry-test</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ (github.event_name == &#39;push&#39;) || (github.event_name == &#39;workflow_dispatch&#39; &amp;&amp; github.event.inputs.exe_env == &#39;poetry&#39;) }}</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.12&#39;</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">setup poetry</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">pip install poetry</span>
+</span><span class="line"><span class="w">        </span><span class="no">poetry install</span>
+</span><span class="line"><span class="w">        </span><span class="no">echo &quot;$(dirname $(poetry run which python))&quot; &gt;&gt; $GITHUB_PATH</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/actions/test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのGitHub Actionsを作成しておけば、</p>
+
+<ul>
+  <li><code>push</code>時にはpoetryでテスト</li>
+  <li>手動で実行するときには<code>docker</code>か<code>poetry</code>を選択して実行</li>
+</ul>
+
+<p>を行うことが出来ます。</p>
+
+<p>まあこのように手動でテスト出来るようにしておく意味があるかどうかはわかりませんが、
+テストがてら作るときに便利かな、と思ってこうしてみただけです。</p>
+
+<p>以下のレポジトリはこのテストを実際にやってみたもの。</p>
+
+<div class="github-widget" data-repo="rcmdnk/github-action-poetry-docker-test"></div>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actionsでのsyntax error near unexpected token `(' 回避]]></title>
+    <link href="https://rcmdnk.com/blog/2024/02/02/computer-github/"/>
+    <updated>2024-02-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/02/02/computer-github</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsで変数展開するところで起こったエラーに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#起こった現象" id="markdown-toc-起こった現象">起こった現象</a></li>
+  <li><a href="#問題点" id="markdown-toc-問題点">問題点</a></li>
+  <li><a href="#回避方法" id="markdown-toc-回避方法">回避方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="起こった現象">起こった現象</h2>
+
+<p>Pythonのプロジェクトでpytestを実行した後、
+<a href="https://github.com/MishaKav/pytest-coverage-comment">MishaKav/pytest-coverage-comment</a>
+というactionを使ってカバレッジのレポートを作っていました。</p>
+
+<p>このactionは出力に<code>notSuccessTestInfo</code>という値を持っていて、ここには
+スキップされたテスト項目が入っています。
+<code>pytest.mark.parametrize</code>などを使うと引数部分も入ってそれを囲う記号もはいってきたりすることもありますが、
+その際に問題が起きていたようです。</p>
+
+<p>上記のアクションに<code>coverageComment</code>というidをつけていたとして、下のactionで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="w">    </span>-<span class="w"> </span>name:<span class="w"> </span>Check<span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>coverage
+</span><span class="line"><span class="w">      </span>shell:<span class="w"> </span>bash
+</span><span class="line"><span class="w">      </span>run:<span class="w"> </span><span class="p">|</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Percantage - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.coverage </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Color - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.color </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Warnings - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.warnings </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Errors - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.errors </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Failures - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.failures </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Skipped - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.skipped </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Tests - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.tests </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Time - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.time </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B097TJKSWB?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B097TJKSWB&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71fGbIN3ETL._SS90_CR0,0,120,90_.jpg" alt="ACTION! (初回限定盤B)(DVD付)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/02/computer-python/">python-action: pytestなどを実行するGitHub Action</a></div></li></ul>
+
+<p>のようにして結果を見ていたのですが、
+この最後のところで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"> /home/runner/work/_temp/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.sh: line 10: syntax error near unexpected token `('</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じのエラーが出るようになったものがありました。</p>
+
+<h2 id="問題点">問題点</h2>
+
+<p>GitHub Actionsのrunの部分ががシェルスクリプトになって実行されていて、shebang部分が加わるので10行目は<code>notSuccessTestInfo</code>のところです。</p>
+
+<p>ここを見ようと思ってもこの行を入れてしまうとエラー終了してしまうので難しいところですが、
+おそらく<code>steps.coverageComment.outputs.notSuccessTestInfo</code>に<code>(</code> が入っていて、それをGitHub Action上での二重括弧構文での展開の後
+通常のシェルとして処理しようとして問題になっている感じ。</p>
+
+<p>この変数部分が最初から完全に文字列として扱われてくれれば良いのですが、このように<code>run</code>の中で展開しようとするとうまく行かないことがあるみたいです。</p>
+
+<h2 id="回避方法">回避方法</h2>
+
+<p>これを回避するには
+<code>env</code>を使って環境変数として登録しておいて<code>run</code>の中から参照するという方法。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="w">    </span>-<span class="w"> </span>name:<span class="w"> </span>Check<span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>coverage
+</span><span class="line"><span class="w">      </span>shell:<span class="w"> </span>bash
+</span><span class="line"><span class="w">      </span>env:
+</span><span class="line"><span class="w">        </span>NOT_SUCCESS_TEST_INFO:<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">      </span>run:<span class="w"> </span><span class="p">|</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Percantage - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.coverage </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Color - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.color </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Warnings - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.warnings </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Errors - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.errors </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Failures - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.failures </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Skipped - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.skipped </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Tests - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.tests </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Coverage Time - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.time </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="si">${</span><span class="p">{ steps.coverageComment.outputs.notSuccessTestInfo </span><span class="si">}</span><span class="s2">}&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Not Success Test Info - </span><span class="nv">$NOT_SUCCESS_TEST_INFO</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このようにすると<code>NOT_SUCCESS_TEST_INFO</code>は最初からただの文字列として扱われるので
+<code>echo</code>を使ってそのまま出力することができます。</p>
+
+<p>こんな感じで記号とかを含むActionの出力やあらかじめ登録しておいたActionのVariableやSecretを<code>run</code>で
+シェルスクリプト的に使う際には
+直接使うとエラーになってしまうことがありますが、
+一旦<code>env</code>を使って環境変数に入れれば使えるようになります。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHubで自分のレポジトリにstarが付いたのが分かる前のダッシューボードを見る]]></title>
+    <link href="https://rcmdnk.com/blog/2023/09/13/computer-github/"/>
+    <updated>2023-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/09/13/computer-github</id>
+    <content type="html"><![CDATA[<p>ちょっと前にGitHubのDashboardページが変わり前まで見れていたものが見れなくなって
+困ってる人も多いかと。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#新しいダッシュボードページ" id="markdown-toc-新しいダッシュボードページ">新しいダッシュボードページ</a></li>
+  <li><a href="#古いダッシュボードページ" id="markdown-toc-古いダッシュボードページ">古いダッシュボードページ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="新しいダッシュボードページ">新しいダッシュボードページ</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2023/09/14 </strong></p>
+
+  <p>これ書いているときは確かに<strong>star</strong>をチェックしても何も表示されなかったと思うのですが、
+今日改めて見てみたら以前のように自分のレポジトリにstarが付いたらフィードに現れるようになりました。</p>
+
+  <p>ので、少なくともstarのチェックのためなら下の<code>dashboard-feed</code>のページにわざわざ行く必要はなくなった模様。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>GitHubにログインした状態で<a href="https://github.com/">https://github.com</a>
+にアクセスするとDashboardページになります(<a href="https://github.com/">https://github.com/dashboard</a>へ行っても同じ)。</p>
+
+<p>ここ最近、色々といじれる項目が増えたり変更が入っていましたが、
+2週間くらい前までは少なくとも長らくデフォルトで見えていたフィードはそのまま
+見える状態になっていました。</p>
+
+<p>が、2週間くらい前にガラッと変わって現在の<code>Filter</code>をかけて見る項目を設定できるだけのものになりました。</p>
+
+<p>項目は</p>
+
+<ul>
+  <li>Announcements</li>
+  <li>Releases</li>
+  <li>Sponsors</li>
+  <li>Stars</li>
+  <li>Repositories</li>
+  <li>Repository activity</li>
+  <li>Follows</li>
+  <li>Recommendations</li>
+</ul>
+
+<p>この中で、<strong>Stars</strong>は</p>
+
+<ul>
+  <li>Repositories being starred by people</li>
+</ul>
+
+<p>となっていて、以前のフィードでも自分のレポジトリにスターをつけてくれたらそれがダッシュボードに現れていたので
+これをチェックした状態なら同じ様に見られるかと思いきや見られません。</p>
+
+<p>まだヘルプも古いままなのでこの辺の説明もよくわからないところですが、
+一応説明を見ると以前同様のものが見れそうなのでおそらくバグっぽい。</p>
+
+<ul>
+  <li><a href="https://docs.github.com/ja/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/about-your-personal-dashboard">パーソナルダッシュボードについて - GitHub Docs</a></li>
+  <li><a href="https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/about-your-personal-dashboard">About your personal dashboard - GitHub Docs</a></li>
+</ul>
+
+<p>これも含めて新しいダッシュボードページは歓迎しない人の方が多い感じで、
+フィードバックページにはかなりきつい言葉で文句を言ったりしてる人も含め不満や不具合がたくさん報告されています。</p>
+
+<ul>
+  <li><a href="https://github.com/orgs/community/discussions/categories/feed">community Feed · Discussions · GitHub</a></li>
+</ul>
+
+<h2 id="古いダッシュボードページ">古いダッシュボードページ</h2>
+
+<p>スターをつけてくれたのを見たいとか、とりあえず以前見ていたのと同じ様な情報を見たい、といった場合
+現状のページだとまだ出来ない事も多いわけですが、
+実は古いダッシュボードページが残っています。</p>
+
+<ul>
+  <li><a href="https://github.com/dashboard-feed">https://github.com/dashboard-feed</a></li>
+</ul>
+
+<p>フィード部分だけなので表示がいっぱいいっぱいになりますが、以前見ていたものが見れるはずです。</p>
+
+<p>現在のページを上記のdashboard-feedの表示へと変更するスクリプトなんかも作られています。</p>
+
+<ul>
+  <li><a href="https://github.com/Gerrit0/old-github-feed">Gerrit0/old-github-feed: Brings back GitHub’s old feed</a></li>
+</ul>
+
+<p>新しいものはバグなのか情報としてはあれで正しいのかもよくわかりませんが、
+一旦前まで見ていたものを確認したい場合には上のdashboard-feedのページに行けば見ることが出来ます。</p>
+
+<p>散々な状態なので多分割とすぐに今のdashboardページも何かしら変わるとは思いますが。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actionsで`bash`を指定すると`pipefail`オプションが付く]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/30/computer-github/"/>
+    <updated>2023-04-30T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/30/computer-github</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B072BMB1RW?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B072BMB1RW&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41OCxDHzW3L._SS200_.jpg" alt="柘製作所(tsuge) パイプ BPK ショートスモーク用" /></a>
+</div>
+
+<p>GitHub Actionsで実行されるコマンドに関して、
+通常のシェルコマンドを実行する事もできる中、
+<code>shell</code>として<code>bash</code>の指定を明にするとオプションが変わって挙動が変わる件。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shellを指定しない場合" id="markdown-toc-shellを指定しない場合"><code>shell</code>を指定しない場合</a></li>
+  <li><a href="#shell-bashとした場合" id="markdown-toc-shell-bashとした場合"><code>shell: bash</code>とした場合</a></li>
+  <li><a href="#特に注意が必要なケース" id="markdown-toc-特に注意が必要なケース">特に注意が必要なケース</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shellを指定しない場合"><code>shell</code>を指定しない場合</h2>
+
+<p>GitHub Actionsでは<code>shell</code>で実行シェルを変更することができ、
+<code>python</code>などを指定してpythonスクリプトを実行することも可能です。</p>
+
+<p>何も指定しないとシェルスクリプトになりますが、
+自分もそうでしたが、なんとなく、で使っていることが多いかと。</p>
+
+<p>何も指定しない場合、LinuxやmacOSの環境では
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+<code>bash -e</code>にコマンドが渡される形になります。
+(<code>bash</code>がない場合は<code>sh</code>を指定する。)</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/ja/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell">GitHub Actions のワークフロー構文 - GitHub Docs</a></p>
+</blockquote>
+
+<p>したがって複数のコマンドを渡した場合にも途中のコマンドで失敗するとそこで終了するようになっています。</p>
+
+<h2 id="shell-bashとした場合"><code>shell: bash</code>とした場合</h2>
+
+<p>何も指定しないと<code>bash</code>になりますが、<code>bash</code>と指定することも出来ます。</p>
+
+<p>ただし、この場合にはオプションが変更され、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">bash --noprofile --norc -eo pipefail</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>になります。</p>
+
+<p><code>noprofile</code>や<code>norc</code>はもし環境に特殊なPATHの設定とかを入れて<strong>bashrc</strong>とかで読み込むようなことを
+してる場合には<code>shell</code>に<code>bash</code>を渡す場合とそうでない場合で実行環境が変わる可能性があるので注意ですが、
+GitHub Actionsではあまりあるケースではないかと思います。</p>
+
+<p>一方で、最後の<code>-o pipefail</code>が追加されているところが注意。</p>
+
+<p><code>-e</code>を指定しているときでも<code>-o pipefail</code>がなければパイプの前で失敗した場合には
+その後ろのコマンドが成功すれば通ります。</p>
+
+<p>例えば<code>pytest</code>などでテストをした結果、失敗があったとしてもその記録をファイルに書き出した上で次に進みたいとか言う場合。
+余計な出力を抑えるために<code>grep</code>とかをしたいので、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">pytest | grep "^tests/mytest.py::" &gt; output.log</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいなことをしたとします。</p>
+
+<p>この場合、<code>-e</code>オプションを入れていても次のコマンドへと進みますが、
+<code>-o pipefail</code>を指定すると進みません。</p>
+
+<p>逆に意図せずコマンドが失敗してもパイプで隠されてしまうこともあるので
+<code>-o pipefail</code>をつけたほうが良いよ、ということもあるのですが、
+いずれにしろきちんと管理してオプションをつけたりパイプを使ったりすれば良いだけです。</p>
+
+<p>ただ、GitHub Actionsでは<code>shell</code>に<code>bash</code>と指定するかしないかで
+一見同じ様な感じがするのに動作が変わってしまうので注意が必要です。</p>
+
+<h2 id="特に注意が必要なケース">特に注意が必要なケース</h2>
+
+<p>特に、というか自分が引っかかったケースですが、
+もともと通常の<code>jobs</code>を使ったActionを作っていて、
+<a href="https://docs.github.com/ja/actions/creating-actions/creating-a-composite-action">複合アクション(Composite Action)</a>
+として切り出して使おうとする場合。</p>
+
+<p>通常のActionの中での<code>jobs.&lt;jobid&gt;.steps</code>では各ステップの
+<code>shell</code>の値は省略できて、その場合は上のデフォルトの<code>bash -e</code>によるシェルコマンドとして実行されます。</p>
+
+<p>ただし、複合アクションとして書く場合<code>runs.steps</code>以下では
+<code>shell</code>の省略が出来ません。</p>
+
+<p>したがって、省略してあるステップでは通常<code>bash</code>を指定することになりますが、
+この際に<code>bash --noprofile --norc -eo pipefail</code>のオプションに変更されている事に注意しないといけません。</p>
+
+<p>なんとなくほぼそのまま書き写して<code>shell</code>が必要だというエラーが出たので
+<code>shell</code>だけ追加すればよいか、とやっていると
+問題がさっと見えるものでもなかったりするので。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[HomebrewのTapを管理しているレポジトリのデフォルトブランチを変更した際に起こったこと]]></title>
+    <link href="https://rcmdnk.com/blog/2023/02/26/computer-github/"/>
+    <updated>2023-02-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/02/26/computer-github</id>
+    <content type="html"><![CDATA[<p>Homebrew用に公開しているTapを管理しているレポジトリのデフォルトブランチを
+<code>master</code>から<code>main</code>に変更した際に起こったこと。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#githubでのデフォルトブランチの変更" id="markdown-toc-githubでのデフォルトブランチの変更">GitHubでのデフォルトブランチの変更</a></li>
+  <li><a href="#ローカルにclone済のレポジトリへの対処" id="markdown-toc-ローカルにclone済のレポジトリへの対処">ローカルにclone済のレポジトリへの対処</a></li>
+  <li><a href="#homebrewのtapを管理しているレポジトリだった場合" id="markdown-toc-homebrewのtapを管理しているレポジトリだった場合">HomebrewのTapを管理しているレポジトリだった場合</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="githubでのデフォルトブランチの変更">GitHubでのデフォルトブランチの変更</h2>
+
+<p>GitHubでのデフォルトブランチの変更はレポジトリの<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Branches</strong>に行って
+<strong>Default branch</strong>のところのブランチ名を変更すれば終わりです。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230226_githubchange.png" alt="20230226_githubchange.png" class="pic" /></p>
+
+<p>これで既存のデフォルトブランチも名前が変更されます。</p>
+
+<h2 id="ローカルにclone済のレポジトリへの対処">ローカルにclone済のレポジトリへの対処</h2>
+
+<p>上記の作業をしたら、ローカルにあるclone済のレポジトリで以下のようなコマンドを実行します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">git branch -m master main
+</span><span class="line">git fetch origin
+</span><span class="line">git branch -u origin/main main
+</span><span class="line">git remote set-head origin -a</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これでもともと<code>master</code>だったブランチが<code>main</code>に変わり、GitHub上の<code>main</code>ブランチと繋がります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git branch -a -vv
+</span><span class="line">  install                                                 723acc6 [origin/install] fix by shellcheck
+</span><span class="line">* main                                                    577ddfb [origin/main: behind 17] test: fix test for ubuntu
+</span><span class="line">  remotes/origin/HEAD                                     -&gt; origin/main
+</span><span class="line">  remotes/origin/dev                                      814b5a5 use python-action
+</span><span class="line">  remotes/origin/install                                  723acc6 fix by shellcheck
+</span><span class="line">  remotes/origin/main                                     4389de1 test: add tests</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに<code>main</code>ブランチが出来ていて<strong>origin/main</strong>がupstreamになっていて、
+<strong>remotes/origin/HEAD</strong>が<strong>origin/main</strong>になっていればOK。</p>
+
+<p>上のインストラクションは変更をすると直後にも現れて、その後、他の人でも
+レポジトリに初めてWebでアクセスすると下記のように現れます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230226_githubprocedure.png" alt="20230226_githubprocedure.png" class="pic" /></p>
+
+<h2 id="homebrewのtapを管理しているレポジトリだった場合">HomebrewのTapを管理しているレポジトリだった場合</h2>
+
+<p>Homebrew用のTapを管理しているレポジトリではそのデフォルトブランチにあるFormula/CaskをHomebrew側で扱うことになります。</p>
+
+<p>Tapする際にはバージョンやブランチの指定などは出来ず、そのレポジトリのデフォルトブランチの最新のものが取得され、
+デフォルトブランチが更新されればTapも更新されます。</p>
+
+<p>そのTap用のブランチのデフォルトブランチの名前を変更した後、Tapを更新するため<code>brew update</code>とかを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew update
+</span><span class="line">
+</span><span class="line">[ERROR] fatal: couldn't find remote ref refs/heads/master
+</span><span class="line">Error: Fetching /opt/homebrew/Library/Taps/rcmdnk/homebrew-file failed!
+</span><span class="line">Error: Some taps failed to update!
+</span><span class="line">The following taps can not read their remote branches:
+</span><span class="line">  rcmdnk/file
+</span><span class="line">This is happening because the remote branch was renamed or deleted.
+</span><span class="line">Reset taps to point to the correct remote branches by running `brew tap --repair`
+</span><span class="line">This can be fixed by brew tap --repair:</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいなエラーが出ます。</p>
+
+<p>これが出たら指示通り</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew tap --repair
+</span><span class="line">From https://github.com/rcmdnk/homebrew-file
+</span><span class="line"> - [deleted]         (none)     -&gt; origin/master
+</span><span class="line">   (refs/remotes/origin/HEAD has become dangling)
+</span><span class="line">remote: Enumerating objects: 29, done.
+</span><span class="line">remote: Counting objects: 100% (29/29), done.
+</span><span class="line">remote: Compressing objects: 100% (5/5), done.
+</span><span class="line">remote: Total 29 (delta 17), reused 29 (delta 17), pack-reused 0
+</span><span class="line">Unpacking objects: 100% (29/29), 13.92 KiB | 431.00 KiB/s, done.
+</span><span class="line">   6f7e92f..a290028  coverage                          -&gt; origin/coverage
+</span><span class="line"> * [new branch]      main                              -&gt; origin/main
+</span><span class="line">==&gt; rcmdnk/file: changed default branch name from master to main!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすれば新しいデフォルトブランチに変更し、管理するように変更してくれます。</p>
+
+<p>というわけで、homebrew-fileのデフォルトブランチを変更したので
+もしtapしてある場合は上記のエラーが出てしまうと思いますが
+<code>brew tap --repair</code>をお願いします。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+]]></content>
+  </entry>
+  
+</feed>

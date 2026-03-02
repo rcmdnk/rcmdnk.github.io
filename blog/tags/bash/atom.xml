@@ -1,0 +1,2074 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Bash | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/bash/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[shell-logger: シェルスクリプトのロガーツールにファイル出力機能を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2024/10/05/computer-bash-zsh/"/>
+    <updated>2024-10-05T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/10/05/computer-bash-zsh</id>
+    <content type="html"><![CDATA[<p>シェルスクリプトのロガーツールである <a href="https://github.com/rcmdnk/shell-logger">shell-logger</a> にファイル出力機能を追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#shell-logger" id="markdown-toc-shell-logger">shell-logger</a></li>
+  <li><a href="#ファイル出力機能" id="markdown-toc-ファイル出力機能">ファイル出力機能</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="shell-logger">shell-logger</h2>
+
+<div class="github-widget" data-repo="rcmdnk/shell-logger"></div>
+
+<p>このレポジトリにある<code>etc/shell-logger</code>を読み込むことで、
+<code>debug</code>, <code>info</code>, <code>notice</code>, <code>warning</code>, <code>error</code>といったコマンドが使えるようになり、
+引数として文章を渡すと
+それぞれのログレベルによって色を変えたりして整形した状態で出力してくれます。</p>
+
+<p>時刻も自動で出力されるので、ログを取りたいときに便利です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20170123_shelllogger_120_90.jpg" width="120" height="90" alt="20170123_shelllogger_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/23/computer-bash-zsh/">shell-logger: シェルスクリプトで良い感じにログアウトプットを管理する</a></div></li></ul>
+
+<p>また、<code>error</code>ではどこでエラーが発生したかを表示するための<code>Traceback</code>機能もあります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180823_traceback_120_90.jpg" width="120" height="90" alt="20180823_traceback_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/08/23/computer-bash-zsh/">shell-logger:シェルスクリプトでのログ整形、Traceback機能を追加</a></div></li></ul>
+
+<p>これらの出力は標準出力/標準エラー出力に出力されますが、
+ファイルにリダイレクトされたりパイプを使って<code>tee</code>など他のコマンドに渡される際には
+色を外すようになっています。</p>
+
+<p>ログファイルへの出力は後で直接見るときに余計なエスケープシーケンスが邪魔になるためです。</p>
+
+<p>ただ、これだと<code>tee</code>とかでターミナルとファイルに同時に出力するときに色がなくなってしまうのでちょっと悲しい。</p>
+
+<p>ということで中で直接ファイルに出力する機能を追加しました。</p>
+
+<h2 id="ファイル出力機能">ファイル出力機能</h2>
+
+<p>新たに<code>LOGGER_FILE_XXX</code>という環境変数が追加されました。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Variable Name</th>
+      <th style="text-align: left">Description</th>
+      <th style="text-align: left">Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">LOGGER_FILE_OUTPUT</td>
+      <td style="text-align: left">If set, output is written to the file.</td>
+      <td style="text-align: left">”” (Not output file is defined)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_FILE_ONLY</td>
+      <td style="text-align: left">If 1 and LOGGER_FILE_OUTPUT is set, not output will be given to stdout/stderr.</td>
+      <td style="text-align: left">0</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_FILE_LEVEL</td>
+      <td style="text-align: left">Output level for the file.</td>
+      <td style="text-align: left">Same as LOGGER_LEVEL</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">LOGGER_FILE_APPEND</td>
+      <td style="text-align: left">If 1, output is appended to the file. Otherwise, the file is overwritten.</td>
+      <td style="text-align: left">0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code>LOGGER_FILE_OUTPUT</code>にファイル名を指定すると、そのファイルにログが出力されます。
+その際には色などのエスケープシーケンスは含みません。</p>
+
+<p>一方、デフォルトでは<code>LOGGER_FILE_OUTPUT</code>を設定しても標準出力/標準エラーにも出力され、
+その際には色などのエスケープシーケンスが含まれます。</p>
+
+<p><code>LOGGER_FILE_ONLY</code>を1にすると、ファイルにのみ出力され、標準出力/標準エラーには出力されません。</p>
+
+<p>また、<code>LOGGER_FILE_LEVEL</code>でファイルに出力するログレベルを指定できます。
+これはデフォルトでは標準出力/標準エラー用の<code>LOGGER_LEVEL</code>と同じですが、別の値にすることもできます。</p>
+
+<p><code>LOGGER_FILE_APPEND</code>を1にすると、ファイルに追記されます。
+デフォルトではshell-loggerが読み込まれてから最初に書き出す際に上書きされます。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでオプション引数をコメント含めてまとめて管理する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/09/24/computer-bash/"/>
+    <updated>2024-09-24T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/09/24/computer-bash</id>
+    <content type="html"><![CDATA[<p>シェルスクリプトでのオプション引数の管理について。</p>
+
+<p>たくさん引数を持つシェルスクリプトで一つ一つ管理していると色々と面倒だなと思うことがあり、
+一箇所で管理できる方法を考えてみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#シェルスクリプトでのオプション引数の管理" id="markdown-toc-シェルスクリプトでのオプション引数の管理">シェルスクリプトでのオプション引数の管理</a></li>
+  <li><a href="#オプション引数をコメント含めてまとめて管理する" id="markdown-toc-オプション引数をコメント含めてまとめて管理する">オプション引数をコメント含めてまとめて管理する</a>    <ul>
+      <li><a href="#管理用変数" id="markdown-toc-管理用変数">管理用変数</a></li>
+      <li><a href="#ヘルプ表示" id="markdown-toc-ヘルプ表示">ヘルプ表示</a></li>
+      <li><a href="#引数処理関数" id="markdown-toc-引数処理関数">引数処理関数</a></li>
+    </ul>
+  </li>
+  <li><a href="#例" id="markdown-toc-例">例</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="シェルスクリプトでのオプション引数の管理">シェルスクリプトでのオプション引数の管理</h2>
+
+<p>シェルスクリプトでオプション引数を管理する場合、
+<code>getopts</code>を使うと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">_help</span><span class="o">=</span><span class="s2">&quot;Usage: </span><span class="nv">$0</span><span class="s2"> [-a &lt;arg&gt;] [-b &lt;arg&gt;] [-c &lt;arg&gt;] [-h]&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span><span class="s2">&quot;a:b:c:h&quot;</span><span class="w"> </span>OPT
+</span><span class="line"><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span>a<span class="o">)</span><span class="w"> </span><span class="nv">__a</span><span class="o">=</span><span class="nv">$OPTARG</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>b<span class="o">)</span><span class="w"> </span><span class="nv">__b</span><span class="o">=</span><span class="nv">$OPTARG</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>c<span class="o">)</span><span class="w"> </span><span class="nv">__c</span><span class="o">=</span><span class="nv">$OPTARG</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>h<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$_help</span><span class="s2">&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$_help</span><span class="s2">&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じでオプション引数を取得することができます。</p>
+
+<p>ただし、この方法だとダブルハイフン<code>--</code>でのオプション引数の取得ができないので、
+ダブルハイフンなオプションを使いたい場合は、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">_help</span><span class="o">=</span><span class="s2">&quot;Usage: </span><span class="nv">$0</span><span class="s2"> [--aaa|-a &lt;aaa&gt;] [--bbb-ccc|-b &lt;bbb_ccc&gt;] [--ddd &lt;dddd&gt;] [--help|-h]&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$#</span><span class="w"> </span>-gt<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$1</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span>--aaa<span class="p">|</span>-a<span class="o">)</span><span class="w"> </span><span class="nv">__aaa</span><span class="o">=</span><span class="nv">$2</span><span class="p">;</span><span class="w"> </span><span class="nb">shift</span><span class="w"> </span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>--bbbb-ccc<span class="p">|</span>-u<span class="o">)</span><span class="w"> </span><span class="nv">__bbb_ccc</span><span class="o">=</span><span class="nv">$2</span><span class="p">;</span><span class="w"> </span><span class="nb">shift</span><span class="w"> </span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>--ddd<span class="o">)</span><span class="w"> </span><span class="nv">__ddd</span><span class="o">=</span><span class="nv">$2</span><span class="p">;</span><span class="w"> </span><span class="nb">shift</span><span class="w"> </span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>--help<span class="p">|</span>-h<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$_help</span><span class="s2">&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Unknown option: </span><span class="nv">$1</span><span class="s2">&quot;</span><span class="p">;</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$_help</span><span class="s2">&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="w">  </span><span class="nb">shift</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じで自分で引数を回す必要があります。</p>
+
+<p>やりたいことは</p>
+
+<ul>
+  <li>オプション引数として全てはダブルハイフンのオプションがある。</li>
+  <li>一部のオプションはシングルハイフンで1文字のオプションもある。</li>
+  <li>オプション引数は基本的に値を取る。
+    <ul>
+      <li><code>--help</code>だけ例外。</li>
+    </ul>
+  </li>
+  <li>値はダブルハイフンのオプションをハイフンをアンダーバーに変えた変数に格納する。</li>
+  <li>それぞれの引数の説明を<code>--help</code>で表示する。</li>
+</ul>
+
+<p>といった感じのこと。</p>
+
+<p>とくにヘルプを作ろうと思うと通常は別途全部書くことになりますが、
+数が増えてくると新たに追加したオプションのヘルプを追加し忘れたり管理が面倒になってきます。</p>
+
+<p>なので一箇所で管理したい、と。</p>
+
+<h2 id="オプション引数をコメント含めてまとめて管理する">オプション引数をコメント含めてまとめて管理する</h2>
+
+<h3 id="管理用変数">管理用変数</h3>
+
+<p>以下のような文字列変数を用意します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">__options</span><span class="o">=</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">--name|-n Set name.</span>
+</span><span class="line"><span class="s2">--greet_msg Set greet message.\nDefault is &#39;Hello&#39;.</span>
+</span><span class="line"><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li><code>--オプション名|-短縮オプション名</code>でオプション名を記述する。</li>
+  <li>短縮オプションがない場合はダブルハイフンのオプションのみ記述。</li>
+  <li>一文字空白入れて説明を記述する。</li>
+  <li>説明が複数行の場合は<code>\n</code>で改行する。</li>
+</ul>
+
+<h3 id="ヘルプ表示">ヘルプ表示</h3>
+
+<p>ヘルプは以下のように作ります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_print_explain<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">spaces</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">name_length</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">comments</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$4</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">prefix</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%</span><span class="si">${</span><span class="nv">spaces</span><span class="si">}</span><span class="s2">s%-</span><span class="si">${</span><span class="nv">name_length</span><span class="si">}</span><span class="s2">s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$value</span><span class="s2"> &quot;</span><span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prefix</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nv">prefix</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">prefix</span><span class="p">//?/ </span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span><span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comments</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_print_options<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Options:&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span>line
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__options</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="k">continue</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">opt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">line</span><span class="p">%% *</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/|/, /g&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">comment</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">line</span><span class="p">#* </span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span>_print_explain<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$opt</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comment</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line"><span class="w">  </span>_print_explain<span class="w"> </span><span class="s2">&quot;--help, -h&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;Show help.&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<ul>
+  <li><code>_print_explain</code>
+    <ul>
+      <li>第一引数に関数名。</li>
+      <li>第二引数に表示のインデントのスペース数。</li>
+      <li>第三引数に関数名の表示幅(説明文の開始を揃えるため。左詰め)。</li>
+      <li>第四引数にコメント。</li>
+    </ul>
+  </li>
+  <li><code>_print_options</code>
+    <ul>
+      <li><code>__options</code>からオプション名とコメントを取り出して表示する。
+        <ul>
+          <li>オプション名は<code>--all|-a</code>を<code>-all, -a</code>のように表示する。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="引数処理関数">引数処理関数</h3>
+
+<p>case文で処理したいわけですが、文字列になってるものから変数も作るので
+<code>eval</code>を使います。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_generate_read_options<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>cat<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+</span><span class="line"><span class="s">_read_options() {</span>
+</span><span class="line"><span class="s">  __positional=()</span>
+</span><span class="line"><span class="s">  while [[ \$# -gt 0 ]]; do</span>
+</span><span class="line"><span class="s">    if [ \$1 = &quot;--&quot; ]; then</span>
+</span><span class="line"><span class="s">      shift</span>
+</span><span class="line"><span class="s">      __positional+=(&quot;\$@&quot;)</span>
+</span><span class="line"><span class="s">      break</span>
+</span><span class="line"><span class="s">    fi</span>
+</span><span class="line"><span class="s">    local opt=&quot;\${1//_/-}&quot;</span>
+</span><span class="line"><span class="s">    case \$opt in</span>
+</span><span class="line"><span class="s">EOF</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__options</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="k">continue</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">opt</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">val_name</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">opt</span><span class="p">//-/_</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;|&#39;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">1</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;      </span><span class="nv">$opt</span><span class="s2">) </span><span class="si">${</span><span class="nv">val_name</span><span class="si">}</span><span class="s2">=\&quot;\$2\&quot;; shift; shift;;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line">
+</span><span class="line">cat<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+</span><span class="line"><span class="s">      --help|-h) help; exit;;</span>
+</span><span class="line"><span class="s">      -*)</span>
+</span><span class="line"><span class="s">        echo &quot;Unknown option: \$1&quot; 1&gt;&amp;2</span>
+</span><span class="line"><span class="s">        exit 1</span>
+</span><span class="line"><span class="s">        ;;</span>
+</span><span class="line"><span class="s">      *)</span>
+</span><span class="line"><span class="s">        if [ &quot;\$1&quot; = &quot;help&quot; ]; then</span>
+</span><span class="line"><span class="s">          help</span>
+</span><span class="line"><span class="s">          exit</span>
+</span><span class="line"><span class="s">        fi</span>
+</span><span class="line"><span class="s">        __positional+=(&quot;\$1&quot;)</span>
+</span><span class="line"><span class="s">        shift</span>
+</span><span class="line"><span class="s">        ;;</span>
+</span><span class="line"><span class="s">    esac</span>
+</span><span class="line"><span class="s">  done</span>
+</span><span class="line"><span class="s">}</span>
+</span><span class="line"><span class="s">EOF</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>_generate_read_options<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line">_read_options<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じに。<code>help</code>だけは値なしのオプションで常に使うものだとして別途付け加えてあります。</p>
+
+<p><code>eval</code>を使わずにやろうと思うと、Bash 4.0以降であれば変数の格納部分で連想配列を使うことで出来そうですが
+上のように文字列をparseしようと思うと結構面倒なコードになるので
+やるなら最初からオプジョンの定義を連想配列などで綺麗にまとめられれば良いかもしれません。</p>
+
+<p>ただシェルスクリプトで複雑な構造を作ろうと思うとやはりごちゃごちゃしてしまうので、
+手を加える部分がオプションの定義部分だとすれば上のように文字列で定義するのがわかりやすいと思います。</p>
+
+<h2 id="例">例</h2>
+
+<p>これを昨日のものと組み合わせると、</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/09/23/computer-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240923_shellfunc_120_90.jpg" width="120" height="90" alt="20240923_shellfunc_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/09/23/computer-bash/">シェルスクリプトで関数につけたコメントをヘルプとして表示できるようにする</a></div></li></ul>
+
+<figure class="code"><figcaption><span>my_command.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+<span class="line-number">98</span>
+<span class="line-number">99</span>
+<span class="line-number">100</span>
+<span class="line-number">101</span>
+<span class="line-number">102</span>
+<span class="line-number">103</span>
+<span class="line-number">104</span>
+<span class="line-number">105</span>
+<span class="line-number">106</span>
+<span class="line-number">107</span>
+<span class="line-number">108</span>
+<span class="line-number">109</span>
+<span class="line-number">110</span>
+<span class="line-number">111</span>
+<span class="line-number">112</span>
+<span class="line-number">113</span>
+<span class="line-number">114</span>
+<span class="line-number">115</span>
+<span class="line-number">116</span>
+<span class="line-number">117</span>
+<span class="line-number">118</span>
+<span class="line-number">119</span>
+<span class="line-number">120</span>
+<span class="line-number">121</span>
+<span class="line-number">122</span>
+<span class="line-number">123</span>
+<span class="line-number">124</span>
+<span class="line-number">125</span>
+<span class="line-number">126</span>
+<span class="line-number">127</span>
+<span class="line-number">128</span>
+<span class="line-number">129</span>
+<span class="line-number">130</span>
+<span class="line-number">131</span>
+<span class="line-number">132</span>
+<span class="line-number">133</span>
+<span class="line-number">134</span>
+<span class="line-number">135</span>
+<span class="line-number">136</span>
+<span class="line-number">137</span>
+<span class="line-number">138</span>
+<span class="line-number">139</span>
+<span class="line-number">140</span>
+<span class="line-number">141</span>
+<span class="line-number">142</span>
+<span class="line-number">143</span>
+<span class="line-number">144</span>
+<span class="line-number">145</span>
+<span class="line-number">146</span>
+<span class="line-number">147</span>
+<span class="line-number">148</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">__options</span><span class="o">=</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">--name|-n Set name.</span>
+</span><span class="line"><span class="s2">--greet-msg Set greet message.\nDefault is &#39;Hello&#39;.</span>
+</span><span class="line"><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Default parameters</span>
+</span><span class="line"><span class="nv">__name</span><span class="o">=</span><span class="s2">&quot;Alice&quot;</span>
+</span><span class="line"><span class="nv">__greet_msg</span><span class="o">=</span><span class="s2">&quot;Hello&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Non sub command</span>
+</span><span class="line">_hello<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__greet_msg</span><span class="s2"> </span><span class="nv">$1</span><span class="s2">!&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># sub commands</span>
+</span><span class="line">greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">commands<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Show subcommands.</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommands</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Functions for help</span>
+</span><span class="line">_print_explain<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">spaces</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">name_length</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">comments</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$4</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">prefix</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%</span><span class="si">${</span><span class="nv">spaces</span><span class="si">}</span><span class="s2">s%-</span><span class="si">${</span><span class="nv">name_length</span><span class="si">}</span><span class="s2">s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$value</span><span class="s2"> &quot;</span><span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prefix</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nv">prefix</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">prefix</span><span class="p">//?/ </span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span><span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comments</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">func</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">func</span><span class="si">}</span><span class="s2"> \(\)/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_print_subcommands<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Subcommands:&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">for</span><span class="w"> </span>func<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$__subcommands</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">comments</span><span class="o">=</span><span class="k">$(</span>_extract_comments<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$func</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span>_print_explain<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$func</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comments</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_print_options<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Options:&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span>line
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__options</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="k">continue</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">opt</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">line</span><span class="p">%% *</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/|/, /g&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">comment</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">line</span><span class="p">#* </span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span>_print_explain<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$opt</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comment</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line"><span class="w">  </span>_print_explain<span class="w"> </span><span class="s2">&quot;--help, -h&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;Show help.&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">help</span><span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Show this help.</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Usage </span><span class="nv">$0</span><span class="s2"> &lt;subcommand&gt; [options]&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span>_print_subcommands
+</span><span class="line"><span class="w">  </span>_print_options
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Generate options parser</span>
+</span><span class="line">_generate_read_options<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>cat<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+</span><span class="line"><span class="s">_read_options() {</span>
+</span><span class="line"><span class="s">  __positional=()</span>
+</span><span class="line"><span class="s">  while [[ \$# -gt 0 ]]; do</span>
+</span><span class="line"><span class="s">    if [ &quot;\$1&quot; = &quot;--&quot; ]; then</span>
+</span><span class="line"><span class="s">      shift</span>
+</span><span class="line"><span class="s">      __positional+=(&quot;\$@&quot;)</span>
+</span><span class="line"><span class="s">      break</span>
+</span><span class="line"><span class="s">    fi</span>
+</span><span class="line"><span class="s">    local opt=&quot;\${1//_/-}&quot;</span>
+</span><span class="line"><span class="s">    case \$opt in</span>
+</span><span class="line"><span class="s">EOF</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__options</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">      </span><span class="k">continue</span>
+</span><span class="line"><span class="w">    </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">opt</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">val_name</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">opt</span><span class="p">//-/_</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;|&#39;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">1</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;      </span><span class="nv">$opt</span><span class="s2">) </span><span class="si">${</span><span class="nv">val_name</span><span class="si">}</span><span class="s2">=\&quot;\$2\&quot;; shift; shift;;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line">
+</span><span class="line">cat<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+</span><span class="line"><span class="s">      --help|-h) help; exit;;</span>
+</span><span class="line"><span class="s">      -*)</span>
+</span><span class="line"><span class="s">        echo &quot;Unknown option: \$1&quot; 1&gt;&amp;2</span>
+</span><span class="line"><span class="s">        exit 1</span>
+</span><span class="line"><span class="s">        ;;</span>
+</span><span class="line"><span class="s">      *)</span>
+</span><span class="line"><span class="s">        if [ &quot;\$1&quot; = &quot;help&quot; ]; then</span>
+</span><span class="line"><span class="s">          help</span>
+</span><span class="line"><span class="s">          exit</span>
+</span><span class="line"><span class="s">        fi</span>
+</span><span class="line"><span class="s">        __positional+=(&quot;\$1&quot;)</span>
+</span><span class="line"><span class="s">        shift</span>
+</span><span class="line"><span class="s">        ;;</span>
+</span><span class="line"><span class="s">    esac</span>
+</span><span class="line"><span class="s">  done</span>
+</span><span class="line"><span class="s">}</span>
+</span><span class="line"><span class="s">EOF</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Start main</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make sub command list</span>
+</span><span class="line"><span class="nv">__subcommands</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^_&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^ &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot; () </span>$<span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># No arguments</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$#</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Read arguments</span>
+</span><span class="line"><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>_generate_read_options<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line">_read_options<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Check sub command</span>
+</span><span class="line"><span class="nv">__subcommand</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">__positional</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">shift</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommands</span><span class="s2"> &quot;</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommand</span><span class="s2"> &quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommand</span><span class="s2"> is unknown subcommand.&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Run sub command</span>
+</span><span class="line"><span class="nv">$__subcommand</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを実行してみると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./my_command.sh
+</span><span class="line">Usage ./my_command.sh &lt;subcommand&gt; [options]
+</span><span class="line">
+</span><span class="line">Subcommands:
+</span><span class="line">  commands                           Show subcommands.
+</span><span class="line">  greet                              Call the _hello function,
+</span><span class="line">                                     passing the value of the $__name variable.
+</span><span class="line">  help                               Show this help.
+</span><span class="line">Options:
+</span><span class="line">  --name, -n                         Set name.
+</span><span class="line">  --greet-msg                        Set greet message.
+</span><span class="line">                                     Default is 'Hello'.
+</span><span class="line">  --help, -h                         Show help.
+</span><span class="line">$ ./my_command.sh commands
+</span><span class="line">commands greet help
+</span><span class="line">$ ./my_command.sh greet
+</span><span class="line">Hello Alice!
+</span><span class="line">$ ./my_command.sh greet --name Bob --greet-msg "Good morning"
+</span><span class="line">Good morning Bob!
+</span><span class="line">$ ./my_command.sh greet --name 太郎君 --greet-msg "こんにちは"
+</span><span class="line">こんにちは 太郎君!
+</span><span class="line">$ ./my_command.sh greet -n 太郎君 --greet-msg "こんにちは"
+</span><span class="line">こんにちは 太郎君!
+</span><span class="line">$ ./my_command.sh greet -n 太郎君 -g "こんにちは"
+</span><span class="line">Unknown option: -g
+</span><span class="line">$</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じで使えます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトで関数につけたコメントをヘルプとして表示できるようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2024/09/23/computer-bash/"/>
+    <updated>2024-09-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/09/23/computer-bash</id>
+    <content type="html"><![CDATA[<p>シェルスクリプトで関数につけたコメントを取得してヘルプとして表示したい、という話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#関数に書いたコメントをそのままヘルプにしたい" id="markdown-toc-関数に書いたコメントをそのままヘルプにしたい">関数に書いたコメントをそのままヘルプにしたい</a></li>
+  <li><a href="#コメントの抽出方法" id="markdown-toc-コメントの抽出方法">コメントの抽出方法</a>    <ul>
+      <li><a href="#func-な関数" id="markdown-toc-func-な関数"><code>&lt;func&gt; ()</code>な関数</a></li>
+      <li><a href="#function-func-な関数" id="markdown-toc-function-func-な関数"><code>function &lt;func&gt; [()]</code>な関数</a></li>
+      <li><a href="#-が次の行にくる定義の関数" id="markdown-toc--が次の行にくる定義の関数"><code>{</code> が次の行にくる定義の関数</a></li>
+    </ul>
+  </li>
+  <li><a href="#ヘルプを作る" id="markdown-toc-ヘルプを作る">ヘルプを作る</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="関数に書いたコメントをそのままヘルプにしたい">関数に書いたコメントをそのままヘルプにしたい</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/09/08/computer-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240908_subcommand_120_90.jpg" width="120" height="90" alt="20240908_subcommand_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/09/08/computer-bash/">シェルスクリプトで関数をそのままサブコマンドとして使う</a></div></li></ul>
+
+<p>前回書いたシェルスクリプトで関数を定義したらそのままサブコマンドとして使えるようにするという話。</p>
+
+<p>このようなスクリプトを作ってヘルプを作ろうと思った時、
+普通にやろうと思うと関数とそれを使うサブコマンドのヘルプは
+別の部分に書くことになります。</p>
+
+<p>ただ、せっかく関数を実装すると自動的にサブコマンドになるのに、
+別の部分でそのサブコマンド用の何かを追加しないといけない、となるとメリットが減ってしまいます。</p>
+
+<p>関数先頭とかに関数の説明コメントを書いて、それがそのままヘルプとして表示できるようになれば
+サブコマンドの定義とヘルプの記述が同時に出来ることになり、メンテナンスするのも楽になるのではないか、ということで
+そういったことが出来るようにしてみます。</p>
+
+<h2 id="コメントの抽出方法">コメントの抽出方法</h2>
+
+<h3 id="func-な関数"><code>&lt;func&gt; ()</code>な関数</h3>
+
+<p>シェルスクリプトでこんな関数があるとします。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>このコメント部分をヘルプとして表示するべく抽出します。</p>
+
+<p>これ、実行中の状態だけから抽出できると良いのですが、うまいこと思いつかなかったので
+ちょっと無理やりですが以下のような方法で読み出します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">script</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">func</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">in_func</span><span class="o">=</span><span class="k">$(</span>
+</span><span class="line"><span class="w">    </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">func</span><span class="si">}</span><span class="s2"> *\(\) *{/ {</span>
+</span><span class="line"><span class="s2">      flag = 1;</span>
+</span><span class="line"><span class="s2">      next;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    flag &amp;&amp; /^}/ {</span>
+</span><span class="line"><span class="s2">      exit;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$script</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$in_func</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s2">&quot;/^ *#/ {</span>
+</span><span class="line"><span class="s2">      sub(/^ *# ?/, \&quot;\&quot;);</span>
+</span><span class="line"><span class="s2">      print;</span>
+</span><span class="line"><span class="s2">      next;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    {</span>
+</span><span class="line"><span class="s2">      exit;</span>
+</span><span class="line"><span class="s2">    }&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ワンライナーにするとこんな感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *\(\) *{/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>外部コマンドの<code>awk</code>を使いますが、<code>awk</code>なしだとかなり面倒になるので<code>awk</code>は使えるとします。</p>
+
+<p><code>awk</code>を使って現在実行中のスクリプト<code>$0</code>の中から引数で与えられた<code>func</code>を探しそこからコメント部分を抽出しています。</p>
+
+<p>コメント部分に関しては
+通常のファイルとして再度読み込むような形になっているのがあまり綺麗では無いところですが
+今のところ
+実行中のスクリプトから直接参照する方法が思いつかないのでこんな感じで。</p>
+
+<p>やっていることは最初の部分が<code>&lt;func&gt; () {</code>で始まる行を探し、それ以降で<code>}</code>の行までを抜き出し、
+パイプのあとはその中から最初の行から書かれているコメント部分を抜き出しています。</p>
+
+<figure class="code"><figcaption><span>greet.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *\(\) *{/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_extract_comments<span class="w"> </span>greet
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を実行すれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./greet.sh
+</span><span class="line">Call the _hello function,
+</span><span class="line">passing the value of the $__name variable.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>先頭からの連続コメント行だけを見るので、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように一行開けると何も取れなくなります。</p>
+
+<p>また、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1"># This is ignored</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に途中で一行空けばその前までの取得になります。</p>
+
+<p>関数内で定義される関数などを除くために関数の定義の前にスペースとか何もないように<code>^</code>を指定してますが、
+もし関数内で定義されているようなものも見たかったら</p>
+
+<pre><code>\^${1}...
+</code></pre>
+
+<p>を</p>
+
+<pre><code>\ *${1}...
+</code></pre>
+
+<p>の様にしてください。</p>
+
+<p>また、このスクリプトだと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>fucntion<span class="w"> </span>func1<span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># comment1</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span>func1
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">fucntion<span class="w"> </span>func2<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># comment2</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span>func2
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">func3<span class="w"> </span><span class="o">()</span>
+</span><span class="line"><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># comment3</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span>func3
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな形の
+<code>function</code>を使った宣言をしている、
+<code>{</code>が別の行にある、
+といった場合には取得できません。</p>
+
+<h3 id="function-func-な関数"><code>function &lt;func&gt; [()]</code>な関数</h3>
+
+<p><code>func1</code>/<code>func2</code>の場合であれば、
+<code>awk</code>で</p>
+
+<pre><code>\^${1} *\(\) *{\
+</code></pre>
+
+<p>で探していた部分を<code>function</code>から始まるようにして探せば良く、</p>
+
+<pre><code>^function ${1} *(\(\))? *{
+</code></pre>
+
+<p>のようにすればOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^function </span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *(\(\))? *{/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにすれば<code>function</code>で始まる書き方なら<code>()</code>があってもなくても取ることが出来ます。</p>
+
+<p><code>function </code>で始まればほぼ関数なので</p>
+
+<pre><code>^function ${1}
+</code></pre>
+
+<p>でも殆どの場合は問題なく動くはずです。</p>
+
+<h3 id="-が次の行にくる定義の関数"><code>{</code> が次の行にくる定義の関数</h3>
+
+<p><code>{</code>が別行に来るのもを見つけるには
+以下のように変更します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">script</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">func</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">in_func</span><span class="o">=</span><span class="k">$(</span>
+</span><span class="line"><span class="w">    </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">func</span><span class="si">}</span><span class="s2"> *\(\)/ {</span>
+</span><span class="line"><span class="s2">      flag = 1;</span>
+</span><span class="line"><span class="s2">      getline;</span>
+</span><span class="line"><span class="s2">      next;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    flag &amp;&amp; /^}/ {</span>
+</span><span class="line"><span class="s2">      exit;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$script</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$in_func</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s2">&quot;/^ *#/ {</span>
+</span><span class="line"><span class="s2">      sub(/^ *# ?/, \&quot;\&quot;);</span>
+</span><span class="line"><span class="s2">      print;</span>
+</span><span class="line"><span class="s2">      next;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">    {</span>
+</span><span class="line"><span class="s2">      exit;</span>
+</span><span class="line"><span class="s2">    }</span>
+</span><span class="line"><span class="s2">  &quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初の<code>in_func</code>(関数内の文字列)を探す部分で
+<code>getline</code>が追加されています。
+これによって次の<code>{</code>の行をスキップする形。</p>
+
+<p>ワンライナーにするとこんな感じ。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *\(\) *{/{flag=1;getline;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これに<code>function</code>付きの書き方などまだ組み合わせはありますが、
+とりあえずこんな感じで対応出来ます。</p>
+
+<p>違うものに色々対応しようと思うと正規表現を複雑にしたり条件分岐追加したりで
+<code>awk</code>だけだと結構辛いことになるかも。</p>
+
+<p>とりあえず自分のスクリプトでやる際には関数の書き方決めればそれに対応するものを用意すれば良いかと。</p>
+
+<h2 id="ヘルプを作る">ヘルプを作る</h2>
+
+<p>シェルスクリプト内の関数のヘルプを編集中以外でわざわざ表示することはめったにないと思いますが、
+前回やったサブコマンドとして使う場合、各サブコマンドのヘルプとして関数のコメントを使えます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/09/08/computer-bash/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240908_subcommand_120_90.jpg" width="120" height="90" alt="20240908_subcommand_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/09/08/computer-bash/">シェルスクリプトで関数をそのままサブコマンドとして使う</a></div></li></ul>
+
+<p>上で使った例に対してsubcommandとして使う関数にコメントを書いてそれをヘルプ表示できるようにします。</p>
+
+<figure class="code"><figcaption><span>my_command.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Default parameters</span>
+</span><span class="line"><span class="nv">__name</span><span class="o">=</span><span class="s2">&quot;Alice&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Non sub command</span>
+</span><span class="line">_hello<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;hello </span><span class="nv">$1</span><span class="s2">!&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># sub commands</span>
+</span><span class="line">greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Call the _hello function,</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># passing the value of the $__name variable.</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">commands<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Show subcommands.</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommands</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_print_explain<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">spaces</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">name_length</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">comments</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$4</span><span class="s2">&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">prefix</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%</span><span class="si">${</span><span class="nv">spaces</span><span class="si">}</span><span class="s2">s%-</span><span class="si">${</span><span class="nv">name_length</span><span class="si">}</span><span class="s2">s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$value</span><span class="s2"> &quot;</span><span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%s%s\n&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$prefix</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="nv">prefix</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">prefix</span><span class="p">//?/ </span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span><span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comments</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *\(\) *{/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">_print_subcommands<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Subcommands:&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">for</span><span class="w"> </span>func<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$__subcommands</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">    </span><span class="nb">local</span><span class="w"> </span><span class="nv">comments</span><span class="o">=</span><span class="k">$(</span>_extract_comments<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$func</span><span class="s2">&quot;</span><span class="k">)</span>
+</span><span class="line"><span class="w">    </span>_print_explain<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$func</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$comments</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">done</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">help</span><span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># Show this help.</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Usage </span><span class="nv">$0</span><span class="s2"> &lt;subcommand&gt; [options]&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span>_print_subcommands
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make sub command list</span>
+</span><span class="line"><span class="nv">__subcommands</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^_&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^ &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot; () </span>$<span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Start main</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$#</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Check sub command</span>
+</span><span class="line"><span class="nv">__subcommand</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">shift</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommands</span><span class="s2"> &quot;</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommand</span><span class="s2"> &quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommand</span><span class="s2"> is unknown subcommand.&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Get other arguments</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>n:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;n&quot;</span><span class="o">)</span><span class="nv">__name</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;h&quot;</span><span class="o">)</span>help<span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Unknown argument: </span><span class="nv">$OPT</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span>echo<span class="p">;</span><span class="w"> </span>help<span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Run sub command</span>
+</span><span class="line"><span class="nv">$__subcommand</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>追加されたのは以下の関数。</p>
+
+<ul>
+  <li><code>_print_explain</code>
+    <ul>
+      <li>第一引数に関数名。</li>
+      <li>第二引数に表示のインデントのスペース数。</li>
+      <li>第三引数に関数名の表示幅(説明文の開始を揃えるため。左詰め)。</li>
+      <li>第四引数にコメント。</li>
+    </ul>
+  </li>
+  <li><code>_extract_comments</code>
+    <ul>
+      <li>関数名を引数に取り、その関数のコメントを取得する。</li>
+    </ul>
+  </li>
+  <li><code>_print_subcommands</code>
+    <ul>
+      <li>サブコマンドの一覧を表示する。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>で、<code>help</code>の中で<code>_print_subcommands</code>を呼んでいます。</p>
+
+<p>これで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./my_command.sh
+</span><span class="line">Usage ./my_command.sh &lt;subcommand&gt; [options]
+</span><span class="line">
+</span><span class="line">Subcommands:
+</span><span class="line">  commands                           Show subcommands.
+</span><span class="line">  greet                              Call the _hello function,
+</span><span class="line">                                     passing the value of the $__name variable.
+</span><span class="line">  help                               Show this help.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じにsubcommandのそれぞれのヘルプを表示出来るようになります。</p>
+
+<p>あまり大きなスクリプトを想定してないのでコマンド毎に毎回ファイルを読み込むようにしていますが、
+気になるようなら
+<code>help</code>の最初で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span><span class="nv">__script</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として変数として確保しておいて</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>_extract_comments<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__script</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s2">&quot;/^</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2"> *\(\) *{/{flag=1;next}/^}/{flag=0}flag&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/^ *#/{sub(/^ *# ?/, &quot;&quot;); print; next} {exit}&#39;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにして使うとかもありかと。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトで関数をそのままサブコマンドとして使う]]></title>
+    <link href="https://rcmdnk.com/blog/2024/09/08/computer-bash/"/>
+    <updated>2024-09-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/09/08/computer-bash</id>
+    <content type="html"><![CDATA[<p>シェルスクリプトでサブコマンドを持つようなものを作りたいときに、
+関数を定義するとそれがそのままサブコマンドとして使えるようにする実装について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#実装例" id="markdown-toc-実装例">実装例</a></li>
+  <li><a href="#説明" id="markdown-toc-説明">説明</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./my_command.sh &lt;subcommand&gt; [options]</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに
+<code>git commit</code>, <code>git push</code>みたいな感じで最初の引数にサブコマンドを渡して色々出来るようにするスクリプトを作りたいとします。</p>
+
+<p>このサブコマンド部分を、スクリプト内で関数を実装するとその関数名のサブコマンドがそのまま使えるようにするというもの。</p>
+
+<p>引数と関数の結びつけの一手間を省けるというが利点です。</p>
+
+<h2 id="実装例">実装例</h2>
+
+<figure class="code"><figcaption><span>my_command.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Default parameters</span>
+</span><span class="line"><span class="nv">__name</span><span class="o">=</span><span class="s2">&quot;Alice&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Non sub command</span>
+</span><span class="line">_hello<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;hello </span><span class="nv">$1</span><span class="s2">!&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># sub commands</span>
+</span><span class="line">greet<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">commands<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommands</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">help</span><span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Usage </span><span class="nv">$0</span><span class="s2"> &lt;subcommand&gt; [options]&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Subcommands: </span><span class="k">$(</span>commands<span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Make sub command list</span>
+</span><span class="line"><span class="nv">__subcommands</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^_&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^ &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot; () </span>$<span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Start main</span>
+</span><span class="line"><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$#</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Check sub command</span>
+</span><span class="line"><span class="nv">__subcommand</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">shift</span>
+</span><span class="line">
+</span><span class="line"><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommands</span><span class="s2"> &quot;</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot; </span><span class="nv">$__subcommand</span><span class="s2"> &quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__subcommand</span><span class="s2"> is unknown subcommand.&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">help</span>
+</span><span class="line"><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</span><span class="line"><span class="k">fi</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Get other arguments</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>n:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;n&quot;</span><span class="o">)</span><span class="nv">__name</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;h&quot;</span><span class="o">)</span>help<span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Unknown argument: </span><span class="nv">$OPT</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span>echo<span class="p">;</span><span class="w"> </span>help<span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="c1"># Run sub command</span>
+</span><span class="line"><span class="nv">$__subcommand</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのスクリプト。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./my_command.sh
+</span><span class="line">Usage ./my_command.sh &lt;subcommand&gt; [options]
+</span><span class="line">
+</span><span class="line">Subcommands: commands greet help
+</span><span class="line">$ ./my_command.sh commands
+</span><span class="line">commands greet help
+</span><span class="line">$ ./my_command.sh help
+</span><span class="line">Usage ./my_command.sh &lt;subcommand&gt; [options]
+</span><span class="line">
+</span><span class="line">Subcommands: commands greet help
+</span><span class="line">$ ./my_command.sh greet
+</span><span class="line">hello Alice!
+</span><span class="line">$ ./my_command.sh greet -n Bob
+</span><span class="line">hello Bob!
+</span><span class="line">$ ./my_command.sh abc
+</span><span class="line">abc is unknown subcommand.
+</span><span class="line">
+</span><span class="line">Usage ./my_command.sh &lt;subcommand&gt; [options]
+</span><span class="line">
+</span><span class="line">Subcommands: commands greet help
+</span><span class="line">$</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じで使えます。</p>
+
+<h2 id="説明">説明</h2>
+
+<p>肝となるのはこの部分。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">__subcommands</span><span class="o">=</span><span class="k">$(</span><span class="nb">set</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot; () </span>$<span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^_&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^ &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39; &#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;\n&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="k">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>set</code>コマンドによって定義されている変数や関数を全て列挙して、そこから関数だけ抜き出しています。</p>
+
+<p>関数は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">greet () 
+</span><span class="line">{ 
+</span><span class="line">  _hello "$__name"
+</span><span class="line">}</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の様に表示されます。</p>
+
+<p>スクリプトの中では<code>function</code>を使って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">function</span><span class="w"> </span>greet
+</span><span class="line"><span class="o">{</span>
+</span><span class="line"><span class="w">  </span>_hello<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$__name</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と書くこともできますが、この場合でも<code>set</code>の出力は<code>function</code>なしで<code>()</code>つきのものになります。
+<code>{</code>に関しても同じ行に書いても出力は必ず次の行に書かれます。</p>
+
+<p>したがって、<code>()</code>を持つ行を探しますが、ちょっと注意が必要なのが表示上<code>()</code>で終わってるように見えますが後ろにスペースが一つ入ってます。
+(下の<code>{</code>のところにも一つスペースが入ります。)</p>
+
+<p>なので<code>grep " () $"</code>の様に一つスペースを挟んで終了する行を探しています。</p>
+
+<p>アンダーバー(<code>_</code>)で始まる関数は隠し関数としてサブコマンドには入れないようにします。</p>
+
+<p>また、関数の中で関数を定義しているような場合、関数の中身の関数が出てくるのでスペースから始まる行は無視で。
+ただ、関数内でも行頭から書いてもエラーにはならないのでその場合は例外的になり、動作が上手く行かなくなりますが
+そういった例外処理は今回はスキップで。</p>
+
+<p>後は使いやすいように<code>()</code>を消してすべてのコマンドをスペース区切りに直して文字列として保存してあります。</p>
+
+<p>これでリストが出来たので、
+第一引数をサブコマンドとみなして、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">if ! echo " $__subcommands "|grep -q " $__subcommand ";then</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>によって使えるサブコマンドかチェックして、必要であれば残りの引数を処理し、
+あとはサブコマンドで指定された関数を実行しています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[シェルスクリプトでgetoptsで解析する引数をポジショナルな引数と混合して使えるようにする]]></title>
+    <link href="https://rcmdnk.com/blog/2023/11/01/computer-bash/"/>
+    <updated>2023-11-01T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/11/01/computer-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/5512569740?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=5512569740&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/613QxkRKIfL._SS200_.jpg" alt="Getopts" /></a>
+</div>
+
+<p>シェルスクリプトで<code>getopts</code>を使うと簡単に引数のオプションが解析が出来ますが、
+ポジショナルな引数と一緒に使おうと思うと
+解析部分が途中で終わってしまったりうまく行かないことがあります。</p>
+
+<p>ただ使う側としては位置を気にせず使えたほうが便利なことが多いので
+それを実装する方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#getoptsを使ったオプション解析" id="markdown-toc-getoptsを使ったオプション解析">getoptsを使ったオプション解析</a></li>
+  <li><a href="#ポジショナルな引数をオプションの前や間にも入れられるようにする" id="markdown-toc-ポジショナルな引数をオプションの前や間にも入れられるようにする">ポジショナルな引数をオプションの前や間にも入れられるようにする</a></li>
+  <li><a href="#オプションでない-で始まる引数をポジショナルなものとして扱う" id="markdown-toc-オプションでない-で始まる引数をポジショナルなものとして扱う">オプションでない<code>-</code>で始まる引数をポジショナルなものとして扱う</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="getoptsを使ったオプション解析">getoptsを使ったオプション解析</h2>
+
+<p>よくある感じはこんなの。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="se">\?</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Invalid option.&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">  </span><span class="k">esac</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line"><span class="nb">shift</span><span class="w"> </span><span class="k">$((</span><span class="nv">OPTIND</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="k">))</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>getopts</code>の後に<code>-</code>始まりで使いたいオプションとして使いたいアルファベットを書きますが、
+値を持つものに関しては<code>:</code>を後ろにつけます。</p>
+
+<p>このオプションのアルファベットが<code>OPT</code>に入り、
+値持ちの場合は<code>OPTARG</code>にこの値が入ります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>それぞれのオプションに関して<code>case</code>文でそれぞれに対しての処置を設定します。
+もし<code>-</code>付きの引数で<code>getopt</code>に定義されてないものがくると<code>OPT</code>には<code>?</code>が入るのでそれに対する処置も追加しておきます。(エスケープ(<code>\?</code>)が必要。)</p>
+
+<p>解析が一通り終わった後、解析に使われなかった残りの引数を取得するために
+解析に使われた分(<code>OPTIND - 1</code>)<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+だけ<code>shift</code>で削除して残りをポジショナルな引数(<code>$1</code>, <code>$2</code>, …)として使えるような形にしています。</p>
+
+<p>実行してみると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">
+</span><span class="line">$ ./arg.sh -a -b yyy -c zzz abc def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">zzz
+</span><span class="line">abc def
+</span><span class="line">$ ./arg.sh -b yyy -a -c zzz -c ZZZ abc def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">ZZZ
+</span><span class="line">abc def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じになります。
+オプション部分に関しては順番は入れ替わっても大丈夫ですし、
+複数回同じオプションを使ってもその度に解析されるので、
+上の例だとただ値を入れてるだけなので<code>-c zzz -c ZZZ</code>みたいにした場合は後の方が残っています。</p>
+
+<p>ただ、これをオプションより前にポジショナルな引数を与えてしまうと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh abc -a -b yyy -c zzz def
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">abc -a -b yyy -c zzz def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じで解析されません。</p>
+
+<p>また、<code>a</code>は値を持たないオプションですが、<code>-a</code>の後ろに引数を置くとポジショナルな引数としてそこで解析が終わるので、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -a abc -b yyy -c zzz def
+</span><span class="line">xxx
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">abc -b yyy -c zzz def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じに<code>-a</code>の解析だけ行われて終了してしまいます。</p>
+
+<h2 id="ポジショナルな引数をオプションの前や間にも入れられるようにする">ポジショナルな引数をオプションの前や間にも入れられるようにする</h2>
+
+<p>これに関してはstackoverflowに10年以上前の質問がありました。</p>
+
+<ul>
+  <li><a href="https://stackoverflow.com/questions/11742996/is-mixing-getopts-with-positional-parameters-possible">bash - Is mixing getopts with positional parameters possible? - Stack Overflow</a></li>
+</ul>
+
+<p>一番voteされてるのは普通の<code>getopts</code>の説明で答えになってない感じではあるんですが、
+8年経って投稿された答えがいい感じに解決してくれてます。</p>
+
+<p>上のスクリプトを下のように書き換えてみます。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">positional</span><span class="o">=()</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OPTIND</span><span class="s2">&quot;</span><span class="w"> </span>-le<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$#</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="se">\?</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Invalid option.&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="k">esac</span>
+</span><span class="line"><span class="w">  </span><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">!OPTIND</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">    </span><span class="o">((</span>OPTIND++<span class="o">))</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">positional</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これを実行すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -a abc -b yyy -c zzz def
+</span><span class="line">xxx
+</span><span class="line">yyy
+</span><span class="line">zzz
+</span><span class="line">abc def</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じでオプション解析に使われてないものが
+<code>positional</code>に入れられてそれを順に使えるような状態が出来ます。</p>
+
+<p>ここでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">while [ "$OPTIND" -le "$#" ];do
+</span><span class="line">  if getopts ab:c:h OPT;then</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の組み合わせにすることで<code>getopts</code>で1つずつ解析していき、
+かつ<code>-</code>始まりでないポジショナルな引数が来たらこの2段目がfalseになるので、
+そこでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">positional+=("${!OPTIND}")
+</span><span class="line">((OPTIND++))</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>として<code>positional</code>変数にその値を追加しています
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。
+この場合は<code>getopts</code>での<code>OPTIND</code>のインクリメントが行われないので
+手動で1つ値を加えておきます。</p>
+
+<p>こうすることで最後までオプション引数があれば解析してその他はポジショナルな引数として扱うことが出来ます。</p>
+
+<h2 id="オプションでない-で始まる引数をポジショナルなものとして扱う">オプションでない<code>-</code>で始まる引数をポジショナルなものとして扱う</h2>
+
+<p>上のスクリプトでオプションとして設定していない文字を<code>-</code>付きで与えると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -d
+</span><span class="line">./arg.sh: illegal option -- d
+</span><span class="line">Invalid option.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といった感じのエラーを出します。</p>
+
+<p>このような設定していないものはそのままポジショナルな引数として使いたい、といったことがある場合は以下のようにすることで扱えます。</p>
+
+<figure class="code"><figcaption><span>arg.sh </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;aaa&quot;</span>
+</span><span class="line"><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;bbb&quot;</span>
+</span><span class="line"><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;ccc&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="nv">positional</span><span class="o">=()</span>
+</span><span class="line"><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OPTIND</span><span class="s2">&quot;</span><span class="w"> </span>-le<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$#</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">getopts</span><span class="w"> </span>:ab:c:h<span class="w"> </span>OPT<span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nv">$OPT</span><span class="w"> </span><span class="k">in</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var1</span><span class="o">=</span><span class="s2">&quot;xxx&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;b&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var2</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;c&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nv">var3</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="s2">&quot;h&quot;</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;This is help.&quot;</span><span class="p">;</span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span><span class="p">;;</span>
+</span><span class="line"><span class="w">      </span><span class="se">\?</span><span class="o">)</span><span class="w"> </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;-</span><span class="nv">$OPTARG</span><span class="s2">&quot;</span><span class="o">)</span><span class="p">;;</span>
+</span><span class="line"><span class="w">    </span><span class="k">esac</span>
+</span><span class="line"><span class="w">  </span><span class="k">else</span>
+</span><span class="line"><span class="w">    </span><span class="nv">positional</span><span class="o">+=(</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">!OPTIND</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class="line"><span class="w">    </span><span class="o">((</span>OPTIND++<span class="o">))</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var1</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var2</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$var3</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">positional</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>変わったところは<code>getopts</code>の引数の最初に<code>:</code>が追加され、<code>?</code>の場合に
+<code>positional</code>に<code>-</code>を加えた<code>OPTARG</code>を追加している部分。</p>
+
+<p><code>getopts</code>の第一引数の文字列で一番最初に<code>:</code>を入れると
+<code>-</code>から始まる引数が指定のオプションでない場合はエラーにせずに
+その文字を<code>OPTARG</code>に入れる、という仕組みがあります。</p>
+
+<p>この場合も<code>OPT</code>に入るのは<code>?</code>です。</p>
+
+<p>これを使って<code>-$OPTARG</code>を<code>positional</code>に加えることでオプション指定していない<code>-</code>引数をポジショナルな引数として扱っています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ./arg.sh -d
+</span><span class="line">aaa
+</span><span class="line">bbb
+</span><span class="line">ccc
+</span><span class="line">-d</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じ。</p>
+
+<p>引数の一部を解析した上で
+さらに別の関数にそのまま渡したい、とか言う場合に使えそうです。</p>
+]]></content>
+  </entry>
+  
+</feed>

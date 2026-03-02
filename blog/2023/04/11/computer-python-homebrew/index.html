@@ -1,0 +1,1575 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>Python製コマンドラインツールをHomebrewで配布する</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="Python製コマンドラインツールをHomebrewで配布する">
+  <meta name="description" content="Pythonで作ったCLIツールは
+PyPI
+を通して配布することが出来ますが
+必要なPythonのバージョンがあったり、依存パッケージを色々インストールしないといけないとなると
+pipでグローバルな環境に入れるのもちょっと微妙。 &hellip;">
+  
+  <meta property="og:title" content="Python製コマンドラインツールをHomebrewで配布する">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Pythonで作ったCLIツールは
+PyPI
+を通して配布することが出来ますが
+必要なPythonのバージョンがあったり、依存パッケージを色々インストールしないといけないとなると
+pipでグローバルな環境に入れるのもちょっと微妙。 &hellip;">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://images-na.ssl-images-amazon.com/images/I/51Xu88hlobL._SS200_.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="https://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="https://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="https://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2023-04-11T00:00:00+00:00'><span class='time'>11 Apr 2023</span></time></span>
+    
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/python/"><span>Python</span></a>
+    
+      
+        <span>, </span>
+        <a href="/blog/tags/homebrew/"><span>Homebrew</span></a>
+      
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2023/04/11/computer-python-homebrew/" itemprop="url">Python製コマンドラインツールをHomebrewで配布する</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&amp;t=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&title=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1938469356?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1938469356&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img itemprop="image" src="https://images-na.ssl-images-amazon.com/images/I/51Xu88hlobL._SS200_.jpg" alt="How to Brew: Everything You Need to Know to Brew Great Beer Every Time" /></a>
+</div>
+
+<p>Pythonで作ったCLIツールは
+<a href="https://pypi.org/">PyPI</a>
+を通して配布することが出来ますが
+必要なPythonのバージョンがあったり、依存パッケージを色々インストールしないといけないとなると
+<code>pip</code>でグローバルな環境に入れるのもちょっと微妙。</p>
+
+<p>仮想環境を作ってそこで管理すれば他のライブラリ等を気にせず使えますが、
+Homebrewを使うとその辺が簡単に出来ます。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#homebrewでのpythonツール用のformulaの作成" id="markdown-toc-homebrewでのpythonツール用のformulaの作成">HomebrewでのPythonツール用のFormulaの作成</a></li>
+  <li><a href="#brew-create" id="markdown-toc-brew-create">brew create</a></li>
+  <li><a href="#インストールされたもの" id="markdown-toc-インストールされたもの">インストールされたもの</a></li>
+  <li><a href="#インストール時間" id="markdown-toc-インストール時間">インストール時間</a></li>
+  <li><a href="#パッケージのアップデート" id="markdown-toc-パッケージのアップデート">パッケージのアップデート</a></li>
+  <li><a href="#配布" id="markdown-toc-配布">配布</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrewでのpythonツール用のformulaの作成">HomebrewでのPythonツール用のFormulaの作成</h2>
+
+<p>以下にPythonのFormulaに関するドキュメントがあります。</p>
+
+<blockquote>
+  <p><a href="https://docs.brew.sh/Python-for-Formula-Authors">Python for Formula Authors — Homebrew Documentation</a></p>
+</blockquote>
+
+<p>ここだと色々と思想的なものが書かれているのとちょっと古い？方法が書かれていますが、</p>
+
+<p>以下ではPyPIで配布されているパッケージのFormulaを作る際に実際にやりやすい手順を紹介。</p>
+
+<h2 id="brew-create">brew create</h2>
+
+<p>まず、テンプレートを作るため、<code>brew create</code>コマンドを使います。</p>
+
+<p>ただ、これ今ちょっと使いづらくなっています。
+デフォルトではHomebrew-coreのTapの中に作る設定になっていますが
+最近API経由のインストールがHomebrewのデフォルトになっているので
+そのTapが存在しないため</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: No available tap .</span></code></pre></td></tr></table></div></figure>
+
+<p>といったエラーが出てしまいます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2023/02/17/computer-homebrew/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20230217_homebrew4_120_90.png" width="120" height="90" alt="20230217_homebrew4_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2023/02/17/computer-homebrew/">Homebrew 4.0.0リリース</a></div></li></ul>
+
+<p>なので適当なTapを用意して上げる必要があります。
+<a href="https://github.com/Homebrew/homebrew-core">homebrew-core</a>
+を入れるでも良いのですが重いので適当な別のものを入れたほうが楽です。</p>
+
+<p>もし適当なものがなければ<strong>homebrew-testtap</strong>という名前の空レポジトリをGitHubに作って</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew tap &lt;user&gt;/testtap</span></code></pre></td></tr></table></div></figure>
+
+<p>とかで入れればOK
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p><a href="https://github.com/rcmdnk/homebrew-testtap">rcmdnk/homebrew-testtap</a>
+が空Tapなので、これを使っても良いです。</p>
+
+<p>ローカルなtapを持ったら<code>brew create</code>を実行します。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Usage: brew create [options] URL</span></code></pre></td></tr></table></div></figure>
+
+<p><code>brew create</code>は<code>--python</code>, <code>--ruby</code>, <code>--go</code>など各言語の独自環境やビルド用の
+templateを作るためのオプションが用意されているのでこれを使います。</p>
+
+<p>python用Formulaでは<code>URL</code>にはPyPIでのSourceの圧縮ファイルを指定します。</p>
+
+<p>以下では
+<a href="https://pypi.org/project/cocoro/">cocoro</a>
+というCLIツールで作ってみます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="/blog/2021/03/03/computer-iot-raspberrypi/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20210303_switchon_120_90.jpg" width="120" height="90" alt="20210303_switchon_120_90" /></a>
+</div><a class="click_box_link" href="/blog/2021/03/03/computer-iot-raspberrypi/">シャープの加湿空気清浄機をアプリ外から操作する</a></div></li></ul>
+
+<p>PyPIの<a href="https://pypi.org/project/cocoro/#files">cocoroのファイルをダウンロード</a>
+のページに有る最新のtar.gzのファイルのURLを取得。</p>
+
+<p>これを使って以下のようなコマンドを実行。</p>
+
+<p><code>--set-name</code>オプションはつけない場合はデフォルトの値が<code>cocoro-0.1.4</code>とバージョンの付いた名前になって、
+これを変更するかどうか聞かれるプロンプトが出ます。</p>
+
+<p>バージョンは外さないと行けないので最初から<code>--set-name</code>で指定しています。</p>
+
+<p><code>--set-license</code>でのライセンス指定などは後からエディタで変更してもOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew create --python --set-name cocoro --set-license Apache-2.0 --tap rcmdnk/testtap https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz</span></code></pre></td></tr></table></div></figure>
+
+<p>これで以下のようなファイルができ、それをエディタで開いた状態になります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Documentation: https://docs.brew.sh/Formula-Cookbook
+</span><span class="line">#                https://rubydoc.brew.sh/Formula
+</span><span class="line"># PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
+</span><span class="line">class Cocoro &lt; Formula
+</span><span class="line">  include Language::Python::Virtualenv
+</span><span class="line">
+</span><span class="line">  desc ""
+</span><span class="line">  homepage ""
+</span><span class="line">  url "https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz"
+</span><span class="line">  sha256 "170404bfe64c80e6742689225995a23708855f445dd7b65ff690ad7f2278d417"
+</span><span class="line">  license "Apache-2.0"
+</span><span class="line">
+</span><span class="line">  depends_on "python"
+</span><span class="line">
+</span><span class="line">  resource "certifi" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/37/f7/2b1b0ec44fdc30a3d31dfebe52226be9ddc40cd6c0f34ffc8923ba423b69/certifi-2022.12.7.tar.gz"
+</span><span class="line">    sha256 "35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "charset-normalizer" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/ff/d7/8d757f8bd45be079d76309248845a04f09619a7b17d6dfc8c9ff6433cac2/charset-normalizer-3.1.0.tar.gz"
+</span><span class="line">    sha256 "34e0a2f9c370eb95597aae63bf85eb5e96826d81e3dcf88b8886012906f509b5"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "fire" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/11/07/a119a1aa04d37bc819940d95ed7e135a7dcca1c098123a3764a6dcace9e7/fire-0.4.0.tar.gz"
+</span><span class="line">    sha256 "c5e2b8763699d1142393a46d0e3e790c5eb2f0706082df8f647878842c216a62"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "idna" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/8b/e1/43beb3d38dba6cb420cefa297822eac205a277ab43e5ba5d5c46faf96438/idna-3.4.tar.gz"
+</span><span class="line">    sha256 "814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "PyYAML" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/a0/a4/d63f2d7597e1a4b55aa3b4d6c5b029991d3b824b5bd331af8d4ab1ed687d/PyYAML-5.4.1.tar.gz"
+</span><span class="line">    sha256 "607774cbba28732bfa802b54baa7484215f530991055bb562efbed5b2f20a45e"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "requests" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/9d/ee/391076f5937f0a8cdf5e53b701ffc91753e87b07d66bae4a09aa671897bf/requests-2.28.2.tar.gz"
+</span><span class="line">    sha256 "98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "six" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz"
+</span><span class="line">    sha256 "1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "termcolor" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/e5/4e/b2a54a21092ad2d5d70b0140e4080811bee06a39cc8481651579fe865c89/termcolor-2.2.0.tar.gz"
+</span><span class="line">    sha256 "dfc8ac3f350788f23b2947b3e6cfa5a53b630b612e6cd8965a015a776020b99a"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  resource "urllib3" do
+</span><span class="line">    url "https://files.pythonhosted.org/packages/21/79/6372d8c0d0641b4072889f3ff84f279b738cd8595b64c8e0496d4e848122/urllib3-1.26.15.tar.gz"
+</span><span class="line">    sha256 "8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305"
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  def install
+</span><span class="line">    # ENV.deparallelize  # if your formula fails when building in parallel
+</span><span class="line">    virtualenv_install_with_resources
+</span><span class="line">  end
+</span><span class="line">
+</span><span class="line">  test do
+</span><span class="line">    # `test do` will create, run in and delete a temporary directory.
+</span><span class="line">    #
+</span><span class="line">    # This test will fail and we won't accept that! For Homebrew/homebrew-core
+</span><span class="line">    # this will need to be a test that verifies the functionality of the
+</span><span class="line">    # software. Run the test with `brew test cocoro`. Options passed
+</span><span class="line">    # to `brew install` such as `--HEAD` also need to be provided to `brew test`.
+</span><span class="line">    #
+</span><span class="line">    # The installed folder is not in the path, so use the entire path to any
+</span><span class="line">    # executables being tested: `system "#{bin}/program", "do", "something"`.
+</span><span class="line">    system "false"
+</span><span class="line">  end
+</span><span class="line">end</span></code></pre></td></tr></table></div></figure>
+
+<p>ファイルはtapの中の<strong>/opt/homebrew/Library/Taps/rcmdnk/homebrew-testtap/cocoro.rb</strong> (環境によって違う、<code>$(brew --repo rcmdnk/testtap)/cocoro.rb</code>)にあります。</p>
+
+<p>このファイルは<code>$ brew edit cocoro</code>とすることでもエディタで開くことが出来ます。</p>
+
+<p><code>URL</code>で指定したものが<code>url</code>に入り、その<code>sha256</code>の値は自動的に取得されています。</p>
+
+<p>依存するHomebrewのパッケージとしては<strong>python</strong>があります。
+もし(Homebrewで入れられる)特定のPythonのバージョンを使いたい場合は
+<code>python@3.10</code>などに変更します。</p>
+
+<p>Homebrew-coreに入れる場合など、<code>test</code>をきちんと定義したい場合は<code>python</code>というエイリアスだと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew test cocoro
+</span><span class="line">Error: No available formula with the name "python".</span></code></pre></td></tr></table></div></figure>
+
+<p>といったエラーになってしまうので<code>python@3.11</code>などきちんとバージョン含めたパッケージ名にする必要があります。</p>
+
+<p><strong>pyproject.toml</strong>や<strong>setup.py</strong>に書かれた依存関係のあるパッケージに関してはすべて
+<code>resource</code>として追加されています。</p>
+
+<p>きちんと定義されたパッケージであればもうこれでOKで、後は
+<code>desc</code>に適当な紹介文を、<code>homepage</code>にPyPIのパッケージのページかGitHubのページ、
+もしくはちゃんとしたHomepageがあればそれを記入しておけばとりあえず完成です。</p>
+
+<p>もし依存関係の記述が不十分で他に必要なパッケージがある場合には
+自分でそのパッケージのURLとハッシュ値を調べて<code>resource</code>に追加する必要があります。</p>
+
+<p>Formulaが出来たら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install cocoro</span></code></pre></td></tr></table></div></figure>
+
+<p>としてインストールできます。</p>
+
+<h2 id="インストールされたもの">インストールされたもの</h2>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ which cocoro
+</span><span class="line">/opt/homebrew/bin/cocoro</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じでコマンドがHomebrewのbinディレクトリにインストールされています(これ自体はシンボリックリンク)。
+(opt~の部分は環境によって違う、<code>$(brew --prefix)/bin/cocoro</code>)</p>
+
+<p>中身は</p>
+
+<figure class="code"><figcaption><span>cocoro </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="ch">#!/opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/python3.11</span>
+</span><span class="line"><span class="c1"># -*- coding: utf-8 -*-</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">re</span>
+</span><span class="line"><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class="line"><span class="kn">from</span> <span class="nn">cocoro</span> <span class="kn">import</span> <span class="n">main</span>
+</span><span class="line"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(-script\.pyw|\.exe)?$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span class="line">    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、これは通常通り<code>pip install</code>で入れた場合と内容は基本的に同じです。</p>
+
+<p>ただ、Shebangを見てみると</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">#!/opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/python3.11</span></code></pre></td></tr></table></div></figure>
+
+<p>となっていて、このpythonは
+<strong>/opt/homebrew/Cellar/cocoro/0.1.4/libexec/</strong>に作られたPythonの仮想環境のものになっています。</p>
+
+<p>この仮想環境を直接使うことは通常はないかと思いますが、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ source /opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/activate</span></code></pre></td></tr></table></div></figure>
+
+<p>で入ることも出来ます。</p>
+
+<p>こんな感じで各Fomrula毎に仮想環境を用意してその中に必要なパッケージを入れて実行しているので
+他のPython環境と競合せずに管理できます。</p>
+
+<p>ちょっと注意が必要なのはHomebrewでインストールしたPythonの<code>pip</code>コマンドを使って同じツールをインストールすると
+同じく<strong>/opt/homebrew/bin/cocoro</strong>としてインストールされるので
+競合してしまいます。</p>
+
+<p>後から<code>brew</code>で入れると</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: The `brew link` step did not complete successfully</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに出て<strong>bin</strong>への実行ファイルのリンクが作れません。
+仮想環境やリンク元のファイルは出来ているので、<code>pip uninstall cocoro</code>としてから<code>brew link cocoro</code>するか
+<code>brew link --overwrite cocoro</code>で矯正上書きしてしまうかで置き直せます。</p>
+
+<h2 id="インストール時間">インストール時間</h2>
+
+<p>上のcocoroはそれほど依存パッケージを持っていませんが、
+それでも<code>brew install</code>で入れると普通に<code>pip install</code>するよりも結構時間がかかりました。</p>
+
+<p><code>pip</code>なら1,2秒のところ(空の仮想環境に入れてみるテスト)、
+<code>brew install</code>だと5分位かかりました。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">==&gt; /opt/homebrew/Cellar/cocoro/0.1.4/libexec/bin/pip install -v --no-deps --no-binary :all: --use-feature=no-binary-enable-wheel-cache --ignore-installed /tmp/cocoro--termcolor-20230412-26839-193n1qy/termcolor-2.2.0.tar.gz</span></code></pre></td></tr></table></div></figure>
+
+<p>の部分がやけに時間かかったみたいで、<code>--no-binary</code>でビルドするようになってるのでパッケージによっては時間がかかるものが出てきます。
+他のものはそこまで時間はかかってないので殆どの場合では<code>brew</code>でも数秒から数十秒程度で終わると思います。
+(仮想環境作ったりパッケージビルドしたりするので多少は時間がかかる。)</p>
+
+<p>単純に仮想環境で<code>pip install &lt;package&gt;==&lt;version</code>&gt;で依存関係も含めて全部入れてくれるような
+オプションもあっても良いな、とは思います。</p>
+
+<p>それだとインストールが速いのと、Formulaも<code>url</code>の代わりに<code>cocoro</code>などを指定する<code>package</code>、
+それとバージョン指定の<code>version</code>を書くだけでシンプルになって<code>resorce</code>も要らなく出来ます。</p>
+
+<p>ただ、<a href="https://docs.brew.sh/Python-for-Formula-Authors">Python for Formula Authors — Homebrew Documentation</a>
+を見るとそういうのは思想に反する感じではありますが。</p>
+
+<h2 id="パッケージのアップデート">パッケージのアップデート</h2>
+
+<p>上にあるように各パッケージはすべてバージョン指定された形でそのソースファイルのURLとハッシュが指定されていますが、
+これを手でアップデートするのはかなり大変です。</p>
+
+<p>そんなときのためのコマンドが<code>brew update-python-resources</code>。</p>
+
+<p>これ使うにあたって
+<code>pipgrip</code>というツールが必要なのでこれを別途</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install pipgrip</span></code></pre></td></tr></table></div></figure>
+
+<p>としてインストールしておく必要があります。</p>
+
+<p>これで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew update-python-resources cocoro</span></code></pre></td></tr></table></div></figure>
+
+<p>とすると各パッケージのバージョンの再確認を行ってくれます。</p>
+
+<p>このツールを使うに、</p>
+
+<p>これはHomebrewのTapの中にないものでも直接適用することが出来て、
+カレントディレクトリに<strong>cocoro.rb</strong>があれば</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew update-python-resources ./cocoro.rb</span></code></pre></td></tr></table></div></figure>
+
+<p>とすればそのファイルをアップデートしてくれます。</p>
+
+<p>これを使えば、</p>
+
+<figure class="code"><figcaption><span>cocoro.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cocoro</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">Formula</span>
+</span><span class="line"><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Language</span><span class="o">::</span><span class="no">Python</span><span class="o">::</span><span class="no">Virtualenv</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">desc</span><span class="w"> </span><span class="s2">&quot;Tools for COCORO API (SHARP products).&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">homepage</span><span class="w"> </span><span class="s2">&quot;https://pypi.org/project/cocoro/&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">url</span><span class="w"> </span><span class="s2">&quot;https://files.pythonhosted.org/packages/33/3a/7ada2648654931f7b01885eb14eb0d7988115247146ece39fc6b1cf0ff6a/cocoro-0.1.4.tar.gz&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">sha256</span><span class="w"> </span><span class="s2">&quot;170404bfe64c80e6742689225995a23708855f445dd7b65ff690ad7f2278d417&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">license</span><span class="w"> </span><span class="s2">&quot;Apache-2.0&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">depends_on</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">install</span>
+</span><span class="line"><span class="w">    </span><span class="n">virtualenv_install_with_resources</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいな感じの最小限のformulaを書いて<code>brew update-python-resources</code>を適用することでもFormulaを完成させられます。</p>
+
+<p>もとの
+<strong>cocoro-0.1.4.tar.gz</strong>のハッシュ値は自分で求めないといけませんが、個人的には
+以下のようなスクリプトを使ってURL先のハッシュ値を取得できるようにしています。</p>
+
+<ul>
+  <li><a href="https://github.com/rcmdnk/scripts/blob/master/bin/myshasum">scripts/myshasum</a></li>
+</ul>
+
+<h2 id="配布">配布</h2>
+
+<p>出来たら
+<code>$(brew --repo rcmdnk/testtap)/cocoro.rb</code>
+をコピーして、配布用の<code>homebrew-mypackages</code>みたいなtapレポジトリに追加してGitHubに上げれば</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install &lt;github_user&gt;/mypackages/cocoro</span></code></pre></td></tr></table></div></figure>
+
+<p>でインストールできるようになります。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p><code>pip</code>だけで配布できるものをわざわざHomebrewを使って、
+ということで配布側にはちょっと手間がかかりますが、
+ユーザー側としてはHomebrewさえ使っていれば
+既存のPython環境を汚さずに、また、Pythonのバージョンの指定も含めて
+インストールするように出来るのは結構便利ではないかな、と。</p>
+
+<p>特にアップデートがあった際に<code>pip</code>だと直接そのパッケージをアップデートするコマンドを打たないといけませんが、
+Homebrewであれば定期的に<code>brew update &amp;&amp; brew upgrade</code>とかしておけば
+他のパッケージ含めてアップデートしてくれるので楽です。</p>
+
+<p>また、PyPIに公開されているPythonのコマンドラインツールであればどれでも同じことが出来るので、
+自分のパッケージでなくても自分の管理用にFormulaを作ってHomebrewで管理できるようにする、という手段もありかと思います。</p>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<div class="footnotes"><ol><li id='fnin:1'>
+<p><code>warning: You appear to have cloned an empty repository.</code>という注意が出ますが
+<code>brew create</code>でファイルを追加テストする分には
+問題なく動きます。
+ <a href="#fninref:1" rel="reference">↩</a></p>
+</li></ol></div>
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished dateModified' class='entry-date updated' datetime='2023-04-11T00:00:00+00:00'><span class='date'>11 Apr 2023</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/homebrew/'><span>Homebrew</span></a>, <a class='tag' href='/blog/tags/python/'><span>Python</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B&url=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&amp;t=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/&title=Python%E8%A3%BD%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92Homebrew%E3%81%A7%E9%85%8D%E5%B8%83%E3%81%99%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2023/03/26/computer-slack-gpt-google-javascript/" title="Previous Post: SlackでChatGPTによるWebページの要約を頼むコマンドをGoogle Apps Scriptで作る">&laquo; SlackでChatGPTによるWebページの要約を頼むコマンドをGoogle Apps Scriptで作る</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2023/04/12/computer-python-ai-gpt/" title="Next Post: chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う">chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/hz/wishlist/ls/28GLSLW5HE8L8?ref_=wl_share&tag=rcmdnk0c-22">ほしいもの一覧</a>
+
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 265" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 284" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 99.97%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B0DWLN3WH2' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71+JH+T4bOL._SS90_CR0,0,120,90_.jpg' alt='Rust &amp; Python Integrated: Harnessing the Power of Systems and Scripting for High-Performance Development: A Comprehensive Guide 2025'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/23/computer-python-rust/">Python環境をRust製ツールで整える</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2026/02/22/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20260222_googleime_120_90.png" width="120" height="90" alt="20260222_googleime_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/22/computer-mac/">macOSでGoogle日本語入力のアップデート時に再起動を要求されても再起動を避ける</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/04/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251014_mise_120_90.jpg" width="120" height="90" alt="20251014_mise_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/04/computer-ai/">miseでAI CLIツールやMCPもまとめて管理する</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873119324' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS90_CR0,0,120,90_.jpg' alt='入門 Python 3 第2版'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/09/10/computer-python/">Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2026 (2)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2026/02/'>FEB (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2025 (18)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2025/10/'>OCT (2)</a></li><li><a href='/blog/2025/09/'>SEP (1)</a></li><li><a href='/blog/2025/08/'>AUG (3)</a></li><li><a href='/blog/2025/07/'>JUL (3)</a></li><li><a href='/blog/2025/05/'>MAY (2)</a></li><li><a href='/blog/2025/02/'>FEB (1)</a></li><li><a href='/blog/2025/01/'>JAN (6)</a></li></ul></li><li><span class="monthly_archive_year_span">2024 (26)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2024/11/'>NOV (4)</a></li><li><a href='/blog/2024/10/'>OCT (2)</a></li><li><a href='/blog/2024/09/'>SEP (4)</a></li><li><a href='/blog/2024/08/'>AUG (2)</a></li><li><a href='/blog/2024/07/'>JUL (2)</a></li><li><a href='/blog/2024/06/'>JUN (3)</a></li><li><a href='/blog/2024/05/'>MAY (2)</a></li><li><a href='/blog/2024/04/'>APR (2)</a></li><li><a href='/blog/2024/02/'>FEB (4)</a></li><li><a href='/blog/2024/01/'>JAN (1)</a></li></ul></li><li><span class="monthly_archive_year_span">2023 (56)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2023/12/'>DEC (2)</a></li><li><a href='/blog/2023/11/'>NOV (4)</a></li><li><a href='/blog/2023/10/'>OCT (2)</a></li><li><a href='/blog/2023/09/'>SEP (5)</a></li><li><a href='/blog/2023/08/'>AUG (1)</a></li><li><a href='/blog/2023/07/'>JUL (2)</a></li><li><a href='/blog/2023/05/'>MAY (5)</a></li><li><a href='/blog/2023/04/'>APR (9)</a></li><li><a href='/blog/2023/03/'>MAR (8)</a></li><li><a href='/blog/2023/02/'>FEB (9)</a></li><li><a href='/blog/2023/01/'>JAN (9)</a></li></ul></li><li><span class="monthly_archive_year_span">2022 (51)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2022/12/'>DEC (1)</a></li><li><a href='/blog/2022/11/'>NOV (1)</a></li><li><a href='/blog/2022/10/'>OCT (3)</a></li><li><a href='/blog/2022/09/'>SEP (6)</a></li><li><a href='/blog/2022/08/'>AUG (3)</a></li><li><a href='/blog/2022/07/'>JUL (3)</a></li><li><a href='/blog/2022/06/'>JUN (6)</a></li><li><a href='/blog/2022/05/'>MAY (3)</a></li><li><a href='/blog/2022/03/'>MAR (8)</a></li><li><a href='/blog/2022/02/'>FEB (9)</a></li><li><a href='/blog/2022/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2021 (46)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2021/12/'>DEC (3)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (96)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (4)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (70)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (1)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (7)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (150)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (12)</a></li><li><a href='/blog/2016/09/'>SEP (13)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (183)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (12)</a></li><li><a href='/blog/2015/10/'>OCT (17)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (31)</a></li><li><a href='/blog/2015/05/'>MAY (21)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (139)</a></li><li><a href='/blog/categories/computer/'>Computer (1049)</a></li><li><a href='/blog/categories/life/'>Life (69)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.38338658146965%'>AeroFS(2)</a> <a href='/blog/tags/ai/' style='font-size: 101.53354632587859%'>AI(8)</a> <a href='/blog/tags/amazon/' style='font-size: 100.38338658146965%'>Amazon(2)</a> <a href='/blog/tags/analytics/' style='font-size: 100.7667731629393%'>Analytics(4)</a> <a href='/blog/tags/android/' style='font-size: 102.87539936102236%'>Android(15)</a> <a href='/blog/tags/applescript/' style='font-size: 103.06709265175719%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.38338658146965%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 105.75079872204473%'>AutoHotkey(30)</a> <a href='/blog/tags/bash/' style='font-size: 121.85303514376997%'>Bash(114)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19169329073482%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.38338658146965%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.7667731629393%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.57507987220447%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.1182108626198%'>Brew-file(58)</a> <a href='/blog/tags/bsd/' style='font-size: 101.72523961661342%'>BSD(9)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.38338658146965%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.7667731629393%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.7923322683706%'>Chrome(25)</a> <a href='/blog/tags/cli/' style='font-size: 100.19169329073482%'>CLI(1)</a> <a href='/blog/tags/colinux/' style='font-size: 100.38338658146965%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.7667731629393%'>CSS(4)</a> <a href='/blog/tags/cygwin/' style='font-size: 105.94249201277955%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19169329073482%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.38338658146965%'>Desktop(2)</a> <a href='/blog/tags/diy/' style='font-size: 100.19169329073482%'>DIY(1)</a> <a href='/blog/tags/docker/' style='font-size: 100.38338658146965%'>Docker(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.91693290734824%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.57507987220447%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.95846645367412%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.68370607028754%'>Evernote(14)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19169329073482%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.30990415335464%'>Firefox(59)</a> <a href='/blog/tags/gas/' style='font-size: 100.19169329073482%'>GAS(1)</a> <a href='/blog/tags/geektool/' style='font-size: 100.57507987220447%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19169329073482%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 108.05111821086263%'>Git(42)</a> <a href='/blog/tags/github/' style='font-size: 115.52715654952077%'>GitHub(81)</a> <a href='/blog/tags/gmail/' style='font-size: 103.06709265175719%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.53354632587859%'>GNU(8)</a> <a href='/blog/tags/go/' style='font-size: 100.57507987220447%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.83386581469648%'>Google(20)</a> <a href='/blog/tags/gpt/' style='font-size: 100.95846645367412%'>GPT(5)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19169329073482%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 102.49201277955271%'>HHKB(13)</a> <a href='/blog/tags/home/' style='font-size: 100.19169329073482%'>Home(1)</a> <a href='/blog/tags/homebrew/' style='font-size: 118.59424920127796%'>Homebrew(97)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.30031948881789%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.7667731629393%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.38338658146965%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 112.26837060702876%'>IoT(64)</a> <a href='/blog/tags/iphone/' style='font-size: 102.68370607028754%'>iPhone(14)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.7667731629393%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.38338658146965%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.17571884984025%'>JavaScript(27)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.57507987220447%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.7667731629393%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.98402555910543%'>Karabiner(26)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19169329073482%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.53354632587859%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19169329073482%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19169329073482%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.22683706070288%'>Linux(69)</a> <a href='/blog/tags/liquid/' style='font-size: 100.38338658146965%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.57507987220447%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(313)</a> <a href='/blog/tags/markdown/' style='font-size: 102.30031948881789%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.53354632587859%'>Music(8)</a> <a href='/blog/tags/network/' style='font-size: 106.13418530351437%'>Network(32)</a> <a href='/blog/tags/obsidian/' style='font-size: 100.7667731629393%'>Obsidian(4)</a> <a href='/blog/tags/octopress/' style='font-size: 123.96166134185303%'>Octopress(125)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.38338658146965%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.57507987220447%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.7667731629393%'>Pocket(4)</a> <a href='/blog/tags/poetry/' style='font-size: 100.57507987220447%'>Poetry(3)</a> <a href='/blog/tags/powershell/' style='font-size: 101.53354632587859%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 100.57507987220447%'>PR(3)</a> <a href='/blog/tags/prompt/' style='font-size: 100.57507987220447%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.68370607028754%'>PuTTY(14)</a> <a href='/blog/tags/pypi/' style='font-size: 100.19169329073482%'>PyPi(1)</a> <a href='/blog/tags/python/' style='font-size: 114.56869009584665%'>Python(76)</a> <a href='/blog/tags/qi/' style='font-size: 100.19169329073482%'>Qi(1)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.57507987220447%'>Rakuten(3)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 103.45047923322684%'>RaspberryPi(18)</a> <a href='/blog/tags/ruby/' style='font-size: 102.68370607028754%'>Ruby(14)</a> <a href='/blog/tags/rust/' style='font-size: 100.19169329073482%'>Rust(1)</a> <a href='/blog/tags/screen/' style='font-size: 108.05111821086263%'>screen(42)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.68370607028754%'>sentaku(14)</a> <a href='/blog/tags/shell/' style='font-size: 100.19169329073482%'>Shell(1)</a> <a href='/blog/tags/shopping/' style='font-size: 109.96805111821087%'>Shopping(52)</a> <a href='/blog/tags/slack/' style='font-size: 100.57507987220447%'>Slack(3)</a> <a href='/blog/tags/svn/' style='font-size: 100.38338658146965%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.95846645367412%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.38338658146965%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.34185303514377%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.68370607028754%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.95846645367412%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.7667731629393%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 120.89456869009584%'>Vim(109)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.64217252396166%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.15015974440895%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.15015974440895%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.38338658146965%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 130.0958466453674%'>Windows(157)</a> <a href='/blog/tags/word/' style='font-size: 100.19169329073482%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.34185303514377%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 109.96805111821087%'>Zsh(52)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">870 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2024/09/27/computer-windows-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20240927_win3_120_90.jpg" width="120" height="90" alt="20240927_win3_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2024/09/27/computer-windows-mac/">Win/Macそれぞれで特定のウィンドウを最前面に固定する</a><br><span class="views">450 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a><br><span class="views">280 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4022737166' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51lxlVNGLnL._SS90_CR0,0,120,90_.jpg' alt='Suicaが世界を制覇する アップルが日本の技術を選んだ理由 (朝日新書)'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2019/12/17/life-trip/">Suicaで地下鉄に間違って改札を通ってしまった際にすぐに出ればキャンセルされる(こともある)</a><br><span class="views">264 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/02/01/compouter-chrome/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180201_chrome_120_90.png" width="120" height="90" alt="20180201_chrome_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/02/01/compouter-chrome/">Google Chrome上でマウスカーソルが消えてしまう場合の対処法</a><br><span class="views">241 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/52c43ceca0a4932d759487214ea0ca46da9f34e8/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8c14e2043f5305342d429254ec21b66697fd5d50/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a35d63bd4d980f5f21c1757c0eec36670e870795/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/b9941e9c195e57542a07d0dcb7172e57f59fd6cc/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/7dce4ddada0821a856e31680ba3cb7ae0f02274d/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2026 - rcmdnk -
+    <span class="credit">Powered by <a href="https://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+https://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CS5ERMMZ4D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CS5ERMMZ4D');
+</script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/';
+  var disqus_url = 'https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+}
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js" defer></script>
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/python/",
+        "name": "Python"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Slack | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/slack/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[SlackでChatGPTによるWebページの要約を頼むコマンドをGoogle Apps Scriptで作る]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript/"/>
+    <updated>2023-03-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4862465099?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4862465099&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ydbPeMbxL._SS200_.jpg" alt="BERT/GPT-3/DALL-E 自然言語処理・画像処理・音声処理 人工知能プログラミング実践入門" /></a>
+</div>
+
+<p>OpenAIのAPIを使って
+SlackからWebページの要約を頼むコマンドを作ってみました。</p>
+
+<p>やりとりする場所として簡単に無料で使えるGoogle Apps Scriptを使っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#slack-gpt-url-summary-gas" id="markdown-toc-slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</a></li>
+  <li><a href="#設定方法" id="markdown-toc-設定方法">設定方法</a>    <ul>
+      <li><a href="#slack側" id="markdown-toc-slack側">Slack側</a></li>
+      <li><a href="#gas側" id="markdown-toc-gas側">GAS側</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#改善できそうなところ" id="markdown-toc-改善できそうなところ">改善できそうなところ</a>    <ul>
+      <li><a href="#プロンプト" id="markdown-toc-プロンプト">プロンプト</a></li>
+      <li><a href="#chunkの区切り方" id="markdown-toc-chunkの区切り方">chunkの区切り方</a></li>
+      <li><a href="#トークン数の計算" id="markdown-toc-トークン数の計算">トークン数の計算</a></li>
+      <li><a href="#要約の要約のやり方" id="markdown-toc-要約の要約のやり方">要約の要約のやり方</a></li>
+      <li><a href="#webページからのテキストの抽出" id="markdown-toc-webページからのテキストの抽出">Webページからのテキストの抽出</a></li>
+      <li><a href="#gpt-4" id="markdown-toc-gpt-4">gpt-4</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/slack-gpt-url-summary-gas"></div>
+
+<p>スクリプトは上のレポジトリにあります。</p>
+
+<p>やっていることは</p>
+
+<ul>
+  <li>Google Apps Script(GAS)でWeb appを作り、そのURLにSlackのSlashコマンドでURLを投げる。</li>
+  <li>Slashコマンドは3秒以内に返信がないとエラーになるので、一時的な返信を行い、一方でGASの中で別途実行トリガーをかける。</li>
+  <li>トリガーで実行するジョブの中でOpenAI APIを使ってChatGPT (gpt-3.5-turbo)に受け取ったURLのページのテキストの要約を作るよう頼む。
+    <ul>
+      <li>トークンの制限のため、一気に全部読ませることができないので、適当に区切ってそれらの要約を作らせ、さらに最後に作った要約から全体の要約を作らせる。</li>
+    </ul>
+  </li>
+  <li>できた要約をIncoming Webhookを使ってSlackに投げる。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>Slashコマンドの3秒ルールのため直接返信を返せないのでGASでちょっと工夫が必要です。</p>
+
+<h2 id="設定方法">設定方法</h2>
+
+<h3 id="slack側">Slack側</h3>
+
+<ul>
+  <li>新しいSlashコマンドを作る
+    <ul>
+      <li><a href="https://api.slack.com/apps">Slack API</a>のページから<strong>Create New App</strong>:
+        <ul>
+          <li>From scarchを選んで
+            <ul>
+              <li><strong>App Name</strong>は適当に<strong>Web summary by ChatGPT</strong>とか。</li>
+              <li>インストール先のworkspaceを選ぶ。</li>
+            </ul>
+          </li>
+          <li><del>新しい<a href="https://slack.com/services/new/incoming-webhook">Incoming Webhook</a>を作る。</del>
+            <ul>
+              <li><del>左にあるリンクの中から<strong>Incoming Webhook</strong>へ。</del></li>
+              <li><del><strong>Add New Webhook to Workspace</strong>をクリックし、返信先のチャンネルを設定して、作ったWebhook URLをメモしておく。</del></li>
+              <li>Slashコマンドが送る<code>response_url</code>を使うことで問い合わせたチャンネルに直接返すように変更。
+                <ul>
+                  <li><a href="https://api.slack.com/interactivity/slash-commands">Enabling interactivity with Slash Commands  Slack</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>新しいSlashコマンドを作る。
+            <ul>
+              <li>左のリンクの中から<strong>Slash Commands</strong>のリンクへ飛ぶ。
+                <ul>
+                  <li>Command名は<code>web_sum</code>とか。日本語版では3行の箇条書きでまとめて、ということにしてるので個人的には<code>sangyo</code>というコマンド名にしてます。</li>
+                  <li><strong>Request URL</strong>は後でGASの設定が終わったら入れるのでとりあえずdummyで<strong>https://example.com</strong>とか。</li>
+                  <li><strong>Short description</strong>も適当に<strong>Summarize web page.</strong>とか。</li>
+                  <li><strong>Usage Hint</strong>には<code>URL</code>と。</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>できたら<strong>Install your app</strong>からインストール先のworkspaceにインストール。</li>
+          <li>このページはあとでも使うのですぐにSlashコマンドの編集が出来るように開いたままにしておいた方が楽。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>Incoming Webhookはアプリの中でも作れるのでそっちを使う。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p>Slash commandの<code>response_url</code>を使うのでWebhookのURLはいらないように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>これで<code>/web_sum</code>とかのコマンドがSlackで使えるようになっているはずです。</p>
+
+<h3 id="gas側">GAS側</h3>
+
+<ul>
+  <li><a href="https://script.google.com/home">Goole Apps Script Home</a>から新しいプロジェクトを作成。</li>
+  <li>ライブラリの右にある<code>+</code>ボタンを押して以下のスクリプトIDのライブラリの追加:
+    <ul>
+      <li>Cheerio: <code>1ReeQ6WO8kKNxoaA_O0XEQ589cIrRvEBA9qcWpNqdOP17i47u6N9M5Xh0</code></li>
+    </ul>
+  </li>
+  <li><strong>slack-gas-url</strong>, <strong>params</strong>, <strong>secrets</strong>というスクリプトファイルを作る。</li>
+  <li>上のレポジトリの同じ名前のファイルからそれぞれ内容をコピペ。</li>
+  <li><strong>params.gs</strong>の編集:
+    <ul>
+      <li>受け答えを英語にしたい場合には<code>lang</code>を<strong>en</strong>に変更。</li>
+      <li><code>prompt</code>や返信文も必要であればよしなに変更。</li>
+      <li><code>chunkLength</code>と<code>overlap</code>の調整:
+        <ul>
+          <li>とりあえず最初はデフォルトのままで良いはず。</li>
+          <li>必要であれば調整。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>歯車ボタンからプロジェクトの設定ページへ:
+    <ul>
+      <li>ページ下にあるプロパティの設定で新しく値を追加
+        <ul>
+          <li>名前: <code>OPENAI_API_KEY</code>, 値は https://platform.openai.com/account/api-keys からOpenAIのAPI Keyを取得</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>できたら上の方にある<strong>デプロイ</strong>ボタンから<strong>新しいデプロイ</strong>へ。
+    <ul>
+      <li>左の<strong>種類の選択</strong>から<strong>ウェブアプリ</strong>を選択。</li>
+      <li><strong>説明</strong>には適当に(空欄でもとりあえずはOK)。</li>
+      <li><strong>次のユーザーとして実行</strong>は<strong>自分</strong>。</li>
+      <li><strong>アクセスできるユーザー</strong>は**全員。</li>
+      <li>設定したら<strong>デプロイ</strong></li>
+      <li><strong>ウェブアプリ</strong>のURLが出てくるのでこれをコピー。</li>
+      <li>コピーしたものを上で作ったSlackのSlashコマンドの<strong>Request URL</strong>に入れる。</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p><strong>OPENAI_API_KEY</strong>をプロパティで管理するように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="使い方">使い方</h2>
+
+<p>これでSlackで<code>/web_sum</code>とか自分で決めた名前のコマンドが使えるようになっているはずなので、</p>
+
+<pre><code>/web_sum https://ja.wikipedia.org/wiki/ChatGPT
+</code></pre>
+
+<p>とか打ってみます。</p>
+
+<p>そうするとすぐにアプリから返信が来ますが、そこからしばらく待ちます。
+数分すると、要約がコマンドを打ったチャンネルに送られてきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230326_slackreply.png" alt="20230326_slackreply.png" class="pic" /></p>
+
+<h2 id="改善できそうなところ">改善できそうなところ</h2>
+
+<h3 id="プロンプト">プロンプト</h3>
+<p>主には
+<a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/main/params.gs">params.gs</a>で設定しているパラメーターですが、
+プロンプトに関しては、<strong>あなたは優秀な編集者です</strong>とか役を指定したほうがもっとうまくいったりするかもしれません。</p>
+
+<p>その辺のよりよりプロンプトがあればPull Request出してくれたり何かしらで教えていただけるとありがたいです。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>最初は<code>user</code>のroleで指示出しも要約用のコンテンツも送っていましたが、
+せっかくChat.Completionの
+<code>system</code>というroleで役割を与えて<code>user</code>が与えるコンテンツを要約するように変更。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/commit/9bc17f113cb442e48a75fdf5da6a2866487e3345">feat: use system role, change variable prompet to system · rcmdnk/slack-gpt-url-summary-gas@9bc17f1</a></p>
+  </blockquote>
+
+  <p>promptで文章の場所とかを指定しなくて良い分スッキリとできます。
+返信内容はそれほど変わりないような。<code>system</code>の部分が通常の<code>user</code>として与えるものと何が違うのか、ちょっと理解してないです。。</p>
+
+  <p>ついでに<strong>優れた編集者</strong>とか追加してみたりもしましたがそれでもあまり違いはありませんでした。</p>
+
+  <blockquote>
+    <p><a href="https://platform.openai.com/docs/guides/chat">Chat completion - OpenAI API</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="chunkの区切り方">chunkの区切り方</h3>
+
+<p>後は長文の要約を上に書いたように細切れのchunkに分けて、その要約を集めてきて要約の要約、みたいなことをしているのですが、
+これを作る際のテキストの区切り方の工夫はいくらでもやりようがあるかとは思います。</p>
+
+<p>現状では単に文字数で区切ってます。
+単に文字数なので単語の途中とかで切れることもありますが、句切れ部分の意味を保つために<code>overlap</code>のパラメータ分の文字数を前後のchunk両方に含めて、どちらかでは完全な文レベルで残っているようにしています。</p>
+
+<p>これも長くしすぎればchunkの数が増えて時間もコストもかかりますが結構適当に設定してあります。</p>
+
+<h3 id="トークン数の計算">トークン数の計算</h3>
+
+<p>また、chunkの長さは<code>chunkLength</code>で3000としていますが、現在ChatGPT (gpt-3.5-turbo)はAPIでトークン数で4096の制限があります。
+この数はpromptとchunkの文章、さらには返信の要約文を合わせたものから計算されます。</p>
+
+<p>トークンは英語だと単語数の3/4程度ですが、日本語だと文字数の数10%増しな感じの量になります。</p>
+
+<blockquote>
+  <p><a href="https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them">What are tokens and how to count them?  OpenAI Help Center</a></p>
+</blockquote>
+
+<p>なので日本語のために一旦3000とかにしてありますが、英語のページならもっと大きくした方が
+各chunkの要約の精度が上がるかもしれませんし、問い合わせの回数は減るのでcostと実行時間は確実に減ります。</p>
+
+<p>この部分はGASでトークン数をぱっと調べるのが面倒そうだったので一旦適当にやってますが、
+真面目にトークン数を計算するようにすればもうちょっとギリギリを攻めることも出来ます。</p>
+
+<p>GASのライブラリはまだないと思いますが、
+Node.jsだと<a href="https://github.com/latitudegames/GPT-3-Encoder">GPT-3-Encoder</a>というライブラリで見積もり事はできそう。
+Pythonのパッケージの
+<a href="https://github.com/openai/tiktoken">tiktoken</a>
+のIssueで<a href="https://github.com/openai/tiktoken/issues/22">NPM packageは出さないか?</a>という議題は出てます。</p>
+
+<h3 id="要約の要約のやり方">要約の要約のやり方</h3>
+
+<p>現在は各chunkの要約も最後の要約も同じpromptを使って同じように要約させています。</p>
+
+<p>これに関しては、最初の要約は少し長めにして、最後はぎゅっとまとめるようなことも考えられるかと思います。</p>
+
+<p>単に関数別に作るのが面倒だったので同じにしてあるだけです。。。</p>
+
+<h3 id="webページからのテキストの抽出">Webページからのテキストの抽出</h3>
+
+<p>Webページからのテキスト抽出は
+Cheerioというライブラリを用いて行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798064742?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798064742&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FYffSOBcS._SS90_CR0,0,120,90_.jpg" alt="詳解! Google Apps Script完全入門 [第3版]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/25/computer-google-javascript/">Google Apps Script (GAS)でHTML解析</a></div></li></ul>
+
+<p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/f04d8c9d6d6f252fa7369c178df3d7075d81a8ae/slack-gpt-url.gs#L1">extractMainContent</a>の中で、
+まず<code>div</code>要素で、<code>main</code>, <code>main-article</code>, <code>article-body</code>などといったクラスのものを見つけてそれらがあればその要素の中身を、
+何も無ければ<code>body</code>要素の中身(もしそれもなければHTML全体)からテキストの抽出を行っています。</p>
+
+<p>この辺はウェブサイトを絞ればもっといい感じに抜き出せると思いますが、
+汎用的な感じだとこんな感じで適当に思いつくメインっぽいものを取ってますが
+これももっと良い方法があれば教えて欲しいところだったりします。</p>
+
+<h3 id="gpt-4">gpt-4</h3>
+
+<p>gpt-4が使えればトークン制限が大幅に大きくなるので大概のページが一気に読み込ませられそうです。
+それであれば要約ももっといい感じに出来るのではないか、と。
+(まだwaiting list中…)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Google Apps Script(GAS)を使ってSlackをSheetsにバックアップする]]></title>
+    <link href="https://rcmdnk.com/blog/2022/08/11/computer-google-slack/"/>
+    <updated>2022-08-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/08/11/computer-google-slack</id>
+    <content type="html"><![CDATA[<div class="app-img"><a href="//itunes.apple.com/jp/app/id618783545?at=10lc94" rel="nofollow" target="_blank"><img src="https://is3-ssl.mzstatic.com/image/thumb/Purple112/v4/bf/50/a5/bf50a52e-76ec-3c47-5c4c-2ee6c21f3149/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/200x200bb.jpg" alt="Slack" /></a></div>
+
+<p>Slackが今年の9月から無料プランだと90日より前のメッセージが見れなくなってしまう、ということで
+過去のメッセージをバックアップするシステムをGoogle Apps Scriptを使って作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#slackの個人的な使い方" id="markdown-toc-slackの個人的な使い方">Slackの個人的な使い方</a></li>
+  <li><a href="#google-apps-scriptでやる訳" id="markdown-toc-google-apps-scriptでやる訳">Google Apps Scriptでやる訳</a></li>
+  <li><a href="#slack-gas" id="markdown-toc-slack-gas">Slack-gas</a></li>
+  <li><a href="#定期的な実行" id="markdown-toc-定期的な実行">定期的な実行</a></li>
+  <li><a href="#slack-gasのパラメーター設定" id="markdown-toc-slack-gasのパラメーター設定">Slack-gasのパラメーター設定</a>    <ul>
+      <li><a href="#time_zone" id="markdown-toc-time_zone">TIME_ZONE</a></li>
+      <li><a href="#save_message_json" id="markdown-toc-save_message_json">SAVE_MESSAGE_JSON</a></li>
+      <li><a href="#full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage" id="markdown-toc-full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage">FULL_CHECK/COVERAGE/CHECK_THREAD_TS_IN_SHEET/THREAD_TS_COVERAGE</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他作ってるときに気づいたことやよくわからなかったこと" id="markdown-toc-その他作ってるときに気づいたことやよくわからなかったこと">その他作ってるときに気づいたことやよくわからなかったこと</a>    <ul>
+      <li><a href="#slack-apiのconversations中心への移行" id="markdown-toc-slack-apiのconversations中心への移行">Slack APIの<code>conversations</code>中心への移行</a></li>
+      <li><a href="#bot-oauth-token" id="markdown-toc-bot-oauth-token">Bot OAuth Token</a></li>
+      <li><a href="#scopesの削除は出来ない" id="markdown-toc-scopesの削除は出来ない">Scopesの削除は出来ない?</a></li>
+      <li><a href="#スレッドの取得" id="markdown-toc-スレッドの取得">スレッドの取得</a></li>
+      <li><a href="#user情報" id="markdown-toc-user情報">User情報</a></li>
+      <li><a href="#message情報内のtext" id="markdown-toc-message情報内のtext">message情報内の<code>text</code></a></li>
+      <li><a href="#実体のないfilesの情報" id="markdown-toc-実体のないfilesの情報">実体のないfilesの情報</a></li>
+      <li><a href="#ダウンロードファイルのblob" id="markdown-toc-ダウンロードファイルのblob">ダウンロードファイルのBlob</a></li>
+      <li><a href="#google-driveのfolderのremovefileメソッドの罠" id="markdown-toc-google-driveのfolderのremovefileメソッドの罠">Google DriveのFolderのremoveFileメソッドの罠</a></li>
+      <li><a href="#sheetsでの桁落ち問題" id="markdown-toc-sheetsでの桁落ち問題">Sheetsでの桁落ち問題</a></li>
+      <li><a href="#sheets内にリンクを書き込みたい" id="markdown-toc-sheets内にリンクを書き込みたい">Sheets内にリンクを書き込みたい</a></li>
+      <li><a href="#リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題" id="markdown-toc-リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題">リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題</a></li>
+    </ul>
+  </li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="slackの個人的な使い方">Slackの個人的な使い方</h2>
+
+<p>バックアップを取るにしても使い方によって欲しいものが違うと思いますが、個人的には
+ちょっとしたメモ代わりに使っている感じです。</p>
+
+<p>ちゃんとしたメモはEvernoteに。</p>
+
+<p>あとは適当にbotとかにつぶやかせてるものもあったりします。</p>
+
+<p>自分で管理しているのは個人のWorkspaceだけで、無料版で人間ユーザーは自分だけ、という状態です。</p>
+
+<p>なので過去のメッセージが消されてしまってもそれほど問題ないのですが、
+たまにちゃんとメモに残してなかったものをSlackから探したりすることもあるので残ってたら便利だな、程度のもの。</p>
+
+<h2 id="google-apps-scriptでやる訳">Google Apps Scriptでやる訳</h2>
+
+<p>お金払ってやるなら単にSlackに課金すれば良いので、無料で出来る環境を作ります。</p>
+
+<p>無料で定期的にタスクを実行できる環境、となるとHerokuの無料枠とか今ならGitHub Actionsとかも便利だったりしますが、
+Google Apps Scriptも無料で定期的なタスクの実行が可能です。</p>
+
+<p>また、保存先としても、個人的なメインクラウドストレージがGoogle Driveなのでそれに繋げやすいというメリットもあります。</p>
+
+<p>難しい点としてはGoogle Apps Scriptの1つのジョブの実行時間には<a href="https://developers.google.com/apps-script/guides/services/quotas">6分の時間制限</a>があるので
+Slackに大量のメッセージがある場合は処理が一回では終わらない可能性があります。</p>
+
+<p>下にまた書きますが、自分の使い方だとそれほどメッセージの量がないので(数千程度)何回か手動で実行すれば全部詳しいメッセージ情報が取れたのでこれで良いか、という感じですが、
+大量にあるとGoogle Apps Scriptだけでは取り切るのが辛いので別の環境でちょっと改造してNodeでやるとか、Pythonで書き直して作るとかして、少なくとも最初のバックアップは別の環境で行う必要が出てくるかもしれません。</p>
+
+<p>GASでSlackのバックアップを取る、といったものもいくつか見当たりましたが、
+古くて使えなかったり、微妙に動かなかったりしたので、
+自分の欲しい情報を保存出来るように作ってみました。</p>
+
+<h2 id="slack-gas">Slack-gas</h2>
+
+<p>ということで以下のようなスクリプトを作りました。</p>
+
+<div class="github-widget" data-repo="rcmdnk/Slack-gas"></div>
+
+<p>使い方としては、まずSlack側:</p>
+
+<ul>
+  <li><a href="https://api.slack.com/apps?new_app=1">Slack API</a>のページから
+    <ul>
+      <li><strong>Create New App</strong><i class="fa fa-arrow-right"></i><strong>From Scratch</strong>で新しいアプリを作成。</li>
+      <li><strong>OAuth &amp; Permissions</strong>に行って、下の方にある<strong>Scopes</strong>でスコープを追加。
+        <ul>
+          <li>以下の<strong>User Token Scopes</strong>を追加:
+            <ul>
+              <li><code>channels:history</code>, <code>channels:read</code>: パブリックチャンネルを読む場合</li>
+              <li><code>groups:history</code>, <code>groups:read</code>: プライベートチャンネルを読む場合</li>
+              <li><code>im:history</code>, <code>im:read</code>: ダイレクトメッセージを読む場合</li>
+              <li><code>mpim:history</code>, <code>mpim:read</code>: 複数人の入ったダイレクトメッセージを読む場合</li>
+              <li><code>users:read</code>: ユーザーリストの取得のため</li>
+              <li><code>files:read</code>: ファイルをダウンロードするため</li>
+            </ul>
+          </li>
+          <li>もしプライベートチャンネルやダイレクトメッセージは必要ない、ということであれば<code>group</code>や<code>im</code>, <code>mpim</code>などは加えなくてもOK。</li>
+        </ul>
+      </li>
+      <li><strong>OAuth &amp; Permissions</strong>の上の方で、<strong>Install to Workspace</strong>を実行して許可。</li>
+      <li><strong>User OAuth Token</strong>をコピー。</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>追記で加えましたがファイルを読み込むために<code>files:read</code>が必要です。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p><strong>User Token Scopes</strong>の代わりに<strong>Bot Token Scopes</strong>で同様にスコープを追加して、<strong>Bot OAuth Token</strong>を使ってパブリック、プライベートチャンネルを読むことも出来ますが、BotにするとそのBotを必要なチャンネルに招待しないとメッセージが読めないので、個人用であれば<strong>User Token Scopes</strong>を使ってやるほうが楽です。</p>
+
+<p>また、もし複数人が使っているチャンネルですべてのDMとかも含めてバックアップしたい時は<code>admin</code>系のScopeを使って行う必要があります。</p>
+
+<p>次に、Google Apps ScriptをGoogle Sheetsの機能拡張として用意:</p>
+
+<ul>
+  <li>Google Driveに適当なフォルダを作り、その中にGoogle Sheetsを作る。</li>
+  <li>Google Sheetsの<strong>機能拡張</strong><i class="fa fa-arrow-right"></i><strong>Apps Script</strong>でApps Scriptを起動。</li>
+  <li><strong>main.gs</strong>、<strong>params.gs</strong>、<strong>secrets.gs</strong>の3つのスクリプトファイルを作り、上のレポジトリの各ファイルの内容をコピー。</li>
+  <li><strong>secrets.gs</strong>の<code>&lt;YOUR_SLACK_TOKE&gt;</code>を上で取得した<strong>User OAuth Token</strong>に置き換える。</li>
+</ul>
+
+<p>以上でとりあえずの準備完了。</p>
+
+<p>後は<strong>params.gs</strong>の中身を良しなに変更して実行します。</p>
+
+<p>実行は、<strong>main.gs</strong>を表示した状態で<code>run</code>関数を選んで<strong>実行</strong>ボタンを押してください。</p>
+
+<p>これで、</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220811_slack.png" alt="20220811_slack.png" class="pic" /></p>
+
+<p>みたいなチャンネルのメッセージがあるとすると</p>
+
+<p><img src="https://rcmdnk.com/images/post/20220811_sheets.png" alt="20220811_sheets.png" class="pic" /></p>
+
+<p>みたいな感じでGoogle Sheetsに記録されます。
+(ここでは<code>SAVE_MESSAGE_JSON=true</code>に設定しています。)</p>
+
+<p>添付ファイルがある場合、<code>Files: ...</code>と言う形でファイル名にリンクが付いた状態で表示されます。
+このファイルはGoogle Driveの中のこのGoogle Sheetsがあるフォルダー内の<code>&lt;channel name&gt;/files</code>フォルダーの中に保存されています。</p>
+
+<p>また、<code>SAVE_MESSAGE_JSON=true</code>とすると、APIでとってきた元の情報をJSON形式でDriveに保存するようになり、
+<code>UnixTime</code>カラムのメッセージのUnixTimeがリンクになり、そのリンク先がJSONファイルになります。
+このファイルはGoogle Driveの中のこのGoogle Sheetsがあるフォルダー内の<code>&lt;channel name&gt;/messages</code>フォルダーの中に保存されています。</p>
+
+<p>スレッドがある場合は<code>ThreadTS</code>カラムにそのスレッドが開始された時間(UnixTime)が記録され、それが同じものが同一スレッド内にあることが分かります。(<code>UnixTime</code>カラムが一番古いものがその親メッセージ。)</p>
+
+<p>もしメッセージが編集されると、<code>Edited</code>カラムに編集時間が記録されます。
+古いメッセージも編集前に取得されていれば記録は残ります。</p>
+
+<h2 id="定期的な実行">定期的な実行</h2>
+
+<p>動くことが確認でき、一定の初期取得が終了したら後は毎日スクリプトを走らせて自動で記録しておくようにします。</p>
+
+<p>Apps Scriptの時計ボタン(トリガー)へ行き、<strong>トリガーを追加</strong>から</p>
+
+<ul>
+  <li>実行する関数を選択: <code>run</code></li>
+  <li>実行するデプロイを選択j: <code>Head</code></li>
+  <li>イベントのソースを選択: <code>時間主導型</code></li>
+  <li>時間ベースのトリガーのタイプを選択: <code>日付ベースのタイマー</code></li>
+  <li>時刻を選択: <code>午前０時～１時</code> (GMT_09:00)</li>
+  <li>エラー通知設定: <code>毎日通知を受け取る</code></li>
+</ul>
+
+<p>と言った感じでトリガーを追加します。</p>
+
+<p>これで毎日深夜にSlackをSheetsにバックアップします。</p>
+
+<h2 id="slack-gasのパラメーター設定">Slack-gasのパラメーター設定</h2>
+
+<p><strong>params.gs</strong>の中で設定できるパラメーターがいくつかありますが、特に重要な項目として以下のものを考慮していただければ、と。</p>
+
+<h3 id="time_zone">TIME_ZONE</h3>
+
+<p>デフォルトでは<code>null</code>になっていて、そのままだとApps Scriptで設定されたタイムゾーンが使われます。
+(Apps Scriptの歯車マーク(プロジェクの設定)内で設定されているもの。)</p>
+
+<p>日本で使っていてもこれが日本標準時になっていない場合もあるので、とりあえず日本なら</p>
+
+<pre><code>const TIME_ZONE = 'Asia/Tokyo';
+</code></pre>
+
+<p>と設定しておくと必ず日本時間になおして時刻を表示してくれるようになります。</p>
+
+<h3 id="save_message_json">SAVE_MESSAGE_JSON</h3>
+
+<p><code>SAVE_MESSAGE_JSON = true</code>とすると元の情報が残るのでこのスクリプトによって十分情報が取り出せてない場合に後から確認できて便利です。</p>
+
+<p>ただ、これを<code>true</code>にしてしまうと実行にかなり時間がかかるようになり、6分の時間制限だと多くて100くらいのメッセージしか取れません。</p>
+
+<p>なので、少なくとも最初の実行では、よほどのことが無い限り<code>SAVE_MESSAGE_JSON = false</code>で実行することをお勧めします。</p>
+
+<p>Slackの<a href="https://slack.com/intl/ja-jp/help/articles/204897248-Slack-%E3%81%AE%E3%82%A4%E3%83%B3%E3%83%9D%E3%83%BC%E3%83%88-%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88%E3%81%AE%E6%89%8B%E6%AE%B5">エクスポート機能</a>があるので、現時点でのすべての記録はこれで一回取っておけばよいかと。</p>
+
+<p>毎日の投稿が数十位であれば<code>SAVE_MESSAGE_JSON = true</code>にしてトリガージョブを実行しても良いかと思います。</p>
+
+<h3 id="full_checkcoveragecheck_thread_ts_in_sheetthread_ts_coverage">FULL_CHECK/COVERAGE/CHECK_THREAD_TS_IN_SHEET/THREAD_TS_COVERAGE</h3>
+
+<p><code>FULL_CHECK = false</code>とすると、各チャンネルの最後に記録されたものより後のメッセージだけを確認するようになります。</p>
+
+<p>ここでちょっと注意が必要で、このチェックはスレッド内のメッセージとは別なので、
+もし、スレッドの最初のメッセージがチェックされないと、スレッド内に新しいメッセージがあったとしても記録されません。</p>
+
+<p>なのでスレッドをよく使う場合は<code>FULL_CHECK = true</code>にすることをお勧めします。</p>
+
+<p>よほど大量のメッセージがある場合を除いて
+<code>true</code>にしてもそれほど大きく実行時間は変わりません。
+(現時点で過去何年分ものメッセージが大量にある場合は最初の実行以降、<code>false</code>にした方が良いかもしれません。)</p>
+
+<p>また、<code>COVERAGE</code>を使ってメッセージを過去どこまで遡って見るか、を設定することもできます。
+これは秒数なので<code>2592000</code> (<code>60*60*24*30</code>)なら約1ヶ月分だけをチェックすることになります。</p>
+
+<p>1年なら<code>31536000</code> (閏年を含むなら<code>31622400</code>)。</p>
+
+<p>もし現時点で過去何年分もの大量のメッセージがあって、そこまで昔のものは必要ない(もしくはエクスポートしたものだけでとりあえずは良い)という場合は適当な時間を設定してください。</p>
+
+<p><code>FULL_CHECK = true</code>としてもこの<code>COVERAGE</code>の時間までしか遡って取得しません。</p>
+
+<p>もし90日以上続くような長いスレッドがあるような場合は、無料で90日制限がかかると
+そもそもメッセージが取れないので、スレッドが残っていてもそのスレッドの新しいメッセージを取得できなくなります。</p>
+
+<p>この場合、スレッドごと消えてしまうんでしょうか？それとも古いものは削除された形で見れる？</p>
+
+<p>仮にスレッド自体は残る場合、
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>にしておくと、すでに取得したメッセージが取得時点でスレッドを持っていれば
+そのスレッドをチェックする様にしてあるのでスレッド内の新しいメッセージも取得できるようになります。</p>
+
+<p>もし、90日以上続くような長いスレッドを作るような場合は
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>にして、確認するスレッドの期限を<code>THREAD_TS_COVERAGE = 31536000</code>みたいな感じで1年位にしておくとかにすると良いかと思います。</p>
+
+<h2 id="その他作ってるときに気づいたことやよくわからなかったこと">その他作ってるときに気づいたことやよくわからなかったこと</h2>
+
+<p>以下は作ってるときに気づいたことやよくわからなかったことなので、自分で作ってみようと思う人は参考にしていただければ、と。</p>
+
+<h3 id="slack-apiのconversations中心への移行">Slack APIの<code>conversations</code>中心への移行</h3>
+
+<p>2018年なので結構前ですが、それまではプライベート、パブリックチャンネルなど、それぞれでAPIのメソッドが違ったものを、<code>conversations</code>というメソッドで統一してパラメーターでスコープを変更できるようになりました。</p>
+
+<blockquote>
+  <p><a href="https://api.slack.com/changelog/2018-09-more-reasons-to-be-a-conversations-api-convert">The Conversations API is required to work with channels consistently  Slack</a></p>
+</blockquote>
+
+<p>この辺、検索すると未だに古いメソッドを使っているものも結構あるので
+<a href="https://api.slack.com/methods">SlackのAPI methodsページ</a>などを確認して
+<code>Deprecated</code>なものは使わず新しいものを使うように。</p>
+
+<h3 id="bot-oauth-token">Bot OAuth Token</h3>
+
+<p>大概のSlack Appの紹介だと<strong>Bot OAuth Token</strong>を使った方法が紹介されていますが、
+上にも書いたようにこれだと作ったApp(Bot)を各チャンネルに招待しないと、
+APIが</p>
+
+<pre><code>{error=not_in_channel, ok=false}
+</code></pre>
+
+<p>といったエラーを返します。</p>
+
+<p>個人用のWorkspaceであれば個人権限で見れるところを全部見て問題ないので
+今回の用法だと<strong>User OAuth Token</strong>を使った方が楽です。</p>
+
+<p>Scopesで<strong>User Token Scopes</strong>だけを設定しても<strong>Bot OAuth Token</strong>も発行されるので、
+そちらをコピーしてしまうと何も見れないので注意。</p>
+
+<h3 id="scopesの削除は出来ない">Scopesの削除は出来ない?</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>SlackのAPI設定のScopesのところで、一度あるScopeを加えて(Re)Install to Workspaceした後、
+そのScopeを外して再度Reinstall to Workspaceをしても外したScopeの権限も持っている様に振る舞います。</p>
+
+  <p>一度許可してしまった権限を狭めるためには新たなAppを作らないと駄目?</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="スレッドの取得">スレッドの取得</h3>
+
+<p>SlackのAPIでは<a href="https://api.slack.com/methods/conversations.history">conversations.history</a>
+というメソッドを使ってメッセージ一覧を取得できますが、
+スレッド内のメッセージに関しては
+<a href="https://api.slack.com/methods/conversations.replies">conversations.replies</a>
+という別のメソッドで取得する必要があります。</p>
+
+<p>この<code>conversations.replies</code>にはそのスレッドがあるチャンネルのIDのスレッドの開始時刻(最初のメッセージのタイムスタンプ)が入力として必要になります。</p>
+
+<p>チャンネル内の全てのメッセージの<code>ts</code>(タイムスタンプ)の値を取得しておいて、後から<code>replies</code>でチェックする事もできますが、
+スレッドがあるメッセージには<code>thread_ts</code>(スレッドの最初のメッセージでは<code>ts = thread_ts</code>)という値があるためこれ
+があるものだけを取得してスレッドを取得しに行った方が効率的です。</p>
+
+<p>過去のメッセージについたスレッドを探すような場合でも、事前にとっておいた<code>ts</code>に対して全て<code>conversations.replies</code>で試すより
+<code>conversations.replies</code>でもう一度全てのメッセージを取得して<code>thread_ts</code>を抜き出してからそれらに<code>replies</code>をかけたほうが効率的です。</p>
+
+<p>1つだけ、90日のメッセージ保持期限ぎりぎりの元メッセージがあり、それに対して新しいスレッドの返信がついたとすると、
+<code>thread_ts</code>が取得できないのでスレッドの新しい返信も取得できなくなります。</p>
+
+<p>この場合は記録された<code>ts</code>の値を使えばスレッド内の新しいメッセージを取得できる可能性はありますが、
+レアケースなのでとりあえずこのような状況は無視しています。</p>
+
+<p>メッセージ取得時点ですでにスレッドがあって、そのスレッドの親メッセージが90日より前になってしまっても、
+上に書いたように
+<code>CHECK_THREAD_TS_IN_SHEET = ture</code>としておけばSheetに記録された<code>thread_ts</code>を使ってスレッドをチェックできるようになっています。
+(ただ、Slackの仕様で仮にスレッドの親メッセージが古いとスレッドごと見れなくなる状態だとすると取得はできないかもしれません。)</p>
+
+<h3 id="user情報">User情報</h3>
+
+<p>通常のユーザーが書いたメッセージであれば
+<code>user</code>という値があり、ユーザーのIDが入っていて、
+<a href="https://api.slack.com/methods/users.list">users.list</a>メソッドを使って別途取ってきた<code>id</code>と<code>name</code>の対応を使って
+ユーザー名を取得することができます。</p>
+
+<p>Botが書いたものだと、代わりに<code>bot_id</code>という値が入っていて、これを使ってbot名を調べることが可能なのですが、
+<code>bots.list</code>みたいなメソッドは用意されていません。</p>
+
+<p>代わりに
+<a href="https://api.slack.com/methods/bots.info">bots.info</a>
+というメソッドがあって、これに対して<code>bot_id</code>を与えてあげるとそのbotの情報をくれて<code>name</code>で名前を調べられます。</p>
+
+<p>また、Botとは別に、Appによるメッセージ、というものもあって、これだと<code>user</code>や<code>bot_id</code>はなく、
+代わりに<code>username</code>という値でAppの名前が入っています。</p>
+
+<p>なんか全部に<code>username</code>を入れてくれれば良いのにと思ったり。。。</p>
+
+<h3 id="message情報内のtext">message情報内の<code>text</code></h3>
+
+<p>APIで取得した各メッセージの情報内には<code>text</code>という値があって、この中にメッセージテキストが入っています。
+Botの場合でも同様。</p>
+
+<p>ただ、Appによる場合は別で、<code>text: ''</code>な状態で、一方で<code>attachments</code>という値が入っています。
+この<code>attachments</code>の中に<code>text</code>という値があり、ここにAppによって書かれたメッセージが入っています。</p>
+
+<h3 id="実体のないfilesの情報">実体のないfilesの情報</h3>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>メッセージに添付ファイルがある場合、APIで取得した各メッセージの情報内には<code>files</code>という値があって
+その中にダウンロード用のURLなどがありそれを使って添付ファイルをダウンロードすることが出来ます。</p>
+
+  <p>最初にやっていたときにはこの<code>files</code>は添付ファイル1つに対して1つ存在し、それらは必ず<code>url_private_download</code>という情報を持っていました。</p>
+
+  <p>が、その後使ってくれた人からも指摘して頂きましたが、自分で再度1つチャンネルを一度消して再取得してみると</p>
+
+  <figure class="code"><figcaption><span>message </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="json"><span class="line"><span></span><span class="p">{</span><span class="w"> </span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;message&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;A</span><span class="kc">tta</span><span class="err">chme</span><span class="kc">nts</span><span class="p">:</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">  </span><span class="kc">f</span><span class="err">iles</span><span class="p">:</span>
+</span><span class="line"><span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;XXXXXXXXXXX</span><span class="p">,</span><span class="w"> </span><span class="err">mode</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">t</span><span class="err">ombs</span><span class="kc">t</span><span class="err">o</span><span class="kc">ne</span><span class="err">&#39;</span><span class="w"> </span><span class="p">},</span>
+</span><span class="line"><span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;YYYYYYYYYYY&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">na</span><span class="err">me</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;abc.</span><span class="kc">t</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">t</span><span class="err">i</span><span class="kc">tle</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;abc.</span><span class="kc">t</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">mime</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="err">/plai</span><span class="kc">n</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="kc">f</span><span class="err">ile</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;</span><span class="kc">te</span><span class="err">x</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">pre</span><span class="kc">tt</span><span class="err">y_</span><span class="kc">t</span><span class="err">ype</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;プレーンテキスト&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">...</span>
+</span><span class="line"><span class="w">       </span><span class="err">mode</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;s</span><span class="kc">n</span><span class="err">ippe</span><span class="kc">t</span><span class="err">&#39;</span><span class="p">,</span>
+</span><span class="line"><span class="w">       </span><span class="err">...</span>
+</span><span class="line"><span class="w">       </span><span class="err">url_priva</span><span class="kc">te</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;h</span><span class="kc">tt</span><span class="err">ps</span><span class="p">:</span><span class="c1">//files.slack.com/files-pri/XXXXXXXXXXXXXXXXX/abc.txt&#39;,</span>
+</span><span class="line"><span class="w">       </span><span class="err">url_priva</span><span class="kc">te</span><span class="err">_dow</span><span class="kc">nl</span><span class="err">oad</span><span class="p">:</span><span class="w"> </span><span class="err">&#39;h</span><span class="kc">tt</span><span class="err">ps</span><span class="p">:</span><span class="c1">//files.slack.com/files-pri/XXXXXXXXXXXXXXXXX/download/abc.txt&#39;,</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>みたいな感じで、<code>url_private_download</code>だけでなく、<code>name</code>なども無い<code>id</code>と<code>mode</code>だけのものが存在していました。</p>
+
+  <p><code>mode</code>が<code>tombstone</code>ということなので削除されたファイルの<code>id</code>だけ記録として残している遺物の様です。
+実際ファイルを削除したメッセージを読んでみるとこうなりましたが、
+最初に自分の環境で出てきたメッセージでは特にファイルを削除したわけではなくもとからファイルが付いていたもので以前は<code>tombstone</code>はなかったはずなのですが。</p>
+
+  <p>現状メッセージを見てもファイルが削除されたとはなってないのですが、何か変更を加えたのかもしれません。
+もしくは、Slack側の事情で<code>tombstone</code>が生まれる事があるのかもしれません。</p>
+
+  <p>いずれにしろこれがあるとエラーで止まってしまう状況だったので
+<code>tombstone</code>の場合にはskipするようにしました。</p>
+
+  <p>恐らくそれ以外は<code>url_private_download</code>がちゃんとあるとは思うのですが、
+もしない場合にはwarningを出してskipするようにもしてあります。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="ダウンロードファイルのblob">ダウンロードファイルのBlob</h3>
+
+<p>通常のサイトから何かファイルをダウンロードしてGoogle Driveに保存したい、となると、
+Apps Scriptでは</p>
+
+<pre><code>const folder = &lt;drive folder&gt;;
+const fileName = &lt;fileName&gt;;
+const url = &lt;url/of/file&gt;;
+const response = UrlFetchApp.fetch(url);
+let blob = response.getBlob();
+blob = blob.setName(fileName);
+const file = folder.createFile(blob);
+</code></pre>
+
+<p>みたいに、<code>fetch</code>したものから<code>blob</code>を取得して<code>createFile</code>に与えてファイルを作ります。</p>
+
+<p>こで普通にインターネットにあるファイルは保存出来るのですが、Slackの添付ファイルをこれで保存しようと思うとうまくいきません。</p>
+
+<p>メッセージ情報の中にある<code>url_private_download</code>という情報を使うので、まず、</p>
+
+<pre><code>const response = UrlFetchApp.fetch(url, {headers: Authorization: 'Bearer &lt;Token&gt;'});
+</code></pre>
+
+<p>の様にTokenを渡さないとアクセスエラーになりますが、これで取得したものに対して<code>blob</code>を取得してファイルを作ると中身はHTMLみたいな内容になっています。</p>
+
+<p>blobを使わず、</p>
+
+<pre><code>const folder = &lt;drive folder&gt;;
+const url = &lt;url/of/file&gt;;
+const response = UrlFetchApp.fetch(url, {headers: Authorization: 'Bearer &lt;Token&gt;'});
+const file = folder.createFile(response);
+</code></pre>
+
+<p>とすれば上手く行きます。ファイル名も添付ファイルの名前がそのまま使われるのでこれだけでOK。</p>
+
+<p>メッセージの中に情報として、<code>url_private_download</code>の他に<code>url_privaet</code>というURLもありますが、どちらを使っても同じでした。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2022/08/29 </strong></p>
+
+  <p>これも再度試してみたところ、<code>blob</code>の方法を使ってもちゃんとファイルが書き込めていました。</p>
+
+  <p>HTMLみたいなものが取得されていたのはScopeの問題(<code>files:read</code>が必要)だった可能性があります。</p>
+
+  <p>色々いじってるときに<code>files:read</code>を加えて試して、改めて削除して試して、みたいなことをしていたのですが、
+上にも書いたようにScopeを外してもその権限が残っている様なのでそこで勘違いしていた様です。</p>
+
+  <p><code>createFile</code>に関しては、<code>blob</code>を取り出して渡しても<code>fetch</code>した内容をそのまま渡しても同じ内容のものを作ってくれるようで、
+恐らく中でうまいこと処理してくれている模様。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="google-driveのfolderのremovefileメソッドの罠">Google DriveのFolderのremoveFileメソッドの罠</h3>
+
+<p>Apps Scirptから使えるGoogle DriveのAPIでFolderオブジェクトの<a href="https://developers.google.com/apps-script/reference/drive/folder#removeFile(File)">removeFile</a>というメソッドがあります。</p>
+
+<p>このメソッドは現在はDeprecatedなものになっていますがまだ使えます。</p>
+
+<p>名前からするとフォルダの中から指定したファイルを削除する(ゴミ箱に入れるか完全削除)ものに思えますが、
+実際にはフォルダの中からは消し、Driveのトップフォルダに移す、というものになっています。</p>
+
+<p>移行先のメソッドが<code>File.moveTo</code>なのでまさにそういう意図で作られたメソッドなのですが、
+ファイルの削除だと思ってこれを使っているとDriveのトップフォルダにゴミが溜まっていくので注意。</p>
+
+<p>実際にファイルを削除(というかゴミ箱に移動)したい場合には
+<a href="https://developers.google.com/apps-script/reference/drive/file#settrashedtrashed">File.setTrashed</a>を使います。</p>
+
+<p>この辺はブラウザで操作しているとちょっと直感と合わないですが、
+実際に裏でファイルをどの様に扱っているか、ということを考えればまあ分かる、といったエラーを返します。</p>
+
+<p>いずれにしろ、<code>removeFile</code>という名前は勘違いしやすいので気をつけておいた方が良いです。</p>
+
+<p>上の<code>setTrashed</code>というメソッドに関しては、ドライブがチーム用のものだったりすると
+ちょっとそのままでは上手く行かないこともあるようです。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/55521462/cannot-remove-a-file-from-team-drive-with-apps-script">Cannot remove a file from Team Drive with Apps Script - Stack Overflow</a></p>
+</blockquote>
+
+<h3 id="sheetsでの桁落ち問題">Sheetsでの桁落ち問題</h3>
+
+<p>Apps Scriptの中でSheetsに関するAPIを使って書き込む際、UnixTimeの書き込みで桁落ちが発生して、
+後から比較する際に使えない状態になってしまいました。</p>
+
+<p>この辺、文字列でも数字っぽいと数字と勝手に変換して色々と良さげに保存してくれたりするんですがそれが問題に。</p>
+
+<p>これに関しては</p>
+
+<pre><code>sheet.getRange(x, y, x_length, y_length).setNumberFormat("@").setValues(data);
+</code></pre>
+
+<p>の様に、取得したCell(Range)に対して<code>setNumberFormat("@")</code>を実行してやるとそのまま記録してくれるようになり、問題を解決できました。</p>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/57091209/script-setvalues-method-interprets-strings-as-numbers-in-cells">google sheets - Script ‘setValues’ method interprets strings as numbers in cells - Stack Overflow</a></p>
+</blockquote>
+
+<h3 id="sheets内にリンクを書き込みたい">Sheets内にリンクを書き込みたい</h3>
+
+<p>Sheetsのセル内にリンクを表示するためには<code>newRichTextValue</code>を作って<code>setValues</code>の代わりに<code>setRichTextValues</code>を使って書き込む必要があります。</p>
+
+<pre><code>const url = 'https://example.com';
+const text = "Set Link";
+const richText = SpreadsheetApp.newRichTextValue().setText(test)
+                                                  .setLinkUrl(4, 8, url)
+                                                  .build();
+</code></pre>
+
+<p>の様にしてRichTextを準備します。文字列を用意したら、その中でリンク化したい部分を指定して<code>setLinkUrl</code>します。
+(最初の引数が0スタートの文字の位置(最初の文字が0番目)、2つ目が終わり次の文字の位置。)</p>
+
+<p><code>setLinkUrl</code>は複数指定可能です。</p>
+
+<p>最後に<code>build()</code>を実行するのを忘れないように。</p>
+
+<p>これで作ったRichTextをSheetのCellやRangeのAPIを使って<code>setRichTextValue(s)</code>で書き込んであげると上の例の様にリンクが作れます。</p>
+
+<p><a href="https://developers.google.com/apps-script/reference/spreadsheet/range#setRichTextValues(RichTextValue)">Range.setRichTextValues</a>では全ての入力がRichTextValueである必要があり、、データを書き込む際、一つ一つ書き込むより一気に書き込んだ方が早いので、
+全てのデータを<a href="https://github.com/rcmdnk/Slack-gas/blob/91bb96f15efff2c082b2fdce7bcac6606ae08e0d/main.gs#L333">RichTextに変換して</a>書き込んでいます。</p>
+
+<h3 id="リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題">リンクを書き込んだ次の行がリンクじゃないのにリンクっぽくなってしまう問題</h3>
+
+<p><code>Range.setRichTextValues</code>を使ってRichTextを書き込んだとき、
+あるセルにリンクだけ:</p>
+
+<pre><code>const url = 'https://example.com';
+const text = "Link";
+const richText = SpreadsheetApp.newRichTextValue().setText(test)
+                                                  .setLinkUrl(0, 4, url)
+                                                  .build();
+</code></pre>
+
+<p>みたいなものを書き込むと、その次の行に書き込んだ下のセルが、リンクでない部分もすべて青文字下線状態になってしまいます。</p>
+
+<p>これは、<code>Range.setRichTextValues</code>で一気に書き込む場合には起こらず、
+改めて<code>Range.setRichTextValues</code>したり<code>Cell.setRichValue</code>する際、その直上のセルがリンクだけだと、
+その列の以下の全てのセルが青文字下線状態になる状態です。</p>
+
+<p>リンク部分は一応ちゃんとリンクとして機能はしているものの、それ以外も青くなるので実際にリンクなのかどうかよく分からなくなってしまいます。</p>
+
+<p>最初、メッセージのテキスト部分がなく、ファイルだけが添付されたメッセージに関してはリンク付きファイル名だけを記入してましたが
+これだと問題が起こるので、必ず</p>
+
+<pre><code>Files: aaa.txt
+</code></pre>
+
+<p>のようにリンクにならない<code>Files: </code>の部分を用意してやることでこの問題は回避しています。</p>
+
+<p>これに関しては自分のコードがバグってる可能性もあるんですが、色々試してもなんともならないので
+GASのGoogle SheetsのAPIのバグなんじゃないかな、と思ってます。</p>
+
+<p>今のところそれっぽいものはIssueいはないですが: <a href="https://issuetracker.google.com/issues?q=status:open%20componentid:191640%2B%20type:bug%20">status:open componentid:191640+ type:bug - Issue Tracker</a></p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Slackのメッセージが無料だと過去90日までにしか見れなくなる、というで、
+一応メモ代わりに使ってきたものとして消えちゃうと後で困るかもしれないので
+バックアップを取れるようにしました。</p>
+
+<p>自分の使い方的にそれほど重要なこともないので、エクスポート機能で時々とればよいか、ということもあるんですが、
+パット確認出来るようにする、ということと、定期的にバックアップを実行するために、
+Google Apps Script (GAS) + Google Sheets + Google Driveの形でバックアップのシステムを作りました。</p>
+
+<p>添付ファイルなども取れるので、いい感じ。</p>
+
+<p>ただ、GASでやると時間制限がきつくて、今までの制限の1万件近くメッセージがある場合や、
+毎日千件以上の新しいメッセージが作られるような場合はちょっと辛いかもしれません。</p>
+
+<p>そういった場合にはちょっとNode.jsを使って書き直すか、Pythonとかで一から書き直すかして
+別の場所で動かす必要があるかもしれません。</p>
+
+<p>Google Sheets + Google Driveは便利なので、とりあえず一回全部バックアップする分をそれらでやって、
+後はGASで毎日追加分を入れる、というのが一番良い感じはします。</p>
+
+<p>自分の使い方だと<code>SAVE_MESSAGE_JSON = true</code>にして1回では全部取れませんでしたが、何回か手動で実行すれば
+取得できるレベルで、毎日の追加は10件もないような状態なのでGASだけでなんとかなったので楽できて良かったです。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Slackでモバイルに必ず通知を送りたい(が、出来ない)]]></title>
+    <link href="https://rcmdnk.com/blog/2019/10/07/computer-slack/"/>
+    <updated>2019-10-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2019/10/07/computer-slack</id>
+    <content type="html"><![CDATA[<p>Slackで自分へのメンションなどを通知する様な設定にしている時、
+PCアプリが起動しているとモバイルへの通知は来ない設定になっています。</p>
+
+<p>ただ、PCを立ち上げっぱなしにして離席することが多くあるので
+その様な場合にもモバイルへ通知したいと思ったのですが、
+結果から言うとどうやら今の所うまい方法はないようです。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#通知設定" id="markdown-toc-通知設定">通知設定</a></li>
+  <li><a href="#できること" id="markdown-toc-できること">できること</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>SlackでPCのデスクトップアプリでアクティブになっていると、
+モバイルアプリへの通知は来なくなります。</p>
+
+<p>ただPCを立ち上げっぱなしにして離れることはよくあるし、
+PCでポップアップが一瞬出るよりも携帯のバイブの方が気づきやすいので(ポケットに入れてるか机の上に置いてる状態だと)
+モバイル通知を常に有効にしたいと思っています。</p>
+
+<h2 id="通知設定">通知設定</h2>
+
+<p>通知のタイミングとして</p>
+
+<ul>
+  <li>すべての新規メッセージ</li>
+  <li>ダイレクトメッセージ&amp;メンション&amp;キーワード</li>
+  <li>なし</li>
+</ul>
+
+<p>が選べます。</p>
+
+<p>また、PC側の設定には
+<strong>モバイル端末に別の設定を使用する</strong>
+という項目がありますが、これを設定するとモバイルの通知のタイミングをPCでとは別のものに出来ます。</p>
+
+<p>モバイルアプリの側ではタイミングを変更するとPCで側では自動で<strong>モバイル端末に別の設定を使用する</strong>になって別の設定になるようになっています。</p>
+
+<p>ただ、
+<strong>モバイル端末に別の設定を使用する</strong>
+とは言っても、PCがアクティブな時はPCに、そうでないときはモバイルにそれぞれの設定のタイミングで送る、という設定です。</p>
+
+<p>PCで<strong>なし</strong>に設定してモバイルでは通知する様にしておいてもPCアプリがアクティブならPC上にも通知は出ないしモバイルにも通知は行きません。</p>
+
+<p>もう一つ、PC版の下の方に</p>
+
+<ul>
+  <li>デスクトップでアクティブでない時…
+    <ul>
+      <li>通知を自分のモバイル端末に送信するタイミング :</li>
+    </ul>
+  </li>
+</ul>
+
+<p>とう設定があり、<strong>非アクティブになった</strong>あと、どれくらいのタイミングでモバイルに送るようにするか、の設定があります。</p>
+
+<p>が、あくまで非アクティブになってからの話でずっとアクティブであれば関係ありません。</p>
+
+<p>あとは<strong>メンションやダイレクトメッセージに関するメール通知を受信する</strong>にチェックすると
+15分ごとか1時間毎にメンションやダイレクトメッセージに関してはメールに通知するする事はできます。</p>
+
+<h2 id="できること">できること</h2>
+
+<p>簡単に設定できるだろう、というか最初は何も考えずにモバイル側で設定したらモバイルへはそれに従って勝手に来るのだろう、と思ってましたが
+上に書いたようにそんなわけではなく。</p>
+
+<p>それでもすぐに出来るだろうと思って色々やっても出来ず、調べてみたところどうやら今の状態では無理っぽい。</p>
+
+<ul>
+  <li><a href="https://www.reddit.com/r/Slack/comments/brajld/how_to_get_mobile_notifications_immediately_when/">How to get Mobile Notifications immediately when Desktop Application is running : Slack</a></li>
+</ul>
+
+<p>探してみるとやはり同じことをしたい人はいるようですがキレイに設定する方法はなさそうです。</p>
+
+<p>出来ることとしてはPCアプリの設定で
+状態を非アクティブ(離席中)に設定しておく、ということ。</p>
+
+<p>これだとアプリを立ち上げていてもモバイル側に通知が行きます。</p>
+
+<p>ただ、今度はPC側に通知が来なくなるのと、他の人から見て常に離席中に見えてしまうのでよくありません。
+あらかじめ参加している人全員にそういう状態だと言うことを理解してもらえば良いかもしれませんが。
+それでもPC側に通知が来ないのはそれはそれでちょっと困るかも。</p>
+
+<p>なのでどうしてもちゃんとモバイルで通知がほしければ離席するときにきちんとアプリを終了させるかPCをスリープとかにするしかありません。</p>
+
+<p>ただ、かなり面倒。。。</p>
+
+<p>特にWindowsは常駐アプリの様に動くのでいちいち消す事は無いです。</p>
+
+<p>逆にMac版はメニューバーに常駐とか無いですが、ウィンドウを消しただけだと
+Dockに残ってアプリ自体は残ってアクティブ状態が残ります。
+通常使うのであればわざわざアプリを終了させる事はないと思います。</p>
+
+<p>また、Macとかは外部からも入れる様に基本24時間起動しっぱなしにしているので
+それ自体をスリープに落とすとかは考えてません。</p>
+
+<p>IFTTTとかで他のサービスからSlackに通知を送ることは簡単ですが、Slackからは直接は送れません。
+Botを作って特定のチャンネルとかを監視して必要なものをメールなりなんなり別の方法で通知する事は出来ますが、
+手間がかかるしすべてのチャンネルにやるのは現実的に無理。</p>
+
+<p>なので結論としてはモバイルで確実に通知する方法は今の所なし、です。</p>
+
+<p>何か良い方法があれば教えてほしい。。。</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1936 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: GPT | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/gpt/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ChatGPT同士で議論させる]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/19/computer-python-ai-gpt/"/>
+    <updated>2023-04-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/19/computer-python-ai-gpt</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4938910896?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4938910896&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/517xmag-b+L._SS200_.jpg" alt="議論法―探求と弁論 (比較社会文化叢書 (3)) (比較社会文化叢書 3)" /></a>
+</div>
+
+<p>ChatGPT同士で議論を色々させる。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#chatgpt-prompt-wrapper" id="markdown-toc-chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a></li>
+  <li><a href="#discussコマンド" id="markdown-toc-discussコマンド">discussコマンド</a></li>
+  <li><a href="#やってること" id="markdown-toc-やってること">やってること</a></li>
+  <li><a href="#discussモードのコマンド作成" id="markdown-toc-discussモードのコマンド作成">discussモードのコマンド作成</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</h2>
+
+<div class="github-widget" data-repo="rcmdnk/chatgpt-prompt-wrapper"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BZN234H6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BZN234H6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511ynifXJYL._SS90_CR0,0,120,90_.jpg" alt="【GPT-4対応】【入門書】小学生でもわかるようにChatGPTを教えて: 「万能プロンプト」「登録方法〜使い方」「仕事にすぐ使える活用例」「便利な拡張機能」まで、この一冊だけで使いこなせる【図解版】入門書＆実践書！" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt/">chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う</a></div></li></ul>
+
+<p><code>cg</code>コマンドで簡単にChatGPTのAPIを叩くためのコマンドラインツール。</p>
+
+<p><code>ask</code>という一回質問して答えてもらうモードと、<code>chat</code>というWebのChatGPTみたいにAIと会話するモードを作ってましたが、
+ここに<code>discuss</code>というChatGPT同士で会話させるモードを追加しました。</p>
+
+<h2 id="discussコマンド">discussコマンド</h2>
+
+<p><code>discuss</code>モードではテーマを与えて、それに対して賛成派、反対派、など立場を別々に与えたAI同士で会話させます。</p>
+
+<p><code>cg discuss</code>コマンドでは、2つのChatGPTにはそれぞれ</p>
+
+<ul>
+  <li>Please engage in the discussion as a supporter. (賛成派として議論してください。)</li>
+  <li>Please engage in the discussion as a opponent. (反対派としてぎろんしてください。)</li>
+</ul>
+
+<p>という指示がデフォルトで与えられています(英語部分のみ)。</p>
+
+<p>後はコマンドライン引数で議論させたいテーマを与えてあげればOK。</p>
+
+<p>実行すると、<code>Enter</code>を押すたびに2つのChatGPTが別の立場から発言してくれます。</p>
+
+<p>長いので折りたたんであるので見たい場合は下のコマンド部分をクリックして開けてください。</p>
+
+<details>
+    <summary><code>$ cg discuss ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg discuss ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。
+</span><span class="line">Theme: ChatGPTは教育現場で積極的に使うべき、というテーマについて議論してください。一回の発言は2~3文までで、日本語で。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; 私はChatGPTを教育現場で積極的に使用することに賛成です。ChatGPTは、学生が質問を投げかけるか、理解するための補完材料を求めるなど、学習プロセスを促進することができます。また、教師が生徒に迅速に反応し、効果的な支援を提供することができます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; 私は、ChatGPTが教育現場で使用される場合の注意点について懸念しています。ChatGPTは、人工知能による言葉の理解と生成によって機能するため、誤解や誤った情報を提供する可能性があります。また、ChatGPTを使用することで、生徒が自分で考えるのではなく、あくまで回答を得ることに重点を置いてしまう恐れがあります。し たがって、教師が適切に監視し、正確な情報を提供するように指導する必要があると思います。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; 確かにそういった懸念はありますね。しかし、ChatGPTはあくまでツールの一つであり、教師が総合的な教育プログラムの一部として導入することが重要です。 生徒がChatGPTを使って回答を得る際には、教師が正しい使用方法や問題解決の方法を教えることが必要です。また、生徒が自分で考える力を育てるために、ChatGPTを使用する前提として、教師が先に正しい思考方法を示すことも重要です。これらの対策が適切に実施されれば、ChatGPTを教育現場で積極的に活用することは有益な結果を生むでし ょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; 確かに、ChatGPTを使うことは、学生の自己学習プロセスを促進することができます。しかし、ChatGPTの技術はまだ発展段階にあり、すべての質問に適切かつ正確な回答を提供することができない場合があります。そのため、教師は生徒がChatGPTを使う際に、適切な質問をすることを指導し、学生に適切で信頼性の高い情報源を選択 することを教える必要があります。また、ChatGPTはあくまでサポートツールであり、生徒が独立した学習能力を確立するために、教師は適切な課題を提供し、問題解決方法 を指導することが必要です。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; その通りです。ChatGPTを使う場合は、教師が適切なガイダンスや指導を行い、生徒とともに利用する方法を模索する必要があります。さらに、生徒が適切な情 報源を選択するために、教師がオンラインリソースの信頼性を評価する方法を教えることも重要です。最終的には、教師がChatGPTを教育に活用することによって、生徒の知 識水準や問題解決能力を向上させることが期待されます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。このように、教師がChatGPTを適切に活用することによって、生徒の自己学習能力、情報ソースの評価能力などのスキルを向上させることができ ます。さらに、ChatGPTを利用することによって、教師が生徒の進捗状況を把握し、必要に応じて個別の支援を行うこともできます。そのため、教育現場で積極的にChatGPTを活用することは、生徒の学習成果を向上させ、より充実した教育環境を整備するために必要な取り組みです。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そうですね。ChatGPTは教育現場において有用なツールの一つとして注目されています。教師が適切に指導し、生徒が質問や疑問に対してChatGPTを活用することで、学習の柔軟性や自己学習のスキルを向上させることができます。ChatGPTを使うことで、教育現場での学習がより充実したものになり、生徒が将来に向けて必要なスキル を身につけることができるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。ChatGPTを教育現場で積極的に活用することは、生徒がより効果的な学術成果を発揮するためのツールとして、教師が持つ教育力を発揮する手段 として、ますます注目されることが予想されます。教育現場では、ChatGPTの活用によって得られるメリットについて、より具体的に検証や実践を行っていくことが必要とさ れます。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そうですね。ChatGPTを教育現場で積極的に活用するためには、教育の現場に合わせた適切な指導やカリキュラムの設計が必要です。また、ChatGPTの技術の発展とともに、活用方法がどんどん進化しています。教育現場でのChatGPTの利用方法をより良く理解し、指導法や技術的な支援を充実させることで、より効果的な学習環境が構 築できるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。ChatGPTを教育現場で適切に活用するために、指導法やカリキュラム、技術的なサポートの充実が必要です。教師は、生徒に適切な使用方法を指 導し、生徒がChatGPTを活用して独自の学習プロセスを作り上げることができるようにサポートする必要があります。また、ChatGPTは次々と進化する技術であるため、その使用方法も進化していくことが予想されます。教育現場は、新しい技術について常に最新情報やアップデートについて学んでいく必要があります。最終的には、教育現場がChatGPTの潜在能力を最大限に引き出し、生徒の教育に積極的に活用することによって、より豊かな学習環境を構築できるでしょう。
+</span><span class="line">
+</span><span class="line">      gpt1&gt; そのように、ChatGPTを最大限に活用するためには、教師が生徒に対して適切に指導を行うことが不可欠です。それに加え、ChatGPTの技術の進歩に合わせた継続的な教育やトレーニングも必要です。教育現場が適切にChatGPTを活用することによって、生徒の自己学習能力や情報評価能力が向上し、より充実した教育環境を実現するこ とができます。将来的には、ChatGPTが教育現場に必要不可欠なツールの一つとして定着し、生徒の学習成果を確実に向上させることが期待されます。
+</span><span class="line">
+</span><span class="line">      gpt2&gt; その通りです。教育現場がChatGPTを適切に活用することで、生徒の自己学習能力や情報評価能力を向上させ、よりコアなスキルを身につけることができます。 教師は、生徒に適切な情報源の選択やChatGPTの利用方法について指導することで、生徒がより効果的な学習プロセスを作り上げることを支援する役割を果たします。また、 教育現場は継続的な教育やトレーニングを通じて、ChatGPTの技術進展に対応し、生徒の学習効果を最大化するための取り組みを行う必要があります。将来的には、教育現場 が適切にChatGPTを活用することによって、より充実した学習環境を整備し、生徒の学習成果を確実に向上させることができるでしょう。
+</span><span class="line">Assistant&gt; Bye!</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+こんな感じで議論してくれます。</p>
+
+<p>ちょっとやってみた感じ、単に賛成派、反対派、みたいな指示だと
+どんなテーマでも
+途中から結構相手の言っていることに同感して妥協点見たいのをお互いに見出して行く感じがあります。</p>
+
+<p>「確かに」、「その考えには同意します」みたいな感じで、まず相手を肯定する状態にすぐに落ち着くような感じ。</p>
+
+<p>結構強めに、「絶対に相手に同意しない」などの指示を出すとある程度さけてくれますが、それでも
+なるべく相手の言っていることを受け入れようとする感じ。</p>
+
+<p>おそらくChatGPTを作るにあたってユーザーに対して強い否定をしたりして負の体験を負わせることがないように
+「良い人」な返信をするものに重みが付けられてるのでしょうかね。</p>
+
+<h2 id="やってること">やってること</h2>
+
+<p>中でやっていることは、</p>
+
+<ul>
+  <li>2つの別のメッセージリストを作る</li>
+  <li>最初にテーマを入れ、次にそれぞれ別の立場の指示のメッセージを入れる。(role=systemとして)</li>
+  <li>1つ目のメッセージリストをAPIに投げる。</li>
+  <li>回答を表示し、回答をUserのメッセージとして2つ目のメッセージリストに入れる。</li>
+  <li>1つ目のメッセージリストをAPIに投げる。</li>
+  <li>回答を表示し、回答をUserのメッセージとして1つ目のメッセージリストに入れる。</li>
+  <li>以下繰り返し。</li>
+  <li>長くなってtokenの数が限界を超えたら、最初のテーマ、立場のメッセージは残しそれ以外で一番古いメッセージを削除して続ける。</li>
+</ul>
+
+<p>長くなってくると古い会話は忘れるので後は流れ次第になります。</p>
+
+<p>上の例だと日本語で一回300字程度でtoken数にすると400くらい。
+なのでテーマや立場が短いとしても自分と相手合わせて10回分くらいの会話だけを覚えている状態です。</p>
+
+<p>現状<code>min_max_tokens</code>という値が200になっていて、返答に対して最低200 tokensは残すようにしていますが、
+上の会話を見る限り500位は残すか、もう少し短めの返答を促すようにしないと
+途中から十分な返信が出来なかったりトークン制限で返答が切れたりしちゃうかもなのでもうちょい大きな値にしても良いかも。</p>
+
+<p>コマンドラインからなら<code>--min_max_tokens</code>または<code>-T</code>で指定可能、もしくは下のコマンド作成であれば各テーブル内で<code>min_max_tokens</code>の値を変更可能です。</p>
+
+<h2 id="discussモードのコマンド作成">discussモードのコマンド作成</h2>
+
+<p>chatgpt-prompt-wrapperでは<strong>~/.config/cg/config.toml</strong>
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>
+でサブコマンドの追加設定などが出来ますが、ここに以下のようなものを書くと議論の設定ができます。</p>
+
+<figure class="code"><figcaption><span>~/.config/cg/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[ve]</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim v.s. Emacs&quot;</span>
+</span><span class="line"><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="s1">&#39;discuss&#39;</span>
+</span><span class="line"><span class="k">[ve.names]</span>
+</span><span class="line"><span class="n">gpt1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim&quot;</span>
+</span><span class="line"><span class="n">gpt2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Emacs&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;theme&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Vim v.s. Emacsの議論を行ってください。一回の発言は短く。&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt1&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたはVim派です。EmacsよりVimの方が優れているという立場で議論してください。絶対にEmacsは認めない、という気持ちを持っています。&quot;</span>
+</span><span class="line"><span class="k">[[ve.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt2&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたはEmacs派です。VimよりEmacsの方が優れているという立場で議論してください。絶対にVimは認めない、という気持ちを持っています。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>まず、サブコマンド名にしたいものを名前にしたテーブルを作ります。</p>
+
+<p>議論させたい場合は`mode = ‘discuss’を設定。</p>
+
+<p><code>discuss</code>の場合、<code>messages</code>では<code>theme</code>, <code>gpt1</code>, <code>gpt2</code>の3つの<code>role</code>を用意する必要があります。
+<code>theme</code>の<code>content</code>に議論のテーマを、<code>gpt1</code>、<code>gpt2</code>にそれぞれ別の立場を与えます。</p>
+
+<p>これらは最終的にAPIに渡すmessageの中では<code>role=user</code>とか<code>role=assistant</code>に変更されます。</p>
+
+<p>また、表示させる名前として<code>names</code>で<code>gpt1</code>、<code>gpt2</code>に名前を与えることもできます。(与えないと<code>gpt1</code>、<code>gpt2</code>と表示。)</p>
+
+<p>ここでは割りと強めに相手を認めないように、と指示していますが、実際にやってみると、</p>
+
+<details>
+    <summary><code>$ cg ve</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg ve
+</span><span class="line">Theme: Vim v.s. Emacsの議論を行ってください。一回の発言は短く。
+</span><span class="line">
+</span><span class="line">       Vim&gt; Vimはキーボード操作に特化し、短いコマンドで高速に編集できる点が魅力的です。また、プラグインによる拡張性も非常に高く、ユーザーが自由にカスタマイ ズできます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 確かにVimはキーボード操作に特化したエディタですが、EmacsはVimに劣らずにキーボード操作に対応しています。EmacsにはVimのキーバインディングを真似たEvilモードが用意されており、Vimと同じような操作感を得ることができます。また、EmacsはVimよりも多機能であり、プログラミング言語の実行、コンパイル、インタプリタの起動、デバッグなどを行うこともできます。さらに、EmacsはElispというプログラミング言語を用いた拡張性が高い点も魅力的です。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かにEvilモードのおかげでEmacsでもVimライクな操作が可能になっているという点は認めますが、Vimに比べると学習コストが高いと思います。一方でVimは初心者でも比較的簡単に始めることができ、しかし一度習得するとスピードや生産性が飛躍的に向上します。また、Emacsは多機能であるがゆえに重たくなりがちで、Vimの軽快な動作に比べると疲れやすいとも言えます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; Emacsの学習コストが高いとの指摘については、確かに初めは習得するのに時間がかかるかもしれません。しかし、その分高度なカスタマイズや機能ありますか ら、時間をかけて学習する価値があると思います。また、Emacsが重くなる原因として、多数のプラグインを導入しすぎた場合がありますが、必要最低限のプラグインを選択 することで軽くすることもできます。Vimのユーザーが効率的かつ高速に作業をこなすことができる点には同意しますが、Emacsもユーザーがカスタマイズすることで同様に作業効率の高いエディタになることができます。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かに、Emacsのカスタマイズ性と拡張性は非常に高く、必要なプラグインを選択することで軽量化もできるという点も理解しています。ただ、私の観点からはVimの方が直感的に理解しやすく、学習コストが比較的低いと思っています。また、本来エディタは編集に特化したツールとしての役割を果たすべきであり、そこに過剰な機能を追加することがあまり望ましくないと考えます。Vimはその点で編集ツールとしてとてもシンプルであり、効率的な編集を可能にしています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 確かにVimは直感的に理解しやすく、効率的な編集が可能です。しかし、Emacsも編集に特化したツールであり、多数の編集機能（置換、正規表現、re-builderなど）を備えています。ただし、それ以外の追加機能は、自分で必要なものを選択してカスタマイズすることができます。つまり、本来必要でない機能を追加する必要はないので、シンプルな編集ツールとして利用することも可能です。Emacsの拡張性は、自分が必要とする機能を自由に追加しながら、自分だけのカスタマイズ環境を構築できるとい う点で、使い勝手にも優れています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 確かにEmacsも多数の編集機能を備えており、自由度の高いカスタマイズ環境を構築できる点が魅力的ですね。ただし、私はVimの方がキーボード操作に特化している分、高速かつ直感的な操作が可能な点が気に入っています。また、Vimを使うことで、コマンド操作に慣れてしまうと、GUIのエディタよりも高速に編集できるため、効率的な作業ができると思います。最終的には、個人的な好みによって選択するべきだと思いますが、私の場合はVimを愛用しています。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 私もあなたの意見には理解できます。Vimはキーボード操作に特化しており、高速で直感的な操作が可能な点が魅力的です。また、コマンド操作に慣れることでGUIのエディタより高速に編集ができるというのもVimの大きな特徴です。最終的には個人的な好みによって選択するべきというのは正しい考え方だと思います。どちらが優れ ているという議論は難しい問題ですが、VimもEmacsもそれぞれに魅力的な点があるので、自分に合ったエディタを選んで使い続けることが重要だと思います。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; 同感です。VimもEmacsも、それぞれに優れた特徴があり、どちらが優れているということではなく、使いやすさや個人的な好みに合わせて選んで使用することが大切です。双方の利点を活かして、快適な編集環境を構築したいと思います。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; そうですね。利点を活かした編集環境を作ることで、より効率的な作業が可能となりますね。私たちはお互いの好みを尊重しながら、エディタの使い方やカスタマイズ方法などを共有して、より使いやすい編集環境を構築していきましょう。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">       Vim&gt; その通りです。お互いに情報を共有し、より快適な編集環境を構築していきましょう。ありがとうございました。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     Emacs&gt; 私もこちらこそ、ありがとうございました。エディタ選びは個人的な好みや使い勝手に拠る部分が大きいですが、それぞれに優れた点があることを再確認することができました。またどうかお力になれたら幸いです。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+見てもらうとわかりますが、割りと早めにどっちということではなく、良い環境を作れば良いよね、という結論に陥っています。。。</p>
+
+<p><code>discuss</code>モードとしてますが、議論ではなくて二人で普通の会話をさせることも可能です。</p>
+
+<figure class="code"><figcaption><span>~/.config/cg/config.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[child]</span>
+</span><span class="line"><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;discuss&#39;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[child.names]</span>
+</span><span class="line"><span class="n">gpt1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;さっちゃん&quot;</span>
+</span><span class="line"><span class="n">gpt2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;パパ&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;theme&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。&quot;</span>
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt1&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたは子供で親に対して不思議に思ったことを純粋な気持ちで質問します。きちんと分かるまで根掘り葉掘り質問します。相手のことはパパと呼びます。まず最初に１つ質問してください。&quot;</span>
+</span><span class="line"><span class="k">[[child.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt2&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;あなたは親で子供の質問に対して答えます。きちんと分かるまで頑張って答えます。相手が５歳なので分かりやすい言葉で伝えます。相手のことはさっちゃんと呼びます。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<details>
+    <summary><code>$ cg child</code></summary>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg child
+</span><span class="line">Theme: 親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; パパ、夜はなぜ暗くなるの？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; さっちゃん、夜が暗くなるのは、太陽が山の向こうに隠れてしまって、光が届かなくなるからだよ。太陽がなくなると、空に星がたくさん見えるようになるんだ。星座を見たり、月を見たりするのも、夜にならないとできないんだね。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; なるほど、そうだったんだね。ありがとうパパ！星はたくさんあるから、また見に行きたいな。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; そうだね、星はたくさんあるから、いつでも見に行けるよ。次はどんな星を見るか、一緒に考えてみようね。でも、夜は暗いから、ママかパパが一緒についていてね。
+</span><span class="line">
+</span><span class="line">^C
+</span><span class="line"> Assistant&gt; Bye!
+</span><span class="line">$ cg child
+</span><span class="line">Theme: 親子で子供の純粋な質問に対して、親が答えます。子供は５歳の女の子、名前はさっちゃん。親は男親で30歳のパパ。
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; パパ、虹ってどうして出るの？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; そうですね、虹は空に光が当たって、光が色に分かれるから出ます。光が色に分かれるのは、太陽から出る白い光が、雨粒などの水滴に当たると、色に分かれて反射されるためです。虹は、赤・橙・黄・緑・青・藍・紫の7色に分かれて見えますよ。
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">     さっちゃん&gt; さっちゃん、分かりましたか？虹は太陽から出る白い光が、雨粒や水滴などに当たって色に分かれて反射されるから出るんだよ。7つの色に分かれて見えるから、とてもキレイでしょう？
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">        パパ&gt; さっちゃん、分かりましたか？分かりました、虹って太陽から出る白い光が、雨粒や水滴などに当たって色に分かれて反射されるから出るんだよ。7つの色に 分かれて見えるから、とてもキレイだよね！ありがとう、パパ！
+</span><span class="line">
+</span><span class="line">^C
+</span><span class="line"> Assistant&gt; Bye!
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+</details>
+
+<p><br /><br />
+こんな感じで親子の会話もできます。毎回違う質問をしてくれて、それに対して丁寧に答えてくれます。</p>
+
+<p>ただ2回目はなぜかパパが敬語っぽい話し方をしていて、かと思ったらさっちゃんは「さっちゃん」と呼びかけお前は誰だ、状態になったし、
+最後にパパは「さっちゃん」と呼びかけてるにも関わらず最後に「ありがとう、パパ」ということでまたお前は誰だ、になってます。</p>
+
+<p>最後のところとかは立場の指定が軽視されて最初のテーマの情況から、自分自身で親子の会話を両方行ってしまっているような状態だと思います。</p>
+
+<p>この辺プロンプトが難しい。。。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>勝手に話が進んでいくのは面白いですが、
+議論させると割りとお互いの歩み寄り率が高くてちょっとその辺議論としてはつまらないものになりがちです。</p>
+
+<p>ChatGPTがそういうふうに寄せられているから仕方ないところだとは思いますが、
+実際に自分がユーザーとして尋ねる際にもそういった自分に同調しがちな相手だということは頭にちょっと入れておいたほうが良いかも、とも。</p>
+
+<p>テーマをもっと議論しがいのあるものにしたり、立場も話し方や態度などを詳細に決めたりするとまたおもしろものも出来るかもしれません。</p>
+
+<p>また今回あまり試してませんが、<code>temperature</code>や<code>top_p</code>、<code>presence_penalty</code>、 <code>frequency_penalty</code>などの値を
+変えればまた違う雰囲気になるかと思います。
+（これらはchagtpt-prompt-wrapperではコマンド作成時であればコマンドのテーブルにてこれらの値を設定可能です。)</p>
+
+<p>議論だけでなく最後みたいなロールプレイも勝手に進めてくれるので色々遊べそう。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[git-gpt-commit: ChatGPTにGitのcommitを書かせる]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt/"/>
+    <updated>2023-04-18T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/18/computer-python-ai-gpt</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1642350125?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1642350125&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41r1CJwhCVL._SS200_.jpg" alt="git commit murder" /></a>
+</div>
+
+<p>ChatGPTにGit commitのmessageを書かせる。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gitのcommit-messageを書くには" id="markdown-toc-gitのcommit-messageを書くには">Gitのcommit messageを書くには</a></li>
+  <li><a href="#git-gpt-commit" id="markdown-toc-git-gpt-commit">git-gpt-commit</a></li>
+  <li><a href="#準備" id="markdown-toc-準備">準備</a>    <ul>
+      <li><a href="#インストール" id="markdown-toc-インストール">インストール</a></li>
+      <li><a href="#その他の準備" id="markdown-toc-その他の準備">その他の準備</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#オプション設定" id="markdown-toc-オプション設定">オプション設定</a>    <ul>
+      <li><a href="#commitメッセージを作るための命令" id="markdown-toc-commitメッセージを作るための命令">commitメッセージを作るための命令</a></li>
+      <li><a href="#命令部分" id="markdown-toc-命令部分">命令部分</a></li>
+      <li><a href="#diffの出力" id="markdown-toc-diffの出力">diffの出力</a></li>
+      <li><a href="#テンプレートメッセージ" id="markdown-toc-テンプレートメッセージ">テンプレートメッセージ</a></li>
+      <li><a href="#chatgptモデル" id="markdown-toc-chatgptモデル">ChatGPTモデル</a></li>
+    </ul>
+  </li>
+  <li><a href="#-cchangeオプション" id="markdown-toc--cchangeオプション">-c/–changeオプション</a></li>
+  <li><a href="#その他" id="markdown-toc-その他">その他</a>    <ul>
+      <li><a href="#コミットのキャンセル" id="markdown-toc-コミットのキャンセル">コミットのキャンセル</a></li>
+      <li><a href="#pre-commit" id="markdown-toc-pre-commit">pre-commit</a></li>
+      <li><a href="#alias" id="markdown-toc-alias">alias</a></li>
+    </ul>
+  </li>
+  <li><a href="#aicommits" id="markdown-toc-aicommits">aicommits</a></li>
+  <li><a href="#感想" id="markdown-toc-感想">感想</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gitのcommit-messageを書くには">Gitのcommit messageを書くには</h2>
+
+<p>必要な情報としては変更点に関する記述なので<code>git diff</code>の結果を見て何が変わったかを書けば良い、
+という比較的形式的にはわかりやすいものです。</p>
+
+<p>コマンドラインからChatGPTを簡単に使えるツールを作ったのでそこに<code>git diff</code>の結果を与えて
+いい感じのcommit messageを考えてもらえば良さそう。</p>
+
+<div class="github-widget" data-repo="rcmdnk/chatgpt-prompt-wrapper"></div>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BZN234H6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BZN234H6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511ynifXJYL._SS90_CR0,0,120,90_.jpg" alt="【GPT-4対応】【入門書】小学生でもわかるようにChatGPTを教えて: 「万能プロンプト」「登録方法〜使い方」「仕事にすぐ使える活用例」「便利な拡張機能」まで、この一冊だけで使いこなせる【図解版】入門書＆実践書！" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt/">chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う</a></div></li></ul>
+
+<h2 id="git-gpt-commit">git-gpt-commit</h2>
+
+<div class="github-widget" data-repo="rcmdnk/git-gpt-commit"></div>
+
+<p><code>git</code>のサブコマンドとして<code>gpt-commit</code>というコマンドを追加するツールです。</p>
+
+<p>コミットメッセージをあらかじめ用意する以外は基本的に<code>git commit</code>と同じように使えて、
+<code>-a</code>とかオプションもそのまま使えます。</p>
+
+<p>中身は簡単なシェルスクリプトです。</p>
+
+<h2 id="準備">準備</h2>
+
+<h3 id="インストール">インストール</h3>
+
+<p>インストールはHomebrewを使っていれば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install rcmdnk/rcmdnkpac/git-gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これで
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+も依存先として一緒にインストールされます。</p>
+
+<p>直接入れる場合は<strong>bin</strong>ディレクトリにある<a href="https://github.com/rcmdnk/git-gpt-commit/blob/main/bin/git-gpt-commit">git-gpt-commit</a>を
+PATH下に置けば<code>git gpt-comit</code>が使えるようになります。</p>
+
+<p>ただし、直接入れる場合は
+<a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+も手動でいれる必要があります。</p>
+
+<h3 id="その他の準備">その他の準備</h3>
+
+<p><a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+を使うにあたってOpenAIのAPI Keyが必要になります。</p>
+
+<p>OpenAIでアカウントを作って
+<a href="https://platform.openai.com/account/api-keys">ここ</a>
+からAPI Keyを取得して
+環境変数として</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export OPENAI_API_KEY="sk-..."</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように設定しておきます。</p>
+
+<h2 id="使い方">使い方</h2>
+
+<p>何かしら変更を行ったレポジトリの中で、変更したファイルを<code>git add</code>して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすると、ChatGPTが<code>git diff</code> を見て考えたcommit messageがあらかじめ書かれた状態で
+commit messageの編集画面に入ります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">feat: Added ability to exclude files from git diff
+</span><span class="line">docs: Updated README with information about new feature and defaults
+</span><span class="line">style: Updated formatting of default config values in README
+</span><span class="line">refactor: Renamed PROMPT default value to _PROMPT
+</span><span class="line">test: Added missing tests for new file exclusion feature
+</span><span class="line">fix: Fixed issue with canceling commits when using '-a' option
+</span><span class="line">
+</span><span class="line"># Please enter the commit message for your changes. Lines starting
+</span><span class="line"># with '#' will be ignored, and an empty message aborts the commit.
+</span><span class="line">#
+</span><span class="line"># On branch main
+</span><span class="line"># Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
+</span><span class="line">#   (use "git pull" to update your local branch)
+</span><span class="line">#
+</span><span class="line"># Changes to be committed:
+</span><span class="line">#       modified:   README.md
+</span><span class="line">#       modified:   bin/git-gpt-commit
+</span><span class="line">#</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>`</p>
+
+<p>こんな感じのメッセージが準備された状態になります。</p>
+
+<p>あとはこれを適当に編集して保存すればcommit出来ます。</p>
+
+<h2 id="オプション設定">オプション設定</h2>
+
+<h3 id="commitメッセージを作るための命令">commitメッセージを作るための命令</h3>
+
+<p>デフォルトでは以下のようなプロンプトを使っています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Please make git commit messages for the following diff output.
+</span><span class="line">
+</span><span class="line">Each commit message must be one line starting with one of the following words.
+</span><span class="line">
+</span><span class="line">* feat: (new feature for the user, not a new feature for build script)
+</span><span class="line">* fix: (bug fix for the user, not a fix to a build script)
+</span><span class="line">* docs: (changes to the documentation)
+</span><span class="line">* style: (formatting, missing semi colons, etc; no production code change)
+</span><span class="line">* refactor: (refactoring production code, eg. renaming a variable)
+</span><span class="line">* test: (adding missing tests, refactoring tests; no production code change)
+</span><span class="line">* chore: (updating grunt tasks etc; no production code change)
+</span><span class="line">
+</span><span class="line">### diff
+</span><span class="line">
+</span><span class="line">$(git diff --cached $exclude_list)</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="命令部分">命令部分</h3>
+
+<p>まず、命令部分ですが、ここは好きに設定すべきところではありますが、
+ここでは<a href="https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716">Semantic Commit Messages</a>
+を使って書き方を指示しています。</p>
+
+<p>こういった形の形式張った書き方はアルゴリズム相手には相性が良いのでいい感じにまとめてくれます。</p>
+
+<p>この部分は設定で変えることが出来て、<code>PROMPT</code>という環境変数に指示を書いておくと
+上の<code>### diff</code>より上の部分を置き換えることができます。</p>
+
+<p>または<strong>~/.config/git_gpt_commit/config</strong>(もし<code>XDG_CONFIG_HOME</code>が指定されていたらそれの下の<strong>git_gpt_commit/config</strong>)
+に設定を書いておけばそれが反映されます。</p>
+
+<p>日本語で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">PROMPT</span><span class="o">=</span><span class="s2">&quot;以下のgit diffの出力を見てコミットメッセージを簡潔かつ分かりやすく書いてください。&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかでもOK。</p>
+
+<h3 id="diffの出力">diffの出力</h3>
+
+<p>最後の部分で<code>git diff</code>を渡しています。
+<code>--cached</code>で<code>add</code>したものとHEADとの比較をします。</p>
+
+<p>もし<code>-a</code>が渡された場合には先に<code>git add -u</code>を実行して変更があったファイルを<code>add</code>するようにしているので、
+これで必ず必要な部分のdiffが取れるようになっています。</p>
+
+<p>また、<code>$exclude_list</code>が渡されていますが、これはデフォルトでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">-- :(exclude)$(git rev-parse --show-toplevel)*.lock</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>になっています。
+<strong>poetry.lock</strong>とか<strong>Gemfile.lock</strong>とか、パッケージを管理するlockファイルは
+1つパッケージを変更しただけでも依存関係で大きく内容が変わってしまいますが
+その変更を逐次確認してcommit messageに入れることは通常無いと思うので省いています。</p>
+
+<p>特にgpt-3.5-turboだとlockファイルの変更だけでもtoken数の制限にかかっちゃたりもするので。</p>
+
+<p>もし排除するファイルを変更したい倍には
+<code>EXCLUDE</code>という環境変数に設定します。もしくは
+<strong>config</strong>に書きます。</p>
+
+<p>上のデフォルトは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">EXCLUDE="*.lock"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となっています。
+<code>:(exclude)$(git rev-parse --show-toplevel)</code>は勝手に追加されます。</p>
+
+<p>複数指定したい場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">EXCLUDE="*.lock,README.md"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じでコンマ区切りで。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">-- :(exclude)$(git rev-parse --show-toplevel) *.lock:(exclude)$(git rev-parse --show-toplevel)README.md</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように展開されます。</p>
+
+<h3 id="テンプレートメッセージ">テンプレートメッセージ</h3>
+
+<p>上の例だと入ってませんが、<strong>.gitconfig</strong>などで<code>commit.template</code>を指定して
+commit message編集時に表示させるようにしている場合これも準備されたcommit messagesの下に表示されるようになっています。</p>
+
+<p>別途<code>git gpt-commit</code>のときは別のテンプレートを使いたい場合は
+<code>MESSAGE</code>という環境変数に設定、もしくは
+<strong>config</strong>に書きます。</p>
+
+<p><code>MESSAGE</code>を設定しない場合に<code>commit.template</code>が設定されているとそれを使いますが、
+<code>MESSAGE=""</code>のように空にすればテンプレートはひょうじされなくなります。</p>
+
+<h3 id="chatgptモデル">ChatGPTモデル</h3>
+
+<p><a href="https://github.com/rcmdnk/chatgpt-prompt-wrapper">chatgpt-prompt-wrapper</a>
+では現在デフォルトでgpt-3.5-turboを使うようになっていますが、
+<a href="https://github.com/rcmdnk/git-gpt-commit">git-gpt-commit</a>では
+<code>MODEL</code>という環境変数に<code>gpt-4</code>とか指定すればモデルを変更できます。</p>
+
+<h2 id="-cchangeオプション">-c/–changeオプション</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2023/04/19 </strong></p>
+
+  <p><code>-c</code>/<code>--change</code>というオプションを追加しました。
+これに続いて今回のcommitの概要てきなものを教えてあげる事ができます。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rcmdnk/git-gpt-commit#example">Example</a></p>
+  </blockquote>
+
+  <p>例えばこの変更を入れたときに使ったものが上の例ですが、
+何も指定せず<code>git gpt-commit</code>だと</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">refactor: Add option to include change descriptions in commit messages</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>というメッセージになって<code>change</code>オプションという部分は入ってますが、まず、最初が<code>refactor</code>になっているし
+文章もちょっと意味が分かりません。</p>
+
+  <p>これに対して、</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git gpt-commit -c "add -c/--change options"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>とすると</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">feat: Add -c/--change option to specify contents of changes in commit message</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>となり、これはそのまま使えるレベルです。</p>
+
+  <p>日本語で、</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git c -a -c "-c/--changeというオプションを加え、あらかじめ変更を伝えることができるようにする"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>と入れても同じドラフトが出来ました。</p>
+
+  <p>どうやってるかというと、<code>-c</code>/<code>--change</code>のオプションがあるとその内容を
+PROMPTの前に</p>
+
+  <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">This commit is for: ...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+  <p>という形で加えるようにしてあるだけです。</p>
+
+  <p>あまり詳細に書けるならそのままメッセージを書けば良いじゃん、ということで恩恵が浅いですが、
+上の<code>add ...</code>程度を書いてちゃんとした文章に直してくれるのであれば
+結構使う意味はあるんじゃないかな、と。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="その他">その他</h2>
+
+<h3 id="コミットのキャンセル">コミットのキャンセル</h3>
+
+<p>commit messageをエディタで開いた状態からやっぱりやめたい場合には
+<code>#</code>でコメントアウトしてある部分以外を全て削除して終了すればキャンセルになります。
+(<code>--allow-empty-message</code>を設定していない限り。)</p>
+
+<p>この際、<code>git gpt-commit -a</code>のようにstageされてないものも<code>add</code>するようになっていても、
+キャンセル時には<code>add</code>したものだけ<code>git restore --staged</code>で戻すようになっています。</p>
+
+<h3 id="pre-commit">pre-commit</h3>
+
+<p>pre-commitをインストールしている場合にはChatGPTに送る前にpre-commit単独で走らせてチェックして
+失敗した場合にはその場でcommitを辞めるようにしています。</p>
+
+<h3 id="alias">alias</h3>
+
+<p><code>git gpt-commit</code>はちょっと長いので、個人的には<strong>~/.gitconfig</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">[alias]
+</span><span class="line">  c = gpt-commit</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として<code>git c</code>コマンドとして使ってます。実際よく使うのは<code>git c -a</code>。</p>
+
+<p><code>gc</code>にしたかったけど<code>git-gc</code>は最初からあるので、1文字コマンドは微妙かと思いつつ他に良いのもないので<code>c</code>で。</p>
+
+<h2 id="aicommits">aicommits</h2>
+
+<p>gpt-3.5のAPIが使えるようになってわりかしすぐに出来ていた同じようなcommit message作成ツール。</p>
+
+<div class="github-widget" data-repo="Nutlope/aicommits"></div>
+
+<p>この中では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Write a git commit message in present tense for the following diff without prefacing it with anything. Do not be needlessly verbose and make sure the answer is concise and to the point. The response must be in the language ${locale}:\n${diff}`;</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいなプロンプトが使われています。
+オプションで変えられる言語のための<code>locale</code>という変数と<code>git diff</code>の結果の<code>diff</code>という変数が入っていますが、
+<strong>簡潔にまとめよ</strong>、的な感じの命令です。</p>
+
+<p>このあたりの命令部分を自分で決めたかったのと、
+APIを使う部分を外に出して<code>git commit</code>の<code>-m</code>でメッセージのドラフトとして入れてすぐに編集出来る状態にした方が
+やりやすいかな、ということでgit-gpt-commitを作ってみました。</p>
+
+<p>多分ほかにも色々とあるとは思いますが、
+プロンプト部分を簡単に変えられるのと、
+API部分はchatgpt-prompt-wrapperにまかせてgit-gpt-commit自体はシンプルなので
+好きなように変更して使ったりするにも良いんじゃないかな、と。</p>
+
+<h2 id="感想">感想</h2>
+
+<p>ちょっとした変更だと編集なしでもOKなのが多いですが、
+多少複雑だと手直ししたくなるのも多いので、
+まだ完全自動というよりドラフトを書いてもらって
+すぐに手直しできる状態にするやり方が一番しっくりきています。</p>
+
+<p>とりあえずこれ使ってcommitするようにしているので、意味のない<code>fix</code>とか<code>update</code>とかだけの
+commitもだいぶ減らせて良い感じです。</p>
+
+<p>あとはやっぱり自由に書かせるよりは
+Semantic Commit Messagesのようなある程度ちゃんとした決まりがあった方が
+出来上がったものをそのまま使える状態になる確率が高いかな、という感じ。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[chatgpt-prompt-wrapper: コマンドラインから気軽にChatGPTを使う]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt/"/>
+    <updated>2023-04-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/12/computer-python-ai-gpt</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0BZN234H6?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0BZN234H6&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/511ynifXJYL._SS200_.jpg" alt="【GPT-4対応】【入門書】小学生でもわかるようにChatGPTを教えて: 「万能プロンプト」「登録方法〜使い方」「仕事にすぐ使える活用例」「便利な拡張機能」まで、この一冊だけで使いこなせる【図解版】入門書＆実践書！" /></a>
+</div>
+
+<p>コマンドラインからサクッとChatGPTを使うためのラッパーツールを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#chatpgpt-prompt-wrapper" id="markdown-toc-chatpgpt-prompt-wrapper">chatpgpt-prompt-wrapper</a></li>
+  <li><a href="#準備" id="markdown-toc-準備">準備</a></li>
+  <li><a href="#簡単な使い方" id="markdown-toc-簡単な使い方">簡単な使い方</a>    <ul>
+      <li><a href="#ask" id="markdown-toc-ask">ask</a></li>
+      <li><a href="#chat" id="markdown-toc-chat">chat</a></li>
+      <li><a href="#chatモードのオプション" id="markdown-toc-chatモードのオプション">chatモードのオプション</a></li>
+      <li><a href="#chatモードでやっていること" id="markdown-toc-chatモードでやっていること">chatモードでやっていること</a></li>
+    </ul>
+  </li>
+  <li><a href="#usage" id="markdown-toc-usage">Usage</a></li>
+  <li><a href="#自作サブコマンド" id="markdown-toc-自作サブコマンド">自作サブコマンド</a></li>
+  <li><a href="#自作サブコマンドの簡単な例" id="markdown-toc-自作サブコマンドの簡単な例">自作サブコマンドの簡単な例</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="chatpgpt-prompt-wrapper">chatpgpt-prompt-wrapper</h2>
+
+<div class="github-widget" data-repo="rcmdnk/chatgpt-prompt-wrapper"></div>
+
+<p>OpenAIのAPIを使ってChatGPTにコマンドラインからアクセスするためのツール。</p>
+
+<p>Homebrewを使っているなら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install rcmdnk/rcmdnkpac/chatgpt-prompt-wrapper</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>もしくはPython 3.9 ~ 3.11がインストールされている環境なら</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip3 install chatgpt-prompt-wrapper</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすればインストールでき、<code>cg</code>というコマンドが使えるようになります。</p>
+
+<p>(エイリアスとして<code>chatgpt-prompt-wrapper</code>というコマンドもインストールされます。)</p>
+
+<h2 id="準備">準備</h2>
+
+<p>必要なものは、まずはPython 3.9~3.11。その<code>pip</code>を利用すれば上のように<code>pip</code>でインストールできます。</p>
+
+<p>あとは
+<a href="https://platform.openai.com/account/api-keys">Account API Keys - OpenAI API</a>
+からOpenAIのAPI Keyを取得しておきます。</p>
+
+<p>これを</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export OPENAI_API_KEY="sk-..."</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにして<code>OPENAI_API_KEY</code>という環境変数にいれておきます。
+常に使うなら上のコマンドを<strong>.bashrc</strong>や<strong>.zshrc</strong>に書いておいてください。</p>
+
+<h2 id="簡単な使い方">簡単な使い方</h2>
+
+<h3 id="ask">ask</h3>
+
+<p><code>cg ask &lt;message&gt;</code>のようにして質問を投げるとChatGPTが答えてくれます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg ask who are you?
+</span><span class="line">I am an AI language model created by OpenAI. I am designed to assist in tasks such as answering questions, generating text, and providing language translation services. My role is to augment and support human decision-making through the use of natural language processing and machine learning algorithms.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="chat">chat</h3>
+
+<p><code>cg ask</code>とするとchatを開始できます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230410_chat.gif" alt="20230410_chat.gif" class="pic" /></p>
+
+<p><code>chat</code>ではやり取りを続けられますが、<i class="key">Ctrl</i>-<i class="key">C</i>を押すか<code>bye</code>, <code>exit</code>, <code>quit</code>というメッセージを送ると終わります。</p>
+
+<p>デフォルトではmultilineモードで、複数行の書き込みが可能です。
+<i class="key">Enter</i>は改行になるので、
+メッセージを送る際には<i class="key">Alt</i>(<i class="key">Opt</i>)-<i class="key">Enter</i>、もしくは<i class="key">Esc</i><i class="key">Enter</i>(続けて押す)を入力すると送信できます。</p>
+
+<p>Backspaceや方向キーも普通のエディタのように使えます。</p>
+
+<h3 id="chatモードのオプション">chatモードのオプション</h3>
+
+<p><code>--no_multiline</code>オプションを与えるとシングルラインモードになって
+<i class="key">Enter</i>でメッセージを送るようになります。</p>
+
+<p>また、デフォルトでは通常のターミナル操作などのようにEmacsモードで動作しますが(<i class="key">Ctrl</i>-<i class="key">B</i>/<i class="key">F</i>で一文字戻る/進む、など)、
+<code>--vi</code>オプションを与えるとViモードになって<i class="key">Esc</i>を押すと<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>で左/下/上/右に進めたりするようになります。</p>
+
+<p>この辺の動作は
+<a href="https://python-prompt-toolkit.readthedocs.io/en/master/">Python Prompt Toolkit</a>
+を使ってます。</p>
+
+<p>本当はブラウザなどでよくあるような<i class="key">Shift</i>-<i class="key">Enter</i>で送信(もしくは<i class="key">Enter</i>を送信で<i class="key">Shift</i>-<i class="key">Enter</i>は改行)とかやりたかったのですが、
+ターミナル自体がその区別をサポートしていないものもあるらしく難しい模様。</p>
+
+<blockquote>
+  <p><a href="https://github.com/prompt-toolkit/python-prompt-toolkit/issues/529">Is it possible to have a “shift + enter” keybinding? · Issue #529 · prompt-toolkit/python-prompt-toolkit</a></p>
+</blockquote>
+
+<p>ということでmultilineモードの送信などはPython Prompt Toolkitのデフォルトの動作になっています。</p>
+
+<h3 id="chatモードでやっていること">chatモードでやっていること</h3>
+
+<p>chatモードではそれまでのやり取りを踏襲した答えを出してくれますが、
+送信するたび、それまで全てのやり取りを送って答えを聞いているだけです。</p>
+
+<p>Token数に制限があるので、制限を超えそうな場合には古いものからメッセージを削除して送るようにしています。</p>
+
+<p>Token数は大体英語だと1 wordが1 tokenちょっと、日本語だと1文字1 tokenちょっとな感じです。</p>
+
+<blockquote>
+  <p><a href="https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them">What are tokens and how to count them?  OpenAI Help Center</a></p>
+</blockquote>
+
+<p>token数はOpenAIが提供している
+<a href="https://github.com/openai/tiktoken">tiktoken</a>というライブラリを使えば数えることが出来ます。
+これと、
+以下のノートにある<code>num_tokens_from_messages</code>関数を参考に正確なtoken数を見積もることが可能です。
+各メッセージの文字数以外にroleなどの情報も送るために少しプラスアルファがあることに注意が必要です。</p>
+
+<blockquote>
+  <p><a href="https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb">openai-cookbook/How_to_count_tokens_with_tiktoken.ipynb at main · openai/openai-cookbook · GitHub</a></p>
+</blockquote>
+
+<p>ある程度やり取りを行ったまま続けると、常にToken数制限ギリギリのやり取りを行うことになるのでちょっとcostに気をつけたほうが良いです。</p>
+
+<p>gpt-3.5-turboなら4096 tokensの制限で最大1円弱なので機械的に大量に送らない限りは気にならない程度かと。</p>
+
+<p>gpt-4-32kとかだと32768 tokensまで送れて、かつ1k tokensあたりの料金も数十倍になるので
+最大で一回で100円程度かかってしまうこともあります。</p>
+
+<blockquote>
+  <p><a href="https://platform.openai.com/docs/models/overview">Models - OpenAI API</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://openai.com/pricing#language-models">Pricing</a></p>
+</blockquote>
+
+<p>また、
+<a href="https://platform.openai.com/docs/api-reference/chat/create">Chat completion</a>
+といううAPIを使っていますが、
+<code>stream</code>というオプションがあり、これをTrueにすると
+回答を少しずつ受け取ることが出来るので
+受け取り次第書き出すようにすると
+Webでやってるようなツラツラと書いているような様子になります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb">openai-cookbook/How_to_stream_completions.ipynb at main · openai/openai-cookbook · GitHub</a></p>
+</blockquote>
+
+<p><a href="https://github.com/openai/openai-cookbook/tree/main">openai-cookbook</a>便利。</p>
+
+<h2 id="usage">Usage</h2>
+
+<p><code>cg help</code>でコマンドのヘルプ、<code>cg commands</code>で使えるサブコマンド一覧を見ることが出来ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg help
+</span><span class="line">usage: cg [-h] [-k KEY] [-c CONF] [-m MODEL] [-t MAX_TOKENS] [-T MIN_MAX_TOKENS] [-l TOKENS_LIMIT] [--show] [--hide] [--multiline]
+</span><span class="line">          [--no_multiline] [--vi] [--emacs] [--show_cost]
+</span><span class="line">          subcommand [message ...]
+</span><span class="line">
+</span><span class="line">positional arguments:
+</span><span class="line">  subcommand            Subcommand to run. Use 'commands' subcommand to list up available subcommands.
+</span><span class="line">  message               Message to send to ChatGPT
+</span><span class="line">
+</span><span class="line">optional arguments:
+</span><span class="line">  -h, --help            show this help message and exit
+</span><span class="line">  -k KEY, --key KEY     OpenAI API key.
+</span><span class="line">  -c CONF, --conf CONF  Path to the configuration toml file.
+</span><span class="line">  -m MODEL, --model MODEL
+</span><span class="line">                        ChatGPT Model to use.
+</span><span class="line">  -t MAX_TOKENS, --max_tokens MAX_TOKENS
+</span><span class="line">                        The maximum number of tokens to generate in the chat completion. Set 0 to use the max values for the model
+</span><span class="line">                        minus prompt tokens.
+</span><span class="line">  -T MIN_MAX_TOKENS, --min_max_tokens MIN_MAX_TOKENS
+</span><span class="line">                        The minimum of max_tokens for the completion when max_tokens = 0.
+</span><span class="line">  -l TOKENS_LIMIT, --tokens_limit TOKENS_LIMIT
+</span><span class="line">                        The limit of the total tokens of the prompt and the completion. Set 0 to use the max values for the model.
+</span><span class="line">  --show                Show prompt for ask command.
+</span><span class="line">  --hide                Hide prompt for ask command.
+</span><span class="line">  --multiline           Use multiline input for chat command.
+</span><span class="line">  --no_multiline        Use single line input for chat command.
+</span><span class="line">  --vi                  Use vi mode at chat.
+</span><span class="line">  --emacs               Use emacs mode at chat.
+</span><span class="line">  --show_cost           Show cost used.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ cg commands
+</span><span class="line">Available subcommands:
+</span><span class="line">  Reserved commands:
+</span><span class="line">    ask       : Ask w/o predefined prompt.
+</span><span class="line">    chat      : Start chat w/o predefined prompt.
+</span><span class="line">    init      : Initialize config file with an example command.
+</span><span class="line">    cost      : Show estimated cost used until now.
+</span><span class="line">    commands  : List up subcommands (show this).
+</span><span class="line">    version   : Show version.
+</span><span class="line">    help      : Show help.
+</span><span class="line">  User commands:
+</span><span class="line">    test      : Example command to test the OpenAI API.
+</span><span class="line">    ...</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="自作サブコマンド">自作サブコマンド</h2>
+
+<p>あらかじめ指定したプロンプトを用意しておいて、それを自作のサブコマンドとして呼ぶことも出来ます。</p>
+
+<p>設定ファイルは<strong>~/.config/cg/config.toml</strong>の<a href="https://toml.io/en/">TOML format</a>のファイルです。</p>
+
+<p>各コマンドは以下のような感じで。
+<code>test</code>というサブコマンドを作っています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[test]</span>
+</span><span class="line"><span class="c1"># Example command to test the OpenAI API, taken from below.</span>
+</span><span class="line"><span class="c1"># [Chat completion - OpenAI API](https://platform.openai.com/docs/guides/chat/introduction)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Example command to test the OpenAI API.&quot;</span>
+</span><span class="line"><span class="n">show</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[[test.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;system&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;You are a helpful assistant.&quot;</span>
+</span><span class="line"><span class="k">[[test.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Who won the world series in 2020?&quot;</span>
+</span><span class="line"><span class="k">[[test.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+</span><span class="line"><span class="s2">&quot;content&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;The Los Angeles Dodgers won the World Series in 2020.&quot;</span>
+</span><span class="line"><span class="k">[[test.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Where was it played?&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><img src="https://rcmdnk.com/images/post/20230410_test.png" alt="20230410_test.png" class="pic" /></p>
+
+<p>質問も含まれたものが用意されてるので何も追加メッセージ無しで実行して、
+最後の<code>assitant</code>のところでその答えが帰ってきています。</p>
+
+<p>Pythonの辞書に直すと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="err">{</span><span class="s2">&quot;test&quot;</span><span class="err">:</span><span class="w"> </span>
+</span><span class="line"><span class="w">    </span><span class="err">{</span>
+</span><span class="line"><span class="w">        </span><span class="s2">&quot;description&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;Example command to test the OpenAI API.&quot;</span><span class="err">,</span>
+</span><span class="line"><span class="w">        </span><span class="s2">&quot;show&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">True</span><span class="err">,</span>
+</span><span class="line"><span class="w">        </span><span class="s2">&quot;messages&quot;</span><span class="err">:</span><span class="w"> </span><span class="k">[</span>
+</span><span class="line"><span class="w">            </span><span class="err">{</span><span class="s2">&quot;role&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="err">,</span><span class="w"> </span><span class="s2">&quot;content&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;You are a helpful assistant.&quot;</span><span class="err">},</span>
+</span><span class="line"><span class="w">            </span><span class="err">{</span><span class="s2">&quot;role&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="err">,</span><span class="w"> </span><span class="s2">&quot;content&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;Who won the world series in 2020?&quot;</span><span class="err">},</span>
+</span><span class="line"><span class="w">            </span><span class="err">{</span><span class="s2">&quot;role&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span><span class="err">,</span><span class="w"> </span><span class="s2">&quot;content&quot;</span><span class="err">,</span><span class="w"> </span><span class="s2">&quot;The Los Angeles Dodgers won the World Series in 2020.&quot;</span><span class="err">},</span>
+</span><span class="line"><span class="w">            </span><span class="err">{</span><span class="s2">&quot;role&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="err">,</span><span class="w"> </span><span class="s2">&quot;content&quot;</span><span class="err">:</span><span class="w"> </span><span class="s2">&quot;Where was it played?&quot;</span><span class="err">},</span>
+</span><span class="line"><span class="w">        </span><span class="err">],</span>
+</span><span class="line"><span class="w">    </span><span class="err">}</span>
+</span><span class="line"><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<ul>
+  <li><code>description</code>: <code>cg commands</code>でコマンドリストを表示する際に出す説明文。</li>
+  <li><code>show</code>: 入力のプロンプトを表示するかどうか。デフォルトではfalse。</li>
+  <li><code>&lt;cmd&gt;.messages</code>: <code>[[]]</code>は同じものを一連のリストにします。それぞれ<code>role</code>、<code>content</code>という値を持った辞書です。
+    <ul>
+      <li><code>role</code>: <code>system</code>, <code>user</code>, <code>assistant</code>のいずれか。
+        <ul>
+          <li><code>system</code>: 役割の指定などの指示。ただ、gpt-3.5では余り意味をなさず、<code>user</code>として指示を出したほうがうまくいく場合が多い、とのことなので、<code>cg</code>コマンドの中ではgpt-3.5系では<code>user</code>に変換して送っています。</li>
+          <li><code>user</code>: ユーザーの入力。</li>
+          <li><code>assitant</code>: AIの返信。あらかじめやり取りを行ったという想定で質問したい場合などに使う。</li>
+        </ul>
+      </li>
+      <li><code>content</code>: メッセージ内容。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>これ以外に
+<code>chat = true</code>とすればchatモードとしてやり取りを開始することが出来ます。</p>
+
+<h2 id="自作サブコマンドの簡単な例">自作サブコマンドの簡単な例</h2>
+
+<p>上のは特に追加で質問せずともそのまま答えてもらう文章を書いてしまっていますが、
+よく使いそうな例としては役割を与えておいて、質問はその都度する、というもの。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[sh]</span>
+</span><span class="line"><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Ask a shell scripting question.&quot;</span>
+</span><span class="line"><span class="k">[[sh.messages]]</span>
+</span><span class="line"><span class="n">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;system&quot;</span>
+</span><span class="line"><span class="n">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;You are an expert of the shell scripting. Answer the following questions.&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで設定しておくと、</p>
+
+<pre><code>$ cg sh show number of cpus
+To show the number of CPUs in a shell script, you can use the `nproc` command which prints the number of available processing units (CPU cores or threads) that the system has.
+
+To use it, you can simply run the following command in your terminal:
+
+```
+nproc
+```
+
+This will output a single number representing the number of available processing units on your system.
+
+To save the output of the `nproc` command in a script variable, you can use command substitution like this:
+
+```
+num_cpus=$(nproc)
+echo "Number of CPUs: $num_cpus"
+```
+
+This will store the output of the `nproc` command (number of CPUs) in the `$num_cpus` variable and print it to the console.
+</code></pre>
+
+<p>こんな感じで、特に質問ではシェルスクリプトと言わなくてもシェルスクリプトで使えるような方法を答えてくれます。</p>
+
+<p>同様に<code>chat = true</code>でも相手の役割や事前知識をあらかじめ指定した上で開始することが出来ます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ChatGPTをコマンドラインやシェルスクリプトなどからサクッと呼びたかったのでそれ用のツールを作ってみました。
+多分同じようなものはすでに色々とあるとは思いますが。</p>
+
+<p>適当なプロンプト入れたsubcommandを作っておけば手短に質問するだけでもいい感じに答えてくれるように出来るので
+ターミナルで作業を使う身としては便利。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[SlackでChatGPTによるWebページの要約を頼むコマンドをGoogle Apps Scriptで作る]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript/"/>
+    <updated>2023-03-26T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/26/computer-slack-gpt-google-javascript</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4862465099?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4862465099&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61ydbPeMbxL._SS200_.jpg" alt="BERT/GPT-3/DALL-E 自然言語処理・画像処理・音声処理 人工知能プログラミング実践入門" /></a>
+</div>
+
+<p>OpenAIのAPIを使って
+SlackからWebページの要約を頼むコマンドを作ってみました。</p>
+
+<p>やりとりする場所として簡単に無料で使えるGoogle Apps Scriptを使っています。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#slack-gpt-url-summary-gas" id="markdown-toc-slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</a></li>
+  <li><a href="#設定方法" id="markdown-toc-設定方法">設定方法</a>    <ul>
+      <li><a href="#slack側" id="markdown-toc-slack側">Slack側</a></li>
+      <li><a href="#gas側" id="markdown-toc-gas側">GAS側</a></li>
+    </ul>
+  </li>
+  <li><a href="#使い方" id="markdown-toc-使い方">使い方</a></li>
+  <li><a href="#改善できそうなところ" id="markdown-toc-改善できそうなところ">改善できそうなところ</a>    <ul>
+      <li><a href="#プロンプト" id="markdown-toc-プロンプト">プロンプト</a></li>
+      <li><a href="#chunkの区切り方" id="markdown-toc-chunkの区切り方">chunkの区切り方</a></li>
+      <li><a href="#トークン数の計算" id="markdown-toc-トークン数の計算">トークン数の計算</a></li>
+      <li><a href="#要約の要約のやり方" id="markdown-toc-要約の要約のやり方">要約の要約のやり方</a></li>
+      <li><a href="#webページからのテキストの抽出" id="markdown-toc-webページからのテキストの抽出">Webページからのテキストの抽出</a></li>
+      <li><a href="#gpt-4" id="markdown-toc-gpt-4">gpt-4</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="slack-gpt-url-summary-gas">slack-gpt-url-summary-gas</h2>
+
+<div class="github-widget" data-repo="rcmdnk/slack-gpt-url-summary-gas"></div>
+
+<p>スクリプトは上のレポジトリにあります。</p>
+
+<p>やっていることは</p>
+
+<ul>
+  <li>Google Apps Script(GAS)でWeb appを作り、そのURLにSlackのSlashコマンドでURLを投げる。</li>
+  <li>Slashコマンドは3秒以内に返信がないとエラーになるので、一時的な返信を行い、一方でGASの中で別途実行トリガーをかける。</li>
+  <li>トリガーで実行するジョブの中でOpenAI APIを使ってChatGPT (gpt-3.5-turbo)に受け取ったURLのページのテキストの要約を作るよう頼む。
+    <ul>
+      <li>トークンの制限のため、一気に全部読ませることができないので、適当に区切ってそれらの要約を作らせ、さらに最後に作った要約から全体の要約を作らせる。</li>
+    </ul>
+  </li>
+  <li>できた要約をIncoming Webhookを使ってSlackに投げる。</li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>Slashコマンドの3秒ルールのため直接返信を返せないのでGASでちょっと工夫が必要です。</p>
+
+<h2 id="設定方法">設定方法</h2>
+
+<h3 id="slack側">Slack側</h3>
+
+<ul>
+  <li>新しいSlashコマンドを作る
+    <ul>
+      <li><a href="https://api.slack.com/apps">Slack API</a>のページから<strong>Create New App</strong>:
+        <ul>
+          <li>From scarchを選んで
+            <ul>
+              <li><strong>App Name</strong>は適当に<strong>Web summary by ChatGPT</strong>とか。</li>
+              <li>インストール先のworkspaceを選ぶ。</li>
+            </ul>
+          </li>
+          <li><del>新しい<a href="https://slack.com/services/new/incoming-webhook">Incoming Webhook</a>を作る。</del>
+            <ul>
+              <li><del>左にあるリンクの中から<strong>Incoming Webhook</strong>へ。</del></li>
+              <li><del><strong>Add New Webhook to Workspace</strong>をクリックし、返信先のチャンネルを設定して、作ったWebhook URLをメモしておく。</del></li>
+              <li>Slashコマンドが送る<code>response_url</code>を使うことで問い合わせたチャンネルに直接返すように変更。
+                <ul>
+                  <li><a href="https://api.slack.com/interactivity/slash-commands">Enabling interactivity with Slash Commands  Slack</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>新しいSlashコマンドを作る。
+            <ul>
+              <li>左のリンクの中から<strong>Slash Commands</strong>のリンクへ飛ぶ。
+                <ul>
+                  <li>Command名は<code>web_sum</code>とか。日本語版では3行の箇条書きでまとめて、ということにしてるので個人的には<code>sangyo</code>というコマンド名にしてます。</li>
+                  <li><strong>Request URL</strong>は後でGASの設定が終わったら入れるのでとりあえずdummyで<strong>https://example.com</strong>とか。</li>
+                  <li><strong>Short description</strong>も適当に<strong>Summarize web page.</strong>とか。</li>
+                  <li><strong>Usage Hint</strong>には<code>URL</code>と。</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>できたら<strong>Install your app</strong>からインストール先のworkspaceにインストール。</li>
+          <li>このページはあとでも使うのですぐにSlashコマンドの編集が出来るように開いたままにしておいた方が楽。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>Incoming Webhookはアプリの中でも作れるのでそっちを使う。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p>Slash commandの<code>response_url</code>を使うのでWebhookのURLはいらないように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>これで<code>/web_sum</code>とかのコマンドがSlackで使えるようになっているはずです。</p>
+
+<h3 id="gas側">GAS側</h3>
+
+<ul>
+  <li><a href="https://script.google.com/home">Goole Apps Script Home</a>から新しいプロジェクトを作成。</li>
+  <li>ライブラリの右にある<code>+</code>ボタンを押して以下のスクリプトIDのライブラリの追加:
+    <ul>
+      <li>Cheerio: <code>1ReeQ6WO8kKNxoaA_O0XEQ589cIrRvEBA9qcWpNqdOP17i47u6N9M5Xh0</code></li>
+    </ul>
+  </li>
+  <li><strong>slack-gas-url</strong>, <strong>params</strong>, <strong>secrets</strong>というスクリプトファイルを作る。</li>
+  <li>上のレポジトリの同じ名前のファイルからそれぞれ内容をコピペ。</li>
+  <li><strong>params.gs</strong>の編集:
+    <ul>
+      <li>受け答えを英語にしたい場合には<code>lang</code>を<strong>en</strong>に変更。</li>
+      <li><code>prompt</code>や返信文も必要であればよしなに変更。</li>
+      <li><code>chunkLength</code>と<code>overlap</code>の調整:
+        <ul>
+          <li>とりあえず最初はデフォルトのままで良いはず。</li>
+          <li>必要であれば調整。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>歯車ボタンからプロジェクトの設定ページへ:
+    <ul>
+      <li>ページ下にあるプロパティの設定で新しく値を追加
+        <ul>
+          <li>名前: <code>OPENAI_API_KEY</code>, 値は https://platform.openai.com/account/api-keys からOpenAIのAPI Keyを取得</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>できたら上の方にある<strong>デプロイ</strong>ボタンから<strong>新しいデプロイ</strong>へ。
+    <ul>
+      <li>左の<strong>種類の選択</strong>から<strong>ウェブアプリ</strong>を選択。</li>
+      <li><strong>説明</strong>には適当に(空欄でもとりあえずはOK)。</li>
+      <li><strong>次のユーザーとして実行</strong>は<strong>自分</strong>。</li>
+      <li><strong>アクセスできるユーザー</strong>は**全員。</li>
+      <li>設定したら<strong>デプロイ</strong></li>
+      <li><strong>ウェブアプリ</strong>のURLが出てくるのでこれをコピー。</li>
+      <li>コピーしたものを上で作ったSlackのSlashコマンドの<strong>Request URL</strong>に入れる。</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/27 </strong></p>
+
+  <p><strong>OPENAI_API_KEY</strong>をプロパティで管理するように変更。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="使い方">使い方</h2>
+
+<p>これでSlackで<code>/web_sum</code>とか自分で決めた名前のコマンドが使えるようになっているはずなので、</p>
+
+<pre><code>/web_sum https://ja.wikipedia.org/wiki/ChatGPT
+</code></pre>
+
+<p>とか打ってみます。</p>
+
+<p>そうするとすぐにアプリから返信が来ますが、そこからしばらく待ちます。
+数分すると、要約がコマンドを打ったチャンネルに送られてきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230326_slackreply.png" alt="20230326_slackreply.png" class="pic" /></p>
+
+<h2 id="改善できそうなところ">改善できそうなところ</h2>
+
+<h3 id="プロンプト">プロンプト</h3>
+<p>主には
+<a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/main/params.gs">params.gs</a>で設定しているパラメーターですが、
+プロンプトに関しては、<strong>あなたは優秀な編集者です</strong>とか役を指定したほうがもっとうまくいったりするかもしれません。</p>
+
+<p>その辺のよりよりプロンプトがあればPull Request出してくれたり何かしらで教えていただけるとありがたいです。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2023/03/26 </strong></p>
+
+  <p>最初は<code>user</code>のroleで指示出しも要約用のコンテンツも送っていましたが、
+せっかくChat.Completionの
+<code>system</code>というroleで役割を与えて<code>user</code>が与えるコンテンツを要約するように変更。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/commit/9bc17f113cb442e48a75fdf5da6a2866487e3345">feat: use system role, change variable prompet to system · rcmdnk/slack-gpt-url-summary-gas@9bc17f1</a></p>
+  </blockquote>
+
+  <p>promptで文章の場所とかを指定しなくて良い分スッキリとできます。
+返信内容はそれほど変わりないような。<code>system</code>の部分が通常の<code>user</code>として与えるものと何が違うのか、ちょっと理解してないです。。</p>
+
+  <p>ついでに<strong>優れた編集者</strong>とか追加してみたりもしましたがそれでもあまり違いはありませんでした。</p>
+
+  <blockquote>
+    <p><a href="https://platform.openai.com/docs/guides/chat">Chat completion - OpenAI API</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h3 id="chunkの区切り方">chunkの区切り方</h3>
+
+<p>後は長文の要約を上に書いたように細切れのchunkに分けて、その要約を集めてきて要約の要約、みたいなことをしているのですが、
+これを作る際のテキストの区切り方の工夫はいくらでもやりようがあるかとは思います。</p>
+
+<p>現状では単に文字数で区切ってます。
+単に文字数なので単語の途中とかで切れることもありますが、句切れ部分の意味を保つために<code>overlap</code>のパラメータ分の文字数を前後のchunk両方に含めて、どちらかでは完全な文レベルで残っているようにしています。</p>
+
+<p>これも長くしすぎればchunkの数が増えて時間もコストもかかりますが結構適当に設定してあります。</p>
+
+<h3 id="トークン数の計算">トークン数の計算</h3>
+
+<p>また、chunkの長さは<code>chunkLength</code>で3000としていますが、現在ChatGPT (gpt-3.5-turbo)はAPIでトークン数で4096の制限があります。
+この数はpromptとchunkの文章、さらには返信の要約文を合わせたものから計算されます。</p>
+
+<p>トークンは英語だと単語数の3/4程度ですが、日本語だと文字数の数10%増しな感じの量になります。</p>
+
+<blockquote>
+  <p><a href="https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them">What are tokens and how to count them?  OpenAI Help Center</a></p>
+</blockquote>
+
+<p>なので日本語のために一旦3000とかにしてありますが、英語のページならもっと大きくした方が
+各chunkの要約の精度が上がるかもしれませんし、問い合わせの回数は減るのでcostと実行時間は確実に減ります。</p>
+
+<p>この部分はGASでトークン数をぱっと調べるのが面倒そうだったので一旦適当にやってますが、
+真面目にトークン数を計算するようにすればもうちょっとギリギリを攻めることも出来ます。</p>
+
+<p>GASのライブラリはまだないと思いますが、
+Node.jsだと<a href="https://github.com/latitudegames/GPT-3-Encoder">GPT-3-Encoder</a>というライブラリで見積もり事はできそう。
+Pythonのパッケージの
+<a href="https://github.com/openai/tiktoken">tiktoken</a>
+のIssueで<a href="https://github.com/openai/tiktoken/issues/22">NPM packageは出さないか?</a>という議題は出てます。</p>
+
+<h3 id="要約の要約のやり方">要約の要約のやり方</h3>
+
+<p>現在は各chunkの要約も最後の要約も同じpromptを使って同じように要約させています。</p>
+
+<p>これに関しては、最初の要約は少し長めにして、最後はぎゅっとまとめるようなことも考えられるかと思います。</p>
+
+<p>単に関数別に作るのが面倒だったので同じにしてあるだけです。。。</p>
+
+<h3 id="webページからのテキストの抽出">Webページからのテキストの抽出</h3>
+
+<p>Webページからのテキスト抽出は
+Cheerioというライブラリを用いて行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798064742?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798064742&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51FYffSOBcS._SS90_CR0,0,120,90_.jpg" alt="詳解! Google Apps Script完全入門 [第3版]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/25/computer-google-javascript/">Google Apps Script (GAS)でHTML解析</a></div></li></ul>
+
+<p><a href="https://github.com/rcmdnk/slack-gpt-url-summary-gas/blob/f04d8c9d6d6f252fa7369c178df3d7075d81a8ae/slack-gpt-url.gs#L1">extractMainContent</a>の中で、
+まず<code>div</code>要素で、<code>main</code>, <code>main-article</code>, <code>article-body</code>などといったクラスのものを見つけてそれらがあればその要素の中身を、
+何も無ければ<code>body</code>要素の中身(もしそれもなければHTML全体)からテキストの抽出を行っています。</p>
+
+<p>この辺はウェブサイトを絞ればもっといい感じに抜き出せると思いますが、
+汎用的な感じだとこんな感じで適当に思いつくメインっぽいものを取ってますが
+これももっと良い方法があれば教えて欲しいところだったりします。</p>
+
+<h3 id="gpt-4">gpt-4</h3>
+
+<p>gpt-4が使えればトークン制限が大幅に大きくなるので大概のページが一気に読み込ませられそうです。
+それであれば要約ももっといい感じに出来るのではないか、と。
+(まだwaiting list中…)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ChatGPTに自分のメモたちを読んでもらって質問に答えてもらう]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/19/computer-ai-python/"/>
+    <updated>2023-03-19T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/19/computer-ai-python</id>
+    <content type="html"><![CDATA[<p>ChatGPTに自分で書いたものを読み込んで自分について学んでもらい、
+質問に答えてもらうようなツールを作ってみました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#元ネタ" id="markdown-toc-元ネタ">元ネタ</a></li>
+  <li><a href="#text_chatgpt_connector" id="markdown-toc-text_chatgpt_connector">text_chatgpt_connector</a></li>
+  <li><a href="#入力ファイルの処理" id="markdown-toc-入力ファイルの処理">入力ファイルの処理</a></li>
+  <li><a href="#openai-api-key" id="markdown-toc-openai-api-key">OpenAI API Key</a></li>
+  <li><a href="#openai-apiの利用" id="markdown-toc-openai-apiの利用">OpenAI APIの利用</a></li>
+  <li><a href="#実際にかかった時間や料金" id="markdown-toc-実際にかかった時間や料金">実際にかかった時間や料金</a></li>
+  <li><a href="#試してみる" id="markdown-toc-試してみる">試してみる</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="元ネタ">元ネタ</h2>
+
+<p>元ネタはこちら。</p>
+
+<blockquote>
+  <p><a href="https://scrapbox.io/villagepump/Scrapbox_ChatGPT_Connector">Scrapbox ChatGPT Connector - 井戸端</a></p>
+</blockquote>
+
+<div class="github-widget" data-repo="nishio/scrapbox_chatgpt_connector"></div>
+
+<p>ScrapboxからエキスポートしたデータをChatGPTに読ませて色々質問してみよう、というもの。</p>
+
+<p>具体的にはファイルは行ごとにまとめられたJSON形式のファイルになっていて、
+記事毎にある程度の量の行毎にベクトル化して保存します。
+その際にそれぞれ半分ずつオーバーラップがあるように分けていくことで区切りによる情報漏れを少なくしています。</p>
+
+<p>これを全ての記事に対して行った後、質問をベクトル化し、ベクトルの類似度を使って似ている文章を選び出して
+いくつかをChatGPTに読ませ、その上で質問に答えてもらう、というもの。</p>
+
+<p>Scrapboxのデータを利用していますが、やっていることとしては自分で書いたものを記事ごと、行毎に分けて
+それをデータ化しているだけなので、
+同じようにテキストでもMarkdownでも書いたものを行毎に読み込ませるようにしてあげれば同じようなことができるだろう、と。</p>
+
+<h2 id="text_chatgpt_connector">text_chatgpt_connector</h2>
+
+<p>ということで作ったのがこちら。</p>
+
+<p><a href="https://pypi.org/project/text-chatgpt-connector/">text-chatgpt-connector · PyPI</a></p>
+
+<div class="github-widget" data-repo="rcmdnk/text_chatgpt_connector"></div>
+
+<p>Python製で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install text_chatgpt_connector</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>として入れれば<code>tcc</code>というコマンドが使えるようになります。
+Python3.8~Python3.11で動きます。</p>
+
+<p>機能は</p>
+
+<ul>
+  <li><code>tcc index -i &lt;input_dir&gt;</code>:
+    <ul>
+      <li><strong>input_dir</strong>は<code>.txt</code>, <code>.md</code>, <code>.markdown</code>といった拡張子を持ったメモの入ったディレクトリ。ディレクトリ内の全ての該当するファイルをデータ化。</li>
+      <li>この拡張子は<code>-s text,md</code>といった感じで<code>-s</code>オプションにカンマ区切りで渡すことで変更可能。</li>
+      <li><code>-o &lt;index.pickle&gt;</code>で出力先のファイルの指定。デフォルトではカレントディレクトリに<strong>index.pickle</strong>というファイルを作る。</li>
+      <li>複数のディレクトリを与えたい場合には<code>-i</code>へ与える値を変えて繰り返し実行。<strong>index.pickle</strong>は上書きされるのではなくデータが追加されていく。</li>
+    </ul>
+  </li>
+  <li><code>tcc ask -q &lt;question&gt;</code>:
+    <ul>
+      <li><code>question</code>の内容をChatGPTに聞く。</li>
+      <li>データを作る際に<code>-o</code>を指定していたり別のディレクトリで作業する場合には作ったデータファイルを<code>-o &lt;index.pickle&gt;</code>で指定。</li>
+      <li><code>-n</code>オプションを与えると入力なしで直接質問を聞く。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>といったことができます。</p>
+
+<h2 id="入力ファイルの処理">入力ファイルの処理</h2>
+
+<p>text_chatgpt_connectorでは現状ではほとんど入力ファイルの内容を処理せずにそのまま行毎に分解してデータを作っています。</p>
+
+<p>やっていることは</p>
+
+<ul>
+  <li>URL(<code>http...</code>)を<code>URL</code>と置き換える(<code>--remain_url</code>オプションを与えるとそのまま残す)</li>
+  <li>空白が続く場合には1文字に置き換える(<code>--keep_spaces</code>オプションでそのまま残す)</li>
+</ul>
+
+<p>くらいです。</p>
+
+<p>Markdownとかだと色々と記号が入っているので単純な文章入力以外のノイズ的なものも入ってしまいますが、
+その辺はそれも含めて学習するものだと思ってやるか、
+もしくは別途入力ファイルを処理するような作業を行ってから<code>tcc</code>に与えるようにしたりなど
+色々考えられるかと思います。</p>
+
+<p>下でやってる今回のテストはブログ用のMarkdownファイルをそのまま突っ込んでいます。</p>
+
+<p>Markdownだとしてもそこそこちゃんと文章を読み込んでくれている雰囲気はありました。</p>
+
+<h2 id="openai-api-key">OpenAI API Key</h2>
+
+<p>これを使うためにはOpenAIのAPIのKeyが必要です。</p>
+
+<p><a href="https://platform.openai.com/">OpenAI API</a>にアカウントを作ったら下からAPI Keyを取得することが可能です。</p>
+
+<blockquote>
+  <p><a href="https://platform.openai.com/account/api-keys">Account API Keys - OpenAI API</a></p>
+</blockquote>
+
+<p>APIは課金していない状態でも使えて、最初に$18分のお試しクレジットがもらえるのでそれで色々試してみることができます。</p>
+
+<p>ちなみに私は昨年12月頃に登録したようなんですが、確認したら$18分のクレジットが4月1日までになっていたのでちょっと使い切れるくらいとりあえず色々やってみよう、と。</p>
+
+<p>ChatGPTで使われているgpt-3.5-turboを使うAPIは結構安いので$18あればかなりいろいろ試せるかと思います。</p>
+
+<p>超えるまではクレジットカードの登録などもせずに使えるのは良心的。
+ただしすでに無料で使っている分だとレートリミットが低かったりする点もあります。</p>
+
+<p>というわけで、Keyを取得したら、<strong>.bashrc</strong>や<strong>.zshrc</strong>などに</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と書いて環境変数として登録してください。</p>
+
+<p>もしくは、<code>tcc -k &lt;openai_api_key&gt;</code>と<code>-k</code>オプションに直接渡してもできます。</p>
+
+<h2 id="openai-apiの利用">OpenAI APIの利用</h2>
+
+<p>OpenAIのAPIはテキストをベクトル化(embed)する際とChatGPTに質問する際に使います。</p>
+
+<p><code>index</code>の際にはembedするだけですが、各記事を数行ごとに複数に分けて渡すので
+例えばこのブログの各記事くらいの長さだと
+記事数の10倍程度の回数を呼ぶ感じになります。</p>
+
+<p><code>ask</code>の際には質問をembedする際に1回、ChatGPTへの問い合わせて1回使うだけです。</p>
+
+<p>なので、indexを作る際には少しお金がかかりますが、質問する際にはほとんどかかりません。</p>
+
+<p>embedするために使う埋め込みモデルには<strong>text-embedding-ada-002</strong>がデフォルトです。(<code>--embedding</code>オプションで指定可能)。</p>
+
+<p>問い合わせにはChatGPT(3.5)の<strong>gpt-3.5-turbo</strong>を使います。(<code>--chat_model</code>で変更可能。<strong>gpt-4</strong>とか使える人はそれを指定してもOK。)</p>
+
+<blockquote>
+  <p><a href="https://platform.openai.com/docs/models/">Models - OpenAI API</a></p>
+</blockquote>
+
+<h2 id="実際にかかった時間や料金">実際にかかった時間や料金</h2>
+
+<p>今回はこのブログの記事を読み込ませてみました。</p>
+
+<p>このブログはOctopressというフレームワークを使っていますが、Markdownで書いたファイルを
+静的サイトとして変換しています。</p>
+
+<p>各記事は記事毎にファイルに分かれているのでそれらを全部読みます。
+記事ファイルにはヘッダーやらサイドバーなどは含まれていません。</p>
+
+<p>ちょうどこのブログも10周年を迎えたので10年分の記事全部をデータ化してみます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/03/07/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon200_120_90.png" width="120" height="90" alt="icon200_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/07/blog-octopress/">ブログ10周年</a></div></li></ul>
+
+<ul>
+  <li>記事数: 1,187</li>
+  <li>行数: 223,996</li>
+  <li>単語数: 372,897</li>
+  <li>文字数: 9831,489</li>
+  <li>データ量: 12MB</li>
+</ul>
+
+<p>ただし、行数、単語数、文字数は<code>wc</code>の結果。(日本語含みますが、日本語における文字数ではない。)</p>
+
+<p>これらは年ごとにディレクトリに分かれて日付の名前で保存されているのですが、
+これを年ごとに<code>tcc</code>に与えてデータを作ってみました。</p>
+
+<p>総作成時間は</p>
+
+<ul>
+  <li>6時間程度</li>
+  <li>1記事20秒程度</li>
+  <li>Index数: 12,251</li>
+  <li>pickleサイズ: 180MB</li>
+</ul>
+
+<p>となっています。
+実際にはAPIのレートリミットにひっかかって待つことも結構あって
+実際には1記事15秒位でできていた感じだと思います。</p>
+
+<p>この辺、リミットが上がっている人の場合は
+<a href="https://github.com/nishio/scrapbox_chatgpt_connector/commit/d08286aa70393da79f9f841efda895714df314f2">ここ</a>にもあるように途中にあるsleepを消して行ったり、複数並列でリクエストしたりすることでもっと早くすることも可能かもしれません。</p>
+
+<p>出来上がったデータファイルが結構大きいのでこれを読み込む際にちょっと時間がかかります。
+この辺はDB化したりデータの形そのものを工夫したり出来る部分は
+まだいくらでもありそうなのでもっと本格的にやりたい場合にはちょっと考えたいところ。</p>
+
+<p>かかった料金は</p>
+
+<ul>
+  <li>$2.6 (~340円)</li>
+</ul>
+
+<p>ということで1000記事程度であれば十分$18の範囲でできました。</p>
+
+<h2 id="試してみる">試してみる</h2>
+
+<p>まずは入力無し(<code>-n</code>)で:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -n -q "rcmdnkってなに?"
+</span><span class="line">&gt;&gt;&gt;&gt; rcmdnkってなに?
+</span><span class="line">&gt;
+</span><span class="line">
+</span><span class="line">rcmdnkは、GitHub上で活動するプログラマーのユーザー名です。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>なんか分かってくれた。
+ちなみにWeb版で試すと全く知らないという。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20230319_chatgpt.png" alt="20230319_chatgpt.png" class="pic" /></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">rcmdnkという言葉は私にとっては何の意味も持ちません。これが何を指しているのか、文脈によって異なるかもしれませんが、より具体的な情報があれば、より詳細な回答を提供することができます。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>何度か聞くと別の人物の名前とかを出されたり。。。</p>
+
+<p>これを作成したデータを読み込ませて見てみると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -q "rcmdnkってなに?"
+</span><span class="line">&gt;&gt;&gt;&gt; rcmdnkってなに?
+</span><span class="line">&gt; rcmdnk is a username used by the author of the text.
+</span><span class="line">
+</span><span class="line">ref. 2017-01-01-blog-octopress.md, 2019-02-04-computer-python.md, 2018-10-01-computer-vim.md, 2019-03-06-computer-github.md, 2017-11-13-computer-vim.md, 2017-07-01-computer-vim-markdown.md, 2020-02-03-computer-windows-autohotkey.md, 2014-10-30-computer-vim-markdown.md</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>まず、下にある<code>ref</code>はこの質問時に与えたテキストが含まれていたファイルです。</p>
+
+<p>見てわかる通りほんの一部のファイル(の中の一部のテキスト)を渡しているだけなのでブログ全てを学習している、というわけではありません。
+ただ、質問の内容にできるだけ関係ありそうな文章を選んで送っています<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>で、肝心の回答ですが、何故か英語にで返されていて、テキストの書き手だ、ということで正しいわけですが、うーむ。
+そもそもブログの記事の中に自分のユーザー名が何なのか、とかの説明をしているわけでもないので、この名前についてどうこう聞くのはあまりうまくいかない可能性もあります。</p>
+
+<p>ちょっとうまくいった感じのものだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -q "rcmdnkが好きなことは？"
+</span><span class="line">&gt;&gt;&gt;&gt; rcmdnkが好きなことは？
+</span><span class="line">&gt; rcmdnk likes to write about various topics related to computers, including personal settings, scripts, and tools. They also enjoy creating and updating their own software projects.
+</span><span class="line">
+</span><span class="line">ref. 2019-03-06-computer-github.md, 2017-01-01-blog-octopress.md, 2018-10-01-computer-vim.md, 2019-02-04-computer-python.md, 2017-07-01-computer-vim-markdown.md, 2018-08-18-computer-shell.md, 2023-03-07-blog-octopress.md</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんなの。これも何故か英語で返ってきてますが。</p>
+
+<p>何も与えないと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -n -q "rcmdnkが好きなことは？"
+</span><span class="line">
+</span><span class="line">&gt;&gt;&gt;&gt; rcmdnkが好きなことは？
+</span><span class="line">&gt;
+</span><span class="line">
+</span><span class="line">私はrcmdnkの好きなことを知りません。私は人工知能であり、rcmdnkの好みを持っていません。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じで全く何もしらないので一応ちゃんと学習できてる感じはします。</p>
+
+<p>ちょっと別角度で、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -n -q "vimの設定について教えて"
+</span><span class="line">&gt;&gt;&gt;&gt; vimの設定について教えて
+</span><span class="line">&gt;
+</span><span class="line">&gt;
+</span><span class="line">&gt;vimの設定は、.vimrcファイルに記述することができます。例えば、行番号を表示するには「set number」と記述します 。また、プラグインを使用する場合は、プラグインマネージャーを導入することが推奨されます。</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんなの。入力なしだとちゃんと?一般的な感じの返答です。
+これが、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ tcc ask -q "vimの設定について教えて"
+</span><span class="line">&gt;&gt;&gt;&gt; vimの設定について教えて
+</span><span class="line">&gt; どのようにカーソルやマウス、Windowsをvimっぽい操作で動かすかについての設定が紹介されている。また、今後の改善点として、キーリピートの問題や特定のキーが記入されてしまう問題があることが述べられている。さらに、Macの場 合はKeyRemap4MacBook+MadRubyでマクロっぽい動きを再現することができるが、Windowsの場合はAutoHotkeyを使って単 独で実現しようとしていることが述べられている。
+</span><span class="line">
+</span><span class="line">ref. 2013-08-03-computer-windows-autohotkey.md, 2014-10-22-computer-firefox.md, 2013-03-17-vim.md, 2019-09-12-computer-chrome.md, 2017-10-20-computer-firefox-vimperator.md, 2014-08-28-computer-lubuntu.md, 2013-10-28-computer-mac-mouse.md, 2013-06-06-computer-mac-keyremap4macbook-vim.md</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こうなります。以下のような記事を参照しているみたいです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00IE67ZSM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00IE67ZSM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/3110x9TzbSL._SS90_CR0,0,120,90_.jpg" alt="【並行輸入品】Toshiba Chromebook CB35-A3120 PLM01U-002005 13.3-Inch Cloud Computer" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/10/22/computer-firefox/">cVim: Google ChromeのVimperatorみたいな拡張</a></div></li></ul>
+
+<p>KeyRemap4MacBookとかは(現在のKarabiner-Element)古い方の記事で新しいのを認識してくれてませんが、
+この辺は現在の入力だと時系列などの情報を入れてないこともあるかと思います。
+プロンプトを調整して各テキストの日時を入れて、最新の方を重要視するように、的なことを命令すれば
+Karabiner-Elementの記事を出してくれる可能性があります。</p>
+
+<p>まあこんな感じで質問の内容によっては結構いい感じにブログに沿った答えをだしてくれたりもしますし、
+質問するだけならただみたいなものなので色々試せて面白いです。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>OpenAIのChatGPT関連のAPIを使って遊んでみました。</p>
+
+<p>データ作成にはちょっと時間がかかりましたが、1000記事ほどをデータ化するのにも数百円程度で出来ます。</p>
+
+<p>今回は特に入力ファイルの処理をしてませんが、マックアップに当たる部分を削除したりしてできるだけ文章を抜き出すようにしてあげるだけでももっと精度が良くなるかもしれません。</p>
+
+<p>その他いろいろな議論が
+<a href="https://scrapbox.io/villagepump/Scrapbox_ChatGPT_Connector">Scrapbox ChatGPT Connector - 井戸端</a>
+にあるので見てみたり。</p>
+
+<p>本当はEvernoteにあるメモを全部突っ込んで試してみたかったりしますが、
+数が多い上に処理が面倒なのと、思いっきり個人情報なものも含まれるので流石にサーバーにアップロードする方法だと出来ないですが、
+過去に埋蔵した知識を有効活用するのにこの辺うまく使ってみたいですね。</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,2403 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <title>Pythonレポジトリ用のpre-commit環境を整える</title>
+
+
+  <meta name="author" content="rcmdnk">
+  
+  
+  <meta name="title" content="Pythonレポジトリ用のpre-commit環境を整える">
+  <meta name="description" content="Pythonのプロジェクトで使うpre-commitについて。">
+  
+  <meta property="og:title" content="Pythonレポジトリ用のpre-commit環境を整える">
+  <meta property="og:type" content="blog">
+  <meta property="og:description" content="Pythonのプロジェクトで使うpre-commitについて。">
+  
+  <meta property="og:url" content="https://rcmdnk.com/blog/2023/02/07/computer-python/">
+  
+  
+  
+  
+  
+  
+    
+    <meta property="og:image" content="https://images-na.ssl-images-amazon.com/images/I/41JjzCF-UFL._SS200_.jpg">
+  
+  <meta property="og:site_name" content="rcmdnk's blog">
+  
+  <meta property="fb:admins" content="100005783252931">
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <link rel="canonical" href="https://rcmdnk.com/blog/2023/02/07/computer-python/">
+  <link href="/images/icon16.png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="rcmdnk's blog" type="application/atom+xml">
+  <link id="screen-css" href="/stylesheets/screen.css" rel="stylesheet">
+  
+
+  <script>jekyll_var=function(i,j){if(j!="site" && i in jekyll_var.page)return jekyll_var.page[i];else if(j!="page" && i in jekyll_var.site)return jekyll_var.site[i];else return null;};jekyll_var["site"]={related_posts_show:"5",share_static:true,share_check_all:true,twitter_button:true,linkedin_button:false,pinterest_button:false,stumble_button:false,delicious_button:false,buffer_button:false,facebook_button:true,hatebu_button:true,pocket_button:true,feedly_button:true,tumblr_button:false,random_posts:"5",random_local:false,mandrill:false,mandrill_key:"KSS5N0aGpG47BILRwIhvew",mandrill_from:"rcmdnk+mandrillapp@gmail.com",mandrill_to_email:"rcmdnk+blog@gmail.com",mandrill_to_name:"rcmdnk+blog@gmail.com",};jekyll_var["page"]={};</script>
+</head>
+
+<body   >
+
+
+<header><div id="site-title">
+  <a href="/">
+  
+  rcmdnk's blog
+  </a>
+</div>
+
+
+</header>
+<nav><div class="main-navigation">
+  
+  <p class="nav-marks">
+    
+    <a href="mailto:rcmdnk@gmail.com" title="Mail"><i class="fa fa-envelope fa-2x"></i></a>
+    
+    
+    <a href="//twitter.com/rcmdnk" title="Twitter"><i class="fa fa-twitter fa-2x"></i></a>
+    
+    
+    
+    
+    <a href="//github.com/rcmdnk" title="GitHub"><i class="fa fa-github-alt fa-2x"></i></a>
+    
+    
+    <a href="/atom.xml" title="RSS"><i class="fa fa-rss fa-2x"></i></a>
+    
+    
+    <a class="feedly-link" href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="feedly"><span class="feedlyimg feedly"></span></a>
+    
+    
+    <a href="#" class="add_bookmark" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o fa-2x"></i></a>
+    
+  </p>
+  
+  
+  <p class="nav-links">
+    
+      <span><a href="/blog/archives/" class="link_btn" >Archives</a></span>
+    
+      <span><a href="/share-checker.html" class="link_btn" >Share Checker</a></span>
+    
+      <span><a href="/windows/" class="link_btn" >Windows</a></span>
+    
+      <span><a href="/mac/" class="link_btn" >Mac</a></span>
+    
+      <span><a href="/en/" class="link_btn" >English Blog</a></span>
+    
+  </p>
+  
+  
+
+  
+    <p>
+      <form action="https://www.google.com/search" method="get">
+        <fieldset>
+          <input type="hidden" name="sitesearch" value="rcmdnk.com"/>
+          <input class="search" type="text" name="q" placeholder="Search"/>
+        </fieldset>
+      </form>
+    </p>
+  
+  
+</div>
+</nav>
+
+  <div id="main">
+    <div id="content">
+      <div itemscope itemtype="https://schema.org/Blog"><!-- post -->
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    
+
+<!--
+<rdf:RDF
+xmlns:rdf="https://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:dc="https://purl.org/dc/elements/1.1/"
+xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://rcmdnk.com/blog/2023/02/07/computer-python/">
+<foaf:maker rdf:parseType="Resource">
+<foaf:holdsAccount>
+<foaf:OnlineAccount foaf:accountName="rcmdnk">
+<foaf:accountServiceHomepage rdf:resource="https://www.hatena.ne.jp/">
+</foaf:accountServiceHomepage>
+</foaf:OnlineAccount>
+</foaf:holdsAccount>
+</foaf:maker>
+</rdf:Description>
+</rdf:RDF>
+-->
+
+
+
+
+    <!-- google_ad_section_start -->
+    
+
+<header>
+  
+  <div class="meta">
+    <span class="byline"><time itemprop='datePublished' datetime='2023-02-07T00:00:00+00:00'><span class='time'>07 Feb 2023</span></time></span>
+    <span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2023-05-01T00:00:00+00:00'><span class='date'>01 May 2023</span></time></span>
+    
+<ol class="breadcrumbs">
+  <li><a href="/"><span>Top</span></a></li>
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/categories/computer/"><span>Computer</span></a></li>
+  
+  
+    
+    <li><span class="breadcrumbs_separator"> › </span><a href="/blog/tags/python/"><span>Python</span></a>
+    
+    </li>
+  
+</ol>
+
+  </div>
+  
+  
+  
+  
+  <h1 class="entry-title" itemprop="name headline"><a href="/blog/2023/02/07/computer-python/" itemprop="url">Pythonレポジトリ用のpre-commit環境を整える</a></h1>
+  
+  
+  
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button">
+  <ul>
+    
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/02/07/computer-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCount" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B&url=https://rcmdnk.com/blog/2023/02/07/computer-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCount" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/02/07/computer-python/&amp;t=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCount" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/02/07/computer-python/&title=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p  class="pocket_custom"><i class="fa fa-get-pocket"></i> <span class="pocketCount" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/" data-count="0">0</span></p></a></li>
+    
+    
+    
+    
+    
+    
+  </ul>
+</div>
+
+
+
+
+
+<div class="entry-content" itemprop="mainEntityOfPage">
+  <div class="group" itemprop="description">
+    
+    
+      
+      <div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873119324?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873119324&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img itemprop="image" src="https://images-na.ssl-images-amazon.com/images/I/41JjzCF-UFL._SS200_.jpg" alt="入門 Python 3 第2版" /></a>
+</div>
+
+<p>Pythonのプロジェクトで使うpre-commitについて。</p>
+
+
+  </div>
+  <!-- more -->
+  <div class="group">
+    
+
+<ul id="markdown-toc">
+  <li><a href="#gitフック" id="markdown-toc-gitフック">Gitフック</a></li>
+  <li><a href="#pre-commmit" id="markdown-toc-pre-commmit">pre-commmit</a></li>
+  <li><a href="#pythonレポジトリ用pre-commithookレポジトリ利用バージョン" id="markdown-toc-pythonレポジトリ用pre-commithookレポジトリ利用バージョン">Pythonレポジトリ用pre-commit(hookレポジトリ利用バージョン)</a></li>
+  <li><a href="#設定をpyprojecttomlに集約する" id="markdown-toc-設定をpyprojecttomlに集約する">設定をpyproject.tomlに集約する</a></li>
+  <li><a href="#ツールのパッケージをpoetryで管理する" id="markdown-toc-ツールのパッケージをpoetryで管理する">ツールのパッケージをpoetryで管理する</a></li>
+  <li><a href="#blackなどの変更結果を表示する" id="markdown-toc-blackなどの変更結果を表示する">blackなどの変更結果を表示する</a></li>
+  <li><a href="#現状使っているもの" id="markdown-toc-現状使っているもの">現状使っているもの</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gitフック">Gitフック</h2>
+
+<p>Gitにはフックという機能があり、<code>commit</code>や<code>push</code>の前後で
+なんらかの作業を自動で実行することができます。</p>
+
+<blockquote>
+  <p><a href="https://git-scm.com/book/ja/v2/Git-%E3%81%AE%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%9E%E3%82%A4%E3%82%BA-Git-%E3%83%95%E3%83%83%E3%82%AF">Git - Git フック</a></p>
+</blockquote>
+
+<p>Gitのレポジトリを<code>git init</code>で作成したり<code>git clone</code>で取得したりすると、
+<strong>.git/hooks</strong>というディレクトリが出来ていて、
+その中に<strong>pre-commit.sample</strong>などのサンプルフックファイルが設置されるようになっています。</p>
+
+<p>基本的には**pre-<subcommand>**というファイルがあればその**git <subcommand>**実行時に直前に実行され、
+**post-<subcommand>**というファイルが直後に実行されます。</subcommand></subcommand></subcommand></p>
+
+<p>なのでそれらのサンプルスクリプトを<strong>pre-commit</strong>のように名前変更してあげれば
+このスクリプトが<code>git commit</code>直前に実行されます。</p>
+
+<p>これらのファイルはシェルスクリプトでも他の何らかの実行ファイルでもなんでも構いませんが、
+必ず<code>chmod 755 pre-commit</code>とかして実行権限をつけておかないといけません。</p>
+
+<p><code>commit</code>に関して、例えば、</p>
+
+<figure class="code"><figcaption><span>.git/hooks/pre-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span>pre<span class="w"> </span>commit!
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>.git/hooks/post-commit </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="ch">#!/usr/bin/env bash</span>
+</span><span class="line"><span class="nb">echo</span><span class="w"> </span>post<span class="w"> </span>commit!
+</span></code></pre></td></tr></table></div></figure>
+
+<p>という2つのファイルを用意すると、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git commit -m 'update'
+</span><span class="line">pre commit!
+</span><span class="line">post commit!
+</span><span class="line">...</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいにメッセージが表示されます。<code>-m</code>を使わずにエディタを起動してメッセージを書く場合には
+エディタを開く寸前に<code>pre commit!</code>が表示され、
+メッセージを書いたあとに<code>post commit!</code>が表示されます。</p>
+
+<p>メッセージを書かずにabortされると<strong>post-commit</strong>は実行されず<code>post commit!</code>は表示されません。</p>
+
+<h2 id="pre-commmit">pre-commmit</h2>
+
+<p>このフックの中でよく使うのは<strong>pre-commit</strong>です。</p>
+
+<p><code>commit</code>をする際にlinterなどを実行してエラーを見つけたら
+治すまでcommitを受け付けないようにするような事がよく行われます。</p>
+
+<p>テストを実行することも可能ですが、毎回<code>commit</code>時に長いこと時間がかかるのは辛いので、
+通常は簡単なチェックのみを行い、テストなどは別途実行することが多いです。</p>
+
+<p>この<strong>.git/hooks/pre-commit</strong>というファイルを管理しておけば毎回同じチェックが出来るわけですが、
+このファイルは<strong>.git</strong>以下にあるため、このファイル自体はGitで管理することが出来ません。</p>
+
+<p>なので共有のレポジトリとかで同じ<strong>pre-commit</strong>を設定したい場合でもこのファイルを
+直接共有しないと同じ処理が出来ません。</p>
+
+<p>そこで、<strong>pre-commit</strong>ファイルを別のディレクトリで管理して
+<code>clone</code>したら<strong>.git/hooks</strong>にコピーするように指定したりそういったスクリプトを用意したり、
+もしくは<strong>githooks</strong>というディレクトリでファイルを管理して</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git config  core.hooksPath githooks</span></code></pre></td></tr></table></div></figure>
+
+<p>というコマンドを実行してフックファイルを参照するディレクトリを変更するとかが考えられます。</p>
+
+<p>が、これらも結構面倒。</p>
+
+<p>そこで便利なのがその名も
+<a href="https://pre-commit.com/">pre-commit</a>という名前のツール。</p>
+
+<p>Python製で<code>pip</code>で入れるか</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pip install pre-commit</span></code></pre></td></tr></table></div></figure>
+
+<p>Homebrewで入れることも出来ます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew install pre-commit</span></code></pre></td></tr></table></div></figure>
+
+<p>Python製で環境にPythonが必要ですが(Homebrewなら一緒にインストールされる)、
+レポジトリとしては何の言語でも使えます。
+単に<strong>pre-commit</strong>のフックを管理するツールなので。</p>
+
+<p>入れると<code>pre-commit</code>というコマンドが使えるようになるので、
+毎回レポジトリを<code>clone</code>とかした際に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit install</span></code></pre></td></tr></table></div></figure>
+
+<p>を実行するようにします。これだけは必ずそれぞれでやらないといけないところ。</p>
+
+<p>このコマンドが<strong>.git/hooks/pre-commit</strong>のファイルを作成し、
+これが<code>pre-commit</code>コマンドを<code>commit</code>直前に実行するようにしてくれます。</p>
+
+<p><code>pre-commit</code>コマンドは<strong>.pre-commit-config.yml</strong>という設定ファイルを読み込んで
+必要な処理を行います。</p>
+
+<figure class="code"><figcaption><span>.pre-comimt-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="p p-Indicator">-</span><span class="w">   </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/psf/black</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22.10.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w">   </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいなファイルを用意すると<code>commit</code>の前に<code>black</code>を実行してくれます。</p>
+
+<p>また、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit run -a</span></code></pre></td></tr></table></div></figure>
+
+<p>というコマンドで現在のGitレポジトリの中の管理ファイルに対してツールを直接実行することも出来ます。</p>
+
+<p>ここで<code>repo</code>で指定するレポジトリでは必ず
+<strong>.pre-commit-hooks.yaml</strong>というファイルが用意されていて、
+その中にある<code>id</code>の値を呼ぶことでそこで設定された内容が実行されるようになっています。</p>
+
+<p>hookがレポジトリによって用意されてない場合は自分で<code>local</code>環境でスクリプトなどを実行する
+<code>id</code>を作ることも出来ます。</p>
+
+<p>詳しくは
+<a href="https://pre-commit.com/">pre-commit</a>のページで。</p>
+
+<p>もしチェックを通さずとも<code>commit</code>履歴を残したい、という場合には</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git commit --no-verify</span></code></pre></td></tr></table></div></figure>
+
+<p>とすれば<strong>pre-commit</strong>の内容は実行されずに<code>git commit</code>が実行できます。
+(もしくは<code>-n</code>。このオプションは<strong>commit-msage</strong>によるコミットメッセージのチェックがある場合も無視されます。)</p>
+
+<p>ドキュメント用のブランチなどが別にある場合などはよく使います。</p>
+
+<p>また、
+<code>PRE_COMMIT_ALLOW_NO_CONFIG=1</code>をシェル変数として設定しておくと
+<strong>.pre-commit-confg.yml</strong>がない場合は何もせずに<code>git commit</code>します。</p>
+
+<p>この設定はpre-commitファイルのインストール時に</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit install --allow-missing-config</span></code></pre></td></tr></table></div></figure>
+
+<p>しておいても同じ事ができます<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>ブランチによっては<strong>.pre-commit-config.yml</strong>を設置しないようなレポジトリの場合には
+この辺の設定をしておくと便利です。</p>
+
+<h2 id="pythonレポジトリ用pre-commithookレポジトリ利用バージョン">Pythonレポジトリ用pre-commit(hookレポジトリ利用バージョン)</h2>
+
+<p>Python用のlinter, formatterについては</p>
+
+<ul>
+  <li><a href="https://black.readthedocs.io/en/stable">black</a>: 全般的なformatter。</li>
+  <li><a href="https://github.com/PyCQA/isort">isort</a>: import順をよしなに変えてくれるformatter。</li>
+  <li><a href="https://github.com/PyCQA/flake8">flake8</a>: プラグインによって拡張可能なlinter。</li>
+  <li><a href="https://www.mypy-lang.org/">mypy</a>: 型チェッカー。</li>
+</ul>
+
+<p>あたりが有名なところです。</p>
+
+<p>これらはそれぞれhook用のレポジトリが用意されているので
+それを利用すると
+以下のような感じの<strong>.pre-commit-config.yml</strong>ファイルを用意すれば
+これらのツールが<code>commit</code>時に実行されるようになります。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/psf/black</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22.3.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;--line-length&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;79&quot;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/PyCQA/isort</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.12.1</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;--profile&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;--line-length&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;79&quot;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/PyCQA/flake8</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.0.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;--ignore&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;E203,E501,W503&quot;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">additional_dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">flake8-bandit</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/pre-commit/mirrors-mypy</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.991</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">pass_filenames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;src/**/*.py&quot;</span><span class="p p-Indicator">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>それぞれの<code>args</code>は好きなように。
+<code>flake8</code>に関してはプラグインとして
+<a href="https://pypi.org/project/flake8-bandit/">flake8-bandit</a>を追加で入れています。</p>
+
+<p>また、<code>commit</code>時に実行されるツールには引数として
+Gitの管理下にあるファイルのうち、hookで指定されたタイプのファイルで変更があったファイルが渡されるようになっています。</p>
+
+<p>上のツールたちは基本的に<strong>.py</strong>の様なPythonのファイルが渡されます。</p>
+
+<p><code>mypy</code>に関しては他のファイルの関数の返り値の型を見たりもする関係上、
+変更があったファイルだけを渡すと正しく判定できないことがあります。
+なので、<code>pass_filenames: false</code>でpre-commitからはファイルを渡さないようにして
+<code>args</code>で必要な全ファイルを渡すようにしています。
+<code>mypy</code>は結構時間がかかるツールですがcache機能もあるのでそれも考えるとツールには変更があったファイルだけより全部渡したいところ。</p>
+
+<p>それぞれのオプションは各<strong>.flake8</strong>といった各種ファイルに書いても良いですが
+上のように<strong>.pre-commit-config.yml</strong>の中の<code>args</code>として書く事もできます。</p>
+
+<p>このように<code>repo</code>を使って書くと、<code>pre-commit</code>実行時にそれらのレポジトリがpre-commit用の環境にダウンロードされ、
+そこに<code>balck</code>などのツールもインストールされます。</p>
+
+<p>従って<code>git commit</code>時や<code>pre-commit</code>を実行する際には<code>black</code>などのコマンドは使えますが、
+もしローカル環境に自分で別途それらのツールをインストールしていないと
+コマンドラインから<code>$ black</code>などと打ってもコマンドがない、と言われてしまいます。</p>
+
+<h2 id="設定をpyprojecttomlに集約する">設定をpyproject.tomlに集約する</h2>
+
+<p>各種ツールはそれぞれの専用のファイルだったり、
+globalな<strong>$HOME</strong>下や<strong>$HOME/.config/</strong>以下にあるファイルを参照しますが、
+この設定が違ってしまうとレポジトリを共有して管理する際には問題になります。</p>
+
+<p>基本的にはレポジトリのトップに設定ファイルがあればそれを優先するものが多いですが、
+ツールごとにファイルを置くのも管理が大変です。</p>
+
+<p>そこで、
+<a href="https://python-poetry.org/">Poetry</a>
+などで管理されているレポジトリであれば<strong>pyproject.toml</strong>という設定ファイルがあるので
+ここに設定を集約します。</p>
+
+<p>上のほとんどのツールはこのファイルがあればまずは一番優先して見るようになっています。</p>
+
+<p>ただし、<code>flake8</code>に関しては<strong>pyproject.toml</strong>を見てくれません。</p>
+
+<p>が、
+<a href="https://pypi.org/project/Flake8-pyproject/">Flake8-pyproject</a>
+を入れると<strong>pyproject.toml</strong>から設定を読み込んでくれるようになります
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+。</p>
+
+<p>また、flake8-banditに関しては上では特に設定を書いてませんが、
+プラグインとして利用する場合には<strong>.bandit</strong>ファイルでないと読み込んでくれません。</p>
+
+<p>そこで、元の<a href="https://bandit.readthedocs.io/en/latest/">bandit</a>
+を直接インストールして<strong>pyproject.toml</strong>を読み込むようにします。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nn">---</span>
+</span><span class="line"><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/psf/black</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22.3.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/PyCQA/isort</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.12.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/PyCQA/flake8</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.0.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">additional_dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">flake8-pyproject</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/PyCQA/bandit</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.7.4</span>
+</span><span class="line"><span class="w">    </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;-c&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;pyproject.toml&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/pre-commit/mirrors-mypy</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.991</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">pass_filenames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>flake8</code>には<code>flake8-pyproject</code>を依存パッケージとして追加して<code>flake8-bandit</code>は外します。</p>
+
+<p>別途<code>bandit</code>を追加して、
+<code>bandit</code>に関しては<strong>pyproject.toml</strong>を読み込むのに引数が必要なのでそれを渡してあげます。</p>
+
+<p>他のものは以下のように<strong>pyproject.toml</strong>に移します。</p>
+
+<figure class="code"><figcaption><span>pyrpoject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.black]</span>
+</span><span class="line"><span class="n">line-length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">79</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.isort]</span>
+</span><span class="line"><span class="n">profile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;black&quot;</span>
+</span><span class="line"><span class="n">line_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">79</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.flake8]</span>
+</span><span class="line"><span class="n">ignore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;E203,E501,W503&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.bandit]</span>
+</span><span class="line"><span class="n">exclude_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.mypy]</span>
+</span><span class="line"><span class="n">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src/**/*.py&quot;</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>bandit</code>のオプションで<strong>tests</strong>ディレクトリを除くようなものも入れてみました。</p>
+
+<p>これでPython用のコードをチェックするツールに関するオプションは
+レポジトリの<strong>pyproject.toml</strong>の中で一元管理できるようになりました。</p>
+
+<h2 id="ツールのパッケージをpoetryで管理する">ツールのパッケージをpoetryで管理する</h2>
+
+<p>pre-commitの中で<code>repo</code>を使ったツール管理をすると、
+上に書いたようにコマンドラインから直接使える環境にはインストールされません。</p>
+
+<p>なので例えばエディタの中で使いたい場合とかも別途インストールする必要があったりします。</p>
+
+<p>そうすると環境によって違うバージョンのツールを使ったりconflictが出る可能性があります。</p>
+
+<p>そこで、
+<a href="https://python-poetry.org/">Poetry</a>
+で管理しているレポジトリであれば、
+これらのパッケージもPoetry、つまり<strong>pyproject.toml</strong>の中で管理するようにしてしまえばそのあたりの問題が解消されます。</p>
+
+<p>まず、<strong>.pre-commit-config.yml</strong>を以下のように書き換えます。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cython</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;--filter-files&#39;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;-c&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;pyproject.toml&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">pass_filenames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>まず、全体を1つの<code>local</code>という<code>repo</code>にまとめます。</p>
+
+<p>これによって、この中の<code>hooks</code>は外部のレポジトリを見に行かずに中の設定だけを見て実行するようになります。</p>
+
+<p>上の方のGitHubのレポジトリを指定していた場合にはここに書かれている<code>language</code>や<code>types_or</code>といった設定は
+すべてそれらのレポジトリ内の
+<strong>.pre-commit-hooks.yaml</strong>にかかれていました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/psf/black/blob/main/.pre-commit-hooks.yaml">black/.pre-commit-hooks.yaml at main · psf/black</a></p>
+</blockquote>
+
+<p>上の各ツールの設定では基本的に各レポジトリの<strong>.pre-commit-hooks.yaml</strong>
+から設定を取ってきたものを書いてあります。</p>
+
+<p><code>isort</code>なんかはpre-commitがファイルを渡す際に<code>--filter-files</code>という引数の後に渡るようにこの引数が入っています。
+(なので<code>repo</code>で使う際も<code>args</code>になにか加えたい場合は必ず<code>--filter-files</code>を最後に載せる必要があります。)</p>
+
+<p><code>types_or</code>が<code>python</code>だけだったり他のものも入ってたりするのもありますが、
+通常は<code>python</code>だけで良いかとは思います。
+(<code>mypy</code>は<code>pyi</code>は入れて置いたほうが良いですが。)</p>
+
+<p>上の場合には<code>id</code>, <code>name</code>, <code>entry</code>を全部一緒にしてしまっているのであれですが、
+各idの<code>entry</code>となっているものが実行されるコマンドになります。</p>
+
+<p>元の<strong>.pre-commit-hooks.yaml</strong>と違う点として、全て
+<code>language</code>を<code>python</code>から<code>system</code>に変更してあります。</p>
+
+<p><code>language</code>は各種ツールをどう管理するか、を決める設定で、
+<code>python</code>だと<code>pip install .</code>でそのレポジトリのパッケージがインストールされるようになっています。</p>
+
+<p>今はすべて<code>local</code>にしたのでいずれにしろこれは使えません。</p>
+
+<p><code>system</code>とすることでpre-commit側ではツールのインストールは行わず、
+手元の環境にインストールされたツールをそのまま使うようになります。</p>
+
+<p>そこでそれらのツールをpoetryでインストールします。</p>
+
+<p>実際にレポジトリで開発中なら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry add black --group dev</span></code></pre></td></tr></table></div></figure>
+
+<p>とかでパッケージをインストールして<strong>pyproject.toml</strong>を更新。
+<code>--group dev</code>で開発環境だけに入れるようにしておきます
+<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<p>また、pre-commitも<code>pip</code>で入れられるツールなのでこれも入れてしまいます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry add pre-commit black isort flake8-pyproject bandit[toml] mypy --group dev</span></code></pre></td></tr></table></div></figure>
+
+<p><code>bandit</code>に関しては<strong>pyproject.toml</strong>からオプションを読み込むために<code>toml</code>が必要です。</p>
+
+<p><strong>pyproject.toml</strong>は
+こんな感じになるはずです。</p>
+
+<figure class="code"><figcaption><span>pyrpoject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="p">...</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.group.dev.dependencies]</span>
+</span><span class="line"><span class="p">...</span>
+</span><span class="line"><span class="n">pre-commit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;3.0.4&quot;</span>
+</span><span class="line"><span class="n">black</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;22.3.0&quot;</span>
+</span><span class="line"><span class="n">isort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;5.12.0&quot;</span>
+</span><span class="line"><span class="n">flake8-pyproject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.2&quot;</span>
+</span><span class="line"><span class="n">bandit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;toml&quot;</span><span class="p">],</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;1.7.4&quot;</span><span class="p">}</span>
+</span><span class="line"><span class="n">mypy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.991&quot;</span>
+</span><span class="line"><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>最初からこのような設定の入った<strong>pyproject.toml</strong>を用意して<code>poetry install</code>してもOK。</p>
+
+<p>この方法のメリットは<code>pre-commit</code>コマンド自体も開発環境にインストールされるので、
+開発者はこのレポジトリを<code>git clone</code>とかで取ってきたら、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry install
+</span><span class="line">$ poetry pre-commit install</span></code></pre></td></tr></table></div></figure>
+
+<p>として、あとは</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry git commmit</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにPoetryの仮想環境の中でコマンドを実行すれば各種ツールが使えます。</p>
+
+<p>また<code>black</code>などのコマンドも使えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ poetry shell</span></code></pre></td></tr></table></div></figure>
+
+<p>で環境に入れば直接</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit run -a
+</span><span class="line">$ black ./src
+</span><span class="line">$ git commit</span></code></pre></td></tr></table></div></figure>
+
+<p>などのコマンドを使えますし、これらは<strong>pyproject.toml</strong>のオプションを読んで実行されます。</p>
+
+<p>Vimのプラグインの中でツールを使ってるような場合でもこれでレポジトリが要求するツールが使えます。</p>
+
+<h2 id="blackなどの変更結果を表示する">blackなどの変更結果を表示する</h2>
+
+<p><code>black</code>はformatterとしてコードを良い感じに変更してくれますが、
+<code>pre-commit</code>で行われるということは
+<code>git commit</code>時に直前に行われるので変更されてしまうと
+編集後とそれを<code>black</code>が改善したものとの間で
+実際どの様な変更が起こったか確認出来ません。</p>
+
+<p>まあ、一度</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git commit --no-verify</span></code></pre></td></tr></table></div></figure>
+
+<p>として<code>pre-commit</code>を走らせずに<code>commit</code>してから改めて<code>git commit</code>する、
+という荒業もありますがちょっとやりすぎ。</p>
+
+<p>そこで<code>pre-commit</code>を実行する際に変更を表示するようにします。</p>
+
+<p><code>black</code>には<code>--diff</code>オプションを渡すとコードの変更はせずに
+実際どの様な改善が出来るか、を表示してくれる機能があるのでこれを使います。</p>
+
+<p>ただし、表示させつつコードも変更する、ということが出来ないので
+表示用の<code>id</code>を1つ前に追加します。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--diff&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--color&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。これで最初の<code>black-diff</code>の所で変更部分が表示され、次の
+<code>black</code>で実際に変更されるようになります。
+<code>--color</code>はせっかくオプションにあるので追加で。</p>
+
+<p>同様に<code>isort</code>にも<code>--diff</code>オプションがあるのでこれで同じように<code>isort-diff</code>なidを直前に追加してあげれば
+変更点が表示されるようになります。</p>
+
+<h2 id="現状使っているもの">現状使っているもの</h2>
+
+<p>以上を踏まえて以下のような<strong>.pre-commit-config.yml</strong>と
+<strong>pyproject.toml</strong>を基本としています。</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+<span class="line-number">77</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span>
+<span class="line-number">80</span>
+<span class="line-number">81</span>
+<span class="line-number">82</span>
+<span class="line-number">83</span>
+<span class="line-number">84</span>
+<span class="line-number">85</span>
+<span class="line-number">86</span>
+<span class="line-number">87</span>
+<span class="line-number">88</span>
+<span class="line-number">89</span>
+<span class="line-number">90</span>
+<span class="line-number">91</span>
+<span class="line-number">92</span>
+<span class="line-number">93</span>
+<span class="line-number">94</span>
+<span class="line-number">95</span>
+<span class="line-number">96</span>
+<span class="line-number">97</span>
+<span class="line-number">98</span>
+<span class="line-number">99</span>
+<span class="line-number">100</span>
+<span class="line-number">101</span>
+<span class="line-number">102</span>
+<span class="line-number">103</span>
+<span class="line-number">104</span>
+<span class="line-number">105</span>
+<span class="line-number">106</span>
+<span class="line-number">107</span>
+<span class="line-number">108</span>
+<span class="line-number">109</span>
+<span class="line-number">110</span>
+<span class="line-number">111</span>
+<span class="line-number">112</span>
+<span class="line-number">113</span>
+<span class="line-number">114</span>
+<span class="line-number">115</span>
+<span class="line-number">116</span>
+<span class="line-number">117</span>
+<span class="line-number">118</span>
+<span class="line-number">119</span>
+<span class="line-number">120</span>
+<span class="line-number">121</span>
+<span class="line-number">122</span>
+<span class="line-number">123</span>
+<span class="line-number">124</span>
+<span class="line-number">125</span>
+<span class="line-number">126</span>
+<span class="line-number">127</span>
+<span class="line-number">128</span>
+<span class="line-number">129</span>
+<span class="line-number">130</span>
+<span class="line-number">131</span>
+<span class="line-number">132</span>
+<span class="line-number">133</span>
+<span class="line-number">134</span>
+<span class="line-number">135</span>
+<span class="line-number">136</span>
+<span class="line-number">137</span>
+<span class="line-number">138</span>
+<span class="line-number">139</span>
+<span class="line-number">140</span>
+<span class="line-number">141</span>
+<span class="line-number">142</span>
+<span class="line-number">143</span>
+<span class="line-number">144</span>
+<span class="line-number">145</span>
+<span class="line-number">146</span>
+<span class="line-number">147</span>
+<span class="line-number">148</span>
+<span class="line-number">149</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">repos</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--diff&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--color&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blacken-docs</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blacken-docs</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blacken-docs</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">files</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;\.(rst|md|markdown|py|tex)$&#39;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoflake</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--in-place&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--diff&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autopep8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--in-place&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort-diff</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cython</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;--diff&#39;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;--filter-files&#39;</span>
+</span><span class="line"><span class="w">        </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">isort</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cython</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;--filter-files&#39;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;-c&quot;</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;pyproject.toml&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types_or</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pyi</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="nt">pass_filenames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shellcheck</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">shell</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">require_serial</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat-check</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat-check</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">markdown</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--check&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat</span>
+</span><span class="line"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat</span>
+</span><span class="line"><span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mdformat</span>
+</span><span class="line"><span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+</span><span class="line"><span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">markdown</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/pre-commit/pre-commit-hooks</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v4.4.0</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-byte-order-marker</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-yaml</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-json</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-toml</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-case-conflict</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check-merge-conflict</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--assume-in-merge&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end-of-file-fixer</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fix-byte-order-marker</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mixed-line-ending</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trailing-whitespace</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">debug-statements</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">detect-private-key</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">detect-aws-credentials</span>
+</span><span class="line"><span class="w">        </span><span class="nt">args</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;--allow-missing-credentials&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>pyrpoject.toml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+<span class="line-number">74</span>
+<span class="line-number">75</span>
+<span class="line-number">76</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[tool.poetry]</span>
+</span><span class="line"><span class="p">...</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.dependencies]</span>
+</span><span class="line"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.10,&lt;3.11&quot;</span>
+</span><span class="line"><span class="p">...</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.poetry.group.dev.dependencies]</span>
+</span><span class="line"><span class="p">...</span>
+</span><span class="line"><span class="n">pre-commit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.21.0&quot;</span>
+</span><span class="line"><span class="n">black</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;22.12.0&quot;</span>
+</span><span class="line"><span class="n">blacken-docs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.13.0&quot;</span>
+</span><span class="line"><span class="n">autoflake</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span>
+</span><span class="line"><span class="n">autopep8</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0.1&quot;</span>
+</span><span class="line"><span class="n">isort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;5.11.4&quot;</span>
+</span><span class="line"><span class="n">flake8-pyproject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.2.2&quot;</span>
+</span><span class="line"><span class="n">flake8-annotations-complexity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.0.7&quot;</span>
+</span><span class="line"><span class="n">flake8-bugbear</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;23.1.20&quot;</span>
+</span><span class="line"><span class="n">flake8-builtins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.1.0&quot;</span>
+</span><span class="line"><span class="n">flake8-comprehensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;3.10.1&quot;</span>
+</span><span class="line"><span class="n">flake8-debugger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;4.1.2&quot;</span>
+</span><span class="line"><span class="n">flake8-docstrings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.7.0&quot;</span>
+</span><span class="line"><span class="n">flake8-executable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.1.3&quot;</span>
+</span><span class="line"><span class="n">flake8-pep3101</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.0.0&quot;</span>
+</span><span class="line"><span class="n">flake8-print</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;5.0.0&quot;</span>
+</span><span class="line"><span class="n">flake8-rst-docstrings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3.0&quot;</span>
+</span><span class="line"><span class="n">flake8-string-format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3.0&quot;</span>
+</span><span class="line"><span class="n">pep8-naming</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.13.3&quot;</span>
+</span><span class="line"><span class="n">bandit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;toml&quot;</span><span class="p">],</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;1.7.4&quot;</span><span class="p">}</span>
+</span><span class="line"><span class="n">mypy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.991&quot;</span>
+</span><span class="line"><span class="n">pre-commit-hooks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;4.4.0&quot;</span>
+</span><span class="line"><span class="n">shellcheck-py</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.9.0.2&quot;</span>
+</span><span class="line"><span class="n">mdformat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.7.16&quot;</span>
+</span><span class="line"><span class="n">mdformat-gfm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3.5&quot;</span>
+</span><span class="line"><span class="n">mdformat-frontmatter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.4.1&quot;</span>
+</span><span class="line"><span class="n">mdformat-footnote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.1&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="p">...</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.black]</span>
+</span><span class="line"><span class="n">line-length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">79</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.autoflake]</span>
+</span><span class="line"><span class="n">remove-all-unused-imports</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">expand-star-imports</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">remove-duplicate-keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">remove-unused-variables</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.autopep8]</span>
+</span><span class="line"><span class="n">ignore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;E203,E501,W503&quot;</span>
+</span><span class="line"><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">aggressive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.isort]</span>
+</span><span class="line"><span class="n">profile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;black&quot;</span>
+</span><span class="line"><span class="n">line_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">79</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.flake8]</span>
+</span><span class="line"><span class="c1"># E203 is not PEP8 compliant and black insert space around slice: [Frequently Asked Questions - Black 22.12.0 documentation](https://black.readthedocs.io/en/stable/faq.html#why-are-flake8-s-e203-and-w503-violated)</span>
+</span><span class="line"><span class="c1"># E501: Line too long. Disable it to allow long lines of comments and print lines which black allows.</span>
+</span><span class="line"><span class="c1"># W503 is the counter part of W504, which follows current PEP8: [Line break occurred before a binary operator (W503)](https://www.flake8rules.com/rules/W503.html)</span>
+</span><span class="line"><span class="c1"># D100~D106: Missing docstrings other than class (D101)</span>
+</span><span class="line"><span class="c1"># D401: First line should be in imperative mood</span>
+</span><span class="line"><span class="n">ignore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;E203,E501,W503,D100,D102,D103,D104,D105,D106,D401&quot;</span>
+</span><span class="line"><span class="n">max-complexity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+</span><span class="line"><span class="n">docstring-convention</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;numpy&quot;</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.bandit]</span>
+</span><span class="line"><span class="n">exclude_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]</span>
+</span><span class="line">
+</span><span class="line"><span class="k">[tool.mypy]</span>
+</span><span class="line"><span class="n">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src/**/*.py&quot;</span><span class="p">]</span>
+</span><span class="line"><span class="n">strict</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">warn_return_any</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span class="line"><span class="n">ignore_missing_imports</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span class="line"><span class="n">scripts_are_modules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>まず、ツールとしてこれまで出ていた</p>
+
+<ul>
+  <li><a href="https://black.readthedocs.io/en/stable">black</a>: 全般的なformatter。</li>
+  <li><a href="https://github.com/PyCQA/isort">isort</a>: import順をよしなに変えてくれるformatter。</li>
+  <li><a href="https://github.com/PyCQA/flake8">flake8</a>: プラグインによって拡張可能なlinter。</li>
+  <li><a href="https://www.mypy-lang.org/">mypy</a>: 型チェッカー。</li>
+  <li><a href="https://github.com/PyCQA/bandit">bandit</a>: セキュリティーチェッカー。</li>
+</ul>
+
+<p>以外にPython用として</p>
+
+<ul>
+  <li><a href="https://github.com/adamchainz/blacken-docs">blacken-docs</a>: ドキュメントファイル内のPythonブロックに対して<code>black</code>をかけるformtter。</li>
+  <li><a href="https://github.com/PyCQA/autoflake">autoflake</a>: 未使用の変数やimportの削除をするformatter。</li>
+  <li><a href="https://github.com/hhatto/autopep8">autopep8</a>: PEP8に従って動くformatter。</li>
+  <li>flake8関連のいろいろなプラグイン</li>
+</ul>
+
+<p>が入っています。</p>
+
+<p>重複している部分もあるかと思いますが、割りとそれぞれでしか出来ないこともあるのでとりあえず必要なだけ入れてる感じです。</p>
+
+<p><code>flake8</code>系のエラーに関してどのツール(プラグイン)がチェックできるか、format出来るかみたいなことに関しては
+以下のページにざっとわかった気になれる表があります(細かく調べると色々とほんと細かいんですが)。</p>
+
+<blockquote>
+  <p><a href="https://dev.classmethod.jp/articles/flake8-plugins-and-format-tools/">Flake8プラグイン&amp;フォーマットツールまとめ  DevelopersIO</a></p>
+</blockquote>
+
+<p><code>autoflake</code>や<code>autopep8</code>は、デフォルトだと変更点を表示するだけですが、
+<code>--in-place</code>オプションをつけると実際にコードを変更します。</p>
+
+<p>この変更する際には変更点を表示しないので、<code>black</code>とかと同様に
+最初に<code>--in-place</code>なしで<code>-diff</code>なidで表示させ、そのあとに<code>--in-place</code>ありで実際にコードの変更を行っています。</p>
+
+<p>Python用以外でも</p>
+<ul>
+  <li><a href="https://www.shellcheck.net/">shellcheck</a>: シェルスクリプトのlinter。</li>
+  <li><a href="https://mdformat.readthedocs.io/en/stable/">mdformat</a>: Markfownのformatter (いくつかのプラグインとともに)。</li>
+  <li><a href="https://github.com/pre-commit/pre-commit-hooks">pre-commit-hooks</a>: YAMLやJSONなどのlinterやGitのmerge時のCONFLICTな状態が残っているかをチェックするもの(<code>check-merge-conflict</code>)だったりいろいろなツール群。</li>
+</ul>
+
+<p>ほとんどすべてのレポジトリには<strong>README.md</strong>といったMarkdownファイルがありますし、
+Pythonのプロジェクトでもちょっとしたシェルスクリプトを開発用に置いてあることはよくあります。</p>
+
+<p>なのでそれら用のツールも入れてますが、
+<code>shellcheck</code>、<code>mdformat</code>は<code>pip</code>を使って入れられる、という点で選んでいます。
+(<code>shellcheck</code>の方は他に同レベルで使えるツールは無いわけですが。<code>mdformat</code>の方は色々代替えのツールはたくさんあります。)</p>
+
+<p><code>shellcheck</code>は
+<a href="https://pypi.org/project/shellcheck-py/">shellcheck-py</a>
+というPythonパッケージが用意されているのでこれを使ってPoetryで<code>shellcheck</code>を管理できます<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4297122677?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4297122677&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51F6w9FoosL._SS90_CR0,0,120,90_.jpg" alt="1日1問、半年以内に習得 シェル・ワンライナー160本ノック (Software Design plusシリーズ)" /></a>
+</div></div><a class="click_box_link" href="/blog/2023/01/09/computer-shell-python/">pre-commitでShellCheckを使う</a></div></li></ul>
+
+<p><a href="https://pre-commit.com/hooks.html">Supported hooks</a>の中に他にも<code>shellcheck</code>を扱えるものがありますが、
+それらは<code>shellcheck</code>コマンド自体は別途自分でインストールする必要があるもので、
+pre-commitでもPoetryでも管理できません。</p>
+
+<p>また、shellcheckの作者もpre-commit用のhookを公開してくれています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/koalaman/shellcheck-precommit">koalaman/shellcheck-precommit: Pre-commit hook for ShellCheck</a></p>
+</blockquote>
+
+<p>こちらは<code>docker</code>を使うので<code>shellcheck</code>自体は自分で入れる必要はありません。</p>
+
+<p>ただし<code>docker</code>が使える環境になっている必要があります。</p>
+
+<p>もし開発環境が常に<code>docker</code>を使えるような状態ならこれを使うのもありかもしれません。
+これであればPython以外のプロジェクトでもpre-commitによって<code>shellcheck</code>を管理してもらえます。</p>
+
+<p>コマンドラインから直接実行することは出来ませんが、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ pre-commit run shellcheck</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにしてpre-commitの<code>shellcheck</code>だけを実行することは可能です。</p>
+
+<p>最後の<code>pre-commit-hooks</code>はいろいろなツールのまとめで、これに関しては<code>pip</code>で管理せずにpre-commitの中で管理するものになりますが、
+pre-commit公式のレポジトリでもありますし、
+<a href="https://pre-commit.com/hooks.html">Supported hooks</a>
+を眺めてみて色々なごった煮の中では一番色々と便利なものが詰まっていて十分な感じがしたので。</p>
+
+<p><code>detect-aws-credentials</code>とかは開発中のマシンにAWSのcredentialsなものがある場合にその中身と同じものが
+レポジトリ内に書かれてないか調べるもので、
+他のところからコピペしたりすると発見できなかったりします。
+そもそもこの辺は常に必要なものでもなかったりするんですが、よほどファイルが大量に無い限り一瞬で終わるので
+テンプレートとして入れられるだけ入れてる感じです。</p>
+
+<p>JOSNファイルなんかもないレポジトリもありますが共通化するため入れてあります。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2023/05/01 </strong></p>
+
+  <p>上のツールを一括して管理するためのパッケージを作りました。</p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4814400179" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41Xh3Xdtg-L._SS90_CR0,0,120,90_.jpg" alt="ロバストPython ―クリーンで保守しやすいコードを書く" /></a>
+</div>
+</div><a class="click_box_link" href="/blog/2023/05/01/computer-python/">pyproject-pre-commit: Pythonプロジェクト用のpre-commit集</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+
+    
+  <div class="related_posts part">
+    
+    <h3></h3>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="3107136046"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+
+    
+
+    
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="9518800844"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<div class="footnotes"><ol><li id='fnin:1'><p><strong>pre-commit</strong>ファイル内で実行する<code>pre-commit</code>コマンドに<code>--skip-on-missing-config</code>を引数として与えるようになる
+ <a href="#fninref:1" rel="reference">↩</a></p>
+</li><li id='fnin:2'>
+<p>Flake8-pyprojectの他に
+<a href="https://pypi.org/project/pyproject-flake8/">pyproject-flake8</a>
+というパッケージもあります。</p>
+
+<p>こちらは<code>flake8</code>の代わりに<code>pflake8</code>というコマンドをインストールし、
+<code>flake8</code>と同じように使えてかつ<strong>pyroject.toml</strong>から設定を読み込める、というものになっています。</p>
+
+<p>hooksも用意されているので、
+flake8のところを</p>
+
+<figure class="code"><figcaption><span>.pre-commit-config.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/csachs/pyproject-flake8</span>
+</span><span class="line"><span class="w">    </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.0.1a4</span>
+</span><span class="line"><span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pflake8</span>
+</span><span class="line"><span class="w">        </span><span class="nt">additional_dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">flake8-pyproject</span><span class="p p-Indicator">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにすれば<strong>pyproject.toml</strong>を読み込んで<code>pflake8</code>が実行されるようになります。</p>
+
+<p>こちらのツールの方が古く、前はpyproject-flake8使っていましたが、
+Flake8-pyprojectの方が直接flake8を使える関係上、
+実際にflake8自体は同じものが使えるのと
+flake8にアップデートなどがあった時に
+対応が早い可能性が高いこともあり今はFlake8-pyprojectを使っています。</p>
+
+<p><a href="#fninref:2" rel="reference">↩</a></p>
+</li><li id='fnin:3'>
+<p>Poetry 1.2から<code>group</code>というカテゴリが追加され、もともと
+<code>[tool.poetry.dev-dependencies]</code>となっていた部分は<code>[tool.poetry.group.dev.dependencies]</code>
+のような感じにするようになりました。</p>
+
+<p><code>poetry add</code>のときのオプションも<code>--dev</code>ではなく<code>--group dev</code>とします。</p>
+
+<p><a href="https://python-poetry.org/blog/announcing-poetry-1.2.0/#dependency-groups">Announcing Poetry 1.2.0  Blog  Poetry - Python dependency management and packaging made easy</a>
+ <a href="#fninref:3" rel="reference">↩</a></p>
+</li><li id='fnin:4'>
+<p>実際には<code>shellcheck</code>のバイナリを<code>pip install</code>実行時にインストールするような作業をしているものですが。
+ <a href="#fninref:4" rel="reference">↩</a></p>
+</li></ol></div>
+
+  </div>
+</div>
+<!-- </div><footer> * pseudo line for the function raw_content() -->
+
+
+
+    <!-- google_ad_section_end -->
+    <footer>
+      
+      <div class="meta">
+        
+
+
+  
+  
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="rcmdnk">
+    <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+      <meta itemprop="url" content="https://rcmdnk.com/images/icon128.png">
+    </div>
+  </div>
+
+<span class="byline">Posted by <span itemprop="author">rcmdnk</span></span>
+
+
+        <span class="date-wrapper"><time itemprop='datePublished' class='entry-date' datetime='2023-02-07T00:00:00+00:00'><span class='date'>07 Feb 2023</span></time></span><span class="date-wrapper">Last update <time itemprop='dateModified' class='updated' datetime='2023-05-01T00:00:00+00:00'><span class='date'>01 May 2023</span></time></span>
+        
+
+
+<span class="categories">
+  Category: <a class='category' href='/blog/categories/computer/'><span itemprop='articleSection'>Computer</span></a>
+</span>
+
+
+        
+
+
+<span class="tags">
+  Tagged as <span itemprop='keywords'><a class='tag' href='/blog/tags/python/'><span>Python</span></a></span>
+</span>
+
+
+      </div>
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="share-button share-big">
+  <ul>
+    
+    <li><a href="//b.hatena.ne.jp/entry/https://rcmdnk.com/blog/2023/02/07/computer-python/"
+    title="Save to Hatebu"
+    target="_blank"><p class="hatebu_custom"><span class="hatebuBig" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/">はてなブックマーク</span></p></a></li>
+    
+    
+    <li><a href="//twitter.com/intent/tweet?text=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B&url=https://rcmdnk.com/blog/2023/02/07/computer-python/&via=rcmdnk"
+    title="Share on Twitter"
+    target="_blank"><p class="twitter_custom"><span class="twitterBig" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/">Twitterでシェア</span></p></a></li>
+    
+    
+    <li><a href="//www.facebook.com/sharer.php?src=bm&u=https://rcmdnk.com/blog/2023/02/07/computer-python/&amp;t=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B"
+    title="Share on Facebook"
+    target="_blank"><p class="facebook_custom"><span class="facebookBig" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/">Facebookでシェア</span></p></a></li>
+    
+    
+    <li><a href="//getpocket.com/edit?url=https://rcmdnk.com/blog/2023/02/07/computer-python/&title=Python%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E7%94%A8%E3%81%AEpre-commit%E7%92%B0%E5%A2%83%E3%82%92%E6%95%B4%E3%81%88%E3%82%8B"
+    title="Save to Pocket"
+    target="_blank"><p class="pocket_custom"><span class="pocketBig" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/">Pocketに保存</span></p></a></li>
+    
+    
+    
+    
+    
+    
+    
+    <li><a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml' title="Follow with feedly"
+    target="_blank"><p class="feedly_custom"><span class="feedlyBig" data-share-url="https://rcmdnk.com/blog/2023/02/07/computer-python/">feedlyでフォロー</span></p></a></li>
+    
+  </ul>
+</div>
+
+      
+      
+    </footer>
+  </article>
+  
+
+
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3170649641"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+  
+<div class="part">
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+  
+
+  
+
+  <p class="meta">
+    
+    <a class="basic-alignment left" href="/blog/2023/02/06/computer-github/" title="Previous Post: GitHub Actionsでworkflow_dispatchのinputsの値をpushイベントなどでも使う">&laquo; GitHub Actionsでworkflow_dispatchのinputsの値をpushイベントなどでも使う</a>
+    
+    
+    <a class="basic-alignment right" href="/blog/2023/02/12/life-shopping/" title="Next Post: ダイソーの低反発リストレストがHHKBにピッタリ">ダイソーの低反発リストレストがHHKBにピッタリ &raquo;</a>
+    
+  </p>
+  
+
+
+</div><!-- post -->
+
+  
+    
+<aside class="sidebar">
+  
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="1040793645"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section class="group">
+<h2>About Me</h2>
+
+<div id="aboutme-logo"></div>
+
+
+
+<a href="mailto:rcmdnk@gmail.com" title="Mail" class="sidebar-about" ><i class="fa fa-envelope icon-link-btn"></i></a>
+
+
+<a href="//twitter.com/rcmdnk" title="Twitter" class="sidebar-about" ><i class="fa fa-twitter icon-link-btn"></i></a>
+
+
+
+
+<a href="//github.com/rcmdnk" title="GitHub" class="sidebar-about" ><i class="fa fa-github-alt icon-link-btn"></i></a>
+
+<br>
+
+<a href="https://rcmdnk.com/atom.xml" title="RSS" class="sidebar-about"><i class="fa fa-rss icon-link-btn"></i></a>
+
+
+<a href='//feedly.com/i/subscription/feed/https://rcmdnk.com/atom.xml'><span class="feedlyimg feedly"></span></a>
+
+
+<a href="#" class="add_bookmark sidebar-about" title="Favorite" data-page_title="rcmdnk's blog" data-page_url="https://rcmdnk.com"><i class="fa fa-star-o icon-link-btn"></i></a>
+
+
+</section>
+
+
+
+
+<a href="//www.amazon.co.jp/hz/wishlist/ls/28GLSLW5HE8L8?ref_=wl_share&tag=rcmdnk0c-22">ほしいもの一覧</a>
+
+
+
+
+<section class="group">
+<h2>GitHub Stats</h2>
+
+<a href="//github.com/rcmdnk"><img alt="rcmdnk's GitHub stats" src="//github-readme-stats.vercel.app/api?username=rcmdnk&theme=graywhite&show_icons=true&count_private=false"></a>
+
+
+<a href="//github.com/rcmdnk"><img alt="Top langs" src="//github-readme-stats.vercel.app/api/top-langs/?username=rcmdnk&layout=compact&langs_count=20&exclude_repo=octopress_jp,octopress_en,rcmdnk.github.io,en,octogray_test"></a>
+
+</section>
+<section class="group">
+<h2>Uptime monitor</h2>
+<br>
+
+<div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="Response time graph" src="//github.com/rcmdnk/upptime/raw/master/graphs/rcmdnk-blog/response-time-week.png" width="120"></a>
+</div>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day Response time 265" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year Response time 284" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/response-time-year.json"></a><br>
+
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="7-day uptime 100.00%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-week.json"></a><br>
+
+
+
+<a href="https://rcmdnk.com/upptime/history/rcmdnk-blog"><img alt="1-year uptime 99.97%" src="//img.shields.io/endpoint?url=https://raw.githubusercontent.com/rcmdnk/upptime/master/api/rcmdnk-blog/uptime-year.json"></a><br>
+
+<br clear="left">
+Powered by <a href="//upptime.js.org/">Upptime</a>
+
+</section>
+<section>
+  <h2><a href="/blog/archives/">Recent Posts</a></h2>
+  <ul id="recent_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/B0DWLN3WH2' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71+JH+T4bOL._SS90_CR0,0,120,90_.jpg' alt='Rust &amp; Python Integrated: Harnessing the Power of Systems and Scripting for High-Performance Development: A Comprehensive Guide 2025'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/23/computer-python-rust/">Python環境をRust製ツールで整える</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2026/02/22/computer-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20260222_googleime_120_90.png" width="120" height="90" alt="20260222_googleime_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2026/02/22/computer-mac/">macOSでGoogle日本語入力のアップデート時に再起動を要求されても再起動を避ける</a>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="5549788815"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    <a href="/blog/2025/10/04/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251014_mise_120_90.jpg" width="120" height="90" alt="20251014_mise_120_90"></a>
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/10/04/computer-ai/">miseでAI CLIツールやMCPもまとめて管理する</a>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      
+<div class="group">
+  <div class="title-small-thumbnail">
+  
+    
+    
+      <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4873119324' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/71YF-IxBnIL._SS90_CR0,0,120,90_.jpg' alt='入門 Python 3 第2版'/></a>
+</div>
+
+    
+  
+  </div>
+  <a class="click_box_link" href="/blog/2025/09/10/computer-python/">Python, uvで`optional-dependencies`で指定するパッケージをgroupsで重複無くインストール出来るようにする</a>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+<section>
+  <h2>Monthly Archives</h2>
+  <div class="monthly_archive"><ul><li><span class="monthly_archive_year_span">2026 (2)</span><ul class="monthly_archive_month_list monthly_archive_open"><li><a href='/blog/2026/02/'>FEB (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2025 (18)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2025/10/'>OCT (2)</a></li><li><a href='/blog/2025/09/'>SEP (1)</a></li><li><a href='/blog/2025/08/'>AUG (3)</a></li><li><a href='/blog/2025/07/'>JUL (3)</a></li><li><a href='/blog/2025/05/'>MAY (2)</a></li><li><a href='/blog/2025/02/'>FEB (1)</a></li><li><a href='/blog/2025/01/'>JAN (6)</a></li></ul></li><li><span class="monthly_archive_year_span">2024 (26)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2024/11/'>NOV (4)</a></li><li><a href='/blog/2024/10/'>OCT (2)</a></li><li><a href='/blog/2024/09/'>SEP (4)</a></li><li><a href='/blog/2024/08/'>AUG (2)</a></li><li><a href='/blog/2024/07/'>JUL (2)</a></li><li><a href='/blog/2024/06/'>JUN (3)</a></li><li><a href='/blog/2024/05/'>MAY (2)</a></li><li><a href='/blog/2024/04/'>APR (2)</a></li><li><a href='/blog/2024/02/'>FEB (4)</a></li><li><a href='/blog/2024/01/'>JAN (1)</a></li></ul></li><li><span class="monthly_archive_year_span">2023 (56)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2023/12/'>DEC (2)</a></li><li><a href='/blog/2023/11/'>NOV (4)</a></li><li><a href='/blog/2023/10/'>OCT (2)</a></li><li><a href='/blog/2023/09/'>SEP (5)</a></li><li><a href='/blog/2023/08/'>AUG (1)</a></li><li><a href='/blog/2023/07/'>JUL (2)</a></li><li><a href='/blog/2023/05/'>MAY (5)</a></li><li><a href='/blog/2023/04/'>APR (9)</a></li><li><a href='/blog/2023/03/'>MAR (8)</a></li><li><a href='/blog/2023/02/'>FEB (9)</a></li><li><a href='/blog/2023/01/'>JAN (9)</a></li></ul></li><li><span class="monthly_archive_year_span">2022 (51)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2022/12/'>DEC (1)</a></li><li><a href='/blog/2022/11/'>NOV (1)</a></li><li><a href='/blog/2022/10/'>OCT (3)</a></li><li><a href='/blog/2022/09/'>SEP (6)</a></li><li><a href='/blog/2022/08/'>AUG (3)</a></li><li><a href='/blog/2022/07/'>JUL (3)</a></li><li><a href='/blog/2022/06/'>JUN (6)</a></li><li><a href='/blog/2022/05/'>MAY (3)</a></li><li><a href='/blog/2022/03/'>MAR (8)</a></li><li><a href='/blog/2022/02/'>FEB (9)</a></li><li><a href='/blog/2022/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2021 (46)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2021/12/'>DEC (3)</a></li><li><a href='/blog/2021/11/'>NOV (4)</a></li><li><a href='/blog/2021/10/'>OCT (4)</a></li><li><a href='/blog/2021/09/'>SEP (7)</a></li><li><a href='/blog/2021/08/'>AUG (2)</a></li><li><a href='/blog/2021/05/'>MAY (1)</a></li><li><a href='/blog/2021/04/'>APR (6)</a></li><li><a href='/blog/2021/03/'>MAR (9)</a></li><li><a href='/blog/2021/02/'>FEB (2)</a></li><li><a href='/blog/2021/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2020 (58)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2020/12/'>DEC (2)</a></li><li><a href='/blog/2020/11/'>NOV (1)</a></li><li><a href='/blog/2020/10/'>OCT (6)</a></li><li><a href='/blog/2020/09/'>SEP (4)</a></li><li><a href='/blog/2020/08/'>AUG (7)</a></li><li><a href='/blog/2020/07/'>JUL (4)</a></li><li><a href='/blog/2020/06/'>JUN (5)</a></li><li><a href='/blog/2020/05/'>MAY (4)</a></li><li><a href='/blog/2020/04/'>APR (6)</a></li><li><a href='/blog/2020/03/'>MAR (4)</a></li><li><a href='/blog/2020/02/'>FEB (3)</a></li><li><a href='/blog/2020/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2019 (96)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2019/12/'>DEC (5)</a></li><li><a href='/blog/2019/11/'>NOV (6)</a></li><li><a href='/blog/2019/10/'>OCT (17)</a></li><li><a href='/blog/2019/09/'>SEP (18)</a></li><li><a href='/blog/2019/08/'>AUG (25)</a></li><li><a href='/blog/2019/07/'>JUL (4)</a></li><li><a href='/blog/2019/06/'>JUN (3)</a></li><li><a href='/blog/2019/05/'>MAY (4)</a></li><li><a href='/blog/2019/04/'>APR (3)</a></li><li><a href='/blog/2019/03/'>MAR (4)</a></li><li><a href='/blog/2019/02/'>FEB (5)</a></li><li><a href='/blog/2019/01/'>JAN (2)</a></li></ul></li><li><span class="monthly_archive_year_span">2018 (70)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2018/12/'>DEC (1)</a></li><li><a href='/blog/2018/11/'>NOV (5)</a></li><li><a href='/blog/2018/10/'>OCT (1)</a></li><li><a href='/blog/2018/09/'>SEP (8)</a></li><li><a href='/blog/2018/08/'>AUG (11)</a></li><li><a href='/blog/2018/07/'>JUL (4)</a></li><li><a href='/blog/2018/06/'>JUN (3)</a></li><li><a href='/blog/2018/05/'>MAY (6)</a></li><li><a href='/blog/2018/04/'>APR (10)</a></li><li><a href='/blog/2018/03/'>MAR (6)</a></li><li><a href='/blog/2018/02/'>FEB (8)</a></li><li><a href='/blog/2018/01/'>JAN (7)</a></li></ul></li><li><span class="monthly_archive_year_span">2017 (145)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2017/12/'>DEC (2)</a></li><li><a href='/blog/2017/11/'>NOV (19)</a></li><li><a href='/blog/2017/10/'>OCT (19)</a></li><li><a href='/blog/2017/09/'>SEP (18)</a></li><li><a href='/blog/2017/08/'>AUG (13)</a></li><li><a href='/blog/2017/07/'>JUL (12)</a></li><li><a href='/blog/2017/06/'>JUN (8)</a></li><li><a href='/blog/2017/05/'>MAY (13)</a></li><li><a href='/blog/2017/04/'>APR (13)</a></li><li><a href='/blog/2017/03/'>MAR (7)</a></li><li><a href='/blog/2017/02/'>FEB (9)</a></li><li><a href='/blog/2017/01/'>JAN (12)</a></li></ul></li><li><span class="monthly_archive_year_span">2016 (150)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2016/12/'>DEC (5)</a></li><li><a href='/blog/2016/11/'>NOV (7)</a></li><li><a href='/blog/2016/10/'>OCT (12)</a></li><li><a href='/blog/2016/09/'>SEP (13)</a></li><li><a href='/blog/2016/08/'>AUG (9)</a></li><li><a href='/blog/2016/07/'>JUL (9)</a></li><li><a href='/blog/2016/06/'>JUN (16)</a></li><li><a href='/blog/2016/05/'>MAY (10)</a></li><li><a href='/blog/2016/04/'>APR (13)</a></li><li><a href='/blog/2016/03/'>MAR (18)</a></li><li><a href='/blog/2016/02/'>FEB (30)</a></li><li><a href='/blog/2016/01/'>JAN (8)</a></li></ul></li><li><span class="monthly_archive_year_span">2015 (183)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2015/12/'>DEC (8)</a></li><li><a href='/blog/2015/11/'>NOV (12)</a></li><li><a href='/blog/2015/10/'>OCT (17)</a></li><li><a href='/blog/2015/09/'>SEP (3)</a></li><li><a href='/blog/2015/08/'>AUG (8)</a></li><li><a href='/blog/2015/07/'>JUL (27)</a></li><li><a href='/blog/2015/06/'>JUN (31)</a></li><li><a href='/blog/2015/05/'>MAY (21)</a></li><li><a href='/blog/2015/04/'>APR (11)</a></li><li><a href='/blog/2015/03/'>MAR (19)</a></li><li><a href='/blog/2015/02/'>FEB (12)</a></li><li><a href='/blog/2015/01/'>JAN (14)</a></li></ul></li><li><span class="monthly_archive_year_span">2014 (194)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2014/12/'>DEC (19)</a></li><li><a href='/blog/2014/11/'>NOV (22)</a></li><li><a href='/blog/2014/10/'>OCT (10)</a></li><li><a href='/blog/2014/09/'>SEP (14)</a></li><li><a href='/blog/2014/08/'>AUG (17)</a></li><li><a href='/blog/2014/07/'>JUL (24)</a></li><li><a href='/blog/2014/06/'>JUN (16)</a></li><li><a href='/blog/2014/05/'>MAY (26)</a></li><li><a href='/blog/2014/04/'>APR (4)</a></li><li><a href='/blog/2014/03/'>MAR (5)</a></li><li><a href='/blog/2014/02/'>FEB (20)</a></li><li><a href='/blog/2014/01/'>JAN (17)</a></li></ul></li><li><span class="monthly_archive_year_span">2013 (162)</span><ul class="monthly_archive_month_list monthly_archive_close"><li><a href='/blog/2013/12/'>DEC (20)</a></li><li><a href='/blog/2013/11/'>NOV (34)</a></li><li><a href='/blog/2013/10/'>OCT (15)</a></li><li><a href='/blog/2013/09/'>SEP (15)</a></li><li><a href='/blog/2013/08/'>AUG (12)</a></li><li><a href='/blog/2013/07/'>JUL (12)</a></li><li><a href='/blog/2013/06/'>JUN (17)</a></li><li><a href='/blog/2013/05/'>MAY (16)</a></li><li><a href='/blog/2013/04/'>APR (7)</a></li><li><a href='/blog/2013/03/'>MAR (14)</a></li></ul></li></ul></div>
+</section>
+<section>
+  <h2>Categories</h2>
+  <ul id="category-list"><li><a href='/blog/categories/blog/'>Blog (139)</a></li><li><a href='/blog/categories/computer/'>Computer (1049)</a></li><li><a href='/blog/categories/life/'>Life (69)</a></li></ul>
+</section>
+<section>
+  <h2>Tag Cloud</h2>
+    <span id="tag-cloud"><a href='/blog/tags/aerofs/' style='font-size: 100.38338658146965%'>AeroFS(2)</a> <a href='/blog/tags/ai/' style='font-size: 101.53354632587859%'>AI(8)</a> <a href='/blog/tags/amazon/' style='font-size: 100.38338658146965%'>Amazon(2)</a> <a href='/blog/tags/analytics/' style='font-size: 100.7667731629393%'>Analytics(4)</a> <a href='/blog/tags/android/' style='font-size: 102.87539936102236%'>Android(15)</a> <a href='/blog/tags/applescript/' style='font-size: 103.06709265175719%'>AppleScript(16)</a> <a href='/blog/tags/asciinema/' style='font-size: 100.38338658146965%'>Asciinema(2)</a> <a href='/blog/tags/autohotkey/' style='font-size: 105.75079872204473%'>AutoHotkey(30)</a> <a href='/blog/tags/bash/' style='font-size: 121.85303514376997%'>Bash(114)</a> <a href='/blog/tags/bitbucket/' style='font-size: 100.19169329073482%'>Bitbucket(1)</a> <a href='/blog/tags/blog/' style='font-size: 100.38338658146965%'>Blog(2)</a> <a href='/blog/tags/bookmarklet/' style='font-size: 100.7667731629393%'>Bookmarklet(4)</a> <a href='/blog/tags/bootstrap/' style='font-size: 100.57507987220447%'>Bootstrap(3)</a> <a href='/blog/tags/brew-file/' style='font-size: 111.1182108626198%'>Brew-file(58)</a> <a href='/blog/tags/bsd/' style='font-size: 101.72523961661342%'>BSD(9)</a> <a href='/blog/tags/c-cpp/' style='font-size: 100.38338658146965%'>C-CPP(2)</a> <a href='/blog/tags/chocolatey/' style='font-size: 100.7667731629393%'>Chocolatey(4)</a> <a href='/blog/tags/chrome/' style='font-size: 104.7923322683706%'>Chrome(25)</a> <a href='/blog/tags/cli/' style='font-size: 100.19169329073482%'>CLI(1)</a> <a href='/blog/tags/colinux/' style='font-size: 100.38338658146965%'>coLinux(2)</a> <a href='/blog/tags/css/' style='font-size: 100.7667731629393%'>CSS(4)</a> <a href='/blog/tags/cygwin/' style='font-size: 105.94249201277955%'>Cygwin(31)</a> <a href='/blog/tags/dell/' style='font-size: 100.19169329073482%'>Dell(1)</a> <a href='/blog/tags/desktop/' style='font-size: 100.38338658146965%'>Desktop(2)</a> <a href='/blog/tags/diy/' style='font-size: 100.19169329073482%'>DIY(1)</a> <a href='/blog/tags/docker/' style='font-size: 100.38338658146965%'>Docker(2)</a> <a href='/blog/tags/dropbox/' style='font-size: 101.91693290734824%'>Dropbox(10)</a> <a href='/blog/tags/emacs/' style='font-size: 100.57507987220447%'>Emacs(3)</a> <a href='/blog/tags/english/' style='font-size: 100.95846645367412%'>English(5)</a> <a href='/blog/tags/evernote/' style='font-size: 102.68370607028754%'>Evernote(14)</a> <a href='/blog/tags/feedly/' style='font-size: 100.19169329073482%'>feedly(1)</a> <a href='/blog/tags/firefox/' style='font-size: 111.30990415335464%'>Firefox(59)</a> <a href='/blog/tags/gas/' style='font-size: 100.19169329073482%'>GAS(1)</a> <a href='/blog/tags/geektool/' style='font-size: 100.57507987220447%'>GeekTool(3)</a> <a href='/blog/tags/ginger/' style='font-size: 100.19169329073482%'>Ginger(1)</a> <a href='/blog/tags/git/' style='font-size: 108.05111821086263%'>Git(42)</a> <a href='/blog/tags/github/' style='font-size: 115.52715654952077%'>GitHub(81)</a> <a href='/blog/tags/gmail/' style='font-size: 103.06709265175719%'>Gmail(16)</a> <a href='/blog/tags/gnu/' style='font-size: 101.53354632587859%'>GNU(8)</a> <a href='/blog/tags/go/' style='font-size: 100.57507987220447%'>Go(3)</a> <a href='/blog/tags/google/' style='font-size: 103.83386581469648%'>Google(20)</a> <a href='/blog/tags/gpt/' style='font-size: 100.95846645367412%'>GPT(5)</a> <a href='/blog/tags/gpu/' style='font-size: 100.19169329073482%'>GPU(1)</a> <a href='/blog/tags/hhkb/' style='font-size: 102.49201277955271%'>HHKB(13)</a> <a href='/blog/tags/home/' style='font-size: 100.19169329073482%'>Home(1)</a> <a href='/blog/tags/homebrew/' style='font-size: 118.59424920127796%'>Homebrew(97)</a> <a href='/blog/tags/ifttt/' style='font-size: 102.30031948881789%'>IFTTT(12)</a> <a href='/blog/tags/install/' style='font-size: 100.7667731629393%'>Install(4)</a> <a href='/blog/tags/ios/' style='font-size: 100.38338658146965%'>iOS(2)</a> <a href='/blog/tags/iot/' style='font-size: 112.26837060702876%'>IoT(64)</a> <a href='/blog/tags/iphone/' style='font-size: 102.68370607028754%'>iPhone(14)</a> <a href='/blog/tags/iterm2/' style='font-size: 100.7667731629393%'>iTerm2(4)</a> <a href='/blog/tags/java/' style='font-size: 100.38338658146965%'>Java(2)</a> <a href='/blog/tags/javascript/' style='font-size: 105.17571884984025%'>JavaScript(27)</a> <a href='/blog/tags/jekyll/' style='font-size: 100.57507987220447%'>Jekyll(3)</a> <a href='/blog/tags/jquery/' style='font-size: 100.7667731629393%'>jQuery(4)</a> <a href='/blog/tags/karabiner/' style='font-size: 104.98402555910543%'>Karabiner(26)</a> <a href='/blog/tags/keyboard/' style='font-size: 100.19169329073482%'>Keyboard(1)</a> <a href='/blog/tags/keyremap4macbook/' style='font-size: 101.53354632587859%'>KeyRemap4MacBook(8)</a> <a href='/blog/tags/kramdown/' style='font-size: 100.19169329073482%'>Kramdown(1)</a> <a href='/blog/tags/latex/' style='font-size: 100.19169329073482%'>Latex(1)</a> <a href='/blog/tags/linux/' style='font-size: 113.22683706070288%'>Linux(69)</a> <a href='/blog/tags/liquid/' style='font-size: 100.38338658146965%'>Liquid(2)</a> <a href='/blog/tags/lubuntu/' style='font-size: 100.57507987220447%'>Lubuntu(3)</a> <a href='/blog/tags/mac/' style='font-size: 160.0%'>Mac(313)</a> <a href='/blog/tags/markdown/' style='font-size: 102.30031948881789%'>Markdown(12)</a> <a href='/blog/tags/music/' style='font-size: 101.53354632587859%'>Music(8)</a> <a href='/blog/tags/network/' style='font-size: 106.13418530351437%'>Network(32)</a> <a href='/blog/tags/obsidian/' style='font-size: 100.7667731629393%'>Obsidian(4)</a> <a href='/blog/tags/octopress/' style='font-size: 123.96166134185303%'>Octopress(125)</a> <a href='/blog/tags/owncloud/' style='font-size: 100.38338658146965%'>ownCloud(2)</a> <a href='/blog/tags/packagemanagement/' style='font-size: 100.57507987220447%'>PackageManagement(3)</a> <a href='/blog/tags/pocket/' style='font-size: 100.7667731629393%'>Pocket(4)</a> <a href='/blog/tags/poetry/' style='font-size: 100.57507987220447%'>Poetry(3)</a> <a href='/blog/tags/powershell/' style='font-size: 101.53354632587859%'>PowerShell(8)</a> <a href='/blog/tags/pr/' style='font-size: 100.57507987220447%'>PR(3)</a> <a href='/blog/tags/prompt/' style='font-size: 100.57507987220447%'>Prompt(3)</a> <a href='/blog/tags/putty/' style='font-size: 102.68370607028754%'>PuTTY(14)</a> <a href='/blog/tags/pypi/' style='font-size: 100.19169329073482%'>PyPi(1)</a> <a href='/blog/tags/python/' style='font-size: 114.56869009584665%'>Python(76)</a> <a href='/blog/tags/qi/' style='font-size: 100.19169329073482%'>Qi(1)</a> <a href='/blog/tags/rakuten/' style='font-size: 100.57507987220447%'>Rakuten(3)</a> <a href='/blog/tags/raspberrypi/' style='font-size: 103.45047923322684%'>RaspberryPi(18)</a> <a href='/blog/tags/ruby/' style='font-size: 102.68370607028754%'>Ruby(14)</a> <a href='/blog/tags/rust/' style='font-size: 100.19169329073482%'>Rust(1)</a> <a href='/blog/tags/screen/' style='font-size: 108.05111821086263%'>screen(42)</a> <a href='/blog/tags/sentaku/' style='font-size: 102.68370607028754%'>sentaku(14)</a> <a href='/blog/tags/shell/' style='font-size: 100.19169329073482%'>Shell(1)</a> <a href='/blog/tags/shopping/' style='font-size: 109.96805111821087%'>Shopping(52)</a> <a href='/blog/tags/slack/' style='font-size: 100.57507987220447%'>Slack(3)</a> <a href='/blog/tags/svn/' style='font-size: 100.38338658146965%'>SVN(2)</a> <a href='/blog/tags/teamviewer/' style='font-size: 100.95846645367412%'>TeamViewer(5)</a> <a href='/blog/tags/thunderbird/' style='font-size: 100.38338658146965%'>Thunderbird(2)</a> <a href='/blog/tags/tmux/' style='font-size: 101.34185303514377%'>tmux(7)</a> <a href='/blog/tags/travisci/' style='font-size: 102.68370607028754%'>TravisCI(14)</a> <a href='/blog/tags/trip/' style='font-size: 100.95846645367412%'>Trip(5)</a> <a href='/blog/tags/ubuntu/' style='font-size: 100.7667731629393%'>Ubuntu(4)</a> <a href='/blog/tags/vim/' style='font-size: 120.89456869009584%'>Vim(109)</a> <a href='/blog/tags/vimperator/' style='font-size: 103.64217252396166%'>Vimperator(19)</a> <a href='/blog/tags/web/' style='font-size: 101.15015974440895%'>Web(6)</a> <a href='/blog/tags/wercker/' style='font-size: 101.15015974440895%'>wercker(6)</a> <a href='/blog/tags/wimax/' style='font-size: 100.38338658146965%'>WiMAX(2)</a> <a href='/blog/tags/windows/' style='font-size: 130.0958466453674%'>Windows(157)</a> <a href='/blog/tags/word/' style='font-size: 100.19169329073482%'>Word(1)</a> <a href='/blog/tags/yamy/' style='font-size: 101.34185303514377%'>yamy(7)</a> <a href='/blog/tags/zsh/' style='font-size: 109.96805111821087%'>Zsh(52)</a> </span>
+</section>
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="5484987648"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+<section>
+  <h2>Most Viewed Posts (Last Month)</h2>
+  <ul id="popular_posts" class="posts">
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4542201295' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/412PAQ09H8L._SS90_CR0,0,120,90_.jpg' alt='JIS漢字字典'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a><br><span class="views">870 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2024/09/27/computer-windows-mac/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20240927_win3_120_90.jpg" width="120" height="90" alt="20240927_win3_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2024/09/27/computer-windows-mac/">Win/Macそれぞれで特定のウィンドウを最前面に固定する</a><br><span class="views">450 views</span>
+</div>
+
+    </li>
+    
+    
+    <li>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="fluid"
+         data-ad-layout-key="-hr+8-1l-2i+ar"
+         data-ad-client="ca-pub-3802317723662375"
+         data-ad-slot="2443552820"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    </li>
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2025/10/16/computer-ai/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20251016_mcp_120_90.png" width="120" height="90" alt="20251016_mcp_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2025/10/16/computer-ai/">codexでgithub-mcp-serverを直接使う</a><br><span class="views">280 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  
+  
+  <div class="title-small-thumbnail">
+  <div class='amazon-img'>
+  <a href='//www.amazon.co.jp/gp/product/4022737166' rel='nofollow' target='_blank'><img src='https://images-na.ssl-images-amazon.com/images/I/51lxlVNGLnL._SS90_CR0,0,120,90_.jpg' alt='Suicaが世界を制覇する アップルが日本の技術を選んだ理由 (朝日新書)'/></a>
+</div>
+
+  </div>
+  
+  
+  <a class="click_box_link" href="/blog/2019/12/17/life-trip/">Suicaで地下鉄に間違って改札を通ってしまった際にすぐに出ればキャンセルされる(こともある)</a><br><span class="views">264 views</span>
+</div>
+
+    </li>
+    
+    
+    <li class="post index_click_box">
+      <div class="group">
+  
+  <div class="title-small-thumbnail">
+    <a href="/blog/2018/02/01/compouter-chrome/"><img class="small-thumbnail-img" src="/images/post/thumbnail/20180201_chrome_120_90.png" width="120" height="90" alt="20180201_chrome_120_90"></a>
+  </div>
+  
+  <a class="click_box_link" href="/blog/2018/02/01/compouter-chrome/">Google Chrome上でマウスカーソルが消えてしまう場合の対処法</a><br><span class="views">241 views</span>
+</div>
+
+    </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h2><a href="//b.hatena.ne.jp/entrylist?mode=rss&sort=count&url=https://rcmdnk.com">Hatebu Popular Posts</a></h2>
+
+<div id='hatena-bookmark-widget'>
+  <ul id='hatena_popular_posts' class='posts'>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/52c43ceca0a4932d759487214ea0ca46da9f34e8/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord.gif' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2Fpost%2F20151112_dashbord'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' class='click_box_link hatena-bookmark-entrytitle'>ターミナルにリッチなモニターを表示させる</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/11/12/computer-javascript-go/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/8c14e2043f5305342d429254ec21b66697fd5d50/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F515yALRXKzL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/02/19/computer-markdown/' class='click_box_link hatena-bookmark-entrytitle'>Markdownからスライド資料を作る</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/02/19/computer-markdown/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="fluid"
+       data-ad-layout-key="-hr+8-1l-2i+ar"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="3070238784"></ins>
+  <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/a35d63bd4d980f5f21c1757c0eec36670e870795/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F41GJBSC36XL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' class='click_box_link hatena-bookmark-entrytitle'>多段ssh設定のまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2014/06/08/comptuer-linux-windows-putty/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/b9941e9c195e57542a07d0dcb7172e57f59fd6cc/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_.jpg' alt='https%3A%2F%2Fimages-na.ssl-images-amazon.com%2Fimages%2FI%2F51ZUNX24fSL._SS200_'></a>
+</div>
+      <a href='https://rcmdnk.com/blog/2015/09/09/computer-remote/' class='click_box_link hatena-bookmark-entrytitle'>ssh周りの設定、Tipsのまとめ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/blog/2015/09/09/computer-remote/' alt='n_hatebu'>
+    </div>
+  </li>
+  <li class='post index_click_box'>
+    <div class='group'>
+      <div class='title-small-thumbnail'>
+  <a href='https://rcmdnk.com/mac/macapp/'><img src='https://cdn-ak-scissors.b.st-hatena.com/image/square/7dce4ddada0821a856e31680ba3cb7ae0f02274d/backend=imagemagick;height=90;version=1;width=120/https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle.jpg' alt='https%3A%2F%2Frcmdnk.com%2Fimages%2FMacApp%2FMacLogoMiddle'></a>
+</div>
+      <a href='https://rcmdnk.com/mac/macapp/' class='click_box_link hatena-bookmark-entrytitle'>Mac用アプリ</a>
+      <br>
+      <img src='//b.hatena.ne.jp/entry/image/https://rcmdnk.com/mac/macapp/' alt='n_hatebu'>
+    </div>
+  </li>
+  </ul>
+</div>
+
+</section>
+
+
+<div class="center_wrapper">
+  <div>Sponsored Links</div>
+  <div>
+  <ins class="adsbygoogle google-img-rect"
+       style="display:inline-block"
+       data-ad-client="ca-pub-3802317723662375"
+       data-ad-slot="8192049649"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+
+
+</aside>
+
+  
+
+
+    </div><!-- content -->
+  </div><!-- main -->
+  <footer><div class="center_wrapper">
+  <div>
+    
+    <a href="mailto:rcmdnk@gmail.com">Contact</a>, <a href="/privacy/">Privacy Policy</a>
+    
+  </div>
+  <div>
+    Copyright &copy; 2026 - rcmdnk -
+    <span class="credit">Powered by <a href="https://octopress.org">Octopress</a></span>
+    <span class="credit">, with theme <a href="//github.com/rcmdnk/octogray">octogray</a></span>
+  </div>
+  <!--
+Licenses
+
+* /javascripts/all.js (footnote.js, from https://github.com/fcy/footnote-octopress)
+
+Copyright © 2011 Felipe Cypriano
+Released under the MIT license
+https://opensource.org/licenses/mit-license.php
+
+-->
+
+</div>
+
+</footer>
+  <script>
+(function (d) {
+  var j, s = d.getElementsByTagName('script')[0];
+  a = function (u, i) {
+    if (!d.getElementById(i)) {
+      j = d.createElement('link');
+      j.rel = 'stylesheet';
+      j.href = u;
+      if (i) {j.id = i;}
+      s.parentNode.insertBefore(j, s);
+    }
+  };
+  
+  a("//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css","font-awesome-css");
+  
+  
+})(document);
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CS5ERMMZ4D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CS5ERMMZ4D');
+</script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var content = document.getElementById('content');
+      if(content === undefined)return;
+      var article = content.getElementsByTagName('article')[0];
+      if(article === undefined)return;
+
+      var inner = document.createElement('div');
+      inner.className = "center_wrapper";
+
+      if(article.className == "index-article"){
+        
+        var groups = article.getElementsByTagName('header');
+        inner.innerHTML = '<div><ins class="adsbygoogle" ' +
+                          'style="display:block" ' +
+                          'data-ad-format="fluid" ' +
+                          'data-ad-layout-key="-al-7-1d-op+12x" ' +
+                          'data-ad-client="ca-pub-3802317723662375" ' +
+                          'data-ad-slot="6710865235"></ins></div>';
+        
+      }else{
+        
+        var groups = article.getElementsByTagName('h2');
+        inner.innerHTML = '<ins class="adsbygoogle"' +
+                          'style="display:block; text-align:center;"' +
+                          'data-ad-layout="in-article"' +
+                          'data-ad-format="fluid"' +
+                          'data-ad-client="ca-pub-3802317723662375"' +
+                          'data-ad-slot="3008397714"></ins>';
+
+        
+      }
+      if(groups.length < 3)return;
+      groups[2].parentNode.insertBefore(inner, groups[2]);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }());
+  </script>
+  
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-3802317723662375",
+      enable_page_level_ads: true
+    });
+  </script>
+  
+  <script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async defer></script>
+  
+  
+  
+  
+
+
+
+
+  
+  
+  <script>
+  var disqus_shortname = 'rcmdnk';
+  var disqus_identifier = 'https://rcmdnk.com/blog/2023/02/07/computer-python/';
+  var disqus_url = 'https://rcmdnk.com/blog/2023/02/07/computer-python/';
+  </script>
+  <script src='//rcmdnk.disqus.com/embed.js' async defer></script>
+  
+
+
+}
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js" defer></script>
+
+
+<script src="/javascripts/all.js" defer></script>
+
+
+
+
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org",
+  "@type" : "WebSite",
+  "name" : "rcmdnk's blog",
+
+  "url" : "https://rcmdnk.com"
+
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "url": "https://rcmdnk.com",
+  "logo": "https://rcmdnk.com/images/icon32.png"
+}
+</script>
+
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Person"
+
+  ,"name" : "rcmdnk"
+
+
+  ,"email" : "rcmdnk@gmail.com"
+
+
+  ,"url" : "https://rcmdnk.com"
+
+
+  ,"sameAs" : [
+  
+    
+    "https://twitter.com/rcmdnk"
+  
+  
+  
+  ]
+  
+
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement":
+  [
+  
+  
+    
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/categories/computer/",
+        "name": "Computer"
+      }
+    }
+    
+  
+  
+    
+    ,
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item":
+      {
+        "@id": "https://rcmdnk.com/blog/tags/python/",
+        "name": "Python"
+      }
+    }
+    
+  
+  ]
+}
+</script>
+
+
+
+</body>
+</html>

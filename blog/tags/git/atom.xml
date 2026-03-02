@@ -1,0 +1,1520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Git | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/git/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[git worktreeの管理]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/28/computer-git/"/>
+    <updated>2025-07-28T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/28/computer-git</id>
+    <content type="html"><![CDATA[<p>Git Worktreeの管理方法について、
+外部ツールなどを使わずにできる個人的便利設定。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#worktreeを管理する場所" id="markdown-toc-worktreeを管理する場所">Worktreeを管理する場所</a></li>
+  <li><a href="#worktree関連のalias" id="markdown-toc-worktree関連のalias">Worktree関連のalias</a></li>
+  <li><a href="#worktreeの切り替え" id="markdown-toc-worktreeの切り替え">Worktreeの切り替え</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="worktreeを管理する場所">Worktreeを管理する場所</h2>
+
+<p>Worktreeはレポジトリルートに<strong>.worktree</strong>というディレクトリを作ってその中で管理するようにしています。
+レポジトリの中で閉じたいので。</p>
+
+<p>このディレクトリはルートのGit管理からは外したいので
+<strong>.gitignore</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">/.worktree</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を追加しておきます。</p>
+
+<p><strong>.git</strong>ディレクトリの中に作るという案も出てたりしますが、
+gitの内部構造用ディレクトリなので避けた方が無難です。</p>
+
+<p>submoduleのような状態で管理している場合にはそもそも<strong>.git</strong>がディレクトリでなくなり、
+親の<strong>.git</strong>ディレクトリを使ったりするとよくわからなくなってくこともあるかもしれないので。</p>
+
+<p>現状この方法で一つ困ってるのが、仮想環境を自動認識してくれるmiseを使った環境設定を行っている際。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20241128_miseactive_120_90.jpg" width="120" height="90" alt="20241128_miseactive_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/11/27/computer-python-screen/">miseを使って仮想環境自動認識(主にPython, uv, プロンプト表示についても)</a></div></li></ul>
+
+<p><strong>.mise.toml</strong>がworktreeとその親のディレクトリでも見つかって重複してしまうわけですが、
+Pythonの仮想環境(だけ？かほかもそうかは見てません)を自動認識する際に
+その際にPATHが親ディレクトリの方の仮想環境が前につけられてしまいます。</p>
+
+<p>その他の設定は例えばenvなどで違う値を指定していればworktreeの方が優先されて設定されます。</p>
+
+<p>基本的には近い<strong>.mise.toml</strong>の設定が優先されるようになっているはずですが、
+どうもバグっぽい。</p>
+
+<blockquote>
+  <p><a href="https://github.com/jdx/mise/issues/4515">Python virtual env is in wrong order in PATH for nested configs · Issue #4515 · jdx/mise</a></p>
+</blockquote>
+
+<p>これを避けるためにはやはりレポジトリ外に<strong>worktree</strong>を作る必要があるのですが、
+管理が煩雑になるので中に作りたい気持ちがあり、
+現状では上のバグがそのうち治ることを期待して、
+<code>uv</code>を使った仮想環境ではworktreeでは<code>uv run ...</code>のようにして仮想環境を使うようにしています。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2025/10/03 </strong></p>
+
+  <p>まず、miseのレポジトリのIssuesが閉じられてました。</p>
+
+  <p>Discussionsに以下のようなやり取りがあって、作者がIssues嫌いで閉じたようです。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/jdx/mise/discussions/6500">Disabled issues? · jdx/mise · Discussion #6500</a></p>
+  </blockquote>
+
+  <p>IssuesでやるようなことはDiscussionsでやっている模様。</p>
+
+  <p>上記のIssueも消えてしまってちょっとトラックするのに面倒ですが、</p>
+
+  <blockquote>
+    <p><a href="https://github.com/jdx/mise/discussions/6500">Disabled issues? · jdx/mise · Discussion #6500</a></p>
+  </blockquote>
+
+  <p>このDiscussionに上のIssueはコピー?されている感じです。</p>
+
+  <p>また、この問題はすでに</p>
+
+  <blockquote>
+    <p><a href="https://github.com/jdx/mise/pull/6124">fix: python nested venv path order by elvismacak · Pull Request #6124 · jdx/mise</a></p>
+  </blockquote>
+
+  <p>で解決しているようです。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/jdx/mise/releases/tag/v2025.9.1">Release v2025.9.1 · jdx/mise</a></p>
+  </blockquote>
+
+  <p>の9月1日リリースのv2025.9.1でこの修正が入っています。</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="worktree関連のalias">Worktree関連のalias</h2>
+
+<p>以下のようなGitのaliasを設定しておくと便利です。</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="toml"><span class="line"><span></span><span class="k">[alias]</span>
+</span><span class="line"><span class="w">  </span><span class="c1"># worktree</span>
+</span><span class="line"><span class="w">  </span><span class="n">wt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">worktree</span>
+</span><span class="line"><span class="w">  </span><span class="n">wl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">worktree list</span>
+</span><span class="line"><span class="w">  </span><span class="n">wa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $# -eq 0 ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      echo &#39;Usage: git wa &lt;worktree_name&gt;&#39;;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git worktree add .worktree/$1; </span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="n">wr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f() {</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ $# -eq 1 ] &amp;&amp; [ </span><span class="se">\&quot;</span><span class="s2">$1</span><span class="se">\&quot;</span><span class="s2"> != </span><span class="se">\&quot;</span><span class="s2">--force</span><span class="se">\&quot;</span><span class="s2"> ] &amp;&amp; [ </span><span class="se">\&quot;</span><span class="s2">$1</span><span class="se">\&quot;</span><span class="s2"> != </span><span class="se">\&quot;</span><span class="s2">-f</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      git worktree remove </span><span class="se">\&quot;</span><span class="s2">$@</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return 1;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    wt=$(git worktree list|grep &#39;</span><span class="se">\\</span><span class="s2">.worktree/&#39;|sentaku -s $&#39;</span><span class="se">\n</span><span class="s2">&#39;|cut -d &#39; &#39; -f1);</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    if [ -z </span><span class="se">\&quot;</span><span class="s2">$wt</span><span class="se">\&quot;</span><span class="s2"> ];then </span><span class="err">\</span>
+</span><span class="line"><span class="s2">      return;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    fi;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">    git worktree remove </span><span class="se">\&quot;</span><span class="s2">$wt</span><span class="se">\&quot;</span><span class="s2">;</span><span class="err">\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>wt</code>は単に短縮alias。<code>wl</code>もそのまま。</p>
+
+<p><code>wa</code>はworktree名を指定することで、<strong>.worktree</strong>の中にその名前でworktreeを追加します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git wa my-worktree</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>レポジトリ下のいずれかの中にいてもalias内のコマンドはレポジトリルートで実行されるので
+かならず**<repo>/.worktree/my-worktree**が作成されます。</repo></p>
+
+<p>worktreeの中から<code>git wa</code>を実行してももとのレポジトリルートの中の<strong>.worktree</strong>に作成されます。</p>
+
+<p><code>wr</code>はworktreeを削除するaliasです。</p>
+
+<p>worktree名が直接渡された場合はそのworktreeを削除します。</p>
+
+<p>引数が与えられないか<code>-f</code>/<code>--force</code>だけが渡された場合は
+現在存在するworktreeの中から選択して削除します。</p>
+
+<p><code>git worktree list</code>ではもとのレポジトリルートの位置も表示されるので、
+<code>.worktree/</code>の中にあるものだけを選択できるようにしています。</p>
+
+<p>上では<a href="https://github.com/rcmdnk/sentaku">sentaku</a>を使ってますが、
+<a href="https://github.com/junegunn/fzf">fzf</a>や<a href="https://github.com/peco/peco">peco</a>
+など好きなもので。</p>
+
+<h2 id="worktreeの切り替え">Worktreeの切り替え</h2>
+
+<p>aliasだとディレクトリ移動はできないので、
+worktreeの切り替えに関しては以下のようなシェルの関数を作って
+<strong>.bashrc</strong>などで読み込んで起きます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="w">  </span><span class="nv">gitcmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">type</span><span class="w"> </span>git<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="k">)</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="nv">ret</span><span class="o">=</span><span class="nv">$?</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$ret</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$gitcmd</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s1">&#39;is a function&#39;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span>git-wc<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="c1"># worktree change</span>
+</span><span class="line"><span class="w">      </span><span class="nv">selected</span><span class="o">=</span><span class="k">$(</span><span class="nb">command</span><span class="w"> </span>git<span class="w"> </span>worktree<span class="w"> </span>list<span class="p">|</span>sentaku<span class="w"> </span>-s<span class="w"> </span><span class="s1">$&#39;\n&#39;</span><span class="k">)</span>
+</span><span class="line"><span class="w">      </span><span class="nv">ret</span><span class="o">=</span><span class="nv">$?</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$ret</span><span class="w"> </span>-ne<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nv">$ret</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$selected</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span><span class="nb">local</span><span class="w"> </span><span class="nv">dir</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$selected</span><span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f<span class="w"> </span><span class="m">1</span><span class="k">)</span><span class="p">;</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="k">else</span>
+</span><span class="line"><span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Directory </span><span class="nv">$dir</span><span class="s2"> does not exist.&quot;</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">    </span><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span>git<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;wc&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">        </span><span class="nb">command</span><span class="w"> </span>git<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nv">$?</span>
+</span><span class="line"><span class="w">      </span><span class="k">fi</span>
+</span><span class="line"><span class="w">      </span>git-wc
+</span><span class="line"><span class="w">    </span><span class="o">}</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>git</code>コマンドがある場合、まず<code>git-wc</code>という関数を定義します。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Gitで現在のディレクトリのファイルの状況だけをignoreされてるものなども含めて表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2024/01/08/computer-git/"/>
+    <updated>2024-01-08T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/01/08/computer-git</id>
+    <content type="html"><![CDATA[<p><code>git ls-files</code>はディレクトリを指定してもそのディレクトリ以下のすべての管理されているファイルを表示します。</p>
+
+<p>シェルで使う<code>ls</code>の様にカレントディレクトリだけを表示したい時はちょっと工夫がいります。</p>
+
+<p>また、ignoreされているファイルやファイルの状態も見たい、ということで
+それを実現するaliasについて。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#現在のディレクトリで管理されているファイルのみを表示" id="markdown-toc-現在のディレクトリで管理されているファイルのみを表示">現在のディレクトリで管理されているファイルのみを表示</a></li>
+  <li><a href="#管理されてるディレクトリのみ表示" id="markdown-toc-管理されてるディレクトリのみ表示">管理されてるディレクトリのみ表示</a></li>
+  <li><a href="#変更されたファイルignoreされたファイルの表示" id="markdown-toc-変更されたファイルignoreされたファイルの表示">変更されたファイル、ignoreされたファイルの表示</a></li>
+  <li><a href="#空のディレクトリの検出" id="markdown-toc-空のディレクトリの検出">空のディレクトリの検出</a></li>
+  <li><a href="#aliasにまとめる" id="markdown-toc-aliasにまとめる">aliasにまとめる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="現在のディレクトリで管理されているファイルのみを表示">現在のディレクトリで管理されているファイルのみを表示</h2>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/10452962/how-to-git-ls-files-for-just-one-directory-level">how to <code>git ls-files</code> for just one directory level. - Stack Overflow</a></p>
+</blockquote>
+
+<p>上にある答えを使って</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files ':(glob)*'</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすれば現在のディレクトリで管理されているファイルのみを表示できます。</p>
+
+<p>一番簡易にはこれで足りることが多いかと思います。</p>
+
+<p>変更したあとに細かく見ようと思うとこれだとチョット足りません。</p>
+
+<p><code>ls-files</code>には<code>-t</code>といった状態を示すオプションもありますが、
+これは引数の状態に合わせて表示されるだけで、
+通常の<code>ls-files</code>であれば全て<code>H</code>(<strong>tracked file that is not either unmerged or skip-worktree</strong>)になります。</p>
+
+<p>変更が入っているファイルだけを表示したければ
+<code>git ls-files -m -t</code>とかすると<code>C</code>と表示され、変更されたものでstagingされてないものだけが表示されます。</p>
+
+<p>ただ、<code>staged</code>な状態で<code>modified</code>とかの状態はわからないので全て何もしてないファイルと同等に見えてしまいます。</p>
+
+<h2 id="管理されてるディレクトリのみ表示">管理されてるディレクトリのみ表示</h2>
+
+<blockquote>
+  <p><a href="https://stackoverflow.com/questions/20247389/how-to-git-list-only-the-tracked-directories">How to git list only the tracked directories? - Stack Overflow</a></p>
+</blockquote>
+
+<p>上の最初の答えでは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files | xargs -n 1 dirname | uniq</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となってますが、これだと<code>dirname</code>なので下に多階層のディレクトリ構造があると上手くいきません。</p>
+
+<p>直接<code>cut -d '/' -f1</code>とかで良さそう。</p>
+
+<p>そのままやるとカレントディレクトリのファイルも<code>/</code>を含まないですがそのまま表示されてしまうので</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-files ':(glob)*/**' | cut -d '/' -f1 | uniq</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすれば必要なものが取得できます。</p>
+
+<p>加えて、各ディレクトリの中に変更があるかどうかも見たい時、<code>git status</code>の結果を見て</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">On branch main
+</span><span class="line">Changes to be committed:
+</span><span class="line">  (use "git restore --staged &lt;file&gt;..." to unstage)
+</span><span class="line">        modified:    a
+</span><span class="line">
+</span><span class="line">Changes not staged for commit:
+</span><span class="line">  (use "git add &lt;file&gt;..." to update what will be committed)
+</span><span class="line">  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+</span><span class="line">        modified:   b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように変更があると<code>staged</code>と<code>unstaged</code>でそれぞれで、</p>
+
+<ul>
+  <li><code>staged</code>: <code>Changes to be committed:</code></li>
+  <li><code>unstaged</code>: <code>Changes not staged for commit:</code></li>
+</ul>
+
+<p>といった出力があります。</p>
+
+<p>これを各ディレクトリ毎に見て、
+以下で見る<code>git status -s</code>の表記と同じになるように</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*/**&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nv">staged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;Changes to be committed:\&quot; &amp;&amp; echo &quot;</span>M<span class="s2">&quot; || echo &quot;</span><span class="w"> </span><span class="s2">&quot;)</span>
+</span><span class="line"><span class="s2">  unstaged=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;Changes not staged for commit:&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; &quot;</span><span class="k">)</span>
+</span><span class="line"><span class="s2">  echo &quot;</span><span class="nv">$staged$unstaged</span><span class="w"> </span><span class="nv">$line</span>/<span class="s2">&quot;</span>
+</span><span class="line"><span class="s2">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と、それぞれ何らか変更があれば<code>M</code>、なければスペースを表示するようにできます。</p>
+
+<p>最近の通常のシェルスクリプトなら</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span>...
+</span><span class="line"><span class="k">done</span><span class="w"> </span>&lt;<span class="w"> </span>&lt;<span class="o">(</span>git<span class="w"> </span>ls_files<span class="w"> </span>...<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように書くことも可能で、こちらのほうがサブシェルに入らないので色々便利ですが、
+この書き方はgitの中のシェルが理解してくれないのでaliasを書く際には上のようなパイプで繋いだ形でやる必要があります。</p>
+
+<h2 id="変更されたファイルignoreされたファイルの表示">変更されたファイル、ignoreされたファイルの表示</h2>
+
+<p><code>git status -s</code>で現在のレポジトリ内の変更があったファイルに関して、<code>staged</code>, <code>unstaged</code>両方の状態を簡単に見ることができます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">M  a
+</span><span class="line"> M b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかなら<strong>a</strong>は変更された後<code>git add</code>されている状態、<strong>b</strong>は変更されたけど<code>git add</code>されていない状態です。</p>
+
+<p>また、<code>git mv</code>で<code>rename</code>な状態にあると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">R  a -&gt; b</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで表示されます。</p>
+
+<p>さらに<code>--ignored</code>オプションを加えると<strong>.gitignore</strong>で指定されている除外ファイルも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">!! x</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>!!</code>な状態として表示されます。</p>
+
+<p>この<code>git stagus</code>でも<code>ls-files</code>同様に<code>:(glob)*</code>を渡すことで現在のディレクトリのみを見ることが可能です。</p>
+
+<p>ただし、1つだけとれないのが別のディレクトリから<code>rename</code>されてきたもの。</p>
+
+<p><strong>c</strong>というファイルが他のディレクトリから<code>git mv</code>で持ってこられるとそのままだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">R  other/c -&gt; c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>の様に<code>rename</code>したことがわかりますが、元のファイルのディレクトリを除いた範囲で見てみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git status -s
+</span><span class="line">A  c</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、単に新しく加えられたファイルのように見えてしまいます。</p>
+
+<p>この<code>rename</code>もきちんと捉えるためと、カレントディレクトリ中でignore、及びまだ追加されていないディレクトリ
+も含めて取得するために以下のようなスクリプトを考えます。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>git<span class="w"> </span>status<span class="w"> </span>-s<span class="w"> </span>--ignored<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span>
+</span><span class="line"><span class="w">  </span><span class="nv">file</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f2<span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="nv">renamed</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f4<span class="k">)</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;^\.\.&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w">  </span><span class="o">([</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renamed</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;^\.\.&quot;</span><span class="o">)</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="k">continue</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="w">  </span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;/.+&quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$renamed</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$line</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">fi</span>
+</span><span class="line"><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じに、<code>git status</code>では全て表示させ、2列目とrenameがあった場合の4列目
+を見てそれが<code>/</code>を含まない、つまりカレントディレクトリのものであれば見るようなことができます。</p>
+
+<p><code>while IFS=</code>と区切り文字を変更しているのは出力の最初にスペースがある可能性があるので、
+元のIFSのままだとそこが消されてしまうのでそれを防ぐために<code>IFS=</code>として区切り文字をなくすことで
+行ごとにそのまま扱うことができます。</p>
+
+<p>また、各行でも<code>git status -s</code>だと最初にスペースがあるかないか、1列目と2列目で区切りがスペース1個か2個か分かれますが、
+<code>echo $line</code>でquoteしないと最初のスペースは消され、文字列中のスペースが複数あっても全て1つにまとまるので
+後ろで簡単に<code>cut</code>で区切れます。</p>
+
+<p>スクリプトではまずstatusを表示されたファイル(及びディレクトリ)とそれがrenameされたものの場合にはrename先の名前を取得します。</p>
+
+<p>最初のif文はそのどちらもがカレントディレクトリよい上のディレクトリにある場合にskipするもの(<code>../</code>でスタートするものを除く)。</p>
+
+<p>次のif文ではスラッシュが含まれないカレントディレクトリのファイル、及び最後がスラッシュになっているカレントディレクトリにあるディレクトリのみを抜き出して表示しています。</p>
+
+<p>これに引っかからなかった時、rename先のファイルがあり、それがカレントディレクトリのファイルであれば表示しています。</p>
+
+<h2 id="空のディレクトリの検出">空のディレクトリの検出</h2>
+
+<p>空のディレクトリはgitの管理下にはなりませんが、ignoreされてるわけでもunstagedな状態にあるわけでもありません。</p>
+
+<p>なので上の作業では一切出てきませんが、とりあえずカレントディレクトリにあるディレクトリをパット表示するには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>file<span class="w"> </span>*<span class="w"> </span><span class="p">|</span>grep<span class="w"> </span><span class="s2">&quot; directory</span>$<span class="s2">&quot;</span><span class="p">|</span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;:&quot;</span><span class="w"> </span>-f1<span class="p">|</span>grep<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;^.git</span>$<span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じで。</p>
+
+<p><strong>.git</strong>ディレクトリだけは手動で外します。</p>
+
+<h2 id="aliasにまとめる">aliasにまとめる</h2>
+
+<p>ファイルを表示する
+<code>git ls-files ':(glob)*'</code>には変更があって<code>git status</code>に表示されるものも含まれるので、
+まず<code>git status</code>から一覧を作り、その中にないもので<code>ls-files</code>で見つかったファイルを追加します。</p>
+
+<p><code>git status</code>ではディレクトリはignoreされているもの、まだ追加されていないもののみが表示されるため、
+<code>git ls-files</code>では表示されません。
+したがって上で作ったstatus込のディレクトリはそのまま追加します。</p>
+
+<p>これを<strong>.gitconfig</strong>の<code>[alias]</code>欄に追加出来る様に書き直すと</p>
+
+<figure class="code"><figcaption><span>.gitconfig </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>alias<span class="o">][</span>
+</span><span class="line"><span class="w">  </span>ls-here<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;!f () {\</span>
+</span><span class="line"><span class="s2">    cd ./</span><span class="si">${</span><span class="nv">GIT_PREFIX</span><span class="si">}</span><span class="s2">;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span>-s<span class="w"> </span>--ignored<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nv">file</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f2<span class="k">)</span><span class="p">;</span><span class="nv">renamed</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>-f4<span class="k">)</span><span class="p">;</span><span class="k">if</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="se">\\</span>.<span class="se">\\</span>.<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w">  </span><span class="o">([</span><span class="w"> </span>-z<span class="w"> </span><span class="se">\&quot;</span><span class="nv">$renamed</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$renamed</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="se">\\</span>.<span class="se">\\</span>.<span class="se">\&quot;</span><span class="k">)</span><span class="s2">;then continue;fi;if ! echo </span><span class="nv">$file</span><span class="s2"> | grep -q -E \&quot;/.+\&quot;;then echo \&quot;</span><span class="nv">$line</span><span class="s2">\&quot;;elif [ -n \&quot;</span><span class="nv">$renamed</span><span class="s2">\&quot; ]&amp;&amp; ! echo </span><span class="nv">$renamed</span><span class="s2"> | grep -q \&quot;/\&quot;;then echo \&quot;</span><span class="nv">$line</span><span class="s2">\&quot;;fi;done)\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>$<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $4}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>$<span class="se">\&quot;</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w">   </span><span class="nv">$line</span><span class="se">\&quot;</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">&#39;:(glob)*/**&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="nv">staged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>Changes<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>committed:<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>M<span class="se">\&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w"> </span><span class="se">\&quot;</span><span class="k">)</span><span class="p">;</span><span class="nv">unstaged</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span><span class="nv">$line</span><span class="p">|</span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>Changes<span class="w"> </span>not<span class="w"> </span>staged<span class="w"> </span><span class="k">for</span><span class="w"> </span>commit:<span class="se">\&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>M<span class="se">\&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="w"> </span><span class="se">\&quot;</span><span class="k">)</span><span class="p">;</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$staged$unstaged</span><span class="w"> </span><span class="nv">$line</span>/<span class="se">\&quot;</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    files=\&quot;</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="p">;</span><span class="w"> </span>ls<span class="w"> </span>-a<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>line<span class="p">;</span><span class="k">do</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>.<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>..<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$line</span><span class="se">\&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="se">\&quot;</span>.git<span class="se">\&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="k">continue</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span><span class="nv">$files</span><span class="se">\&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-c<span class="w"> </span><span class="m">4</span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="se">\&quot;</span>^<span class="nv">$line</span>/$<span class="se">\&quot;</span><span class="p">;</span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\&quot;</span>--<span class="w"> </span><span class="nv">$line</span>/<span class="se">\&quot;</span><span class="p">;</span><span class="k">fi</span><span class="p">;</span><span class="k">done)</span><span class="s2">\&quot;;\</span>
+</span><span class="line"><span class="s2">    echo \&quot;</span><span class="nv">$files</span><span class="s2">\&quot; | sort -k1.4;\</span>
+</span><span class="line"><span class="s2">  };f&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じに。
+<code>while</code>文はパイプを使う形にしているので中で変数を変更しても後で使えないため、<code>echo</code>とかの出力を外側で変数に入れる必要がありますが、
+これをするためにワンライナーにして<code>$()</code>の中に突っ込んで、<code>files</code>という変数の中に入れています。</p>
+
+<p>最初に<code>git status</code>の結果。</p>
+
+<p>次に<code>git ls-files</code>でカレントディレクトリのファイルを追加。
+ここでは<code>files</code>をまず表示して、その中に無いものだけを選ぶように<code>files</code>の出力から<code>awk '{print $2}</code>、及び<code>awk '{print $4}'</code>で
+ファイル部分、rename先を取得してそれらとの比較などを行って重複を除いています。</p>
+
+<p>次に<code>git ls-files</code>を使ってカレントディレクトリないの管理されているディレクトリの追加。</p>
+
+<p>最後に空のディレクトリの追加。ここでは<code>git ls-files</code>の結果で最初のstatusが全部空のものもあるので直接<code>awk</code>ではなく<code>cut -c 4- | print '{print $1}'</code>で文字位置を見て抜き出すようなことをしています。</p>
+
+<p>一番最後はファイル名の部分でソートして出力です。(2文字のstatus, 1文字のスペースがあるので、1番目のfield位置、つまり先頭から4文字目以降でソートする。)</p>
+
+<p>もうちょっときれいな書き方も出来るかもしれませんがとりあえずこれで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-here</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすることで現在のディレクトリのファイルの状態をぱっと見ることができます。</p>
+
+<p>以下のようなテストレポジトリで見てみます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ ls
+</span><span class="line">a  b  c  d  h  l  m  o  t  u  v  w  y  z
+</span><span class="line">$ echo $(git ls)
+</span><span class="line">.gitignore a c d f h l o v/v z/g z/i z/j z/k
+</span><span class="line">$ git status
+</span><span class="line">On branch main
+</span><span class="line">Changes to be committed:
+</span><span class="line">  (use "git restore --staged &lt;file&gt;..." to unstage)
+</span><span class="line">        modified:   c
+</span><span class="line">        deleted:    e
+</span><span class="line">        renamed:    z/h -&gt; h
+</span><span class="line">        new file:   l
+</span><span class="line">        renamed:    n -&gt; o
+</span><span class="line">        renamed:    g -&gt; z/g
+</span><span class="line">
+</span><span class="line">Changes not staged for commit:
+</span><span class="line">  (use "git add/rm &lt;file&gt;..." to update what will be committed)
+</span><span class="line">  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+</span><span class="line">        modified:   d
+</span><span class="line">        deleted:    f
+</span><span class="line">        modified:   z/i
+</span><span class="line">
+</span><span class="line">Untracked files:
+</span><span class="line">  (use "git add &lt;file&gt;..." to include in what will be committed)
+</span><span class="line">        m
+</span><span class="line">        u/
+</span><span class="line">        y/</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>git ls-here</code>すると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ git ls-here
+</span><span class="line">   a
+</span><span class="line">!! b
+</span><span class="line">M  c
+</span><span class="line"> M d
+</span><span class="line">D  e
+</span><span class="line"> D f
+</span><span class="line">   .gitignore
+</span><span class="line">R  g -&gt; z/g
+</span><span class="line">A  l
+</span><span class="line">?? m
+</span><span class="line">R  n -&gt; o
+</span><span class="line">-- t/
+</span><span class="line">?? u/
+</span><span class="line">   v/
+</span><span class="line">!! w/
+</span><span class="line">?? y/
+</span><span class="line">MM z/
+</span><span class="line">R  z/h -&gt; h</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actions用のアクションを自作する]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/23/computer-git-github/"/>
+    <updated>2020-04-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/23/computer-git-github</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsで自作アクションを作る際に気づいた点など。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-actions" id="markdown-toc-github-actions">GitHub Actions</a></li>
+  <li><a href="#アクションの使い方" id="markdown-toc-アクションの使い方">アクションの使い方</a></li>
+  <li><a href="#アクションの作り方" id="markdown-toc-アクションの作り方">アクションの作り方</a></li>
+  <li><a href="#dockerファイルを使った方法" id="markdown-toc-dockerファイルを使った方法">Dockerファイルを使った方法</a></li>
+  <li><a href="#javascriptを使った方法" id="markdown-toc-javascriptを使った方法">JavaScriptを使った方法</a></li>
+  <li><a href="#composite-run-シェルスクリプトなどを直接走らせるを使う方法" id="markdown-toc-composite-run-シェルスクリプトなどを直接走らせるを使う方法">Composite run (シェルスクリプトなどを直接走らせる)を使う方法</a></li>
+  <li><a href="#inputsパラメーター" id="markdown-toc-inputsパラメーター">Inputsパラメーター</a></li>
+  <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a></li>
+  <li><a href="#アクションを公開する方法" id="markdown-toc-アクションを公開する方法">アクションを公開する方法</a></li>
+  <li><a href="#アクションのバージョンの付け方" id="markdown-toc-アクションのバージョンの付け方">アクションのバージョンの付け方</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-actions">GitHub Actions</h2>
+
+<p>GitHub ActionsはGitHubで使えるCI/CDツールです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190819_githubactions1_120_90.jpg" width="120" height="90" alt="20190819_githubactions1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200416_githubactions_120_90.png" width="120" height="90" alt="20200416_githubactions_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/">ブログのビルド環境をGitHub Actionsに変更</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/20/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200420_githubactionsbadge_120_90.jpg" width="120" height="90" alt="20200420_githubactionsbadge_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/20/computer-git-github/">GitHub Actionsに関する追記</a></div></li></ul>
+
+<h2 id="アクションの使い方">アクションの使い方</h2>
+
+<p>自分のWorkflowの中で人が作ったものや自分が作ったアクションを使いたい場合には
+<code>jobs.&lt;jobid&gt;.steps</code>の中で</p>
+
+<pre><code>jobs:
+  myjob:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    ...
+</code></pre>
+
+<p>の様に<code>uses</code>に該当のレポジトリ名を記入することで使えます。
+また、最後に<code>@</code>の後ろにリリース番号やコミット番号を指定することで
+バージョン指定することが可能です。</p>
+
+<p>また、<code>with</code>は、そのアクションが用意しているパラメーターを設定する項目で、
+ここでは<code>submodules</code>というパラメーターに<code>recursive</code>という値を設定しています。</p>
+
+<h2 id="アクションの作り方">アクションの作り方</h2>
+
+<p>アクションを作る際にはDockerilsを使ったものかJavaScriptを使ったものを作ることになります。</p>
+
+<p>DockerはLinuxのみ、JavaScriptはLinux、macOS、Windowsでも使えます。</p>
+
+<p>このどちらかを選んで作ることになります。</p>
+
+<h2 id="dockerファイルを使った方法">Dockerファイルを使った方法</h2>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/creating-a-docker-container-action">Docker コンテナのアクションを作成する - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>基本的にはDockerファイルを用意して、その中で実行するべきスクリプトを用意する、と言った感じ。</p>
+
+<p>GitHubのレポジトリに</p>
+
+<ul>
+  <li>action.yml</li>
+  <li>Dockerfile</li>
+  <li>entrypoint.sh (Dockerfileの中で呼ぶもの)</li>
+</ul>
+
+<p>を用意します。</p>
+
+<p>action.ymlには最小限以下の様な物を書きます。</p>
+
+<figure class="code"><figcaption><span>action.yml  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action&#39;</span>
+</span><span class="line"><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">unit&#39;</span>
+</span><span class="line"><span class="nt">author</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rcmdnk&#39;</span>
+</span><span class="line"><span class="nt">branding</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">icon</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;meh&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gray-dark&#39;</span>
+</span><span class="line"><span class="nt">runs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">using</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;docker&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Dockerfile&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>name</code>、<code>description</code>は適当に好きなものを。</p>
+
+<p><code>author</code>には自分の名前を。</p>
+
+<p><code>branding</code>ですが、これはアクアションを公開する時に表示されるアイコンを指定します。</p>
+
+<blockquote>
+  <p><a href="https://feathericons.com/">Feather – Simply beautiful open source icons</a></p>
+</blockquote>
+
+<p>にあるIconマークと、背景カラーをバッジの背景カラー。 カラーはwhite、yellow、blue、green、orange、red、purple、gray-darkのいずれか。</p>
+
+<p>Dockerに関しては一番簡単には<code>runs</code>でDockerfileを指定するだけ。</p>
+
+<p>簡単なコマンドを実行するだけならDockerfileの中で実行ファイルを呼ぶ様に</p>
+
+<figure class="code"><figcaption><span>entrypoint.sh  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>FROM<span class="w"> </span>ubuntu:latest
+</span><span class="line">
+</span><span class="line">COPY<span class="w"> </span>entrypoint.sh<span class="w"> </span>/entrypoint.sh
+</span><span class="line">
+</span><span class="line">ENTRYPOINT<span class="w"> </span><span class="o">[</span><span class="s2">&quot;/entrypoint.sh&quot;</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として<strong>entrypoint.sh</strong>を呼ぶようにします。</p>
+
+<h2 id="javascriptを使った方法">JavaScriptを使った方法</h2>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/creating-a-javascript-action">JavaScript アクションを作成する - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>こちらで用意する必要があるのは</p>
+
+<ul>
+  <li>action.yml</li>
+  <li>index.js (action.ymlで呼ぶもの)</li>
+</ul>
+
+<p>を用意します。</p>
+
+<figure class="code"><figcaption><span>action.yml  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action&#39;</span>
+</span><span class="line"><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">unit&#39;</span>
+</span><span class="line"><span class="nt">author</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rcmdnk&#39;</span>
+</span><span class="line"><span class="nt">branding</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">icon</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;meh&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gray-dark&#39;</span>
+</span><span class="line"><span class="nt">runs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">using</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;node12&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">main</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;index.js&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>runs</code>の所で<code>using</code>に<code>node12</code>を指定し使うJavaScriptファイルを<code>main</code>で指定します。</p>
+
+<p>あとはJavaScriptでの処理を<code>index.js</code>に書いておけばOK。</p>
+
+<h2 id="composite-run-シェルスクリプトなどを直接走らせるを使う方法">Composite run (シェルスクリプトなどを直接走らせる)を使う方法</h2>
+
+<div class="postscript">
+  <p><strong>追記: 2021/08/23 </strong></p>
+
+  <p>2020年中頃に<code>Composite run</code>という方法が加わりました。</p>
+
+  <p>Dockerを使う際はそのActionがDocker内で行われるため、閉じた作業をするには良いですが、
+他のActionと組み合わせる際にはあまり使い勝手がよくありません。</p>
+
+  <p>一方で、JavaScriptを使う方法は、色々セットアップしたりしたいだけだったり、
+他の言語の処理をしたい場合、結局JavaScriptの中からコマンドを呼ぶ様な形になり
+ただ面倒なだけです。(JavaScriptでやるのは設計上の都合…?)</p>
+
+  <p>シェルスクリプトとか、Pythonのスクリプトを直接流すことが面倒でしたが、
+このComposite runによってそれらが簡単にできるようになりました。</p>
+
+  <p>用意するのは基本的には</p>
+
+  <ul>
+    <li>action.yml</li>
+  </ul>
+
+  <p>のみです。</p>
+
+  <p>シェルスクリプトやPythonスクリプトなどを走らせたい場合には
+レポジトリ内に置いておいてシェル的に呼び出すような感じで使います。</p>
+
+  <figure class="code"><figcaption><span>action.yml  </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action&#39;</span>
+</span><span class="line"><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;my</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">unit&#39;</span>
+</span><span class="line"><span class="nt">author</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rcmdnk&#39;</span>
+</span><span class="line"><span class="nt">branding</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">icon</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;meh&#39;</span>
+</span><span class="line"><span class="w">  </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gray-dark&#39;</span>
+</span><span class="line"><span class="nt">runs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">using</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;composite</span>
+</span><span class="line"><span class="w">  </span><span class="s">steps:</span>
+</span><span class="line"><span class="w">    </span><span class="s">-</span><span class="nv"> </span><span class="s">run:</span><span class="nv"> </span><span class="s">echo</span><span class="nv"> </span><span class="s">Hello</span><span class="nv"> </span><span class="s">world</span>
+</span><span class="line"><span class="w">      </span><span class="s">shell:</span><span class="nv"> </span><span class="s">bash</span>
+</span><span class="line"><span class="w">    </span><span class="s">-</span><span class="nv"> </span><span class="s">run:</span><span class="nv"> </span><span class="s">${{</span><span class="nv"> </span><span class="s">github.action_path</span><span class="nv"> </span><span class="s">}}/myscript.sh</span>
+</span><span class="line"><span class="w">      </span><span class="s">shell:</span><span class="nv"> </span><span class="s">bash</span>
+</span><span class="line"><span class="w">    </span><span class="s">-</span><span class="nv"> </span><span class="s">run:</span><span class="nv"> </span><span class="s">${{</span><span class="nv"> </span><span class="s">github.action_path</span><span class="nv"> </span><span class="s">}}/myscript.py</span>
+</span><span class="line"><span class="w">      </span><span class="s">shell:</span><span class="nv"> </span><span class="s">python</span>
+</span></code></pre></td></tr></table></div></figure>
+
+  <p>な感じで、
+まず<code>using</code>に<code>composite</code>を指定します。</p>
+
+  <p>そして、<code>steps</code>のブロックを作り、<code>run</code>にコマンド、<code>shell</code>に走らせるのに使う
+コマンドを指定します。</p>
+
+  <p>使える<code>shell</code>: <a href="https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell">Workflow syntax for GitHub Actions - GitHub Docs</a></p>
+
+  <p>2, 3番目の<code>run</code>では、自身のレポジトリへのPATHは<code>${{ github.action_path }}</code>で参照できるので、
+レポジトリに置いたスクリプトを参照して呼ぶようにしています。</p>
+
+  <blockquote>
+    <p><a href="https://docs.github.com/en/enterprise-server@3.1/actions/creating-actions/creating-a-composite-run-steps-action">Creating a composite run steps action - GitHub Docs</a></p>
+  </blockquote>
+
+  <blockquote>
+    <p><a href="https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runs-for-composite-run-steps-actions">Metadata syntax for GitHub Actions - GitHub Docs</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<h2 id="inputsパラメーター">Inputsパラメーター</h2>
+
+<p><code>inputs</code>は最初の例であった<code>with</code>でユーザーが設定できる様にするための<strong>action.yml</strong>内の設定です。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/metadata-syntax-for-github-actions#">GitHub Actionsのメタデータ構文 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<pre><code>inputs:
+  numOctocats:
+    description: 'Number of Octocats'
+    required: false
+    default: '1'
+  octocatEyeColor:
+    description: 'Eye color of the Octocats'
+    required: true
+</code></pre>
+
+<p>のような感じで指定すると、<code>numOctocats</code>と<code>octocatEyeColor</code>という値を
+<code>with</code>で設定できる様になります。</p>
+
+<p>これらの値は環境変数として使える様になり、
+先頭に<code>INPUT_</code>を付けてすべて大文字、空白は<code>_</code>に変換した状態になります。
+<code>numOctocats</code>ならシェルスクリプトとかで<code>$INPUT_NUMOCTOCATS</code>と呼べば値が読めます。</p>
+
+<p>ここで<code>required</code>と<code>default</code>という設定があるのですが、
+これら設定がいまいちちゃんと動いてないように見えます。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/02/26 </strong></p>
+
+  <p>2024年現在も実際まだ機能してないようです。</p>
+
+  <blockquote>
+    <p><a href="https://github.com/actions/runner/issues/1070">Validate required inputs are set before invoking an action · Issue #1070 · actions/runner</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>Documentの記述と、自分的な感覚では</p>
+
+<ul>
+  <li><code>required</code>が<code>true</code>: ユーザーが必ず指定しなくてはいけない</li>
+  <li><code>default</code>が設定されている: <code>required</code>は<code>false</code>でユーザーが指定しないときにはその値が使われる</li>
+</ul>
+
+<p>と言ったものだと思ってました。</p>
+
+<p>ただ、実際動かしてみると、</p>
+
+<ul>
+  <li><code>required</code>が<code>true</code>で<code>default</code>の値が設定してあるとユーザーが指定しない場合に<code>default</code>の値が使われる
+    <ul>
+      <li><code>default</code>が無くてもから変数として生成される(エラーにはならない)</li>
+    </ul>
+  </li>
+  <li><code>required</code>が<code>false</code>の場合、ユーザーが指定しないと<code>default</code>の値があってもそれは無視される
+    <ul>
+      <li>厳密にはそのinputパラメーターが環境変数として生成されない</li>
+    </ul>
+  </li>
+</ul>
+
+<p>という感じでした。なので<code>default</code>を指定したい場合には必ず<code>required: true</code>にする必要があります。</p>
+
+<p>もしかしたら何か勘違いしてるかもしれないのですが、結構色々確かめた上で今の所こんな感じでした。</p>
+
+<p>なので今の所READMEとかに書く際には<code>required</code>の値は関係なしに、必ずユーザー側で指定してもらいたいものかどうか
+を書く必要があります。</p>
+
+<p>逆にREADMEがちゃんと無いと、<code>action.yml</code>を見ただけだとその変数を自分で設定する必要があるかどうかがちょっと分からない状態です。</p>
+
+<h2 id="secrets">Secrets</h2>
+
+<p>各レポジトリで<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Secrets</strong>というセクションに行くと
+秘密のワードを暗号化して保存しておくことが出来る様になっています。</p>
+
+<p>これを</p>
+
+<pre><code>- name: ssh test
+  env:
+    MY_SSH_KEY: ${{secrets.SSH_KEY}}
+  run: ssh -i $MY_SSH_KEY example.sh echo test
+</code></pre>
+
+<p>のような形で<strong>action.yml</strong>の中で使うことが出来ます。</p>
+
+<p><strong>action.yml</strong>の中では<code>${{ }}</code>で囲った形で<code>secrets.</code>というprefixを使って参照することが出来ます。</p>
+
+<p>上の例ではそれをbashのコマンドで呼びたいので一度環境変数に入れて、環境変数の形で
+<code>run</code>の中で使うようにしています。</p>
+
+<p>アクションの<code>with</code>に直接渡す事もできます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets">暗号化されたシークレットの作成と保存 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<h2 id="アクションを公開する方法">アクションを公開する方法</h2>
+
+<p>パブリックレポジトリで<strong>action.yml</strong>(もしくは<strong>action.yaml</strong>)がルートディレクトリにある場合、
+そのレポジトリでリリースを作ろうとすると自動的に
+<a href="https://github.com/marketplace?type=actions">GitHub Marketplace</a>
+に登録するかどうかの項目が出る様になっています。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/publishing-actions-in-github-marketplace">GitHub Marketplaceでのアクションの公開 - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p><strong>action.yml</strong>の中で指定する<code>name</code>に関して、他のアクションとかぶってはいけなかったり
+ユーザー名やOrganization名、またはGitHubの機能名など予約されているものと一致してしまうと
+公開できないので、あまり簡単なユニークでなさそうな名前だと出来ないのでちょっと注意が必要です。</p>
+
+<p>あと2要素認証を使っていないと出来ないようになっているので、
+してない人はしましょう。</p>
+
+<p>リリースを作るだけでMarketplaceに公開されるので
+公開する敷居はかなり低い感じがしました。</p>
+
+<p>一つ公開してみた際、上にあるようなMarketplaceへの公開の機能が
+リリースを作ろうとしても出てこなくて困ったことがありました。</p>
+
+<p>これは<strong>action.yml</strong>ではなく、<strong>actions.yml</strong>という名前でアクションファイルを置いていたからでした。</p>
+
+<p>ただ、これでも他のレポジトリから</p>
+
+<pre><code>- uses: rcmdnk/octopress-action
+</code></pre>
+
+<p>みたいな感じでレポジトリを指定すると使えてました。
+Marketplaceに公開するのでなければアクションを定義するYAMLファイルの名前は何でも良い?様です。</p>
+
+<h2 id="アクションのバージョンの付け方">アクションのバージョンの付け方</h2>
+
+<p>バージョンの付け方は
+<a href="https://semver.org/">Semantic Versioning</a>
+が推奨されています。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/building-actions/about-actions#versioning-your-action">アクションについて - GitHub ヘルプ</a></p>
+</blockquote>
+
+<p>vX.Y.Zで</p>
+
+<ul>
+  <li>X: メジャーバージョン。後方互換性が無いアップデートを含む場合に上げる。上げた際はY、Zは0に戻す。Xが0の時は開発段階。1以降で正式リリース。</li>
+  <li>Y: マイナーバージョン。後方互換性のある機能追加等を行った場合に上げる。上げた場合はZは0に戻す。</li>
+  <li>Z: パッチバージョン。後方互換製のあるバグフィックスを行った場合に上げる。</li>
+</ul>
+
+<p>といった定義。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/0198700032?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=0198700032&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xTs%2BTZNXL._SS90_CR0,0,120,90_.jpg" alt="Semantics: Primes and Universals (St. in Classification Data Analysis)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/07/computer-git-github/">Gitとかでタグを付けるときのバージョニングについて(Semantic Versioning)</a></div></li></ul>
+
+<p>さらに、破壊的変更がない場合(メジャーバージョンが変わらない場合)メジャーバージョンを指定するだけで自動で追いかけられるよう、<code>v1</code>などのタグを作り、
+マイナー/パッチバージョンを上げた際に<code>v1</code>などのタグをそのGit refに移動させることが推奨されています。</p>
+
+<p>ただ、アクション側でその様に用意してなければ使えないわけなので、
+各アクションのREADMEなどを読んで使えるものを使う必要があります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHubのパブリックレポジトリに秘密鍵をアップロードすると一時的に利用不可にしてくれる]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/21/computer-git-github/"/>
+    <updated>2020-04-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/21/computer-git-github</id>
+    <content type="html"><![CDATA[<p>ちょっとテスト用のGitHubのレポジトリに<code>push</code>出来る鍵を一時的に作って
+秘密鍵を他のパブリックレポジトリに置いて見たところ
+その鍵が一時的に利用不可になりました。</p>
+
+<p>そういったチェックをしてくれてる様です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#githubで使ってる秘密鍵をcommitしてpushしてみる" id="markdown-toc-githubで使ってる秘密鍵をcommitしてpushしてみる">GitHubで使ってる秘密鍵をcommitしてpushしてみる</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="githubで使ってる秘密鍵をcommitしてpushしてみる">GitHubで使ってる秘密鍵をcommitしてpushしてみる</h2>
+
+<p>と、以下の様なメールが<code>support@github.com</code>から来ます。</p>
+
+<blockquote>
+  <p>[GitHub] SSH private deploy key found in commit</p>
+
+  <p>We noticed that a valid SSH private key of yours was committed to a public GitHub repository. This key is configured as a deploy key for the rcmdnk/en repository. Publicly disclosing a valid SSH private key would allow other people to interact with this repository, potentially altering data.</p>
+
+  <p>As a precautionary measure, we have unverified the SSH key. You should should generate a new SSH key and add it to the repository. We recommend you review you security log to ensure that no malicious activity has occurred: https://help.github.com/articles/reviewing-your-security-log/</p>
+
+  <p>The commit in question is at https://github.com/rcmdnk/octopress-action/blob/xxx</p>
+
+  <p>Please feel free to contact us at https://github.com/contact if you have any questions or concerns.</p>
+
+  <p>Thanks,
+GitHub.com</p>
+</blockquote>
+
+<p>そしてこの鍵を使った操作ができなくなります。</p>
+
+<p>操作するレポジトリに行って<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Deploy keys</strong>に行くと
+件の鍵が<strong>unverified automatically</strong>になっています。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200421_githubkey.jpg" alt="20200421_githubkey.jpg" class="pic" /></p>
+
+<p>ここで<strong>Approve</strong>ボタンを押すとまた使える様にすることもできます。</p>
+
+<p>もちろん通常はレポジトリを操作できるような鍵を公開してApproveする必要があることなんて無いとは思いますが、ちょっと色々試しにやっていたところ見つけたもので、
+こういったチェックもしてくれてるんだな、と思った次第です。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub Actionsに関する追記]]></title>
+    <link href="https://rcmdnk.com/blog/2020/04/20/computer-git-github/"/>
+    <updated>2020-04-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/04/20/computer-git-github</id>
+    <content type="html"><![CDATA[<p>GitHub Actionsをもう少し色々触ってみたので
+そのメモ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#github-actions" id="markdown-toc-github-actions">GitHub Actions</a></li>
+  <li><a href="#github-actionsを学ぶ" id="markdown-toc-github-actionsを学ぶ">GitHub Actionsを学ぶ</a></li>
+  <li><a href="#とりあえずやるための設定" id="markdown-toc-とりあえずやるための設定">とりあえずやるための設定</a></li>
+  <li><a href="#気づいたこと気になったことなど" id="markdown-toc-気づいたこと気になったことなど">気づいたこと、気になったことなど</a>    <ul>
+      <li><a href="#メールでの通知を細かくは設定できない" id="markdown-toc-メールでの通知を細かくは設定できない">メールでの通知を細かくは設定できない？</a></li>
+      <li><a href="#pythonなどを使う場合にはsetupを呼ぶべし" id="markdown-toc-pythonなどを使う場合にはsetupを呼ぶべし">Pythonなどを使う場合にはsetupを呼ぶべし</a></li>
+      <li><a href="#バッジ" id="markdown-toc-バッジ">バッジ</a></li>
+      <li><a href="#トリガーの自由度は高い" id="markdown-toc-トリガーの自由度は高い">トリガーの自由度は高い</a></li>
+      <li><a href="#skip-ci" id="markdown-toc-skip-ci">skip ci</a></li>
+      <li><a href="#自作アクション" id="markdown-toc-自作アクション">自作アクション</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="github-actions">GitHub Actions</h2>
+
+<p>去年から使えるようになっていたGitHub Actionsですが、
+それまでTravis CIやWerckerというサービスを使っていて、
+それらをわざわざ移す必要もないかな、と思ってたのですが
+便利そうな部分も多いのでいくつか移行してみました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200416_githubactions_120_90.png" width="120" height="90" alt="20200416_githubactions_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/">ブログのビルド環境をGitHub Actionsに変更</a></div></li></ul>
+
+<p>その中で気づいたことなどについてメモしておきます。</p>
+
+<h2 id="github-actionsを学ぶ">GitHub Actionsを学ぶ</h2>
+
+<p>公式ドキュメントが充実しているのでまずはそれ参照。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions">GitHub Actionsのドキュメント - GitHub ヘルプ</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://help.github.com/en/actions">GitHub Actions Documentation - GitHub Help</a></p>
+</blockquote>
+
+<p>日本語版だと一部英語だったりして逆に読みにくいところもあるので
+英語読める人は英語版の方が読みやすいかと。</p>
+
+<div class="github-widget" data-repo="actions/starter-workflows"></div>
+
+<p>には<a href="https://github.com/actions/starter-workflows/tree/master/ci">ci</a>
+のディレクトリに色々な用途別の例があります。</p>
+
+<div class="github-widget" data-repo="sdras/awesome-actions"></div>
+
+<p>には公式以外も含めて色々と有用なものがまとめられています。</p>
+
+<p>以下は最初に使える様になった時に試したときのもの。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190819_githubactions1_120_90.jpg" width="120" height="90" alt="20190819_githubactions1_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/08/19/computer-git-github/">GitHubで新しいActionsが使えるようになっていたのでCI/CDをやってみた</a></div></li></ul>
+
+<h2 id="とりあえずやるための設定">とりあえずやるための設定</h2>
+
+<p>GitHubのレポジトリに<strong>.github/workflows</strong>というディレクトリを作って、その中に
+YAML形式の設定ファイルを置くことでGitHub Actionsが動きます。</p>
+
+<p>まだ置いてないときは、レポジトリの上にある<strong>Actions</strong>というタブを開くと
+<strong>Get started with GitHub Actions</strong>というページに行って
+例の中から選んでスタートファイルとして使うことも出来ます。</p>
+
+<p>とりあえず、まずやりたいこと、といえばレポジトリに<code>push</code>した際に
+そのレポジトリの中身を色々チェックしたりすることだと思います。</p>
+
+<p>それをするための簡単な設定は</p>
+
+<figure class="code"><figcaption><span>.github/workflows/test.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Test</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">on</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">master</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">myjob</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Check my repository</span>
+</span><span class="line"><span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">        </span><span class="no">echo checking...</span>
+</span><span class="line"><span class="w">        </span><span class="no">ls ./</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>ファイル名は何でもよくて、YAML形式のファイルを<code>yml</code>もしくは<code>yaml</code>という拡張子で
+<strong>.github/workflows/</strong>の中に保存すると
+見てくれる様になります。</p>
+
+<p><code>name</code>は適当に。</p>
+
+<p><strong>master</strong>ブランチに<code>push</code>されたとき、をトリガーにするなら上の様な<code>on</code>の設定に。</p>
+
+<p><code>jobs</code>の設定では<code>myjob</code>というジョブを定義してますが、この名前は何でもOK。</p>
+
+<p>このジョブの中でまず環境を設定します。ここではUbuntuの最新版。</p>
+
+<p>使えるものは以下を参照。</p>
+
+<div class="github-widget" data-repo="actions/virtual-environments"></div>
+
+<p>Ubuntu, macOS, Windowsがあります。</p>
+
+<p>Ubuntuの最新版の環境とかは<a href="https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-Readme.md">Ubuntu1804-Readme.md</a>
+を参照。
+Homebrewとかも入ってます。</p>
+
+<p>その後で<code>steps</code>として処理を書いていきます。
+予め用意されたアクションを使う場合には<code>uses</code>、コマンドを書く場合には<code>run</code>で指定します。</p>
+
+<p>これらのアクションはすべて<code>GITHUB_WORKSPACE</code>で定義されるディレクトリ
+(Ubuntuだと
+<strong>/home/runner/work/&lt;repository name&gt;/&lt;repository name&gt;</strong>
+)
+で行われます。</p>
+
+<p>事前のアクションでディレクトリを変更していても次のアクションはすべてここからスタートします。</p>
+
+<p><code>run</code>の方にはわかりやすいように<code>name</code>を指定してますが無くても良いですし<code>uses</code>の方で<code>name</code>を指定してもOK。</p>
+
+<p><code>run</code>で複数処理をしたい場合には分けても良いですし、上の様にYAML的な複数行の書き方で書いてもOK。
+(<code>echo checking... &amp;&amp; ls ./</code>みたいなことも出来ます。)</p>
+
+<p>このコマンドを打つ前に<code>uses: actions/checkout@v2</code>を呼んでますが、
+GitHub Actionsでは用意される環境にはレポジトリがチェックアウトされてない状態なので
+まずそれを取ってくる作業です。
+これで<code>GITHUB_WORKSPACE</code>がレポジトリのトップになります。</p>
+
+<p>自分でTOKENなどを使って取ることも出来ますが、<code>actions/checkout@v2</code>
+を使うのがデファクトスタンダードです。</p>
+
+<h2 id="気づいたこと気になったことなど">気づいたこと、気になったことなど</h2>
+
+<p>細かい設定などは公式を参照すれば十分とは思うので省きますが
+特に気づいたことや気になったことなど。</p>
+
+<h3 id="メールでの通知を細かくは設定できない">メールでの通知を細かくは設定できない？</h3>
+
+<blockquote>
+  <p><del>[通知の配信方法を選択する - GitHub ヘルプ]</del></p>
+</blockquote>
+
+<div class="postscript">
+  <p><strong>追記: 2022/06/23 </strong></p>
+
+  <blockquote>
+    <p><a href="https://docs.github.com/ja/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#github-actions-notification-options">Configuring notifications - GitHub Docs</a></p>
+  </blockquote>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+<p>上記では他のGitHubの通知と共にGitHub Actionsに関しても記述がありますが、
+設定はアカウント全体での設定で、</p>
+
+<ul>
+  <li>Email</li>
+  <li>Web</li>
+  <li>Send notifications for failed workflows only</li>
+</ul>
+
+<p>という3つにチェックを入れるかどうか、だけです。</p>
+
+<p>今はこれのEmailとSend notifications for failed workflows only
+にチェックを入れて失敗したときだけメールを送る、という設定にしています。</p>
+
+<p>Travis CIとかだと各CIの設定ファイルの中で通知設定が出来て、
+失敗後、成功した場合にも通知(成功が続いた場合は通知しない)、など細かい設定も出来ます。</p>
+
+<p>この辺はまたそのうちアップデートがあるんじゃないかな、と期待してます。</p>
+
+<h3 id="pythonなどを使う場合にはsetupを呼ぶべし">Pythonなどを使う場合にはsetupを呼ぶべし</h3>
+
+<p>Pythonのツールで<code>pip</code>を使ってインストールするものに関して、
+そのまま<code>pip install ...</code>とやったところ、通常PATHの中に実行ファイルがインストールされるべきところ
+されず使えない状態になってました。(どこにインストールされたか、もしくはモジュールがインストールされただけでPATHの中にはしてないのかはちゃんと確認してません。)</p>
+
+<p><code>ubuntu-latest</code>のデフォルトのPATHは</p>
+
+<pre><code>/usr/share/rust/.cargo/bin:/home/runner/.config/composer/vendor/bin:/home/runner/.dotnet/tools:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+</code></pre>
+
+<p>です。</p>
+
+<p>PATHをちゃんと設定すれば、と思って試しましたがよくわからず。</p>
+
+<p>そんな中、Pythonのセットアップアクションがあったのでそれを使ってみました。</p>
+
+<pre><code>- name: Setup python
+  uses: actions/setup-python@v1
+  with:
+    python-version: 2.x
+    architecture: x64
+- name: python tool ...
+  run: |
+    pip install ...
+</code></pre>
+
+<p>こんな感じで
+<a href="https://github.com/actions/setup-python">actions/setup-python</a>
+を呼ぶと、<strong>/usr/bin/python</strong>ではなく、
+<strong>/opt/hostedtoolcache/Python/2.7.17/x64/bin/python (pip)</strong>
+が使われるようになり、pipでインストールされるものも
+<strong>/opt/hostedtoolcache/Python/2.7.17/x64/bin</strong>にインストールされる様になります。</p>
+
+<p>また、このアクションを呼んだ時点で
+このディレクトリがPATHに追加されます。</p>
+
+<p>他にも
+<a href="https://github.com/actions?q=setup&amp;type=source&amp;language=">Node.js, Java, goやRuby</a>
+などのsetupもあるのでそういったものを<code>run</code>で使いたい場合には
+これらを使ってセットアップした方が捗るかもしれません。</p>
+
+<h3 id="バッジ">バッジ</h3>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/09/08/computer-github-travis/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/09/08/computer-github-travis/">Travis CIを使ってみた: GitHubのレポジトリにバッジを貼りたかったから</a></div></li></ul>
+
+<p>Travis CIとかで使えるビルドの結果などの状態の表示をするバッジ。</p>
+
+<p>GitHub Actionsでも使えます。</p>
+
+<blockquote>
+  <p><a href="https://help.github.com/ja/actions/configuring-and-managing-workflows/configuring-a-workflow">ワークフローのステータスバッジをリポジトリに追加する</a></p>
+</blockquote>
+
+<p>各レポジトリのActionsタブの各ワークフローのページからもバッジのスニペットを取得することも出来ます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20200420_githubactionsbadge.jpg" alt="20200420_githubactionsbadge.jpg" class="pic" /></p>
+
+<p>ただ、これらのものは状態表示の絵のURLがあるだけで、その状態を示すページへのリンクとかになってません。</p>
+
+<pre><code>![](https://github.com/actions/hello-world/workflows/Hello%20World/badge.svg)
+</code></pre>
+
+<p>クリックして結果ページに飛ぶようにするためには自分でURLを加える必要があります。</p>
+
+<pre><code>[![](https://github.com/actions/hello-world/workflows/Hello%20World/badge.svg)](https://github.com/actions/hello-world/actions?query=workflow%3A%22Hello+World%22)
+</code></pre>
+
+<h3 id="トリガーの自由度は高い">トリガーの自由度は高い</h3>
+
+<p>GitHub謹製のツールなので、ということがあり、実行に使えるトリガーは豊富です。</p>
+
+<p><code>push</code>だけでなく、IssueなどGitと直接関係ないものも含め、ありとあらゆるレポジトリの
+変化に対してワークフローが実行出来ます。</p>
+
+<p>また、定期的な実行も<code>schedule.cron</code>で通常のcronジョブの様な書き方で
+指定できるのも良いところかと。</p>
+
+<h3 id="skip-ci">skip ci</h3>
+
+<p>レポジトリに対して何かアップデートをして<code>push</code>し直す、ということは良くあることですが、
+何も考えずにやるとその<code>push</code>に対して再びCIが走ってしまい、
+延々と繰り返されることになってしまいます。</p>
+
+<p>これを避けるためにTravis CIとかだとコミットログに<code>[skip ci]</code>などが含まれていると
+CIを実行しない様になっています。</p>
+
+<blockquote>
+  <p><a href="https://github.community/t5/GitHub-Actions/GitHub-Actions-does-not-respect-skip-ci/td-p/42834">GitHub Actions does not respect [skip ci] - GitHub Community Forum</a></p>
+</blockquote>
+
+<p>今の所GitHub Actionsではそのような機能はないのですが、
+同じようなことを</p>
+
+<pre><code>myjob:
+  runs-on: ubuntu-latest
+  if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+  ...
+</code></pre>
+
+<p>と、<code>jobs.&lt;job_id&gt;.if</code>で<code>[skip ci]</code>をコミットログに含まない場合、という
+指定をすることで再現することが出来ます。</p>
+
+<p>多分この辺もそのうち改善されるのではないかな、と思うところ。</p>
+
+<h3 id="自作アクション">自作アクション</h3>
+
+<p>別に書こうと思います。</p>
+
+<div class="postscript">
+  <p><strong>追記: 2020/04/23 </strong></p>
+
+  <ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/23/computer-git-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200423_actionhero_120_90.png" width="120" height="90" alt="20200423_actionhero_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/23/computer-git-github/">GitHub Actions用のアクションを自作する</a></div></li></ul>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1406 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Linux | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/linux/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[GNU/BSDでのprintfでの文字列のゼロパディングの違い]]></title>
+    <link href="https://rcmdnk.com/blog/2023/04/21/computer-gnu-bsd-linux-mac/"/>
+    <updated>2023-04-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/04/21/computer-gnu-bsd-linux-mac</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08L9KGY9S?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08L9KGY9S&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81JrrGjT-3L._SS200_.jpg" alt="CEREMONY [Analog]" /></a>
+</div>
+
+<p>久々に新しく知ったGNU/BSDの違い。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#printfでのパディング" id="markdown-toc-printfでのパディング">printfでのパディング</a></li>
+  <li><a href="#printfでの整数のゼロパディング" id="markdown-toc-printfでの整数のゼロパディング">printfでの整数のゼロパディング</a></li>
+  <li><a href="#printfでの文字列のゼロパディング" id="markdown-toc-printfでの文字列のゼロパディング">printfでの文字列のゼロパディング</a></li>
+  <li><a href="#ref" id="markdown-toc-ref">Ref</a></li>
+  <li><a href="#その他のgnubsdの違い" id="markdown-toc-その他のgnubsdの違い">その他のGNU/BSDの違い</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="printfでのパディング">printfでのパディング</h2>
+
+<p>シェルで<code>printf</code>というコマンドを使うと<code>echo</code>ではできないフォーマットを指定したりすることも出来ます。</p>
+
+<p>その中で、フォーマットの中で<code>%d</code>が数字、<code>%s</code>が文字を表していて後ろから引数として渡してそこに埋められます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X %s X %d X\n" abc 123
+</span><span class="line">X abc X 123 X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これらの<code>s</code>とか<code>d</code>とかの記号の前に数字を入れるとそれの幅だけを予約し、空いた分は空白として出力します。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%5sX\n" abc
+</span><span class="line">X  abcX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>マイナスを入れると後ろを空ける。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%-5sX\n" abc
+</span><span class="line">Xabc  X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>予約した分よりも入力の文字が多い場合にはその文字列分だけ場所をとります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%5sX\n" abcdef
+</span><span class="line">XabcdefX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>この辺の空白埋めは<code>%d</code>でも同じです。
+GNU/BSDでも少なくともここに書いてあることは同じようになります。</p>
+
+<h2 id="printfでの整数のゼロパディング">printfでの整数のゼロパディング</h2>
+
+<p><code>%d</code>に対して、パディング記法で数字の前に<code>0</code>を置くと0で埋めることができます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%05dX\n" 111
+</span><span class="line">X00111X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>もし、数字がマイナスの場合、マイナスはゼロの左側に出ます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%05dX\n" -111
+</span><span class="line">X-0111X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>マイナスの分も1つ文字を消化した上で。</p>
+
+<p>この<code>0</code>は<code>.</code>に変えても同じようにゼロ埋めになります。</p>
+
+<p>一方、記法の方で<code>0</code>の前にマイナスを付けると
+単に右側の空白埋めになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%-05dX\n" 111
+</span><span class="line">X111  X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ここは単なる空白の場合と異なりますが、ここでは<code>5</code>の前の<code>0</code>と<code>-</code>のオプションが
+重複して、<code>-</code>の方が優先された、という状態です。</p>
+
+<p>数字のゼロ埋めなので右に埋めると数字が根本的に変わるのでそのようなことは出来ないようになっているようです。</p>
+
+<p>オプションの重複、という意味では、
+実際、これを逆にしても</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%0-5dX\n" 111
+</span><span class="line">X111  X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>同じ出力。</p>
+
+<p>また、<code>0</code>の代わりに<code>.</code>を書いてもゼロ埋めになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%.5dX\n" 111
+</span><span class="line">X00111X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これは<code>.&lt;N&gt;</code>が<strong>精度</strong>を表す記法で、
+5桁の精度ということなのですが、
+整数の場合には単にその桁分の左ゼロ埋めで表記されます。
+入力桁数の方が大きい場合には単にそのまま出力されます。</p>
+
+<p>少数の<code>%f</code>を使うと、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%.5fX\n" 123.456
+</span><span class="line">X123.45600X
+</span><span class="line">$ printf "X%.5fX\n" 123.456789123
+</span><span class="line">X123.45679X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じで小数点以下が5桁になるようにされているのがわかります。
+下の方は最後の桁はその下の桁を四捨五入して繰り上げで<code>8</code>から<code>9</code>に変換されています。</p>
+
+<p>なのでこちらはパディングとは違うものですが、
+整数に対して行うとゼロパディングと同じようになっているだけです。</p>
+
+<p>右梅にしようとして<code>-</code>を前につけても精度の方が優先されて変わりません。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%-.5dX\n" 111
+</span><span class="line">X00111X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ただし、<code>.</code>より後ろにつけると、ここでもGNU/BSDで違っていて</p>
+
+<p>GNU:</p>
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%.-5dX\n" 111
+</span><span class="line">X%.0-5ldX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>BSD:</p>
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%.-5dX\n" 111
+</span><span class="line">X111X</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような感じで、BSDは単に精度もパディングも無視されたような状態で、
+一方でGNUの方は<code>%</code>記法が無視され、かつ<code>-5</code>の部分が<code>0-5l</code>に変換されています。
+(多分何かしら考えれば分かりそうですがパッと考えどうしてこうなるか良くわからない。)</p>
+
+<p>いずれにしろこの辺は通常用途では無いと思うのでおいておきます。</p>
+
+<h2 id="printfでの文字列のゼロパディング">printfでの文字列のゼロパディング</h2>
+
+<p>今回の本題、<code>%s</code>に対してのゼロパディング。</p>
+
+<p>そもそもゼロで埋めるのは数字だから左埋めしても意味がわかるものの、
+通常の文字だと意味がよくわからなくなることもあるかとは思います。</p>
+
+<p>そんなわけでこれも通常用途とはあまり言えないかもしれませんが、
+プログラムの中では空白では無く何かしらの文字で埋きたい場合や、
+何かしら別の文字列で埋める場合に一旦<code>0</code>にして置換したほうが
+空白よりもやりやすいこともあるかも。</p>
+
+<p>ということでやってみると、</p>
+
+<p>GNU:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%05sX\n" aaa
+</span><span class="line">X  aaaX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>BSD:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ printf "X%05sX\n" aaa
+</span><span class="line">X00aaaX</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ということで、GNUの場合はゼロではなく空白埋めになり、一方BSDでは文字列に対してでもゼロ埋めになります。</p>
+
+<p>これどんな用途で使いたかったかというと、
+文字幅が可変なものに対してその上下に文字列と同じ長さだけの<code>#</code>とか書いてバナー的にしたい時、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">str</span><span class="o">=</span><span class="s2">&quot;abcdefg&quot;</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="si">${#</span><span class="nv">str</span><span class="si">}</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%0</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span><span class="s2">s\n&quot;</span><span class="w"> </span><span class="p">|</span>tr<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="s2">&quot;#&quot;</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%s\n&quot;</span><span class="w"> </span><span class="nv">$str</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%0</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span><span class="s2">s\n&quot;</span><span class="w"> </span><span class="p">|</span>tr<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="s2">&quot;#&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんなことをやってました。
+ゼロ埋めした上で何も渡さないので<code>n</code>の分だけ<code>0</code>が表示されるつもり。
+それを<code>tr</code>で<code>#</code>に変換して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">#######
+</span><span class="line">abcdefg
+</span><span class="line">#######</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな出力にしたかった。</p>
+
+<p>で、macOSでやってみたところうまくいってOKと思っていたら
+うまく行ったのでこれでOKかと思いきやGNUなLinux環境でやってみると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">   
+</span><span class="line">abcdefg
+</span><span class="line">   </span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じで空行になってました。</p>
+
+<p>これは上で見たように<code>%05s</code>とか文字列に対してゼロ埋めしようとしても
+GNU版<code>printf</code>だと空白埋めにしてしまうから。</p>
+
+<p>これに対しては</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span><span class="nv">str</span><span class="o">=</span><span class="s2">&quot;abcdefg&quot;</span>
+</span><span class="line"><span class="nv">n</span><span class="o">=</span><span class="si">${#</span><span class="nv">str</span><span class="si">}</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%0</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span><span class="s2">d\n&quot;</span><span class="w"> </span><span class="p">|</span>tr<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="s2">&quot;#&quot;</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%s\n&quot;</span><span class="w"> </span><span class="nv">$str</span>
+</span><span class="line"><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;%0</span><span class="si">${</span><span class="nv">n</span><span class="si">}</span><span class="s2">d\n&quot;</span><span class="w"> </span><span class="p">|</span>tr<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="s2">&quot;#&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>d</code>を使ってやればGNUでもBSDでもバナー表示になります。</p>
+
+<h2 id="ref">Ref</h2>
+
+<p>GNU版のマニュアル:</p>
+
+<ul>
+  <li><a href="https://www.gnu.org/software/coreutils/manual/html_node/printf-invocation.html#printf-invocation">printf invocation (GNU Coreutils 9.3)</a></li>
+</ul>
+
+<p><code>man printf</code>はエスケープシーケンスについての記述が少しありますが、
+<code>%d</code>や<code>%s</code>に関してはあまりなし。</p>
+
+<p><code>man</code>中にリンクのある上のマニュアルページにもパディングについてはなし。</p>
+
+<p><code>man 3 printf</code>を見ると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">0      The value should be zero padded.  For d, i, o, u, x, X, a, A, e, E, f, F, g,  and  G  conversions,  the
+</span><span class="line">       converted value is padded on the left with zeros rather than blanks.  If the 0 and - flags both appear,
+</span><span class="line">       the 0 flag is ignored.  If a precision is given with a numeric conversion (d, i, o, u, x, and X), the 0
+</span><span class="line">       flag is ignored.  For other conversions, the behavior is undefined.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とあり、<code>d</code>とかにはゼロ埋めします、と書いてありますが、<code>s</code>は含まれていません。</p>
+
+<p>BSD版のマニュアル:</p>
+
+<ul>
+  <li><a href="https://man.freebsd.org/cgi/man.cgi?printf">printf</a></li>
+</ul>
+
+<p>上のはFreeBSDの<code>printf</code>のマニュアルですが、macOSの<code>man printf</code>のものも上と同じ<code>July 1, 2020</code>でmacOS 13.3のものとそこだけ違いますがあとは多分一緒。</p>
+
+<p>ここには</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">0       A zero `0' character indicating that zero-padding should
+</span><span class="line">        be used rather than blank-padding.  A `-' overrides a `0'
+</span><span class="line">        if both are used;</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、どのタイプに対して、ということは書いておらず、単にゼロ埋めします、と書いてあります。
+また、<code>-</code>と同時に使われた場合には<code>0</code>よりも優先して使われる、ともあります。</p>
+
+<p><code>man 3 printf</code>はFreeBSDの最新版だと2018年版になってましたが、macOSだと2009年で、おそらく
+以下のものと同じ</p>
+
+<ul>
+  <li><a href="https://man.freebsd.org/cgi/man.cgi?query=printf&amp;apropos=0&amp;sektion=3&amp;manpath=FreeBSD+9.3-RELEASE+and+Ports&amp;arch=default&amp;format=html">printf(3)</a></li>
+</ul>
+
+<p>ここ見ると</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">`0' (zero)   Zero padding.  For all conversions except n, the con-
+</span><span class="line">             verted value is padded onthe left with zeros rather
+</span><span class="line">             than blanks.  If a precision is given with a numeric
+</span><span class="line">             conversion (d, i,o, u, i, x, and X), the 0 flag is ig-
+</span><span class="line">             nored.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>となっていて、こちらも<code>0</code>が付けばどれでもゼロ埋めする、とあります。
+加えてここでは<code>.</code>の精度をつけられるタイプでそのflagが付いてる場合にはゼロパディングのフラグは無視される、とあります。</p>
+
+<p>文字列の場合にはそのままゼロパディングされます。</p>
+
+<p>というわけで、マニュアルをちゃんと読むと書いてありました、と。</p>
+
+<h2 id="その他のgnubsdの違い">その他のGNU/BSDの違い</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/6131493480?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=6131493480&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41iyzcjjHgL._SS90_CR0,0,120,90_.jpg" alt="Xargs" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/06/01/computer-linux-gnu-bsd/">GNU/BSDでのxargsの振る舞いの違い</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B004D4Y302?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B004D4Y302&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Emp42I29L._SS90_CR0,0,120,90_.jpg" alt="sed &amp; awk (Nutshell Handbooks) 電子書籍: Arnold Robbins, Dale Dougherty" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/09/13/computer-gnu-bsd-linux-mac/">BSD(Mac)のsedでのタブ文字を変換する3つの方法</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4904807049?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4904807049&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51q63OpBfKL._SS90_CR0,0,120,90_.jpg" alt="覚えて便利 いますぐ使える!シェルスクリプトシンプルレシピ54" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/10/21/computer-mac-bsd-linux/">Macにおけるmktempコマンドがアップデートされていた？</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003U6E2SW?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003U6E2SW&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81oOOaYG40L._SS90_CR0,0,120,90_.jpg" alt="NHK特集 行 ~比叡山 千日回峰~ [DVD]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/09/04/computer-bash/">シェルスクリプトでの文字列、ファイルの行数の数え方: wc -lとgrep -c ''</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1231777745?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1231777745&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41l3ki4DpnL._SS90_CR0,0,120,90_.jpg" alt="sed: sed-Politicus, Sozialistische Einheitspartei Deutschlands, Erich Honecker, Wolfgang Leonhard, Hans Mahle, Lutz Heilman" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/08/27/gnu-bsd-linux-mac/">sedを使ってファイルや複数行文字列の末尾の余計な空白行や改行を消す</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873113598?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873113598&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51cRxtwo7IL._SS90_CR0,0,120,90_.jpg" alt="詳説 正規表現 第3版" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/19/computer-gnu-bsd/">GNU/BSDでのsedにおける正規表現の扱いの違い</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B004D4Y302?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B004D4Y302&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Emp42I29L._SS90_CR0,0,120,90_.jpg" alt="sed &amp; awk (Nutshell Handbooks)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/09/21/computer-bash/">sedで改行を出力する</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4756144152?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4756144152&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61WVENM7J6L._SS90_CR0,0,120,90_.jpg" alt="デーモン君のソース探検―BSDのソースコードを探る冒険者たちのための手引き書 (BSD magazine Books)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/06/27/computer-linux-mac-gnu-bsd/">Mac(BSD)でcpをGNU的に使う + おまけ</a></div></li></ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileでBrewfile変更後にGitHubにpushしたりアクションを起こせるようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash/"/>
+    <updated>2022-03-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000003GIT?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000003GIT&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81ey0EhAczL._SS200_.jpg" alt="Homebrew" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">Homebrew-file</a>
+への機能追加でBrewfileへの変更があった際にGitHubへのレポジトリへpushしたり
+なんらかアクションを起こせる様な仕組みを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#brew-wrap" id="markdown-toc-brew-wrap">brew-wrap</a></li>
+  <li><a href="#brewfileのバージョン管理" id="markdown-toc-brewfileのバージョン管理">Brewfileのバージョン管理</a></li>
+  <li><a href="#_post_brewfile_update" id="markdown-toc-_post_brewfile_update">_post_brewfile_update</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brew-wrap">brew-wrap</h2>
+
+<p>追加の機能は<code>brew file</code>コマンド本体ではなく
+<code>brew</code>コマンドのラッパーの
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+の中に追加しました。</p>
+
+<p><code>brew-wrap</code>は<strong>.bashrc</strong>や<strong>.zshrc</strong>、もしくは<strong>config.fish</strong>なんかの中で設定ファイルを読み込むと
+<code>brew</code>コマンドをラップして
+<code>brew install</code>などを行った際に<code>brew file</code>を使って<strong>Brewfile</strong>を自動でアップデートしてくれるようになります。</p>
+
+<h2 id="brewfileのバージョン管理">Brewfileのバージョン管理</h2>
+
+<p><code>brew-wrap</code>を使うと<strong>Brewfile</strong>に対して<code>install</code>時にパッケージの追加や<code>remove</code>時に削除などは行います。</p>
+
+<p>一方でHomebrew-fileにはGitHubのレポジトリなどと結びつけて
+バージョン管理する機能もあります。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#manage-brewfile-with-git">Manage Brewfile with Git</a></p>
+</blockquote>
+
+<p><strong>Brewfile</strong>に変更があった後、</p>
+
+<pre><code>$ brew file update
+</code></pre>
+
+<p>とすればGitHub上の変更を取り入れて、追加パッケージがあれば追加し、
+また、ローカルに新たなパッケージが追加されていたり<strong>Brewfile</strong>がアップデートされていれば
+新たな<strong>Brewfile</strong>をGitのレポジトリ内で<code>commit</code>してGitHubに<code>push</code>します。
+(GitのリモートサーバーはGitHubでなくてもOK。)</p>
+
+<p>ただ、現状この作業は自分で行う必要があって、私自身はcronジョブを使って1日1回、</p>
+
+<pre><code>30 12 * * * brew file update
+</code></pre>
+
+<p>みたいな設定で<code>brew file update</code>を行っています。
+(上の設定だと毎日12:30に実行されます。)</p>
+
+<h2 id="_post_brewfile_update">_post_brewfile_update</h2>
+
+<p>この様な変更管理をBrewfile変更後に毎回行いたい、といったIssueをもらいました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/121">Feature request: provide hook into “Initialize Brewfile” process · Issue #121 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>Git関連の作業なら<code>update</code>の様なことを中でできる設定にしても良いかな、と思ったのですが、
+このIssueだと別な管理をしていて、別途コマンドを使いたい、という感じだったので
+<code>brew-wrap</code>の方を使って簡単にコマンドを追加できるようにしてみました。</p>
+
+<p><strong>.bashrc</strong>の中などで、<strong>brew-file</strong>を読み込んだ後、<code>_post_brewfile_update()</code>という関数を実装すると、
+<code>brew</code>コマンド実行時、<strong>Brewfile</strong>に何らかの変更があった際、
+その関数が実行されます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Brewfile was updated!&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの関数を実装して、</p>
+
+<pre><code>$ brew install python
+</code></pre>
+
+<p>とすると、もし<strong>python</strong>が新たにインストールされて<strong>Brewfile</strong>がアップデートされると</p>
+
+<pre><code>Brewfile was updated!
+</code></pre>
+
+<p>と表示されます。
+すでにインストールされてる場合には<strong>Brewfile</strong>に変更がないので関数は実行されません。</p>
+
+<p>GitHubと連携していて常にリモートレポジトリと同期したい場合には</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span>brew<span class="w"> </span>file<span class="w"> </span>update
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかしておけばよいかと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへのmainコマンドの追加]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows/"/>
+    <updated>2021-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07H3JTZJY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07H3JTZJY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zbjv7k9uL._SS200_.jpg" alt="味の加久の屋 brew プレミアムおつまみ ウニ入りホタテマヨ 70g" /></a>
+</div>
+
+<p>Homebrewのパッケージリストを管理するツールのHomebrew-file
+でパッケージを管理する際に、<code>main</code>というコマンドを使えるようにしました。</p>
+
+<p>これによってより柔軟に複数の環境でのBrewfileの共有が出来るようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brewfile" id="markdown-toc-brewfile">Brewfile</a></li>
+  <li><a href="#file機能" id="markdown-toc-file機能">file機能</a></li>
+  <li><a href="#ファイル指定で使える変数" id="markdown-toc-ファイル指定で使える変数">ファイル指定で使える変数</a></li>
+  <li><a href="#mainコマンドの追加" id="markdown-toc-mainコマンドの追加">mainコマンドの追加</a></li>
+  <li><a href="#チーム共有brewfileの運用" id="markdown-toc-チーム共有brewfileの運用">チーム共有Brewfileの運用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brewfile">Brewfile</h2>
+
+<p>Homebrew-fileにおけるBrewfileは基本的には以下の様な感じになります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">brew<span class="w"> </span>node
+</span><span class="line">brew<span class="w"> </span>python@3.9
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>rcmdnk/file
+</span><span class="line">brew<span class="w"> </span>brew-file
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>rcmdnk/file
+</span><span class="line">brew<span class="w"> </span>brew-file
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>homebrew/cask
+</span><span class="line">cask<span class="w"> </span>bettertouchtool
+</span><span class="line">cask<span class="w"> </span>google-japanese-ime
+</span><span class="line">cask<span class="w"> </span>hyperswitch
+</span><span class="line">cask<span class="w"> </span>iterm2
+</span><span class="line">cask<span class="w"> </span>karabiner-elements
+</span><span class="line">
+</span><span class="line">appstore<span class="w"> </span><span class="m">408981434</span><span class="w">   </span>iMovie<span class="w">        </span><span class="o">(</span><span class="m">10</span>.2.5<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409183694</span><span class="w">   </span>Keynote<span class="w">       </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409203825</span><span class="w">   </span>Numbers<span class="w">       </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409201541</span><span class="w">   </span>Pages<span class="w">         </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Ref: <a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#brewfile">Usage — Homebrew-file documentation</a></p>
+
+<p>Brewfileの中でコマンドとして使えるものとしては上の様に主に</p>
+
+<ul>
+  <li><code>tap</code>: Tapするレポジトリ</li>
+  <li><code>brew</code>: インストールするFormulaパッケージ</li>
+  <li><code>cask</code>: インストールするCaskパッケージ</li>
+  <li><code>appstore</code>: AppStoreからインストールするApp (<code>mas</code>を利用。)</li>
+</ul>
+
+<p>があります。</p>
+
+<p><code>cask</code>に関してはHomebrew 3.0.0から<code>brew cask</code>というコマンドはなくなり、<code>brew install ...</code>
+で同じようにインストールできるようになりましたが、
+<code>brew list --cask ...</code>の様に区別して見ることも出来る状態で
+<code>brew file init</code>とかでBrewfileに書き出す場合には区別して書き出しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210206_homebrew300_120_90.jpg" width="120" height="90" alt="20210206_homebrew300_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/">Homebrew 3.0.0リリース</a></div></li></ul>
+
+<p>Brewfileに手動で<code>brew iterm2</code>みたいにCaskなものを書いておいても<code>brew file install</code>でインストールすることは出来ます。</p>
+
+<h2 id="file機能">file機能</h2>
+
+<p>上記の4つ以外にもいくつか使えるコマンドがありますが、
+そのうちの一つに<code>file</code>というコマンドがあります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file<span class="w"> </span>./Brewfile.ext
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書くと、<code>brew file install</code>をするとき、<strong>Brewfile.ext</strong>に書いてある
+パッケージも読み込んでインストールします。</p>
+
+<p><code>brew file init</code>すると、<strong>Brewfile.ext</strong>に元からあったパッケージはそちらに、
+新たに加わったパッケージは親の<strong>Brewfile</strong>に追加される様になっています。</p>
+
+<p>ファイルの指定方法として、上のように相対パスの様に書くと、親の<strong>Brewfile</strong>のある
+ディレクトリからの相対パスになります。
+なので、上の場合は<strong>Brewfile</strong>と同じディレクトリにある<strong>Brewfile.ext</strong>を見に行きます。</p>
+
+<p><strong>/home/user/Brewfile.ext</strong>の様に<code>/</code>から開始すると絶対パスとして見に行きます。</p>
+
+<p>もしファイルがない場合にはエラーにならずに無視されます。</p>
+
+<p>したがって、特定のマシンにだけ入れたいパッケージ、というものがある場合、</p>
+
+<p>file $HOME/Brewfile.ext</p>
+
+<p>としておいて、必要な環境にだけ<strong>$HOME/Brewfile.ext</strong>を置いておくと、
+その環境にだけ<code>brew file install</code>で<strong>Brewfile.ext</strong>の中身をインストールしてくれます。</p>
+
+<p>もし<strong>Brewfile</strong>と<strong>Brewfile.ext</strong>に同じパッケージが書かれているかつ
+そのパッケージが既にインストールされている状態で<code>brew file init</code>すると
+<strong>Brewfile.ext</strong>の方に優先して残すようになっています。</p>
+
+<h2 id="ファイル指定で使える変数">ファイル指定で使える変数</h2>
+
+<p><code>file</code>などで指定できるファイルに使える変数として、
+<code>~</code>でホームディレクトリを指定したり、<code>$HOME</code>などの環境変数を使うことが出来ます。</p>
+
+<p>加えて、
+<code>$HOSTNAME</code>、<code>$HOSTTYPE</code>、<code>$OSTYPE</code>、<code>$PLATFORM</code>の4つの変数も使えます。</p>
+
+<p>それぞれ</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: <code>os.uname().nodename</code></li>
+  <li><code>HOSTTYPE</code>: <code>os.uname().machine</code></li>
+  <li><code>OSTYPE</code>: Bashのシェル変数(<code>subprocess</code>で取得)</li>
+  <li><code>PLATFORM</code>: <code>sys.platform</code></li>
+</ul>
+
+<p>です。<code>HOSTNAME</code>、<code>HOSTTYPE</code>はシェル変数の同名のものと同じです。</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: マシン名(ドメインなし)</li>
+  <li><code>HOSTTYPE</code>: <code>x86_64</code>, <code>arm64</code>など</li>
+  <li><code>OSTYPE</code>: <code>linux-gnu</code>、<code>darwin20.3.0</code>など</li>
+  <li><code>PLATFORM</code>: <code>linux</code>、<code>darwin</code>など</li>
+</ul>
+
+<p>これを使うと、例えば特定のマシンにだけ入れたいパッケージがある場合、
+親の<strong>Brewfile</strong>を</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>python@3.8
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine2 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>python@3.9
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というファイルを用意しておくと、machine1では<code>python@3.8</code>をインストールして
+machine2では<code>python@3.9</code>をインストールし、
+その他の環境ではこれらをインストールしません。</p>
+
+<p>OSなど環境毎に変えたい場合には</p>
+
+<p>file ./Brewfile.$PLATFORM.$HOSTTYPE</p>
+
+<p>が便利です。</p>
+
+<p><code>OSTYPE</code>にはバージョン情報が入ってしまうため、
+そこまで管理したい場合には便利ですが、大概の場合はそのバージョンは無視して良いことが多く
+<code>PLATFORM</code>を使ったほうが便利です。</p>
+
+<p>あとはアーキテクチャの違いを<code>$HOSTTYPE</code>で追加しておきます。</p>
+
+<p>これは、特に最近でたM1 Macで使う際に便利です。</p>
+
+<p>M1のarm64の環境だと使えないCUIツールはまだ結構あって、
+Rosettaを使ったIntel環境も作っている人は多いかと思いますが、
+両方で同じ<strong>Brewfile</strong>を使おうと思うとIntel用に入れたものがarm64側でインストールに失敗してしまいます。</p>
+
+<p>そこで、上の様な<code>file</code>設定をしておいて、</p>
+
+<p><strong>Brewfile.darwin.x86_64</strong>というファイルにIntel側にだけ入れるものを書いておけば
+他のものは<strong>Brewfile</strong>で共有して使うことが出来ます。</p>
+
+<h2 id="mainコマンドの追加">mainコマンドの追加</h2>
+
+<p>上の<code>file</code>の場合、<code>brew init</code>や、
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+を使った<code>brew install</code>時に追加されるパッケージは親の<strong>Brewfile</strong>側になります。</p>
+
+<p>したがって、その環境特有のものをインストールした場合には手動で
+<strong>Brewfile</strong>から
+<strong>Brewfile.machine1</strong>とかに移して、他の環境では使わないようにする必要があります。</p>
+
+<p>これはほとんどが共通で、ほんの一部だけが特別なパッケージの場合には便利です。</p>
+
+<p>一方で、例えば仕事のチームで最低限必要なパッケージ群をまとめる<strong>Brewfile</strong>を作り、
+他を個別に管理したい、という場合、自動で<strong>Brewfile</strong>を管理するのが難しくなります。</p>
+
+<p><code>main</code>コマンドはこういった場合に使えるようにv8.5.0で追加しました。
+通常、<strong>メイン</strong>のファイルは最初に指定されている<strong>Brewfile</strong>本体になりますが、
+<code>main</code>コマンドで指定されたファイルがあるとそれに移ります。</p>
+
+<p><strong>メイン</strong>のファイルは、新たなパッケージが加わったときなどに、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>でパッケージが加えられるファイルになります。</p>
+
+<p><code>main</code>の使い方は<code>file</code>と同じ様にファイルへのパスを書く形で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じ。</p>
+
+<p>この場合、新たなパッケージが加えられた場合、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>では<strong>./Brewfile.$HOSTNAME</strong>
+に追加されます。</p>
+
+<p>もしファイルがない場合には自動的に作られます。</p>
+
+<p>これを使うと、<strong>Brewfile</strong>の自動アップデートを使っても共有ファイルの管理が簡単になります。</p>
+
+<p>例えば、MacとLinuxで共有しようと思うと、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、それぞれの環境でインストールしたものはそれぞれ、<strong>Brewfile.darwin</strong>、<strong>Brewfile.linux</strong>に追加されます。</p>
+
+<p>また、M1 Macでは</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTTYPE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、
+そのままのM1 (arm64)環境なら<strong>Brewfile.arm64</strong>、Rosetta使ったx86_64環境なら
+<strong>Brewfile.x86_64</strong>に追加されます。</p>
+
+<p>たまに整理してあげて、共通しているものを<strong>Brewfile</strong>に移す作業をしてあげれば良いかと。
+(この辺をうまくやる機能もそのうち実装したい。。。)</p>
+
+<p><strong>Brewfile</strong>と<code>main</code>で指定されてた<strong>Brewfile.$PLATFORM</strong>
+などの両方に同じパッケージが書かれていた場合、
+<code>brew file init</code>すると<code>main</code>の場合は<code>file</code>と違い
+親の<strong>Brewfile</strong>の方に優先して残すようになっています。</p>
+
+<p>ちなみに<code>main</code>や<code>file</code>は入れ子が可能で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、</p>
+
+<figure class="code"><figcaption><span>Brewfile.darwin </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、<strong>Brewfile.linux</strong>の方では<code>main</code>を追加しないままにしておくと、</p>
+
+<ul>
+  <li>Linux環境: HOSTによらず<strong>Brewfile.linux</strong>がメイン。</li>
+  <li>Mac環境: HOST毎に別のものがメインに。</li>
+  <li><strong>Brewfile</strong>にあるパッケージは全環境共通。</li>
+  <li><strong>Brewfile.darwin</strong>にあるパッケージはMac環境だけで共通。</li>
+</ul>
+
+<p>とすることが出来ます。</p>
+
+<h2 id="チーム共有brewfileの運用">チーム共有Brewfileの運用</h2>
+
+<p>そこで、例えばチーム共有<strong>Brewfile</strong>みたいのを考えることが出来ます。</p>
+
+<ul>
+  <li>まず、共有する<strong>Brewfile</strong>を作り、適当なGitHubのレポジトリで共有。
+    <ul>
+      <li><strong>Brewfile</strong>に<code>main ~/.Brewfile</code>という一行を加えておく。</li>
+      <li>このレポジトリは管理者だけが書き込めるものでも構いません。</li>
+    </ul>
+  </li>
+  <li>各個人で<strong>~/.Brewfile</strong>を用意。
+    <ul>
+      <li>最初の時点でとくに必要なものがなければ自分で用意しなくても良くて勝手に作ってくれる。</li>
+    </ul>
+  </li>
+  <li><code>brew file set_repo</code>で共有レポジトリを指定してセットする。</li>
+  <li><code>brew install</code>したり色々して<strong>~/.Brewfile</strong>をアップデート。
+    <ul>
+      <li><a href="https://github.com/rcmdnk/dotfiles/">dotfiles</a>などで<strong>~/.Brewfile</strong>も管理すると良いかと。</li>
+    </ul>
+  </li>
+  <li>管理者が共有の<strong>Brewfile</strong>をアップデートしてパッケージを追加したりする。
+    <ul>
+      <li>管理者以外でも便利で皆が使うべきものだと思えばPull Request出したり。</li>
+    </ul>
+  </li>
+  <li><code>brew file update</code>によって共有<strong>Brewfile</strong>をアップデート。
+    <ul>
+      <li>個人ごとの利用ではこのファイルを変更することは無いので、レポジトリ側のアップデートのみを撮ってくる形になる。</li>
+      <li>自分でインストールしたパッケージも共有<strong>Brewfile</strong>に追加されると<strong>~/.Brewfile</strong>からは消える。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言った感じの運用が出ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[systemdでcronジョブの代わりの設定をする]]></title>
+    <link href="https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux/"/>
+    <updated>2020-10-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/10/12/computer-raspberrypi-linux</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000J5OFW0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000J5OFW0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81TNSEQjz5L._SS200_.jpg" alt="【正規品】TIME TIMER タイムタイマー 19cm 60分 TTA1-W 時間管理" /></a>
+</div>
+
+<p>Raspberry Piで定期的に実行したいジョブがあったので
+cronジョブとして実行しようかと思ってましたが、
+systemdで定期実行する、ということをやってみたかったので
+systemdでやってみることにしました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#やりたいこと" id="markdown-toc-やりたいこと">やりたいこと</a></li>
+  <li><a href="#実行用サービスの準備" id="markdown-toc-実行用サービスの準備">実行用サービスの準備</a></li>
+  <li><a href="#timerサービスの準備" id="markdown-toc-timerサービスの準備">Timerサービスの準備</a></li>
+  <li><a href="#登録" id="markdown-toc-登録">登録</a></li>
+  <li><a href="#cronジョブとの違い" id="markdown-toc-cronジョブとの違い">cronジョブとの違い</a></li>
+  <li><a href="#ユーザーレベルジョブ" id="markdown-toc-ユーザーレベルジョブ">ユーザーレベルジョブ</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="やりたいこと">やりたいこと</h2>
+
+<p>cronジョブで書けば</p>
+
+<pre><code>0 12 * * * /path/to/script
+</code></pre>
+
+<p>みたいな感じで毎日お昼の12:00に実行するようなもの。</p>
+
+<p>これを最近Linuxでは主に使われているサービス管理システムであるsystemdを使って作る、というもの。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798044911?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798044911&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/41cVV6Rkp2L._SS90_CR0,0,120,90_.jpg" alt="CentOS7システム管理ガイドsystemd/NetworkManager/Firewalld徹底攻略" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/09/10/computer-linux/">CentOS 7などのSystemdに対応したデーモンプログラムを作る</a></div></li></ul>
+
+<h2 id="実行用サービスの準備">実行用サービスの準備</h2>
+
+<p>これをやるために、まず以下の様なサービスを用意します。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>My<span class="w"> </span>Job
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Service<span class="o">]</span>
+</span><span class="line"><span class="nv">Type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>oneshot
+</span><span class="line"><span class="nv">ExecStart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>/path/to/myjob
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>multi-user.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p><code>Type</code>に関しては、このジョブはタイマーで起動し、一回限り、
+終わったら終了、というものにしたいので<code>oneshot</code>に。
+<code>oneshot</code>は<code>ExecStart</code>のコマンドが終了したら起動完了、として通知します。</p>
+
+<p>通常使う<code>simple</code>にすると<code>ExexStart</code>を実行した時点で起動完了として、
+通常そのまま生き続ける様なものに使います。</p>
+
+<p><code>WantedBy</code>で<code>multi-user.target</code>を指定して
+通常の起動でGUIがない場合でも有効にする、
+という指定で、これは他のサービスでもだいたい同じ様に設定するものです。</p>
+
+<h2 id="timerサービスの準備">Timerサービスの準備</h2>
+
+<p>次に上のサービスを定期的に実行するタイマーを作ります。</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>My<span class="w"> </span>Job<span class="w"> </span>Timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>*-*-*<span class="w"> </span><span class="m">12</span>:00:00
+</span><span class="line"><span class="nv">AccuracySec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>1s
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じ。</p>
+
+<p>まず、<code>Install</code>のセクションで<code>WantedBy</code>が<code>timers.target</code>を指定しています。</p>
+
+<p>これによってタイマーとしてジョブを起動するようになります。
+後はタイマーの定義を<code>Timer</code>セクションで行います。</p>
+
+<pre><code>OnCalendar = *-*-* 12:00:00
+</code></pre>
+
+<p>で毎日12時に実行、になります。
+cronジョブとは逆で普通な感じで<code>年-月-日 時:分:秒</code>と書いてあります。</p>
+
+<p>cronのように<code>1,2,3</code>で1,2,3のとき、<code>1..5</code>みたいな書き方で1~5、<code>0/5</code>で5置き、という書き方も各項目で出来ます。</p>
+
+<p>曜日も<code>Sun 20:00:00</code>みたいな感じで日曜の20時に、という指定も可能。
+<code>Mon,Wed</code>で複数にしたり、<code>Mon..Fri</code>で月曜から金曜、というのも可能。</p>
+
+<p>それら以外に<code>weekly</code>、<code>daily</code>、<code>hourly</code>といった任意の時間に定期的に実行する、という指定も可能。</p>
+
+<p><code>AccuracySec</code>は<code>1s</code>で1秒、と設定していますが、
+デフォルトでこの値は<code>1m</code>で1分です。</p>
+
+<p>この値の範囲内に始まる、ということなので、
+デフォルトでは12:00:00に設定すると12:01:00までの間のどこかで始まる、ということになります。</p>
+
+<p>ちょっと正確に時間を使いたかったので1秒にしてありますが、
+最小で<code>1us</code>(1マイクロ秒)まで小さく出来ます。</p>
+
+<p>一方、これを小さくすればするほど時間を管理するためにCPU利用率が上がるので
+最大限許容範囲で大きくした方が良いとのこと。
+ジョブ自体が数秒かかるものだったりミリ秒以下の必要がなかったので1sにしてあります。</p>
+
+<p>ただ、Raspberry Pi Zeroで<code>1us</code>で動かしていても目に見えたCPU利用率の変化はありませんでした。</p>
+
+<p>タイマー内で呼び出すサービスを指定していませんが
+この場合は同じディレクトリにある同じ名前のサービスを呼び出します。
+今回は<strong>myjob.service</strong>、<strong>myjob.timer</strong>、とサービスとタイマーが同じ名前のため
+<strong>myjob.service</strong>が呼び出される、ということに。</p>
+
+<p>もし、別のサービスを呼び出したい場合には、</p>
+
+<figure class="code"><figcaption><span>/etc/systemd/system/myjob.timer </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="o">[</span>Unit<span class="o">]</span>
+</span><span class="line"><span class="nv">Description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>My<span class="w"> </span>Job<span class="w"> </span>Timer
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Timer<span class="o">]</span>
+</span><span class="line"><span class="nv">OnCalendar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>*-*-*<span class="w"> </span><span class="m">12</span>:00:00
+</span><span class="line"><span class="nv">AccuracySec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>1s
+</span><span class="line"><span class="nv">Unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>yourjob.service
+</span><span class="line">
+</span><span class="line"><span class="o">[</span>Install<span class="o">]</span>
+</span><span class="line"><span class="nv">WantedBy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>timers.target
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じでTimerセクションの中に<code>Unit</code>という変数を入れて
+そこにサービス名を指定します。</p>
+
+<h2 id="登録">登録</h2>
+
+<p><strong>myjob.service</strong>、<strong>myjob.timer</strong>
+の2つのファイルを
+<strong>/etc/systemd/system/</strong>に入れて</p>
+
+<pre><code>$ sudo systemctl daemon-reload
+$ sudo systemctl enable myjob.timer
+$ sudo systemctl start myjob.timer
+</code></pre>
+
+<p>で有効にしてスタート。</p>
+
+<h2 id="cronジョブとの違い">cronジョブとの違い</h2>
+
+<p>cronジョブと違って良い点は</p>
+
+<ul>
+  <li>秒単位で指定ができる</li>
+  <li>他のsystemdユニットへの依存関係が使える</li>
+  <li>runレベルの指定ができる</li>
+  <li>systemdでの管理で簡単に有効、無効化ができる</li>
+  <li>journaldでログが管理できる</li>
+  <li>cgroupsで管理できる</li>
+</ul>
+
+<p>悪い点としては</p>
+
+<ul>
+  <li>1つのスクリプトを実行したいだけでも2つのファイルが必要で内容も多くなってしまう</li>
+  <li>メールで通知したい場合、結構面倒
+    <ul>
+      <li>メール通知用スクリプト、それを実行する<code>Type = oneshot</code>なサービスを別途用意してUnitセクションに<code>OnFailure=&lt;service&gt;</code>のような形で設定する</li>
+    </ul>
+  </li>
+</ul>
+
+<p>という感じ。
+なのでやはり単純に1つのスクリプトをさっと定期実行設定したい、という場合にはcronの方が簡単です。</p>
+
+<p>システムを構築するような場合、きちんと設計したい場合には
+systemdを使ったほうが管理が簡単になる可能性はありますし、
+より詳細に管理が出来ます。</p>
+
+<h2 id="ユーザーレベルジョブ">ユーザーレベルジョブ</h2>
+
+<p>ユーザーレベルでの設定をsystemdで行うことも出来て、</p>
+
+<pre><code>~/.config/systemd/user/
+</code></pre>
+
+<p>ディレクトリにサービス/タイマーファイルを入れて、</p>
+
+<pre><code>$ systemctl --user enable myjob.timer
+</code></pre>
+
+<p>などとすればOK。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>cronジョブの代わりとしてsystemdを使おうと思った場合、
+やはり少し覚えることも多く、敷居としては高い感じはしました。</p>
+
+<p>その代わり詳細な時間設定や他のサービスとの連携もきちんと取れるようになるので、
+システム管理として何らかのジョブを定期的に走らせたい、
+という場合にはsystemdを使ったほうが便利だし、
+慣れれば設定したり管理するのもむしろ楽になるかと思います。</p>
+
+<p>システム管理をしよう、と思うくらいであればそれほど難しいものではないし
+いずれにしろ知っておかなくちゃいけないことだったりもするので。</p>
+
+<p>macOSの方でも、cronジョブは使えますが、macOSの機能として<code>launchd</code>という
+サービス管理をするシステムがあり、
+これを使ってcron的な定期ジョブを実行することが出来ます。</p>
+
+<p>これもsystemd同様、よりシステムに親和性の高い管理ができるという点で利点がありますが、
+やはり必要な記述量が多いのでちょっとしきい値が高いものではあります。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[バージョン番号のソート]]></title>
+    <link href="https://rcmdnk.com/blog/2020/09/25/computer-linux-mac/"/>
+    <updated>2020-09-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/09/25/computer-linux-mac</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B08FBXFLL9?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B08FBXFLL9&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/810a84cOTiL._SS200_.png" alt="" /></a>
+</div>
+
+<p><code>v8.10.1</code>みたいなバージョン番号をソートしようとするとき、
+単に<code>sort</code>コマンドとか使うと<code>v8.2.1</code>と<code>v8.10.1</code>で真ん中の<code>2</code>と<code>10</code>の<code>1</code>だけを
+見て思ったのと逆にソートされてしまいます。</p>
+
+<p>かといって単純に<code>-n</code>で数字として全体を見ることもできないのでちょっと工夫が必要です。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#sortコマンド" id="markdown-toc-sortコマンド">sortコマンド</a></li>
+  <li><a href="#区切ってソート" id="markdown-toc-区切ってソート">区切ってソート</a></li>
+  <li><a href="#sort--v" id="markdown-toc-sort--v">sort -V</a></li>
+  <li><a href="#git-tagでの表示" id="markdown-toc-git-tagでの表示">git tagでの表示</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="sortコマンド">sortコマンド</h2>
+
+<pre><code>v1.2.1
+v1.10.1
+v2.2.1
+v2.2.2
+v2.2.10
+v10.2.1
+</code></pre>
+
+<p>みたいな内容の<strong>versions.txt</strong>というフィアルの中身をソートしたいとき、
+期待するのは上の形になることです。</p>
+
+<p>これをそのまま<code>sort</code>コマンドとかに入れると</p>
+
+<pre><code>$ sort versions.txt
+v1.10.1
+v1.2.1
+v10.2.1
+v2.2.1
+v2.2.10
+v2.2.2
+</code></pre>
+
+<p>となります。</p>
+
+<p>このままだと<code>v</code>から始まって<code>.</code>とかも含まれる文字列なので
+単に2文字目が<code>1</code>か<code>2</code>でソート、<code>1</code>のうち、3文字目が数字より記号の方が優先されて、
+その次がまた単体の数字でソートされて、といった感じ。
+数字ソートオプション<code>-n</code>とかつけても変わりません。</p>
+
+<h2 id="区切ってソート">区切ってソート</h2>
+
+<p>そこで<code>sort</code>のオプションで<code>.</code>で区切って分けてそれぞれで数字としてソートするようにしてみます。</p>
+
+<p>出来るのはこんな感じ。</p>
+
+<pre><code>sort -n -t . -k 1.2,1 -k 2,2 -k 3,3 versions.txt
+</code></pre>
+
+<p>これで、上のファイルの内容がどのように並んでいても最初にあるような
+期待する順番で出力されます。</p>
+
+<p>各オプションは</p>
+
+<ul>
+  <li><code>-n</code>: 数字としてソートする</li>
+  <li><code>-t</code>: 区切り文字の指定。<code>-t .</code>で<code>.</code>で区切られ<code>v1</code>、<code>2</code>、<code>1</code>の様に3つのフィールドに分けられます。この指定がない場合は区切り文字はスペースになります。</li>
+  <li><code>-k</code>: ソートに用いる箇所の指定。
+    <ul>
+      <li>複数指定でき、先に指定した方が優先される。各区切りは左から1から数字が振られる。</li>
+      <li>各指定は<code>&lt;開始フィールド&gt;[フィールド中の開始文字][オプション][,終了フィールド[終了文字][オプション]]</code>
+        <ul>
+          <li>まず使うフィールドの指定は必須。(フィールド番号は左から1から始まる。)</li>
+          <li><code>.</code>の後に数字を書くとフィールド中の何文字目から、という指定が出来る。(フィールドの最初が1、指定がなければ1と同じ。)</li>
+          <li>終了側は文字指定がなければ指定したフィールドの最後までを見る。</li>
+          <li>終了フィールドを指定しないと見る行の最後まで、になる。
+            <ul>
+              <li>したがって、<code>-k 2 -k 3</code>とかは意味が無い(<code>-k 2</code>で3つ目のフィールド部分も含まれてしまうため)</li>
+            </ul>
+          </li>
+          <li>オプションはそのフィールドだけに適用したいオプションを指定する。(<code>-k2,2r</code>と指定すればその箇所だけ逆順でソートする)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>といった感じ。</p>
+
+<p>使っているファイルは<code>vX.Y.Z</code>の形のバージョン情報を持っているので、
+<code>X</code>, <code>Y</code>, <code>Z</code>の順でソートしたいわけですが、
+<code>.</code>で区切ると1つ目には<code>v</code>が付くので最初のものだけ、<code>-k 1.2,1</code>で
+1つ目のフィールドの2番目の文字からそのフィールドの最後まで、という指定をしています。</p>
+
+<h2 id="sort--v">sort -V</h2>
+
+<p>と、<code>sort</code>コマンドで頑張っては居ますが、実は<code>sort</code>コマンドには自動でバージョン記述を
+把握してソートしてくれる機能があります。</p>
+
+<pre><code>$ sort -V versions.txt
+</code></pre>
+
+<p>これだけで上のソートと同じ様に期待通りのバージョンの順序にしてくれます。</p>
+
+<p>ソートの方法としては数字部分を別途ひとまとめとして扱う、といういわゆるナチュラルソート(自然順)
+と呼ばれる方法とほぼほぼ同じですが、
+単純な文字列と数値のソートだけではなくコンピューターで使われるファイル名などにより適した
+改善が入っています。</p>
+
+<blockquote>
+  <p><a href="https://www.gnu.org/software/coreutils/manual/html_node/Version-sort-ordering.html#Version-sort-ordering">Version sort ordering (GNU Coreutils)</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://ja.wikipedia.org/wiki/%E8%87%AA%E7%84%B6%E9%A0%86">自然順 - Wikipedia</a><a href="https://ja.wikipedia.org/wiki/%E8%87%AA%E7%84%B6%E9%A0%86">自然順 - Wikipedia</a></p>
+</blockquote>
+
+<p>なので余程変な番号付をしてない限り<code>sort -V</code>でいい感じにソートできるはずです。
+(逆にこれでうまくソートできないものはバージョンの付け方を考え直した方が良いかも。)</p>
+
+<p>上のリファレンスもGNUのものになってますが、
+最初にGNU版sortにこの<code>-V</code>(<code>--version-sort</code>)というオプション
+があり、
+BSD版にはしばらくなかったみたいですが、
+現在はBSD版にも入っていて、macOSに入っているバージョンのsortでも使える様になっています。</p>
+
+<h2 id="git-tagでの表示">git tagでの表示</h2>
+
+<p>最近使う中で、バージョン一覧、みたいなものを一番良く表示するのは<code>git tag</code>コマンドです。</p>
+
+<p><code>git tag</code>で表示させてから、<code>sort</code>コマンドを使って、</p>
+
+<pre><code>$ git tag | sort -V
+</code></pre>
+
+<p>でバージョン順にソートできます。</p>
+
+<p>ただ、<code>sort</code>を使わなくても、Git 2.0からは</p>
+
+<pre><code>$ git tag --sort=version:refname
+</code></pre>
+
+<p>とすることでtagの出力を直接<code>sort -V</code>の様な期待通りの順に出してくれます。</p>
+
+<p><code>version</code>は<code>--sort=v:refname</code>の様に省略することもできます。</p>
+
+<p>このソートで逆順にしたい場合は</p>
+
+<pre><code>$ git tag --sort=-version:refname
+</code></pre>
+
+<p>の様にソートのやり方の最初にマイナス記号を付けます。</p>
+
+<p>常に<code>git tag</code>で上の様なバージョンとしてソートした上で表示したい場合、</p>
+
+<pre><code>$ git config --global tag.sort version:refname
+</code></pre>
+
+<p>とかして、<strong>~/.gitconfig</strong>に</p>
+
+<pre><code>[tag]
+  sort = version:refname
+</code></pre>
+
+<p>という行を追加しておくと<code>git tag</code>のデフォルトのソート方法がバージョン形式になります。
+(この機能はGit 2.1から。)
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<p>もし、tagの中に色々とバージョン名以外のものも含まれている場合、</p>
+
+<pre><code>$ git tag --sort=version:refname -l "v*"
+</code></pre>
+
+<p>の様な形で正規表現を渡してそれに沿ったもの(この場合は、<code>v</code>で始まる)tagだけ表示することもできます。</p>
+
+<p>ここで利用できる正規表現はシェル的なものになります。
+(<code>*</code>で全て0字以上の全ての文字列に対応。)</p>
+
+<p>Gitの機能であれば、単純にタグ名だけでソートするだけでなく、
+タグを作った日時でもソートでき、</p>
+
+<pre><code>$ git tag --sort=taggerdate -l "v*"
+</code></pre>
+
+<p>とすればタグを作った順になります。</p>
+
+<p>ただし、<code>taggerdate</code>は<code>git tag -a v1.2.3</code>の様に注釈付き(<code>annotated</code>)のものだけに付いていて、
+<code>git tag v1.2.3</code>の様に作った軽量(<code>lightweight</code>)版にはついてないので注意。</p>
+
+<p>その場合はコミットのポインタでしかないので、そういうのも含めて日時でソートしたい場合は、</p>
+
+<pre><code>$ git tag --sort=committerdate -l "v*"
+</code></pre>
+
+<p>の様な形でコミットの日時でやることもできます。</p>
+]]></content>
+  </entry>
+  
+</feed>

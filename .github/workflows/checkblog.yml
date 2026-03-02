@@ -1,0 +1,65 @@
+name: Octopress site check CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.12.1
+      with:
+        access_token: ${{ github.token }}
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9.X
+        architecture: x64
+    - name: install linkchecker
+      run: |
+        pip install linkchecker
+        chmod 644 $(find $(python -c "import site;print(site.getsitepackages()[0])")/linkcheck/ -name "*.py")
+        mkdir -p ~/.linkchecker
+        printf "[checking]\nallowedschemes=http,https,ftp" > ~/.linkchecker/linkcheckerrc
+    - name: linkchecker
+      id: linkchecker
+      continue-on-error: true
+      run: |
+        linkchecker --check-extern --no-warnings -o html --ignore-url=localhost --ignore-url=octopress.dev --ignore-url=aaaaaaaaaaa --ignore-url=/en/wrong --ignore-url=https://url --ignore-url=http://192 --ignore-url=http://127 --ignore-url=http://test --ignore-url=http://a --ignore-url=http://hoge --ignore-url=http://mac --ignore-url=http://windows --ignore-url=http://hatena --ignore-url=//b.hatena.ne.jp --ignore-url=http://rcmdnk/$ --ignore-url=//getpocket.com --ignore-url=https://help.evernote.com --ignore-url=https://support.ouraring.com --ignore-url=liberator --ignore-url=https://www.reddit.com --ignore-url=https://itunes.apple.com --ignore-url=//www.amazon.co.jp --ignore-url=https://www.amazon.com --ignore-url=https://www.apple.com --ignore-url=https://hbb.afl.rakuten.co.jp https://rcmdnk.com  > linkchecker.html
+    - name: html5validator
+      id: htmlvalidator
+      continue-on-error: true
+      run: |
+        sudo apt-get update && sudo apt-get install -y openjdk-8-jre
+        pip install html5validator
+        html5validator --root ./ --blacklist linkchecker.html,htmlchecker.html,facebook_shares.html,googleffb17e830fb0d6d5.html,csschecker.html,posts.html,posts_light.html 2>&1 > htmlchecker.html
+    - name: commit
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add linkchecker.html htmlchecker.html
+        git commit -a -m "Added checkers [skip ci]"
+        git remote set-url --push origin git@github.com:rcmdnk/rcmdnk.github.io
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: linkchecker test
+      run: |
+        result=$(grep -B 2 "404 Not Found" linkchecker.html | grep rcmdnk.com| grep -v https://rcmdnk.com/upptime/history/rcmdnk-blog|grep -v https://rcmdnk.com/themes/light.css|grep -v https://rcmdnk.com/themes/dark.css|grep -v https://rcmdnk.com/global.css|grep -v https://rcmdnk.com/logo-192.png|grep -v https://rcmdnk.com/cdn-cgi/l/email-protection|:)
+        if [ -n "$result" ];then
+          echo "$result"
+          exit 1
+        else
+          echo ok
+        fi
+        #    - name: stepjobss test
+        #      #if: (${{steps.linkchecker.outcome}} == 'failure'||${{steps.html5validator.outcome}} == 'failure')
+        #      if: ${{steps.html5validator.outcome}} == 'failure'
+        #      run: exit 1

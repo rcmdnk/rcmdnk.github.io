@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Rust | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/rust/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Python環境をRust製ツールで整える]]></title>
+    <link href="https://rcmdnk.com/blog/2026/02/23/computer-python-rust/"/>
+    <updated>2026-02-23T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2026/02/23/computer-python-rust</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0DWLN3WH2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0DWLN3WH2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71+JH+T4bOL._SS200_.jpg" alt="Rust &amp; Python Integrated: Harnessing the Power of Systems and Scripting for High-Performance Development: A Comprehensive Guide 2025" /></a>
+</div>
+
+<p>Python周りがいつの間にかRust製のツールばかりになってきた状態のまとめ。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#python環境構築ツール" id="markdown-toc-python環境構築ツール">Python環境構築ツール</a>    <ul>
+      <li><a href="#uv-ruff" id="markdown-toc-uv-ruff">uv, ruff</a></li>
+      <li><a href="#ty" id="markdown-toc-ty">ty</a></li>
+      <li><a href="#prek" id="markdown-toc-prek">prek</a></li>
+      <li><a href="#mise" id="markdown-toc-mise">mise</a></li>
+    </ul>
+  </li>
+  <li><a href="#python-template" id="markdown-toc-python-template">python-template</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="python環境構築ツール">Python環境構築ツール</h2>
+
+<ul>
+  <li>Python管理、パッケージ管理、プロジェクト管理: <a href="https://docs.astral.sh/uv/">uv</a></li>
+  <li>Linter, formatter: <a href="https://docs.astral.sh/ruff/">ruff</a></li>
+  <li>型チェック: <a href="https://docs.astral.sh/ty/">ty</a></li>
+  <li>pre-commitマネージャー: <a href="https://github.com/j178/prek">prek</a></li>
+  <li>uvの管理、仮想環境自動認識: <a href="https://mise.jdx.dev/">mise</a></li>
+</ul>
+
+<h3 id="uv-ruff">uv, ruff</h3>
+<p>uv, ruffはAstral社製のツールで既にかなり広く使われてる印象。個人的には1年ちょっと前位に全面的に
+<a href="https://python-poetry.org/">poetry</a>や
+<a href="https://black.readthedocs.io/en/stable/">black</a>, <a href="https://pycqa.github.io/isort/">isort</a>
+などから移行していきました<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<h3 id="ty">ty</h3>
+
+<p>tyは型チェックツールとして
+<a href="https://www.mypy-lang.org/">mypy</a>
+の代替えツールですが、
+これもAstral社製で、昨年末にベータ版がリリースされました<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>。</p>
+
+<p>mypyはチェックツールの中でも圧倒的に時間を食うツールでしたが、tyはかなり高速で、ruffなどの実行と比べてもそれ程気にならないレベルになります。</p>
+
+<p>設定としては基本的にはデフォルトの設定のままで使ってます。
+最初はmypyで通った部分もいくつかerror/warningを出して修正する必要がありました。
+逆にtyで通った部分がmypyのエラーとして漏れているかどうか、はすぐに判断することは出来ないので、たまにmypyを走らせてみて特にエラーが出ない事を確認したりしていますが今のところは特に漏れはなさそうです。</p>
+
+<p>型チェックツールとしては
+<a href="https://pyrefly.org/">pyrefly</a>
+など他にもありますが、ruffに合わせたい、程度の理由で現状はtyを使っています。</p>
+
+<h3 id="prek">prek</h3>
+
+<p>prekは<a href="https://pre-commit.com/">pre-commit</a>
+の機能をRust製で実装したツールで、pre-commitの設定ファイルをそのまま使うことができます。</p>
+
+<p>すでに有名なプロジェクトもpre-commitからprekに移行していて、
+Astralのruff/tyもprekを使っています。</p>
+
+<blockquote>
+  <p><a href="https://prek.j178.dev/#prek-provides-a-better-user-experience">Who is using prek?</a></p>
+</blockquote>
+
+<p>置き換えは簡単で<code>prek</code>を開発用パッケージとしてインストールして、
+<code>prek install</code>を実行して<strong>.git/hooks/pre-commit</strong>を<code>prek</code>ように置き換えるだけです。
+手動で時刻する際には<code>prek run</code>や<code>prek run --all</code>など、基本的な使い方は<code>pre-commit</code>と同じです。</p>
+
+<p>実際パッケージをインストールしたりする際はpre-commitよりも高速で、
+特に<code>pre-commit</code>との使い勝手などの差は無いので移行がおすすめです。</p>
+
+<h3 id="mise">mise</h3>
+
+<p>miseは
+<a href="https://direnv.net/">direnv</a>
+のような仮想環境自動認識機能や、
+PythonやNode.js製のツールなどを管理したり、
+タスクランナーのような機能もあるツールで、これもRust製です。</p>
+
+<p>レポジトリのトップに<strong>.mise.toml</strong>というファイルを置いておくとuvで管理されてるプロジェクトであれば自動的にuvの仮想環境を認識してactivateした状態にしてくれます。
+レポジトリの外に出れば自動的にdeactivateしてくれるので、仮想環境のactivate/deactivateを意識する必要がなくなります<sup id="fninref:3"><a href="#fnin:3" rel="footnote">3</a></sup>。</p>
+
+<p>また、<code>uv</code>コマンドもmiseで管理しています。</p>
+
+<p>macOSだと色々なものをHomebrewで管理してますが、
+Homebrewだと少しバージョンアップデートが遅いことや、
+今のHomebrewだと古いバージョンのまま留めておく、ということが難しいので、
+バージョンをきちんと管理したいツールなどはmiseで行うようにしています。</p>
+
+<p><code>uv</code>や<code>bun</code>などのパッケージ管理用のCLIツール、<code>codex</code>などのNode.js製のツールなど<sup id="fninref:4"><a href="#fnin:4" rel="footnote">4</a></sup>。</p>
+
+<p>mise自体はHomebrewで入れたり必要であれば直接インストールしたりします。</p>
+
+<h2 id="python-template">python-template</h2>
+
+<div class="github-widget" data-repo="rcmdnk/python-template"></div>
+
+<p>上の環境のテンプレートです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4492043721?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4492043721&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/411gDnMJnmL._SS90_CR0,0,120,90_.jpg" alt="テンプレート仕事術 ―日常業務の75%を自動化する" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/05/03/computer-python/">python-template: Pythonプロジェクト用GitHubレポジトリテンプレート</a></div></li></ul>
+
+<p>現在はデフォルトを主に上のRust製のツールに置き換えた状態にしてあります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Vim | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/vim/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkの設定画面をタブ化]]></title>
+    <link href="https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim/"/>
+    <updated>2025-08-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/08/13/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkeyで作ってるvim_ahkの設定画面をタブ化しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#設定画面のタブ化" id="markdown-toc-設定画面のタブ化">設定画面のタブ化</a></li>
+  <li><a href="#タブ化の方法" id="markdown-toc-タブ化の方法">タブ化の方法</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyのスクリプトで、Windows上のどこでも
+<i class="key">H</i>/<i class="key">J</i>/<i class="key">K</i>/<i class="key">L</i>
+で移動したり<i class="key">Y</i>/<i class="key">P</i>でコピペしたりするVimチックな動きを
+再現するためのスクリプトです。</p>
+
+<p>exeファイルを直接使えばAutoHotkeyがインストールされてない環境でも動きます。</p>
+
+<h2 id="設定画面のタブ化">設定画面のタブ化</h2>
+
+<p><img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_keys.png" alt="settings_keys" title="settings_keys" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_applications.png" alt="settings_applications" title="settings_applications" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_status.png" alt="settings_status" title="settings_status" />
+<img src="https://raw.githubusercontent.com/rcmdnk/vim_ahk/master/pictures/settings_configuration.png" alt="settings_configuration" title="settings_configuration" /></p>
+
+<p>こんな感じで設定画面をタブ化しました。</p>
+
+<p>設定が多くなってくると設定画面が長くなってしまい、
+あまり長いとそのままだとウィンドウをはみ出るようになるので
+なんとか整理しないとと思ってましたがタブ化で見た目もより設定画面ぽくなって良いのでは、と。</p>
+
+<p>設定画面に余裕が出来たので、
+最後のConfigurationタブにあるように、新たに設定ファイルのImport/Export機能も追加してみました。</p>
+
+<h2 id="タブ化の方法">タブ化の方法</h2>
+
+<p>AutoHotkeyではGUIのコントロール部品が用意されていて比較的簡単にGUIを作ることができます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171107_ahkguiinput0_120_90.png" width="120" height="90" alt="20171107_ahkguiinput0_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/07/computer-windows-autohotkey/">AutoHotkeyでのGUI操作</a></div></li></ul>
+
+<p>この中に
+<a href="https://www.autohotkey.com/docs/v2/lib/GuiControls.htm#Tab">Tab</a>というGUIのコントロール部品があるので
+思ったより簡単に出来ました。
+Tab/Tab2/Tab3と3種類ありますが、基本的にはTab3がTab/Tab2であった問題を解決して進化したバージョンになってるので
+Tab3を使っておけばOK。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span> <span class="o">:=</span> <span class="n">MyObj</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Tab3&quot;</span><span class="p">,</span> <span class="s">&quot;X+0 Y+0 W480 H360&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;First&quot;</span><span class="p">,</span> <span class="s">&quot;Second&quot;</span><span class="p">,</span> <span class="s">&quot;Third&quot;</span><span class="p">])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様な感じで、<code>Tab3</code>コンポーネントを、位置(この場合は<code>X+0 Y+0</code>で前のコンポーネントの右下位置からそのまま開始)と幅と高さ(W480 H360)を指定して、
+最後に各タブの名前をリストで指定するだけでタブが作れます。</p>
+
+<p>各タブの中身を作るには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X+0 Y+0 Section&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;XS+10 Y+20&quot;</span><span class="p">,</span> <span class="s">&quot;This is the first tab.&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように<code>UseTab(N)</code>でタブを指定して後は通常通りコンポーネントを追加していきます。
+<code>N</code>は1から始まるのでちょっと注意。(上の場合は1: <code>First</code>, 2: <code>Second</code>, 3: <code>Third</code>のタブになります。)</p>
+
+<p>タブの中だと<code>X10</code>などで指定した際、ウィンドウの左端からの距離になってタブの枠分位値の調整が難しくなるので、
+タブを開始した直後に幅高さゼロの<code>Section</code>用の疑似テキストをアンカーとして置いて、
+<code>XS</code>や<code>YS</code>を使うことでタブの左上の位置からの距離を使えるようにしておくと便利です。</p>
+
+<p>この後に<code>Tab.UseTab(2)</code>とすればそこから<code>Second</code>タブの中身を追加していくことができます。</p>
+
+<p><code>X+0</code>の様な前のコンポーネントとの相対位置の開始位置は<code>UseTab</code>を使うとタブのそのタブの左上の位置にリセットされます。</p>
+
+<p>また、タブ終了は<code>UseTab()</code>と数字無しで指定するとタブ外に行きますが、
+その後タブの下にさらにコンポーネントを追加するには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">Tab</span><span class="o">.</span><span class="n">UseTab</span><span class="p">()</span>
+</span><span class="line">
+</span><span class="line"><span class="n">Tab</span><span class="o">.</span><span class="n">GetPos</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tabX</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabY</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabW</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tabH</span><span class="p">)</span>
+</span><span class="line"><span class="n">underTab</span> <span class="o">:=</span> <span class="n">tabY</span> <span class="o">+</span> <span class="n">tabH</span> <span class="o">+</span> <span class="mi">10</span>
+</span><span class="line">
+</span><span class="line"><span class="n">MyObj</span><span class="o">.</span><span class="n">AddText</span><span class="p">(</span><span class="s">&quot;X15 Y&quot;</span> <span class="n">underTab</span><span class="p">,</span> <span class="s">&quot;Text under the tab.&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>みたいに、<code>GetPos</code>でタブの位置とサイズを取得して、
+タブの下限位置を取得してその下に良しなにコンポーネントを追加していく感じにすると
+いい感じにタブの下にコンポーネントを追加できます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[cVimがChromeのManifest V3で使えなくなったのでVimium Cに乗り換えた]]></title>
+    <link href="https://rcmdnk.com/blog/2025/07/12/computer-chrome-vim/"/>
+    <updated>2025-07-12T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/07/12/computer-chrome-vim</id>
+    <content type="html"><![CDATA[<p>3月頃にすでに一部のChromeの拡張機能が使えなくなる警告は出ていましたが、とりあず手動で有効にすれば使えていました。
+ただ、今回一度落として再起動した際にManifest V3のアップデートが完全に?有効になったようで
+有効にすることが不可能になりました。
+いくつか使えなくなったものがありますが、cVimの乗り換えに関して。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#これまで使っていたものvimperator---cvim" id="markdown-toc-これまで使っていたものvimperator---cvim">これまで使っていたものVimperator -&gt; cVim</a></li>
+  <li><a href="#vimium-cへの乗り換え" id="markdown-toc-vimium-cへの乗り換え">Vimium Cへの乗り換え</a></li>
+  <li><a href="#設定" id="markdown-toc-設定">設定</a>    <ul>
+      <li><a href="#custom-key-mappings" id="markdown-toc-custom-key-mappings">Custom key mappings</a></li>
+      <li><a href="#vonibarを半透明にする" id="markdown-toc-vonibarを半透明にする">Vonibarを半透明にする</a></li>
+      <li><a href="#link-hintsの表示文字の変更" id="markdown-toc-link-hintsの表示文字の変更">Link hintsの表示文字の変更</a></li>
+      <li><a href="#戻る進むの文字列の追加" id="markdown-toc-戻る進むの文字列の追加">戻る/進むの文字列の追加</a></li>
+      <li><a href="#キーボードショートカット" id="markdown-toc-キーボードショートカット">キーボードショートカット</a></li>
+      <li><a href="#windows-autohotkeyの設定" id="markdown-toc-windows-autohotkeyの設定">Windows, AutoHotkeyの設定</a>        <ul>
+          <li><a href="#検索キー" id="markdown-toc-検索キー">検索キー</a></li>
+          <li><a href="#進む戻る" id="markdown-toc-進む戻る">進む、戻る</a></li>
+        </ul>
+      </li>
+      <li><a href="#macos-karabiner-elementの設定" id="markdown-toc-macos-karabiner-elementの設定">macOS, Karabiner-Elementの設定</a>        <ul>
+          <li><a href="#検索キー-1" id="markdown-toc-検索キー-1">検索キー</a></li>
+          <li><a href="#進む戻る-1" id="markdown-toc-進む戻る-1">進む、戻る</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="これまで使っていたものvimperator---cvim">これまで使っていたものVimperator -&gt; cVim</h2>
+
+<p>ブラウザでVimライクな操作をするための拡張機能として
+元々FirefoxでVimperatorを使っていましたが、
+Firefoxのアップデートで数々の拡張機能が使えなくなり、
+似たような拡張機能を探して、一番使えそうなVimiumという拡張機能を試してみました。
+ただ、基本的にはキーマッピングを変える位しか出来ないので
+Vimperatorとは程遠いものでした。
+VimiumはFirefox版もChrome版もあり、そこも良い点ですが、
+特にFirefox版はうまく動かないものも多く使えませんでした。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/10/20/computer-firefox-vimperator/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171020_vimium_120_90.jpg" width="120" height="90" alt="20171020_vimium_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/10/20/computer-firefox-vimperator/">Vimperator亡き後のためにVimium-FFを試してみる</a></div></li></ul>
+
+<p>そこでもはやFirefoxにこだわる必要もなくなったのでChromeに乗り換えました。</p>
+
+<p>ChromeにはcVimという拡張機能があり、それがある程度Vimperatorの代わりになるものだったので
+これまでずっとそれを使ってきました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B00IE67ZSM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B00IE67ZSM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/3110x9TzbSL._SS90_CR0,0,120,90_.jpg" alt="【並行輸入品】Toshiba Chromebook CB35-A3120 PLM01U-002005 13.3-Inch Cloud Computer" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/10/22/computer-firefox/">cVim: Google ChromeのVimperatorみたいな拡張</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/18/computer-chrome/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171118_cvim_120_90.jpg" width="120" height="90" alt="20171118_cvim_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/18/computer-chrome/">Google ChromeでcVimの設定をアップデート</a></div></li></ul>
+
+<p>ただ、このcVimはかなり前にChromeのウェブストアからは消えていて
+自分でビルドして入れたりしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07TN1HBTG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07TN1HBTG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51xSDA7k3OL._SS90_CR0,0,120,90_.jpg" alt="HP 14インチ Chromebook HD タッチスクリーン ラップトップ PC (Intel Celeron N3350 最大2.4GHz、4GB RAM、32GB フラッシュメモリ、WiFi、HDカメラ、Bluetooth、最大10時間のバッテリー寿命、クロームOS、ブラック) (更新済み" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/06/11/computer-chrome-vim/">cVimがchromeウェブストアから消えた</a></div></li></ul>
+
+<p>ただ今回のChromeのアップデートで完全に使えなくなったので、
+自分でなんとかコードをアップデートして使うか、別なものを使うかというところで
+色々見てみた結果、
+<a href="https://github.com/philc/vimium">Vimium</a>をフォークした
+<a href="https://github.com/gdh1995/vimium-c">Vimium C</a>
+が良さそうだったので乗り換え先にしました。</p>
+
+<h2 id="vimium-cへの乗り換え">Vimium Cへの乗り換え</h2>
+
+<p><a href="https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg">Vimium C - All by Keyboad</a></p>
+
+<p>オリジナルのVimiumは基本的にはキーマッピング+Hit a hint(リンクに対してヒントを表示してそれをキーボードで選択する)という機能がメインでした。</p>
+
+<p>VimperatorやcVimはコマンドラインモードもあり、コマンドの定義も出来てそれによっていろいろな操作が出来るようになっていましたが、
+Vimiumでは出来ず、これに関してはVimium Cでも出来ません。</p>
+
+<p>ただ、Vimiumではキーマッピングも基本的にはもともとあるコマンドに対してキーマッピングを設定するというものですが、
+Vimium Cではより複雑な設定が出来るのと、
+独自コマンドの拡張で特定のURLを開くキーを設定したりすることも出来るようになっています。</p>
+
+<p>これでだいたいいまやりたいことが出来そうだったのでVimium Cで一通り設定をしてみました。</p>
+
+<h2 id="設定">設定</h2>
+
+<h3 id="custom-key-mappings">Custom key mappings</h3>
+
+<p>以下をVimium Cのオプションの<strong>Custom key mappings</strong>に追加。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Leader
+</span><span class="line">mapKey , &lt;leader&gt;
+</span><span class="line">
+</span><span class="line"># Unmap
+</span><span class="line"># &lt;a-f&gt; is used for chrome native search
+</span><span class="line">unmap &lt;a-f&gt;
+</span><span class="line">
+</span><span class="line"># Move
+</span><span class="line">map &lt;c-f&gt; scrollFullPageDown
+</span><span class="line">map &lt;c-b&gt; scrollFullPageUp
+</span><span class="line">map &lt;c-u&gt; scrollPageDown
+</span><span class="line">map &lt;c-d&gt; scrollPageUp
+</span><span class="line">map &lt;c-h&gt; scrollLeft
+</span><span class="line">map &lt;c-j&gt; scrollDown
+</span><span class="line">map &lt;c-k&gt; scrollUp
+</span><span class="line">map &lt;c-l&gt; scrollRight
+</span><span class="line">
+</span><span class="line"># Tab
+</span><span class="line">map d removeTab
+</span><span class="line">map u restoreTab
+</span><span class="line">map t Vomnibar.activateInNewTab
+</span><span class="line">
+</span><span class="line"># Search selected text by Google
+</span><span class="line">map &lt;c-g&gt; autoOpen keyword="google"
+</span><span class="line">
+</span><span class="line"># Put [url](title) in clipboard
+</span><span class="line">map &lt;leader&gt;i openUrl url="javascript:(()=&gt;{const\u0020t=document.title.replace(/([\\[\\]])/g,'\\\\$1'),u=location.href,m='['+t+']('+u+')';navigator.clipboard.writeText(m);let\u0020d=document.createElement('div');d.textContent='Copied:\u0020'+m;Object.assign(d.style,{position:'fixed',bottom:'20px',right:'20px',background:'#333',color:'#fff',padding:'10px\u002015px',zIndex:99999,borderRadius:'6px',fontSize:'14px',boxShadow:'0\u00202px\u00206px\u0020rgba(0,0,0,0.3)',maxWidth:'80%',wordBreak:'break-word'});document.body.appendChild(d);setTimeout(()=&gt;d.remove(),2500);})()"
+</span><span class="line">
+</span><span class="line"># Others
+</span><span class="line">map y copyCurrentUrl
+</span><span class="line">map r reload hard</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>leader</code>設定はVimium、Vimium Cともにサポートされてませんが、
+擬似的に<code>mapKey</code>を使うことで実現できます。</p>
+
+<p><a href="https://github.com/philc/vimium/issues/1986">Feature Request: Leader key support · Issue #1986 · philc/vimium</a></p>
+
+<p><a href="https://github.com/gdh1995/vimium-c/issues/1107">leader keyword support · Issue #1107 · gdh1995/vimium-c</a></p>
+
+<p>Move/Tab及びOthersにある設定はVimiumでも出来るものです。
+また、<code>&lt;a-f&gt;</code>をunmapしているのは、Chromeの検索を別途で<code>&lt;a-f&gt;</code>で使いたいからです。</p>
+
+<p>Vimium Cを使った理由はそれ以外の<code>autoOpen</code>と<code>openUrl</code>コマンドを使ってもの。</p>
+
+<p>ワンキーで選択中のテキストをGoogleで検索する、という操作をVimperator以来よく使っているのでそれがないと困るのですが、
+Vimiumだと実現は難しそう。</p>
+
+<p><a href="https://github.com/philc/vimium/issues/2566">How can I search the selected text with my custom search engines with a single key? · Issue #2566 · philc/vimium</a></p>
+
+<p>一方、Vimium Cなら、<code>autoOpen</code>というコマンドを使いそれを実現できます。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">map &lt;c-g&gt; autoOpen keyword="google"</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>ここで<code>keywoard</code>で指定しているものは
+オプションの<strong>Custom search engines</strong>で設定されているもので、
+<code>google</code>はデフォルトで設定されています。
+これで選択中のテキストをGoogleで検索して開けます。</p>
+
+<p>似たようなことはVimiumでも例えばVisualモードに入って単語を選択して、<code>p</code>で検索、ということも出来ますが、
+左手キーボード、右手マウス、といった　感じで操作している際に右手で選択して左手で一発サーチ、
+がしたいのでこれが必要です。</p>
+
+<p>もう一つは<code>openUrl</code>コマンドで、これはその名の通り指定したURLを開くコマンドです。
+VimperatorやcVimであった<code>qmark</code>のような使い方も出来ますし、
+これにBookmarkletのコードを指定することも出来るので
+表示中のページのいろいろな情報を取得したりすることも出来るようになります。</p>
+
+<p>上の設定では<code>&lt;leader&gt;i</code>(<code>,i</code>)で表示中のページを<code>[url](title)</code>の形式でクリップボードにコピーするBookmarkletを実行します。
+ちょっと後半にごちゃごちゃと追加がありますが、
+<code>navigator.clipboard.writeText(m)</code>より後は右下にコピーしたよ、という表示を出すためのものなので必要なければ削除しても大丈夫です。</p>
+
+<p>ちょっとURLをメモしておきたいときに便利でよくつかうのでこれもないと困るもの。</p>
+
+<h3 id="vonibarを半透明にする">Vonibarを半透明にする</h3>
+
+<p><code>o</code>などで表示されるVomnibarですが、例えばちょっと表示されてるページの何かを検索しようと思ったとき、
+見ながら検索したいのにVomonibarが出てしまうと完全に見えなくなってしまい困ることがあります。</p>
+
+<p>cVimでも同じようなことがあって、そういった表示を半透明にするようにしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/04/24/computer-chrome-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180424_cvimrcopacity_120_90.jpg" width="120" height="90" alt="20180424_cvimrcopacity_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/04/24/computer-chrome-vim/">cVimでコマンドモードの候補などの表示を半透明にする</a></div></li></ul>
+
+<p>Vimium Cでも同じように、
+<strong>Custom CSS for Vimium C UI</strong>の設定に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">/* #omni */
+</span><span class="line">body[data-mode="omni"] {
+</span><span class="line"> opacity: 0.8;
+</span><span class="line">}</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という設定を加えることで半透明にします。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250713_vomnibar.jpg" alt="20250713_vomnibar.jpg" class="pic" /></p>
+
+<p>こんな感じ。</p>
+
+<h3 id="link-hintsの表示文字の変更">Link hintsの表示文字の変更</h3>
+
+<p><strong>Characters used for link hints</strong>の設定を</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">hjklasdfgyuiopqwertnmzxcvb</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>に。元々は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">sadjklewcmpgh</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>だけですが、使いやすいように。</p>
+
+<h3 id="戻る進むの文字列の追加">戻る/進むの文字列の追加</h3>
+
+<p><code>[[</code>や<code>]]</code>でページに愛に有る<code>prev</code>や<code>next</code>といった文字のリンクに進むことが出来るようになっていますが、
+この文字列の設定がデフォルトだと英語と中国と記号、といった感じになってるので日本語を追加します。</p>
+
+<p><strong>Previous patterns</strong></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">上一封,上页,上一页,上一章,前一页,上一张,prev,previous,back,older,&lt;←,«,≪,&lt;&lt;,前へ,戻る,前のページ</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><strong>Next patterns</strong></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">下一封,下页,下一页,下一章,后一页,下一张,next,more,newer,&gt;,›,→,»,≫,&gt;,次へ,進む,次のページ</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>それぞれ、<code>前へ</code>, <code>次へ</code>以降のものが追加したもの。</p>
+
+<h3 id="キーボードショートカット">キーボードショートカット</h3>
+
+<p>WindowsやLinuxで、上記のマッピングのように<code>&lt;c-n&gt;</code>を設定しようとしても効かずにChromeの下の<strong>新しいウィンドウを開く</strong>の動作が出てしまいます。</p>
+
+<p><a href="https://github.com/philc/vimium/wiki/FAQ#why-cant-i-remap-ctrl-n-and-similar-keys-on-linux-and-windows">Why can’t I remap Ctrl-N and similar keys on Linux and Windows?</a></p>
+
+<p>このキーを右のタブに移る<code>nextTab</code>に設定したいのですが、
+この動作に関しては拡張機能の設定で<strong>キーボードショートカット</strong>へ行くと、<strong>Vimium C</strong>の設定もあり、
+その中に<strong>Go one tab right</strong>という項目があるのでここに<code>Ctrl+N</code>を設定することで
+<code>&lt;c-n&gt;</code>で右のタブに移ることが出来るようになります。</p>
+
+<p>ついでに<code>Ctrl+P</code>も左のタブに移る<strong>Go one tab left</strong>に設定しておきます。</p>
+
+<p><img src="https://rcmdnk.com/images/post/20250713_keyboardshortcut.jpg" alt="20250713_keyboardshortcut.jpg" class="pic" /></p>
+
+<p>ここで設定するとメリットもあって、Chromeのより上流の設定になるので
+通常Vimium Cが無効になるChromeのウェブストアのページなどでも動作する状態になります。
+なのでmacOSでもこちらでやっておくことにします。</p>
+
+<p>他のhistoryやreloadなどもそういったページで動作させたい場合はここでキー設定をしておくと出来るようになります。</p>
+
+<p>あと、場合によっては別の拡張機能がこのキーボードショートカットで上書きしてることもあって、
+拡張機能のオプションでショートカットが見つからずに変更できないという場合もあるので、
+キーボードショートカット一覧をチェックして必要なら別の拡張機能のショートカットも変更しておくと良いです。</p>
+
+<h3 id="windows-autohotkeyの設定">Windows, AutoHotkeyの設定</h3>
+
+<h4 id="検索キー">検索キー</h4>
+
+<p>Windowsの場合、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">!</span><span class="n">f</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!fff&quot;</span>
+</span><span class="line"><span class="n">#HotIf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のような設定をAutoHotkeyでしています。</p>
+
+<p>これは<i class="key">Ctrl</i>-<i class="key">F</i>を<code>scrollFullPageDown</code>に設定しているので
+代わりの検索キーです。</p>
+
+<p>Vimium Cの機能でも<i class="key">/</i>で検索が出来ますが、
+サイトによってうまくいかなかったりする場合にChromeの検索だとうまくいくことがあるので一応すぐに使えるように。</p>
+
+<p>cVimの場合だとGitHubなんかで<i class="key">/</i>検索すると表示が崩れてましたが
+その点Vimiumでは問題なく動作しているので、検索に関してはVimiumの方が安定しているかも。</p>
+
+<p>上のキーバインドがちょっとよくわからないものになってますが、</p>
+
+<ul>
+  <li><code>!f</code>: <i class="key">Alt</i>-<i class="key">F</i>でメニューにフォーカス</li>
+  <li><code>f</code>: <i class="key">F</i>で<strong>検索と編集</strong>の項目にフォーカス</li>
+  <li><code>f</code>: <i class="key">F</i>で<strong>検索</strong>を実行</li>
+</ul>
+
+<p>という役割です。
+<i class="key">Ctrl</i>-<i class="key">F</i>が使えないのでメニューから実行のを変わりにやっていますが、
+別の方法としてはAutoHotkeyで</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span> <span class="nf">WinActive</span><span class="p">(</span><span class="s">&quot;ahk_exe chrome.exe&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="o">!</span><span class="n">f</span><span class="o">::^</span><span class="n">f</span>
+</span><span class="line"><span class="o">^</span><span class="n">f</span><span class="o">::</span><span class="mi">1</span><span class="n">f</span>
+</span><span class="line"><span class="n">#HotIf</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のように交換しておいて、<code>scrollFullPageDown</code>を<code>&lt;a-f&gt;</code>に設定する、という方法でも良いかもしれません。</p>
+
+<h4 id="進む戻る">進む、戻る</h4>
+
+<p>Vimiumでも<code>goBack</code>/<code>goForward</code>というコマンドでブラウザ履歴の戻る、進むが出来き、
+また拡張機能のキーボードショートカットでも<strong>Go back in history</strong>/<strong>Go forward in history</strong>という項目で
+設定することも出来ます。</p>
+
+<p>ただ、この動作は他のアプリでもよく使うもので、さらにOS共通のショートカットの
+<i class="key">Alt</i>-<i class="key">Left</i>/<i class="key">Right</i>で
+行えるのでAutoHotkeyで設定してあります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">^</span><span class="n">o</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!{Left}&quot;</span>
+</span><span class="line"><span class="o">^</span><span class="n">i</span><span class="o">::</span><span class="n">SendInput</span> <span class="s">&quot;!{Right}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これであればChromeのウェブストアのページなどでも動作するという利点もあり、
+エクスプローラーなどでも<i class="key">Ctrl</i>-<i class="key">O</i>で戻る、なども出来るようになります。</p>
+
+<p>ただ、一つ欠点として、これらのキーが潰れるので、必要であれば特定のアプリだけで使うようにした方が良いかもしれません。
+自分的にはターミナル上での作業でも特に使わなくても困らないので全体設定にしてあります。</p>
+
+<p>一つ被るものとしてはMicrosoft IMEで、<i class="key">Ctrl</i>-<i class="key">I</i>がカタカナに変換、のキーになっている点。
+Google日本語入力を使ってますがMS IMEの設定ベースのキーを使っているので同様に<i class="key">Ctrl</i>-<i class="key">I</i>を使います。
+たまに使うので使えないと面倒なので、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="o">!</span><span class="n">i</span><span class="o">::^</span><span class="n">i</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として<i class="key">Alt</i>-<i class="key">I</i>でカタカナ変換出来るようにしてあります。</p>
+
+<p>これに関してはIMEの設定で変更することも出来ますが、
+変更する方を統一しておきたいのでAHKで変更してあります。</p>
+
+<h3 id="macos-karabiner-elementの設定">macOS, Karabiner-Elementの設定</h3>
+
+<h4 id="検索キー-1">検索キー</h4>
+
+<p>macOSの場合には元々ブラウザの検索は<i class="key">Cmd</i>-<i class="key">F</i>なので<code>&lt;c-f&gt;</code>を設定してもそのままで大丈夫です。</p>
+
+<h4 id="進む戻る-1">進む、戻る</h4>
+
+<p>macOSではChromeやFinderでは<i class="key">Command</i>-<i class="key">[</i>/<i class="key">]</i>で戻る、進むが出来るので
+これを設定します。</p>
+
+<p>Wndows同様IMEの問題があるのでこちらも<i class="key">Command</i>-<i class="key">I</i>でカタカナ変換が出来るようにしておきます。</p>
+
+<p>この設定は</p>
+
+<blockquote>
+  <p><a href="https://rcmdnk.com/KE-complex_modifications/">Karabiner-Elements complex_modifications rules by rcmdnk</a></p>
+</blockquote>
+
+<p>からPersonal SettingsをImportすると</p>
+
+<p><strong>Next/Prev by Ctrl-i/o, Ctrl-left/right arrow</strong>、及び
+<strong>Cmd-i as Ctrl-i, for IME katakana</strong>という設定があるのでそれを有効にすることで設定が出来ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim v0.11とGNU screen 5.0.0の組み合わせで`+q4D73`が表示され崩れるのを治す]]></title>
+    <link href="https://rcmdnk.com/blog/2025/05/03/computer-vim-screen/"/>
+    <updated>2025-05-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2025/05/03/computer-vim-screen</id>
+    <content type="html"><![CDATA[<p>Neovimをv0.11.0にアップデートしたところGNU screen内で立ち上げると
+表示が崩れるようになってしまうことに対する対処法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#gnu-screen-500とneovim-v010での表示問題" id="markdown-toc-gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</a></li>
+  <li><a href="#neovim-v011での表示問題" id="markdown-toc-neovim-v011での表示問題">Neovim v0.11での表示問題</a></li>
+  <li><a href="#neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard" id="markdown-toc-neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="gnu-screen-500とneovim-v010での表示問題">GNU screen 5.0.0とNeovim v0.10での表示問題</h2>
+
+<p>今回v0.11にアップデートしたところまた問題が起こったというところなのですが、
+v0.10のときにも似たような問題が起こっていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<p>上記でTruecolor対応にしたところ</p>
+
+<p><code>+q5463;524742;73657472676266;73657472676262$qm</code></p>
+
+<p>といった表示が出てscreen全体の表示が崩れるような状態になっていました。</p>
+
+<p>いつも出るわけではなく、
+ウィンドウを縦横に分割して、左側のウィンドウで開くときに表示が崩れる状態です。</p>
+
+<p>これに関しては上のポストでは<code>notermguicolors</code>を設定して対処するとしていますが、
+その後、クリップボードを無効にすることで対処していました。</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.<span class="nb">clipboard</span> <span class="p">=</span> false
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>これでNeovim v0.10では表示が問題なくできるようになっていました。</p>
+
+<p>Ref: <a href="https://github.com/neovim/neovim/issues/28776">DECRQSS +q5463;524742;73657472676266;73657472676262$qm appears in terminal · Issue #28776 · neovim/neovim</a></p>
+
+<h2 id="neovim-v011での表示問題">Neovim v0.11での表示問題</h2>
+
+<p>Neovim v0.11にアップデートしたところ、また表示が崩れるようになってしまいました。</p>
+
+<p><code>+q4D73</code>といった表示が出て、表示が崩れるようになっています。</p>
+
+<p>これに関しては上のIssueにあるように、
+<a href="https://github.com/neovim/neovim/pull/31730">#31730</a>がmergeされたため、別途</p>
+
+<figure class="code"><figcaption><span>init.lua </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span>...
+</span><span class="line">local termfeatures <span class="p">=</span> <span class="k">vim</span>.<span class="k">g</span>.termfeatures or {}
+</span><span class="line">termfeatures.osc52 <span class="p">=</span> false
+</span><span class="line"><span class="k">vim</span>.<span class="k">g</span>.termfeatures <span class="p">=</span> termfeatures
+</span><span class="line">...
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の設定が必要になります。</p>
+
+<p>ただ、v0.10ではこの設定だと治らないので両方使う可能性がある場合は両方入れておく必要があります。</p>
+
+<p>OSC52はコピーに使われるシーケンスでその処理に関してGNU screenでは処理しないために
+そのまま表示されたりして表示が崩れてしまうようです。</p>
+
+<blockquote>
+  <p><a href="https://zenn.dev/link/comments/111f73802a8971">OSC52</a></p>
+</blockquote>
+
+<h2 id="neovimというかターミナル上の表示とosのクリップボード共有-multi_clipboard">Neovim(というかターミナル上の表示)とOSのクリップボード共有: multi_clipboard</h2>
+
+<p>クリップボードに関してはVim内のものとOSのクリップボードを共有したりはしないので
+この辺特に気にせずoffにして問題ない状態です。
+Neovimは基本的にターミナル内で使っていて、かつGNU screen内で使うことが殆どで、
+OSのクリップボードに出したい場合はGNU screenのコピー機能でコピーして、
+それをOSに共有するような形にしています。</p>
+
+<p>そのために以下のツールをつかっています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/multi_clipboard"></div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[vim_ahkのAutoHotkey v2対応版リリース(含v1->v2への対応方法)]]></title>
+    <link href="https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim/"/>
+    <updated>2024-10-02T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/10/02/computer-windows-autohotkey-vim</id>
+    <content type="html"><![CDATA[<p>AutoHotkey v2 に対応した vim_ahk のリリースを行いました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#vim_ahk" id="markdown-toc-vim_ahk">vim_ahk</a></li>
+  <li><a href="#autohotkey-v2" id="markdown-toc-autohotkey-v2">AutoHotkey v2</a></li>
+  <li><a href="#v2への移行" id="markdown-toc-v2への移行">v2への移行</a></li>
+  <li><a href="#v1v2の切り替え" id="markdown-toc-v1v2の切り替え">v1/v2の切り替え</a></li>
+  <li><a href="#主な大きな変更点" id="markdown-toc-主な大きな変更点">主な大きな変更点</a>    <ul>
+      <li><a href="#hotkeyがラベルではなく関数に" id="markdown-toc-hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</a></li>
+      <li><a href="#if---hotif" id="markdown-toc-if---hotif">#If -&gt; #HotIf</a></li>
+      <li><a href="#変数代入" id="markdown-toc-変数代入">変数代入</a></li>
+      <li><a href="#文字列の扱い" id="markdown-toc-文字列の扱い">文字列の扱い</a></li>
+      <li><a href="#コマンドは全て関数に" id="markdown-toc-コマンドは全て関数に">コマンドは全て関数に</a></li>
+      <li><a href="#設定項目の変更" id="markdown-toc-設定項目の変更">設定項目の変更</a></li>
+      <li><a href="#gui周り" id="markdown-toc-gui周り">Gui周り</a></li>
+    </ul>
+  </li>
+  <li><a href="#vim_ahkのv2対応" id="markdown-toc-vim_ahkのv2対応">vim_ahkのv2対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="vim_ahk">vim_ahk</h2>
+
+<div class="github-widget" data-repo="rcmdnk/vim_ahk"></div>
+
+<p>vim_ahkはAutoHotkeyを使ってVim風のキーバインドをWindows上のいたるところで使えるようにするスクリプトです。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/08/03/computer-windows-autohotkey/">Vim以外でVimする: Windows+AutoHotkey編</a></div></li></ul>
+
+<h2 id="autohotkey-v2">AutoHotkey v2</h2>
+
+<p>2年ほど前にAutoHotkey v2が正式リリースされ、2023年初頭にはv2の方がプライマリーバージョンとして推奨されるようになりました。</p>
+
+<p>変更点が結構ある上にv1がすぐに使えなくなるわけでもないので、自分の別のスクリプトも含めてv2に移行するのが面倒でしたが、
+だいぶ前に自分で作るだけ作ってたIssueに「いつ出来るの？」と待ってくれてる方がいたので久々にAutoHotkeyを勉強しながらやってみることに。</p>
+
+<h2 id="v2への移行">v2への移行</h2>
+
+<p>AutoHotkeyは2003年頃にリリースされた古いソフトウェアですが、当初ドキュメントもあまりなく、特に日本語などは有志によるものなどが色々ありました。</p>
+
+<p>10年位前でも良くまとまってるものが少なかったこともあり自分でもまとめたりしていました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/28/computer-windows-autohotkey/">AutoHotkeyの使い方1</a></div></li></ul>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20130723_AutoHotKey_120_90.jpg" width="120" height="90" alt="20130723_AutoHotKey_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/">AutoHotkeyの使い方2</a></div></li></ul>
+
+<p>現在はかなり整備されていて、v1からv2への移行についても詳しく書かれています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>かなり大きく変わっているので、これをパット見てすぐに移行するのは難しいですが、
+実際にv2として動かしてエラーを見て、エラー箇所について上のドキュメントで探して、という感じでやっていけばほとんどなんとかなるかと思います。</p>
+
+<p>ざっくりでもいいからとりあえず簡単に移行したい、という場合には
+移行用のツールを作ってくれてる方もいるので、それを使うのもいいかもしれません</p>
+
+<div class="postscript">
+  <p><strong>追記: 2024/10/02 </strong></p>
+
+  <p>このツール最初に使おうとしたら、自分の環境に入っているAutoHotokeyがv2.0.0のv2の古いバージョンでエラーが出て使えないじゃないか、と思ってましたが最新のv2.0.18を入れ直したら動きました。</p>
+
+  <p>v2.0.11あたりで結構大きな変更が入った(?)</p>
+
+  <p><strong>追記ここまで</strong></p>
+</div>
+<p>。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mmikeww/AHK-v2-script-converter">mmikeww/AHK-v2-script-converter: AHK v1 -&gt; v2 script converter</a></p>
+</blockquote>
+
+<p>特に細かいことを気にしたくなければ一旦これで変換して、その後にエラー箇所を修正していく、というのがてっとり早いかと。</p>
+
+<h2 id="v1v2の切り替え">v1/v2の切り替え</h2>
+
+<p>現状、AutoHotkey v2をインストールするとv1も同時にインストールされるようになっています。</p>
+
+<p>適当なスクリプトを実行すると、v1/v2のどちらかでしか実行できないものだけが含まれる場合は自動判別で実行できるバージョンで実行されます。</p>
+
+<p>例えば</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#If</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とかならv1,</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#HotIf</span>
+</span><span class="line"><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>ならv2で自動的に実行されます。</p>
+
+<p>一方、どちらでも実行できる、もしくは混ざってしまってどちらでも失敗するようなスクリプトで判別不能な場合は
+最初にどちらを使うか、の選択ウィンドウが出てくるようになっています。</p>
+
+<p>また、スクリプトの先頭に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">#Requires</span> <span class="n">AutoHotkey</span> <span class="n">v2</span><span class="o">.</span><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにバージョンを指定すると必ずそのバージョンで実行されるようになります<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>v2でテストするためにとりあえずこのv2.0指定をして実行してエラーが出た箇所を直していく、という作業が基本です。</p>
+
+<h2 id="主な大きな変更点">主な大きな変更点</h2>
+
+<p>たくさん変更があるので詳しくは
+<a href="https://www.autohotkey.com/docs/v2/v2-changes.htm">Changes from v1.1 to v2.0</a>
+を参照ですが、
+とくに気になった変更点をいくつか。</p>
+
+<h3 id="hotkeyがラベルではなく関数に">Hotkeyがラベルではなく関数に</h3>
+
+<p>AutoHotkeyでまず行うのが</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったHotkeyの設定ですが、複数行で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">a</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">    <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいに書くことがv1では出来ました。</p>
+
+<p>この書き方を<strong>ラベル</strong>表記と呼んでいるみたいです。</p>
+
+<p>一方、v2ではこのラベル表記が廃止され、関数表記に変わりました。
+(MsgBox, Sendもコマンドから関数に変わって書き方が変わっています。)</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(</span><span class="n">hk</span><span class="p">){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>引数の<code>hk</code>は入力のHotkey(この場合は<code>a</code>)が入ります。</p>
+
+<p>関数名を省略して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="n">hk</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くことも出来、この場合入力キーは<code>A_ThisHotkey</code>で取得できます。(これはv1のラベル表記でも使える。)</p>
+
+<p>この書き方はv1.1.20から使える様になってv2以前では括弧だけ使うか、関数の引数無しで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line">  <span class="n">func</span><span class="p">(){</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">    <span class="nb">Send</span> <span class="n">b</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように定義して入力キーは<code>A_ThisHotkey</code>で取得する、という形でした。</p>
+
+<p>1行で書く場合にはv2でも</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">b</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように括弧なしでも書けます。</p>
+
+<p>また、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="nv">A_ThisHotkey</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">Send</span><span class="p">(</span><span class="s">&quot;c&quot;</span><span class="p">)</span>
+</span><span class="line">  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように、複数のキーに同じ処理を割り当てることが出来ます。</p>
+
+<p>同じようなことはv1でも出来ますが、v1だとラベル表記として</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="nl">b::</span>
+</span><span class="line">  <span class="nb">MsgBox</span><span class="p">,</span> <span class="o">%</span> <span class="nv">A_ThisHotkey</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">d</span>
+</span><span class="line"><span class="nl">c::</span>
+</span><span class="line">  <span class="nb">MsgBox</span> <span class="n">c</span>
+</span><span class="line">  <span class="nb">Send</span> <span class="n">e</span>
+</span><span class="line">  <span class="nb">Return</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書くと<i class="key">a</i>, <i class="key">b</i>を押すとそのHotkeyの表示と<code>d</code>が送られ、さらに<code>c</code>の表示と<code>e</code>が送られます。</p>
+
+<p>これは複数行で書く場合には<code>Return</code>が来るまで途中にキーラベルがあっても継続して処理が行われるためです。</p>
+
+<p>v2だとこういった重ねがけはできないので、<code>A_ThisHotkey</code>を使って処理を分けたりする必要があります。</p>
+
+<p>ただ、この<code>Return</code>を忘れて処理がおかしくなったりすることもあったので
+より明確に処理を分けることが出来るようになった、という感じはします。</p>
+
+<h3 id="if---hotif">#If -&gt; #HotIf</h3>
+
+<p>特定の条件下でHotkeyを有効にするためにv1では<code>#If</code>を使っていましたが、v2では<code>#HotIf</code>に変わりました。</p>
+
+<p><code>#IfWinActive</code>などはなくなり、
+<code>#HotIf WinActive(...)</code>のように条件部分を分けてかくようになりました。</p>
+
+<p><code>HotIfWinActive</code>などもはありますが、これらは上のような<code>::</code>を使ったHotkeyではなく<code>Hotkey</code>関数をつかった定義のための条件分岐として使われます。
+それらは特に動的にHotkeyを変更するときに使われるものです。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/HotIf.htm#IfWin">HotIf / HotIfWin… - Syntax &amp; Usage AutoHotkey v2</a></p>
+</blockquote>
+
+<p>単純なHotkey設定だけであれば上のHotkeyの関数化とこの<code>#HotIf</code>への変更を行えば大概動くはずです。</p>
+
+<h3 id="変数代入">変数代入</h3>
+
+<p>v1では<code>=</code>および<code>:=</code>で変数に代入できましたが、v2では<code>:=</code>のみになりました。</p>
+
+<p>v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">a</span> <span class="o">:=</span> <span class="s">&quot;abc&quot;</span><span class="c1">   ;1</span>
+</span><span class="line"><span class="n">a</span> <span class="o">:=</span> <span class="n">abc</span><span class="c1">     ;2</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span><span class="c1">    ;3</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="n">abc</span><span class="c1">      ;4</span>
+</span><span class="line"><span class="n">a</span> <span class="o">=</span> <span class="nv">%abc%</span><span class="c1">    ;5</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ol>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+  <li>“abc” (“も含む)</li>
+  <li>abc</li>
+  <li>変数abcに入っていた値</li>
+</ol>
+
+<p>といった代入になっていました。</p>
+
+<p><a href="https://rcmdnk.com/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/">/blog/2013/07/29/computer-windows-autohotkey/#%E5%A4%89%E6%95%B0/</a></p>
+
+<p>v2では3, 4 ,5はできなくなります。
+一般的なプログラミング言語の代入を<code>:=</code>で行うようになった形です。</p>
+
+<p>v2では全体的に曖昧な書き方が削除されてわかりやすくなっています。</p>
+
+<p>また、v1だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにすると空文字列が代入されていましたが、v2ではエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように明示的に空文字列を代入する必要があります。</p>
+
+<h3 id="文字列の扱い">文字列の扱い</h3>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="nv">%abc%</span> <span class="n">xyz</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="o">%</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とするとそれぞれ</p>
+
+<ul>
+  <li>“abcxyz”</li>
+  <li>“123xyz”</li>
+  <li>“123xyz”</li>
+</ul>
+
+<p>といった結果になりました。何もつけないと文字列として理解され、<code>%</code>囲むと変数として理解されました。
+さらに<code>% </code>で始めるとなにもないものは変数として扱われ<code>"</code>で囲むと文字列として扱われました。</p>
+
+<p>この辺もあまり他では見ないものでややこしくなる一員でしたが、v2では<code>% </code>という表記は削除され、基本全てが<code>% </code>で始まった状態として扱われるようになっています。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="n">abc</span> <span class="o">:=</span> <span class="s">&quot;123&quot;</span>
+</span><span class="line"><span class="n">a</span> <span class="o">::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span> <span class="s">&quot;xyz&quot;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>で<code>123xyz</code>と表示されます。</p>
+
+<p>これに関連して</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="p">{</span><span class="n">Enter</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように書きましたが、v2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span><span class="n">Send</span> <span class="s">&quot;{Enter}&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>"</code>で囲む必要があります。</p>
+
+<p><code>Send</code>はHotkeyの設定で比較的よく使うと思うのでこの変更が必要となる部分は多いかもしれません。</p>
+
+<h3 id="コマンドは全て関数に">コマンドは全て関数に</h3>
+
+<p>上の<code>MsgBox</code>や<code>Send</code>のようなものはv1ではコマンド扱いでしたが
+関数となり、書き方が変わっています。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/v2-changes.htm#legacy-syntax-removed">Changes from v1.1 to v2.0  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>v1では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="n">abc</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="n">abc</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにコマンド直後に<code>,</code>をつけても付けなくてもよかったのですが、v2では
+関数ではあるが関数の引数の両側の括弧を省略して書くことができる、という形なので、
+関数名直後に<code>,</code>をつけるとエラーになります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nl">a::</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="nb">MsgBox</span> <span class="s">&quot;abc&quot;</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">)</span>
+</span><span class="line">    <span class="nb">MsgBox</span><span class="p">,</span> <span class="s">&quot;abc&quot;</span><span class="c1"> ; これはエラー</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>これも<code>Send</code>でも同様で直す部分は結構あるかもしれません。</p>
+
+<p>また、関数化に伴い、引数の順序が変わったりもしています。</p>
+
+<p><code>MsgBox</code>だと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Text</span>
+</span><span class="line"><span class="nb">MsgBox</span> <span class="p">,</span> <span class="n">Options</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Timeout</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という書き方だったものがv2では</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="ahk"><span class="line"><span></span><span class="nb">MsgBox</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span>
+</span><span class="line"><span class="n">Result</span> <span class="o">:=</span> <span class="n">MsgBox</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">Title</span><span class="p">,</span> <span class="n">Options</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v1/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v1</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/MsgBox.htm">MsgBox - Syntax &amp; Usage  AutoHotkey v2</a></p>
+</blockquote>
+
+<p>もう一つ大きな変更は関数化により返り値が出るようにあんったので、
+これまで取得したい値を引数に渡して取り出すような形だったものの多くが返り値として取得できるようになりました。</p>
+
+<p>また、<code>KeyWait</code>など一部の関数では実行後に<code>ErrorLevel</code>という値を見ることで
+処理の成否を判断するようになっていましたが、これも関数化により返り値として取得できるようになりました。</p>
+
+<p><code>MsgBox</code>の<code>Timeout</code>も返り値として取得できるようになっています。
+また、<code>MsgBox</code>ではv1では<code>IfMsgBox</code>というコマンドを使って押されたボタンを判断していましたが、
+これも返り値に入ります。
+タイム・アウトすれば<code>timeout</code>、それ以外なら<code>OK</code>など押されたボタンの情報が入ります。</p>
+
+<h3 id="設定項目の変更">設定項目の変更</h3>
+
+<ul>
+  <li><code>#NoEnv</code>は削除(<code>NoEnv</code>な状態がデフォルトに)</li>
+  <li><code>#UseHook On</code> <i class="fa fa-arrow-right"></i> <code>#UseHook True</code> (On/OffからTrue/Falseに変更)</li>
+  <li><code>#InstallKeybdHook</code> <i class="fa fa-arrow-right"></i> <code>InstallKeybdHook</code> (#コマンドから関数に変更)</li>
+  <li><code>#HotkeyInterval 2000</code> <i class="fa fa-arrow-right"></i> <code>A_HotkeyInterval := 2000</code> (#コマンドから変数に変更)</li>
+</ul>
+
+<p>など、設定項目も変わっています。</p>
+
+<h3 id="gui周り">Gui周り</h3>
+
+<p>かなり変わってます。</p>
+
+<p>ボタンを押したときの動作などを<code>g-label</code>という形で<code>gCancel</code>のようにオプションに追加すると
+<code>Cancel</code>というラベルが呼ばれるようになっていましたが、
+v2では作られたオブジェクトに対して<code>OnEvent</code>という関数を使ってイベントを設定するようになりました。</p>
+
+<p>また、似たように<code>v</code>をつけるオプションで<code>vMyVar</code>をオプションに加えると<code>MyVar</code>というglobal変数に
+そのコントロールの値が入るようになっていましたが、
+v2では<code>vMyVar</code>のように<code>v</code>をつけるオプションは残っていますがこれは単にそのコントロールの名前を指定するだけのものになっています。</p>
+
+<p>コントロールでの値の取得はそのコントロールユニットの<code>Value</code>プロパティを使うようになっています。</p>
+
+<p>その他いろいろな変更がありますが、
+この辺り、もともとあったものを書き換えようと思うとかなりややこしいのですが、
+v2からの学び始めるのであればv1の書き方を覚えるよりも素直に理解できるようになってると思います。</p>
+
+<blockquote>
+  <p><a href="https://www.autohotkey.com/docs/v2/lib/Gui.htm">Gui Object - Methods &amp; Properties AutoHotkey v2</a></p>
+</blockquote>
+
+<h2 id="vim_ahkのv2対応">vim_ahkのv2対応</h2>
+
+<p>以下のPRにまとめてあります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/vim_ahk/pull/101">Ahk v2 by rcmdnk · Pull Request #101 · rcmdnk/vim_ahk</a></p>
+</blockquote>
+
+<p>なるべく細かく一つ一つの変更に対応してcommitは分けてあります。</p>
+
+<p>v2の(もしくはv1のときにすでにアップデートで入っていた)書き方によってより良く出来そうな部分はまだあると思うので
+また改善していきたいと思います。</p>
+
+<p>現状、v1だったときに出来たことは全て出来るようになっていると思っていますが、
+もし何か不具合があればIssueなどで報告していただけると助かります。</p>
+
+<p>自分のv1スクリプトの中で使いたい場合は
+<a href="https://github.com/rcmdnk/vim_ahk/tree/v0.13.2">v0.13.2</a>などの<code>v0.13.X</code>以前のものか<a href="https://github.com/rcmdnk/vim_ahk/tree/ahk_v1">ahk_v1</a> branchのものを使ってください。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Neovim 0.10でcolorschemeを以前のように戻す]]></title>
+    <link href="https://rcmdnk.com/blog/2024/05/20/computer-vim/"/>
+    <updated>2024-05-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/05/20/computer-vim</id>
+    <content type="html"><![CDATA[<p><a href="https://neovim.io/doc/user/news-0.10.html">News-0.10</a>
+になって変わってしまった
+colorschemeを以前のように戻す方法。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#termguicolors" id="markdown-toc-termguicolors">termguicolors</a></li>
+  <li><a href="#colorscheme--vim" id="markdown-toc-colorscheme--vim">colorscheme  vim</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="termguicolors">termguicolors</h2>
+
+<p>0.10からターミナルで立ち上げるCUI上のNeovimでも
+24-bitのtrue colorが有効な環境では
+<code>termguicolors</code>が有効になり
+<code>guifg</code>などで設定したGUI用の色が使われるようになりました。</p>
+
+<p>これを戻すには<strong>.config/nvim/init.vim</strong>に</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">set</span> notermguicolors
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定しておきます。</p>
+
+<p>ほとんどの場合、GUI用の設定はCUI用の設定にプラスアルファで
+より繊細な色設定がされている状態で、
+またGUI用の方をメインとして作られていることも多いので
+これに関しては無理に戻す必要はないかもしれません。</p>
+
+<p>ただし、場合によってはNeovimが本来true colorをサポートしていない状態なのに
+勘違いして(実際には何らかの設定がTrue colorを示す状態になってしまっていて)<code>termguicolors</code>が有効になっていることがあるので
+その場合は<code>notermguicolors</code>を設定する必要があります。</p>
+
+<p>GUI用の設定と共有して<code>set termguicolors</code>を明に設定するのを避けたい場合は
+その原因を探ってNeovimが<code>termguicolors</code>を設定しないようにする必要があります。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2024/05/19/vim-screen/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20240519_truecolor_120_90.png" width="120" height="90" alt="20240519_truecolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2024/05/19/vim-screen/">Neovim 0.10でのtruecolorの取り扱いの変更に対する対応</a></div></li></ul>
+
+<h2 id="colorscheme--vim">colorscheme  vim</h2>
+
+<p>Neovim 0.10から<code>default</code>のcolorschemeが変更されました。</p>
+
+<p>以前の同じcolorschemeにするには</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">colorscheme</span> <span class="k">vim</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、<code>vim</code>というcolorschemeを指定します。</p>
+
+<p>また、いろいろな設定を一旦リセットしてからcolorschmeを設定するために</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line">
+</span><span class="line"><span class="k">hi</span> CursorLine ...
+</span><span class="line"><span class="k">hi</span> ColorColumn ...
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように一旦リセットしてからhighlightを設定していることもあるかと思います。</p>
+
+<p>0.10からは以前と同じようにするには</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">colorscheme</span> <span class="k">vim</span>
+</span><span class="line">
+</span><span class="line"><span class="k">hi</span> CursorLine ...
+</span><span class="line"><span class="k">hi</span> ColorColumn ...
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようにclearした後に<code>vim</code>なcolorschemeを設定する必要があります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/neovim/neovim/issues/26378">The new default colorscheme breaks legacy vim colorscheme: workarounds and future steps? · Issue #26378 · neovim/neovim</a></p>
+</blockquote>
+
+<p>ただし、別途colorschemeを導入している場合にはちょっと面倒です。</p>
+
+<p>colorschmeファイルの中でも、ほとんどの場合colorschmeファイルの先頭で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;syntax_on&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="nb">syntax</span> reset
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じでcolorschemeをリセットしています。</p>
+
+<p>なのでcolorschmeを設定する前に<code>colorschme vim</code>を設定しても意味ないですし、
+後からしても設定したcolorschemeが上書きされてしまいます。</p>
+
+<p>なのでcolorschme自体をアップデートする必要があります。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="vim"><span class="line"><span></span><span class="k">hi</span> clear
+</span><span class="line"><span class="k">if</span> filereadable<span class="p">(</span>$VIMRUNTIME . <span class="s1">&#39;/colors/vim.lua&#39;</span><span class="p">)</span>
+</span><span class="line">  source $VIMRUNTIME<span class="sr">/colors/</span><span class="k">vim</span>.<span class="k">lua</span>
+</span><span class="line"><span class="k">endif</span>
+</span><span class="line"><span class="k">if</span> exists<span class="p">(</span><span class="s1">&#39;syntax_on&#39;</span><span class="p">)</span>
+</span><span class="line">  <span class="nb">syntax</span> reset
+</span><span class="line"><span class="k">endif</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じでNeovim 0.10で導入されたruntimeの中にある<strong>colors/vim.lua</strong>ファイルを読み込む必要があります。</p>
+
+<p>自分の環境ではもともと<strong>.vimrc</strong>に書いていた設定をプラグイン化したものを使っているので、
+そのプラグインをアップデートすることで対応しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/11/13/computer-vim/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20171113_vimcolor_120_90.jpg" width="120" height="90" alt="20171113_vimcolor_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/11/13/computer-vim/">.vimrc見直しの一環としてカラースキームプラグインを作った</a></div></li></ul>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/rcmdnk-color.vim/commit/e2b8c300aff61cabf6c413ea910086ad0083bff9">feat: add support for nvim &gt;= 0.10 by conditionally sourcing vim.lua … · rcmdnk/rcmdnk-color.vim@e2b8c30</a></p>
+</blockquote>
+
+<p>colorschemeプラグインは頻繁に変更されるものでもないので
+よく使われているものでも長いこと更新されていないものも多く、
+Neovimへの対応ということもありなかなか対応されないものもあるかもしれません。</p>
+
+<p>その場合は他のcolorschemeを使うか、
+自分でforkして上の様な対応して使うかなどする必要があります。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: Brew-file | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/tags/brew-file/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへwhalerew, VSCodeの拡張機能管理を追加]]></title>
+    <link href="https://rcmdnk.com/blog/2024/11/11/computer-homebrew-brew-file/"/>
+    <updated>2024-11-11T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2024/11/11/computer-homebrew-brew-file</id>
+    <content type="html"><![CDATA[<p>Homebrew-fileへwhalerew, VSCodeの拡張機能の管理を追加しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#whalerew-vscodeの拡張機能の管理を追加" id="markdown-toc-whalerew-vscodeの拡張機能の管理を追加">whalerew, VSCodeの拡張機能の管理を追加</a></li>
+  <li><a href="#その他のアップデート" id="markdown-toc-その他のアップデート">その他のアップデート</a>    <ul>
+      <li><a href="#brew-info関連" id="markdown-toc-brew-info関連">brew info関連</a></li>
+      <li><a href="#brew-infoにおけるno-url-formulaの問題" id="markdown-toc-brew-infoにおけるno-url-formulaの問題"><code>brew info</code>におけるno URL formulaの問題</a></li>
+      <li><a href="#古い名前aliasへの対応" id="markdown-toc-古い名前aliasへの対応">古い名前、aliasへの対応</a></li>
+      <li><a href="#brew-tap時にhomebrew_no_auto_updateを設定する必要なし" id="markdown-toc-brew-tap時にhomebrew_no_auto_updateを設定する必要なし"><code>brew tap</code>時にHOMEBREW_NO_AUTO_UPDATEを設定する必要なし</a></li>
+      <li><a href="#read-the-docsのテーマ変更" id="markdown-toc-read-the-docsのテーマ変更">Read the Docsのテーマ変更</a></li>
+    </ul>
+  </li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<p>Homebrewのメンテナーが作っている<a href="https://github.com/Homebrew/homebrew-bundle">bundle</a>というBrewfileファイルに書き出すツールがありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能だったり
+Brewfile自体の管理を行うための機能があるのが特徴です。</p>
+
+<h2 id="whalerew-vscodeの拡張機能の管理を追加">whalerew, VSCodeの拡張機能の管理を追加</h2>
+
+<p>Requestがあったのでwhalerew, VSCodeの拡張機能の管理を追加しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/286">vscode extensions · Issue #286</a></p>
+</blockquote>
+
+<p><a href="https://github.com/Homebrew/homebrew-bundle">bundle</a>の方で対応しているよ、とのことだったので。</p>
+
+<p>whalebrewで管理するimageやVSCodeの拡張機能が導入されている場合、
+<code>brew file init</code>で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Whalebrew images
+</span><span class="line">whalebrew whalebrew/whalesay
+</span><span class="line">
+</span><span class="line"># VSCode extensions
+</span><span class="line">vscode eamodio.gitlens
+</span><span class="line">vscode ms-python.debugpy</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のような形でBrewfileに書き出されます。</p>
+
+<p>また、Brewfileにこれらの情報が書かれている状態で<code>brew file install</code>を実行した際には
+それぞれイメージや拡張機能がインストールされますが、
+<code>whalebrew</code>コマンドがなかったり、VSCodeがインストールされていない場合は
+それらのインストールも行います
+(<code>brew install whalebrew</code>/<code>brew install vscode</code>)。</p>
+
+<p>ただし、whalebrewはイメージをインストールするにあたってdocker環境が用意されていることが前提になるので、
+dockerが動いてないと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Installing whalebrew/whalesay
+</span><span class="line">[WARNING] Docker command is not available.
+</span><span class="line">[WARNING] Please install whalebrew/whalesay by whalebrew after docker is ready.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のようなwaningが出て終わります。</p>
+
+<p>dockerに関しては、<code>brew install docker</code>でインストールしてもそこから実行する必要がありますし、
+caskの方にもあったり、インストールするにも色々あるところなのでこれに関しては手動でやってもらうことを前提としておきます。</p>
+
+<p><a href="https://github.com/whalebrew/whalebrew">whalebrew</a>
+に関しては自分自身
+このIssueで初めて知ったものなんですが、
+dockerイメージをインストールしてそこに入ってるコマンドを直接使えるようにするツールです。</p>
+
+<p>環境依存があるようなコマンドだとDockerイメージを使って実行することで環境を気にせず実行できるようになるので便利そうです。</p>
+
+<p>HomebrewでPython製のコマンドラインツールを配布する際に仮想環境を自動で構築してその環境として実行できるようにすることが出来ますが、
+これはちょっとインストールに時間がかかるのが難点です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/1938469356?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=1938469356&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51Xu88hlobL._SS90_CR0,0,120,90_.jpg" alt="How to Brew: Everything You Need to Know to Brew Great Beer Every Time" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/04/11/computer-python-homebrew/">Python製コマンドラインツールをHomebrewで配布する</a></div></li></ul>
+
+<p>普段からdockerを使ってる人であれば、
+whalebrewを使うことでそれようのimageを作っておけば比較的容易にインストール出来るようになるかな、とも。</p>
+
+<p>逆に普段dockerを動かしてない人にとってはハードル高いかもしれませんが。</p>
+
+<h2 id="その他のアップデート">その他のアップデート</h2>
+
+<p>ついでに他のアップデートについても。</p>
+
+<h3 id="brew-info関連">brew info関連</h3>
+
+<p>細かいアップデートはたくさんありますが、大きな所で<code>brew info</code>とかで取っていた
+パッケージリストや依存関係などの情報取得する方法を大きく変えました。</p>
+
+<p>昨年Homebrewが4.0.0にアップデートされたときにAPI経由のインストールがデフォルトに変わり、これに関連していくつか変更を行っています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01N212Y20?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01N212Y20&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51MPKyBBwqL._SS90_CR0,0,120,90_.jpg" alt="ベートーヴェン:交響曲第9番「合唱」" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python/">Homebrew-file 9.0.Xへアップデート: Homebrew 4.0.Xへの対応など</a></div></li></ul>
+
+<p>とくにこの際<code>brew info --eval-all --json=v2</code>ですべてのパッケージの情報を取得しようとしても
+API経由でインストールする<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>に関する情報がそれらを直接tapしてない限り取得できなかったので
+API関連のcacheディレクトリにあるファイルから直接情報を取得したりしていました。</p>
+
+<p>おそらくバグかな、と思うのですが、今はそれらの情報も取得できるようになっているようです。</p>
+
+<p>さらに、この<code>brew info --eval-all --json=v2</code>ですべての情報を取得していた最大の理由は
+各tapに含まれるパッケージのリストを作るためでした。
+以前はファイルがすべてシステムにあったのでformula/caskのフィアルリストを直接見に行くことで取得していましたが、
+上に書いたように現在は<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>はtapされずにそれらのformula/caskがローカルにないので
+なんらかの<code>brew</code>コマンドでなんとか取得する必要があったためです。</p>
+
+<p>ただ、これに関しても現在は<code>brew tap-info --json --installed</code>というコマンドで、
+<strong>homebrew-core</strong>, <strong>homebrew-cask</strong>を含むすべてのtapに関してそのtapに含まれるformula/caskのリストを取得できるようになっているので
+それを使うように変更しています。</p>
+
+<p><code>brew info --eval-all --json=v2</code>に関しては<code>brew file casklist</code>でmacOSにおけるアプリのチェックをするときだけに使うようになっています。</p>
+
+<p>これによって<code>brew file init</code>が大分速くなりました。</p>
+
+<p>自分の~200 formulae, ~30 casksが入っている環境で</p>
+
+<ul>
+  <li><code>brew info</code>を使った古いversion (v9.1.4): ~30秒</li>
+  <li><code>brew tap-info</code>を使った古いversion (v9.2.0): ~6秒</li>
+</ul>
+
+<p>といった感じで1/5に。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/pull/290">Update brew info related functions (for brew file init, ect…) by rcmdnk · Pull Request #290 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>特に<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>を使っている場合、
+<code>brew install &lt;formula&gt;</code>をするたびに<code>brew file init</code>相当のことが行われるため
+結構時間がかかることがあるので、これで大分良くなってのではないかと思います。</p>
+
+<h3 id="brew-infoにおけるno-url-formulaの問題"><code>brew info</code>におけるno URL formulaの問題</h3>
+
+<p>ちょっとbrew fileのアップデートの話からはずれますが、
+<code>brew info --eval-all --json=v2</code> (<code>--json=v1</code>も)で別に1つ問題があります。
+インストールしたtap内のformulaeにURLがない場合にエラーになり、問題のないformulaeに関しても情報が取得できなくなります。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/282">[ERROR] Failed at command: /opt/homebrew/bin/brew info –json=v1 –eval-all Error: formulae require at least a URL · Issue #282 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>1つわかってるformulaは
+<a href="https://github.com/hashicorp/homebrew-tap/blob/master/Formula/vagrant.rb">hashicorp/tap/vagrant</a>
+です。</p>
+
+<p>このtapを入れていなければ問題ないわけですが、このtapの中には
+<a href="https://github.com/hashicorp/homebrew-tap/blob/master/Formula/terraform.rb">hashicorp/tap/terraform</a>
+などがあり、これらを使うためにtapしてある場合、vagrantをインストールしていなくても
+<code>--eval-all</code>では全てのformulaeの情報を取得しようとするためエラーになります。</p>
+
+<p>さらには、このterraformですが、もともとは<strong>homebrew-core</strong>の中に入っていました。
+ですが、TerraformがライセンスをBUSLに変更したため
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>、<strong>homebrew-core</strong>にあるformulaからはインストールできないようにされました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/homebrew-core/pull/139538">hashicorp: deprecate and add caveat by iMichka · Pull Request #139538 · Homebrew/homebrew-core</a></p>
+</blockquote>
+
+<p>別にterraformのライセンスが変わってもHomeberwでインストールするものとしては問題ないような気もしますが
+なんかだめみたいです。</p>
+
+<p>まだformula自体は残っていますが、現在インストールしようとすると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Warning: terraform has been deprecated because it changed its license to BUSL on the next release! It will be disabled on 2025-04-04.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>というwarninが出ます。</p>
+
+<p>また、同じくhashicorpのpackerとかだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">Error: packer has been disabled because it will change its license to BUSL on the next release! It was disabled on 2024-09-27.</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と、すでに今年の9月からインストールできなくなっています。</p>
+
+<p>そんなわけで<strong>hashicorp/tap</strong>を使ってterraformなどをインストールする人が出てきているようで、
+このURLなし問題が出てきたようです。</p>
+
+<p>この問題はすでにIssueに上がってますが、結構前から解決に至っていません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/hashicorp/homebrew-tap/issues/258">Formulae require at least a URL · Issue #258 · hashicorp/homebrew-tap</a></p>
+</blockquote>
+
+<p>問題としては、Linuxかつintel CPU用のもののみ提供されているため、
+formulaの中でその場合のみツールのURLを提供するようになっていて、
+結果的にそれ以外の環境だとURLのないformulaになってしまいます。</p>
+
+<p>また、とりあえず他の環境でもインストールは出来てしまうようにする、という提案はあるのですが、
+このtapの中のformulaはtemplateを元に自動で作っているため、
+そちらを直さないといけないということで変更が進んでいません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/hashicorp/homebrew-tap/pull/252">vagrant: fix for errors on macOS by EricFromCanada · Pull Request #252 · hashicorp/homebrew-tap</a></p>
+</blockquote>
+
+<p>じゃあHomebrew側でこういうの回避するようにしてくれればよいわけですが、</p>
+
+<blockquote><p>We don't support errors with third-party taps here.</p><footer><strong>Running "brew uses" gives error · Issue #16709 · Homebrew/brew</strong> <cite><a href="https://github.com/Homebrew/brew/issues/16709">github.com/Homebrew/brew/issues/&hellip;</a></cite></footer></blockquote>
+
+<p>と、なんか切り捨てられてます。</p>
+
+<p>Homebrewのこの方は結構きついなあ、と思うことが度々ありますが、
+これも本質的なのはURLを書かないFormula側ではなくて
+環境依存でインストールするものを変えられるFormulaの設計の中、
+対応のない環境だと結果的にURLがない状態になってしまう、ということが問題なので
+その部分はHomebrew側の問題です。</p>
+
+<p>まあこの辺はIssueに出しても相当上手く相談しないと切り捨てられるので、
+いい感じにPRを作るなりしてなんとかしてもらう必要がありそうです。</p>
+
+<p>brew-file的には<code>brew file casklist</code>をする際にこの問題にぶつかりますが、
+現在は<code>brew info --eval-all --json=v2</code>で失敗した際には
+caskだけのリストを一旦作ってから<code>brew info --cask {cask list} --json=v2</code>のような形で情報を取得し、
+formula部分に関しても同様にやりますが、もしvagrantのようなformulaがある場合は
+失敗したらそれを除いて、といった形で繰り返して情報を取得するようにしています。</p>
+
+<p>とりあえずはこれで最低限brew-file的には動作出来ますが、
+余裕があればまたHomebrewの方見てみたいと思います。</p>
+
+<h3 id="古い名前aliasへの対応">古い名前、aliasへの対応</h3>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/265">support for oldnames · Issue #265 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>formulaの名前が変わった際にエラー起こることがあったみたいで、
+一旦古い名前でインストールしたformulaを削除して再インストールしてもらえれば解決するものだと思ってますが、
+これらに関してもbrew-fileの中で古い名前も確認してリストを調整するような処理を追加しています。</p>
+
+<p>この辺のIssue長くなってしまって元の人に確認してもらってないまま止まってしまっていますが、
+多分今は大丈夫なはず。</p>
+
+<p>問題があれば教えて下さい。</p>
+
+<h3 id="brew-tap時にhomebrew_no_auto_updateを設定する必要なし"><code>brew tap</code>時にHOMEBREW_NO_AUTO_UPDATEを設定する必要なし</h3>
+
+<p>その昔、<code>brew tap</code>をする際に<code>brew update</code>が自動で走るので
+単にlist表示するだけのときは
+止めたい(<code>brew list</code>などでは走らない)という類のPRを出しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/1439">disable oputput of brew tap at initialize by rcmdnk · Pull Request #1439 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>が、何故か拒否されました。
+messyらしい。</p>
+
+<p>ちょっと<strong>messy</strong>になってしまうのは
+当時、<code>tap</code>には<code>--list</code>という引数があって<code>brew tap</code>と引数なしか<code>brew tap --list</code>とするとリスト表示し、
+<code>brew tap rcmdnk/file</code>のようにtapを渡すとそれをtapする、といった使い方になってたので、
+この<code>--list</code>の時を避けるためにちょっと<strong>messy</strong>になってしまっていました。</p>
+
+<p>その後、<strong>reconsider in future</strong>とは言ってますが。</p>
+
+<p>で、仕方なく<code>HOMEBREW_NO_AUTO_UPDATE</code>を中で設定して実行するようにしていたのですが、
+いつの間にか<code>--list</code>という引数がなくなっていて、そのためか、
+以下のようなPRが出ててmergeされてました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/5766">tap: skip auto-update if called with no args by scpeters · Pull Request #5766 · Homebrew/brew</a></p>
+</blockquote>
+
+<p><code>--list</code>がない分ちょっとシンプルにはなってますが、ほぼ上と同じ変更なわけですが、
+<code>nice work</code>ということで。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/issues/5743">More responsive outdated &amp; upgrade commands through scheduled tasks and caching · Issue #5743 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>このIssueで話あってからのことなのでということかもしれませんが、
+上のPRがも忘れされれてlinkもつけられてないので知る由もなく。</p>
+
+<p>なんだかな、という感じです。</p>
+
+<p>他にも似たようなことがあって、HomebrewにPR出すのは難しいなあ、と。</p>
+
+<h3 id="read-the-docsのテーマ変更">Read the Docsのテーマ変更</h3>
+
+<p>Read the Docsに公開しているドキュメントのテーマを変更しました。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/">Welcome to homebrew-file’s documentation! — Homebrew-file documentation</a></p>
+</blockquote>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20160501_readthedocs_120_90.jpg" width="120" height="90" alt="20160501_readthedocs_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2016/05/01/computer-brew-file-github/">Read the Docs(Sphinx)でオープンソースのドキュメントをいい感じに書いてみる</a></div></li></ul>
+
+<p>以前は<code>default</code>を使ってましたが、新しく<code>alabaster</code>というテーマを使っています。</p>
+
+<p>というのもRead the docsでのビルド時に<code>default</code>を指定するとエラーになるようになっていたので。
+現在は<code>sphinx_rtd_theme</code>とすると以前と同じように出来るみたいですが
+<sup id="fninref:2"><a href="#fnin:2" rel="footnote">2</a></sup>
+せっかくなので変えてみました。</p>
+
+<p><code>alabaster</code>は
+<a href="https://www.sphinx-doc.org/en/master/usage/theming.html#themes">HTML theming</a>
+でも最初に紹介されているテーマで、
+そういえば最近見るドキュメントはこれが多いな、と言う感じのものでした。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-file 9.0.Xへアップデート: Homebrew 4.0.Xへの対応など]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python/"/>
+    <updated>2023-03-03T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/03/computer-homebrew-brew-file-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B01N212Y20?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B01N212Y20&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51MPKyBBwqL._SS200_.jpg" alt="ベートーヴェン:交響曲第9番「合唱」" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">Homebrwe-file</a>
+を色々アップデートしたのことに関して。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#機能的な面での主な更新点" id="markdown-toc-機能的な面での主な更新点">機能的な面での主な更新点</a>    <ul>
+      <li><a href="#brewfileに書けるコマンドとしてcask_argsの追加" id="markdown-toc-brewfileに書けるコマンドとしてcask_argsの追加">Brewfileに書けるコマンドとしてcask_argsの追加</a></li>
+      <li><a href="#xdg_config_homeをconfigディレクトリのデフォルトに" id="markdown-toc-xdg_config_homeをconfigディレクトリのデフォルトに">XDG_CONFIG_HOMEをconfigディレクトリのデフォルトに</a></li>
+      <li><a href="#verboseで設定できる値を012からdebuginfowarningerrorcriticalに" id="markdown-toc-verboseで設定できる値を012からdebuginfowarningerrorcriticalに">–verboseで設定できる値を<code>0</code>/<code>1</code>/<code>2</code>から<code>debug</code>/<code>info</code>/<code>warning</code>/<code>error</code>/<code>critical</code>に</a></li>
+      <li><a href="#brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok" id="markdown-toc-brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok"><code>brew tap</code>でタップをチェックする際に<code>HOMEBREW_NO_AUTO_UPDATE=1</code>を指定しなくてもOK</a></li>
+      <li><a href="#api-cache変数の追加" id="markdown-toc-api-cache変数の追加"><code>api</code>, <code>cache</code>変数の追加</a></li>
+      <li><a href="#homebrew-corehomebrew-caskのbrewfileでの取り扱い" id="markdown-toc-homebrew-corehomebrew-caskのbrewfileでの取り扱い">homebrew-core/homebrew-caskのBrewfileでの取り扱い</a></li>
+      <li><a href="#appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に" id="markdown-toc-appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に">AppStoreからインストールしたアプリのリストアップを<code>mas</code>から<code>mdfind</code>を使った方法に</a></li>
+      <li><a href="#brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように" id="markdown-toc-brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように">brew file casklistでAppStoreからインストールしたけどHomebrewでも入れられるものを表示するように</a></li>
+      <li><a href="#homebrew_brewfile_fetch_headオプションの追加" id="markdown-toc-homebrew_brewfile_fetch_headオプションの追加">HOMEBREW_BREWFILE_FETCH_HEADオプションの追加</a></li>
+      <li><a href="#pythonのバージョン381312に対応" id="markdown-toc-pythonのバージョン381312に対応">Pythonのバージョン<code>&gt;=3.8.1,&lt;3.12</code>に対応</a></li>
+    </ul>
+  </li>
+  <li><a href="#その他開発面での主な更新点" id="markdown-toc-その他開発面での主な更新点">その他開発面での主な更新点</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrewでインストールしたパッケージ等をBrewfileを使って管理するためのツール。</p>
+
+<p>Homebrewが4.0.0にアップデートされて色々と変わった部分などもあるので
+それに対応するためのアップデートなどをしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20230217_homebrew4_120_90.png" width="120" height="90" alt="20230217_homebrew4_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/17/computer-homebrew/">Homebrew 4.0.0リリース</a></div></li></ul>
+
+<p>また、ちょっと前から
+スクリプトを複数に分けて書き直すようなこともしていて色々確認していたので
+細かいアップデートは出してなかったんですがHomebrewのアップデートもあったので
+とりあえず大丈夫だと思うところまでやって新しいバージョンを出しました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B0B8BPCHCM?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B0B8BPCHCM&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71PWPzp0g-L._SS90_CR0,0,120,90_.jpg" alt="Dreams Come True [Analog]" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2023/02/27/computer-python/">Pythonで複数のファイルからなるスクリプトを1つのスクリプトにまとめる</a></div></li></ul>
+
+<h2 id="機能的な面での主な更新点">機能的な面での主な更新点</h2>
+
+<h3 id="brewfileに書けるコマンドとしてcask_argsの追加">Brewfileに書けるコマンドとしてcask_argsの追加</h3>
+
+<p>Brewfileに</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">cask_args --appdir=~/Applications --require_sha</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>と書いておくと、すべてのCaskのインストール時にこのオプションが使われるようになります。</p>
+
+<p>もし<code>-F bundle</code>を指定して使っている場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">cask_args --appdir:~/Applications, --require_sha: true</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように
+<a href="https://github.com/Homebrew/homebrew-bundle">homebrew-bundle</a>の形で書いてください。</p>
+
+<h3 id="xdg_config_homeをconfigディレクトリのデフォルトに"><a href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">XDG_CONFIG_HOME</a>をconfigディレクトリのデフォルトに</h3>
+
+<p><strong>${XDG_CONFIG_HOME}</strong>の値が定められている場合、
+<strong>${XDG_CONFIG_HOME}/brewfile/Brewfile</strong>がデフォルトのBrewfileの位置になります。</p>
+
+<p>これまでは<strong>~/.config/brewfile/Brewfile</strong>でした。
+基本的には<strong>${XDG_CONFIG_HOME}</strong>を定義してある場合でも<strong>~/.config</strong>の場合がほとんどなので
+大きな影響はないかと思います。</p>
+
+<p>それより前には<strong>~/.brewfile/</strong>だったりもしました。</p>
+
+<p>互換性のため、あたらくデフォルトとして決まったディレクトリに<strong>Brewfile</strong>がない場合には
+以前のデフォルトディレクトリを見に行ってそこにあればそちらを使うようにしています。</p>
+
+<h3 id="verboseで設定できる値を012からdebuginfowarningerrorcriticalに">–verboseで設定できる値を<code>0</code>/<code>1</code>/<code>2</code>から<code>debug</code>/<code>info</code>/<code>warning</code>/<code>error</code>/<code>critical</code>に</h3>
+
+<p>基本的に出力をすべて<code>print</code>から<code>logger</code>を使うように変更しました。</p>
+
+<p>これにともなって<code>--verbose</code>で使えるオプションも文字で指定するようにしています。</p>
+
+<p>一応数字の場合でも<code>0</code>/<code>1</code>/<code>2</code>ならそれぞれ<code>debug</code>/<code>info</code>/<code>error</code>に変換するようにはしています。</p>
+
+<p>これは主に<code>HOMEBREW_BREWFILE_VERBOSE</code>という環境変数を数字で指定している場合に対する互換性を保つための処理だったりはします。</p>
+
+<h3 id="brew-tapでタップをチェックする際にhomebrew_no_auto_update1を指定しなくてもok"><code>brew tap</code>でタップをチェックする際に<code>HOMEBREW_NO_AUTO_UPDATE=1</code>を指定しなくてもOK</h3>
+
+<p>このアップデートを知らなかった。</p>
+
+<blockquote>
+  <p><a href="https://github.com/Homebrew/brew/pull/5766">tap: skip auto-update if called with no args by scpeters · Pull Request #5766 · Homebrew/brew</a></p>
+</blockquote>
+
+<p>これも数年前ですが、更に数年前にPR出してrejectされてたもの。。。</p>
+
+<p><a href="https://github.com/Homebrew/brew/pull/1439">disable oputput of brew tap at initialize by rcmdnk · Pull Request #1439 · Homebrew/brew</a></p>
+
+<p>アップデートの内容はほぼほぼ同じ(一部オプションが消えてその処理が要らなくなったのでその部分を除いて簡略化したのが新しいPR)
+なので参照くらい入れてほしかった(そうしてくれたら気づけたので)。</p>
+
+<h3 id="api-cache変数の追加"><code>api</code>, <code>cache</code>変数の追加</h3>
+
+<p>環境変数<strong>HOMEBREW_NO_INSTALL_FROM_API</strong>をチェックしてAPIを使っているかをチェックするように。</p>
+
+<p>APIを使っている場合、homebrew-coreとhomebrew-caskをtapせずにAPI経由でformula/caskの情報だけを取ってくるようになるので
+以前のようにtapのあるディレクトリを見に行ってformula/caskを確認することができなくなりました。</p>
+
+<p>一方で<strong>$(brew –cache)/api</strong>のディレクトリにjsonファイルなどで情報が保存されています。</p>
+
+<p><code>brew info --eval-all --json=v2</code>などにより全formulae/casksの情報が取得できるはずですが、
+現状APIモードだとこれだとhomebrew-core/caskの情報が含まれていません。</p>
+
+<p>APIを無効化しているとtapにある情報を読んでこれらも含んで示してくれます。</p>
+
+<p>ここに出てくる情報は<strong>api</strong>ディレクトリの下にあるjsonファイルにある情報と同じなので、
+homebrew-core/caskに関してはAPI有効のときにはこれらのファイルを見に行って情報を追加するような作業をしています。</p>
+
+<p>この辺のAPI関連の情報の取り回しはまだ色々やりきれてない部分があるみたいで、
+ちょこちょこ変わっています。</p>
+
+<p>一個PR出したりしましたがちょうどそのちょっと前にその内容を含めた変更のPRが別に出ていた、ということもありました(ちょっと色々な変更の一部として作られてたのでタイトルとかで確認しきれなかった。。。)。</p>
+
+<p>4.0.2までは<strong>formula.json</strong>という名前だったのが現在は<strong>formula.jws.json</strong>というファイルが使われるようになっていて、
+中身が直接すべてがparse出来るjsonの形からparseしたあとに文字列をもう一段階jsonとしてparseする必要がある形式になっています。</p>
+
+<p>この辺、まだちょっと変わるかもしれないので何かうまく動かなくなってるのに気づいたら教えてください。</p>
+
+<h3 id="homebrew-corehomebrew-caskのbrewfileでの取り扱い">homebrew-core/homebrew-caskのBrewfileでの取り扱い</h3>
+
+<p>これらのtapはAPIモードだとtapとして存在しない状態(<code>brew tap</code>でも表示されない)状態になりますが、
+これらはあるものとしてBrewfileには残すようにしています。</p>
+
+<p>書いてあってもAPIが有効であれば<code>brew file install</code>などでもtapは行いません。</p>
+
+<h3 id="appstoreからインストールしたアプリのリストアップをmasからmdfindを使った方法に">AppStoreからインストールしたアプリのリストアップを<code>mas</code>から<code>mdfind</code>を使った方法に</h3>
+
+<p><code>mas</code>を使ったアプリの検索がすべてをうまく検索できないような状態があったので
+macOSネイティブな<code>mdfind</code>を使った方法に変更しました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/145">mas does not show all apps · Issue #145 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>これは以下の問題に関連してるかと思うのですが、下のIssudeだとfixしているとのことでまた別の問題かもしれません。</p>
+
+<blockquote>
+  <p><a href="https://github.com/mas-cli/mas/issues/220">Microsoft Office apps not appearing in search results · Issue #220 · mas-cli/mas</a></p>
+</blockquote>
+
+<p>恐らく
+<code>mas</code>はAppStoreのアカウント情報を使って見ているため、
+複数のアカウントを使ってアプリをインストールしたりする場合に起こっているものかもしれません。</p>
+
+<p>以前、<code>mdfind</code>の方法だときちんと検索しきれなくて
+Appの中の<code>Contents/_MASReceipt/receipt</code>というファイルがあるものを見つけるとより確実に見つけられる、
+という状態があったのですが、現状使える環境で試した限りでは
+<code>mdfind</code>で全部見つけられたので<code>mdfind</code>を使う方法にしています。</p>
+
+<p><code>mdfind</code>であれば特に最初にディレクトリを指定せずともOS全体から勝手に探してきてくれる、という利点もあるので。</p>
+
+<p>これに関してもリストアップされないものとかあれば教えてください。</p>
+
+<h3 id="brew-file-casklistでappstoreからインストールしたけどhomebrewでも入れられるものを表示するように">brew file casklistでAppStoreからインストールしたけどHomebrewでも入れられるものを表示するように</h3>
+
+<p><code>brew file casklist</code>はmacOSにインストールされているアプリを一通り調べるコマンドで、
+CaskでインストールされたものはBrewfileに従った方式で書き出され、
+AppStoreからインストールされたものも同様に<code>appstore</code>コマンドで書き出されます。</p>
+
+<p>このときにAppStoreのアプリでCaskが存在するものについてはコメントでそのCaskの名前も書き出すようにしました。</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Apps installed from AppStore
+</span><span class="line">appstore 409183694 Keynote (12.2.1) # /Applications/Keynote.app
+</span><span class="line">appstore 409203825 Numbers (12.2.1) # /Applications/Numbers.app
+</span><span class="line">appstore 409201541 Pages (12.2.1) # /Applications/Pages.app
+</span><span class="line">appstore 497799835 Xcode (14.2) # /Applications/Xcode.app
+</span><span class="line">appstore 408981434 iMovie (10.3.5) # /Applications/iMovie.app
+</span><span class="line">
+</span><span class="line"># Apps installed from AppStore, but casks are available.
+</span><span class="line">appstore 425424353 The Unarchiver (4.3.5) # the-unarchiver, /Applications/The Unarchiver.app</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>こんな感じ。</p>
+
+<h3 id="homebrew_brewfile_fetch_headオプションの追加">HOMEBREW_BREWFILE_FETCH_HEADオプションの追加</h3>
+
+<p>これまで、<code>brew file update</code>で<code>brew update</code>を実施する際、<code>brew update --fetch-HEAD</code>オプションを追加していました。</p>
+
+<p>ただ、このupdateは結構時間がかかるのと、Homebrew自体が<code>--HEAD</code>も含めオプション的なものを使わない方向に進んでいることもあるので
+このようなチェックはオプション扱いに移しました。</p>
+
+<p>もしこのチェックを<code>brew file update</code>の際に行いたい場合には<strong>.bashrc</strong>などで</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export HOMEBREW_BREWFILE_FETCH_HEAD=1</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定してください。</p>
+
+<p>3## aliasを残すように</p>
+
+<p>Brwefile書いたformulaがalias(<strong>python@3.11</strong>に対する<strong>python</strong>など)の場合にはそのaliasのまま残すようにしました。
+<code>brew file brew install python</code>(もしくはbrew-wrap使って<code>brew install python</code>)などでも同様。</p>
+
+<p>これまでは<strong>python@3.11</strong>などに変更されてましたが、
+例えば<strong>python</strong>が<strong>python@3.12</strong>になってもその最新のを入れたいから<strong>python</strong>として書いていた、という場合にちゃんとそれを続けられるようにするための変更です。</p>
+
+<p>単に以前はaliasを取る手段が面倒だったのが簡単に取れるようになっていたので、という点もあります。
+(<code>brew info</code>から。)</p>
+
+<p>3## <code>brew file update</code>などの際にBrewfileの出力を表示させないように(v9.0.3)</p>
+
+<p>brew-wrapを使って<code>brew install &lt;package&gt;</code>とした場合なども毎回
+Brewfileの更新状態を表示してましたが、今更ながら邪魔かな、と思い始めたので表示をやめて
+デバッグモードのみで表示させるようにしました。</p>
+
+<p>以前と同じような出力にしたい場合は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">$ brew file --verbose debug init</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>のように<code>--verbose debug</code>を使うか、環境変数で</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">export HOMEBREW_BREWFILE_VERBOSE=0</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>を設定してください。</p>
+
+<h3 id="pythonのバージョン381312に対応">Pythonのバージョン<code>&gt;=3.8.1,&lt;3.12</code>に対応</h3>
+
+<p>Homebrew-file 8.XまではPython 3.9に対応していましたが、
+今回色々とアップデートしていて3.10の機能も入れたりしていました。</p>
+
+<p>ただ、HomebrewでこれだけのためにPython入れるのもあれなのと、
+<strong>python@3.9</strong>とかを依存先として入れてしまうとPATH下(<strong>$(brew –prefix)/bin</strong>)には自動的には入らない問題とかもあるので
+基本的には現状のmacOSのPythonで動かせるようにしたいな、と。</p>
+
+<p>ついでにLinux環境も考えてできるだけ古いもの、ということで3.8.1になってますが、
+3.8.1はflake8などのlinter系の対応状況による制限だったりします。
+まあこのくらいまでで良いか、と。</p>
+
+<p>Linuxだと3.6や3.7しか入ってない場合もあるかもしれませんが、
+その場合には<code>brew install python3</code>して最新のPython3をインストールしてつかてください。</p>
+
+<p>brew-fileのformulaでは以前は</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">depends_on "python"</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>としていましたがこれは削除しました。</p>
+
+<p>古いバージョンに戻すにあたって変更した主な点は以下のような点</p>
+
+<ul>
+  <li>Structural Pattern Matching (match-case文, <code>&gt;=3.10</code>)をif-elseに</li>
+  <li><code>from __future__ import annotations</code>の追加(3.9以下でannotationsに関する機能を使うため)</li>
+  <li><a href="https://github.com/rcmdnk/homebrew-file/commit/e8d4742c1d48bd2be9c7a22515fc9c0149ed4d7d">str.removesuffix</a>、<a href="https://github.com/rcmdnk/homebrew-file/commit/2f360f5e96d8c0d870391ecbf2c6854ac5b3b4cd">str.removeprefix</a> (<code>&gt;=3.9</code>)を<code>str.replace</code>で代用</li>
+</ul>
+
+<h2 id="その他開発面での主な更新点">その他開発面での主な更新点</h2>
+
+<ul>
+  <li><a href="https://github.com/python-poetry/poetry">Poetry</a>を使ったパッケージ管理
+    <ul>
+      <li><strong>src</strong>以下に分割した形でコードを書く</li>
+      <li>Pythonパッケージとして<strong>brew-file</strong>というコマンドを使える形にもする
+        <ul>
+          <li>パッケージとしては基本的に外部ライブラリには依存しないように(dev環境でpytestとかは入れる)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Homebrewで配布するスクリプトは<strong>combine.sh</strong>でsingle scriptにしたものを<strong>$(brew –prefix)/bin</strong>に配置するように</li>
+  <li><strong>tests</strong>で色々テストを追加</li>
+  <li><a href="https://pre-commit.com/">pre-commit</a>を使ってコードチェック(black, flake8, isort, mypy, etc…)</li>
+  <li>ログ出力をすべてprintからloggerに</li>
+  <li>sys.exitをraise Exeptionに変更して<strong>main</strong>の中で処理するように</li>
+</ul>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>HomebrewがAPIがデフォルトになったことで色々と大きな変更もありましたが、
+とりあえず以前と同じような使用感には出来ているかと思います。</p>
+
+<p>その他の部分で多少快適になったかな、とも。</p>
+
+<p>Homebrewの変更もまだまだ細かい所で入りそうでHomebrew-fileへの影響もあるかと思いますし
+色々見落としてる部分もあるかもしれないのでもし何かあれば
+GitHubのIssueなりTwitterなりここのコメントなりで教えていただけるとありがたいです。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileでBrewfile変更後にGitHubにpushしたりアクションを起こせるようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash/"/>
+    <updated>2022-03-21T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/03/21/computer-homebrew-brew-file-mac-windows-linux-bash</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B000003GIT?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B000003GIT&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/81ey0EhAczL._SS200_.jpg" alt="Homebrew" /></a>
+</div>
+
+<p><a href="https://github.com/rcmdnk/homebrew-file">Homebrew-file</a>
+への機能追加でBrewfileへの変更があった際にGitHubへのレポジトリへpushしたり
+なんらかアクションを起こせる様な仕組みを作りました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#homebrew-file" id="markdown-toc-homebrew-file">Homebrew-file</a></li>
+  <li><a href="#brew-wrap" id="markdown-toc-brew-wrap">brew-wrap</a></li>
+  <li><a href="#brewfileのバージョン管理" id="markdown-toc-brewfileのバージョン管理">Brewfileのバージョン管理</a></li>
+  <li><a href="#_post_brewfile_update" id="markdown-toc-_post_brewfile_update">_post_brewfile_update</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="homebrew-file">Homebrew-file</h2>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brew-wrap">brew-wrap</h2>
+
+<p>追加の機能は<code>brew file</code>コマンド本体ではなく
+<code>brew</code>コマンドのラッパーの
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+の中に追加しました。</p>
+
+<p><code>brew-wrap</code>は<strong>.bashrc</strong>や<strong>.zshrc</strong>、もしくは<strong>config.fish</strong>なんかの中で設定ファイルを読み込むと
+<code>brew</code>コマンドをラップして
+<code>brew install</code>などを行った際に<code>brew file</code>を使って<strong>Brewfile</strong>を自動でアップデートしてくれるようになります。</p>
+
+<h2 id="brewfileのバージョン管理">Brewfileのバージョン管理</h2>
+
+<p><code>brew-wrap</code>を使うと<strong>Brewfile</strong>に対して<code>install</code>時にパッケージの追加や<code>remove</code>時に削除などは行います。</p>
+
+<p>一方でHomebrew-fileにはGitHubのレポジトリなどと結びつけて
+バージョン管理する機能もあります。</p>
+
+<blockquote>
+  <p><a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#manage-brewfile-with-git">Manage Brewfile with Git</a></p>
+</blockquote>
+
+<p><strong>Brewfile</strong>に変更があった後、</p>
+
+<pre><code>$ brew file update
+</code></pre>
+
+<p>とすればGitHub上の変更を取り入れて、追加パッケージがあれば追加し、
+また、ローカルに新たなパッケージが追加されていたり<strong>Brewfile</strong>がアップデートされていれば
+新たな<strong>Brewfile</strong>をGitのレポジトリ内で<code>commit</code>してGitHubに<code>push</code>します。
+(GitのリモートサーバーはGitHubでなくてもOK。)</p>
+
+<p>ただ、現状この作業は自分で行う必要があって、私自身はcronジョブを使って1日1回、</p>
+
+<pre><code>30 12 * * * brew file update
+</code></pre>
+
+<p>みたいな設定で<code>brew file update</code>を行っています。
+(上の設定だと毎日12:30に実行されます。)</p>
+
+<h2 id="_post_brewfile_update">_post_brewfile_update</h2>
+
+<p>この様な変更管理をBrewfile変更後に毎回行いたい、といったIssueをもらいました。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/homebrew-file/issues/121">Feature request: provide hook into “Initialize Brewfile” process · Issue #121 · rcmdnk/homebrew-file</a></p>
+</blockquote>
+
+<p>Git関連の作業なら<code>update</code>の様なことを中でできる設定にしても良いかな、と思ったのですが、
+このIssueだと別な管理をしていて、別途コマンドを使いたい、という感じだったので
+<code>brew-wrap</code>の方を使って簡単にコマンドを追加できるようにしてみました。</p>
+
+<p><strong>.bashrc</strong>の中などで、<strong>brew-file</strong>を読み込んだ後、<code>_post_brewfile_update()</code>という関数を実装すると、
+<code>brew</code>コマンド実行時、<strong>Brewfile</strong>に何らかの変更があった際、
+その関数が実行されます。</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Brewfile was updated!&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じの関数を実装して、</p>
+
+<pre><code>$ brew install python
+</code></pre>
+
+<p>とすると、もし<strong>python</strong>が新たにインストールされて<strong>Brewfile</strong>がアップデートされると</p>
+
+<pre><code>Brewfile was updated!
+</code></pre>
+
+<p>と表示されます。
+すでにインストールされてる場合には<strong>Brewfile</strong>に変更がないので関数は実行されません。</p>
+
+<p>GitHubと連携していて常にリモートレポジトリと同期したい場合には</p>
+
+<figure class="code"><figcaption><span>.bashrc </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="k">then</span>
+</span><span class="line"><span class="w">  </span><span class="nb">source</span><span class="w"> </span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="k">)</span>/etc/brew-wrap
+</span><span class="line">
+</span><span class="line"><span class="w">  </span>_post_brewfile_update<span class="w"> </span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span class="line"><span class="w">    </span>brew<span class="w"> </span>file<span class="w"> </span>update
+</span><span class="line"><span class="w">  </span><span class="o">}</span>
+</span><span class="line"><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とかしておけばよいかと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Homebrew-fileへのmainコマンドの追加]]></title>
+    <link href="https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows/"/>
+    <updated>2021-09-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2021/09/13/comptuer-homebrew-brew-file-mac-windows</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07H3JTZJY?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07H3JTZJY&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61zbjv7k9uL._SS200_.jpg" alt="味の加久の屋 brew プレミアムおつまみ ウニ入りホタテマヨ 70g" /></a>
+</div>
+
+<p>Homebrewのパッケージリストを管理するツールのHomebrew-file
+でパッケージを管理する際に、<code>main</code>というコマンドを使えるようにしました。</p>
+
+<p>これによってより柔軟に複数の環境でのBrewfileの共有が出来るようになりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brewfile" id="markdown-toc-brewfile">Brewfile</a></li>
+  <li><a href="#file機能" id="markdown-toc-file機能">file機能</a></li>
+  <li><a href="#ファイル指定で使える変数" id="markdown-toc-ファイル指定で使える変数">ファイル指定で使える変数</a></li>
+  <li><a href="#mainコマンドの追加" id="markdown-toc-mainコマンドの追加">mainコマンドの追加</a></li>
+  <li><a href="#チーム共有brewfileの運用" id="markdown-toc-チーム共有brewfileの運用">チーム共有Brewfileの運用</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<p>HomebrewのパッケージリストをBrewfileを使って管理するツール。</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも公式にbundleというBrewfileファイルに書き出す機能がありますが、
+Homebrew-fileにはGitHubとかと連携してBrewfileの履歴を管理したり他の環境と共有しやすくするための
+機能だったり、Brewfileを自動的にアップデートする機能があったりします。</p>
+
+<h2 id="brewfile">Brewfile</h2>
+
+<p>Homebrew-fileにおけるBrewfileは基本的には以下の様な感じになります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">brew<span class="w"> </span>node
+</span><span class="line">brew<span class="w"> </span>python@3.9
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>rcmdnk/file
+</span><span class="line">brew<span class="w"> </span>brew-file
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>rcmdnk/file
+</span><span class="line">brew<span class="w"> </span>brew-file
+</span><span class="line">
+</span><span class="line">tap<span class="w"> </span>homebrew/cask
+</span><span class="line">cask<span class="w"> </span>bettertouchtool
+</span><span class="line">cask<span class="w"> </span>google-japanese-ime
+</span><span class="line">cask<span class="w"> </span>hyperswitch
+</span><span class="line">cask<span class="w"> </span>iterm2
+</span><span class="line">cask<span class="w"> </span>karabiner-elements
+</span><span class="line">
+</span><span class="line">appstore<span class="w"> </span><span class="m">408981434</span><span class="w">   </span>iMovie<span class="w">        </span><span class="o">(</span><span class="m">10</span>.2.5<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409183694</span><span class="w">   </span>Keynote<span class="w">       </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409203825</span><span class="w">   </span>Numbers<span class="w">       </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span><span class="line">appstore<span class="w"> </span><span class="m">409201541</span><span class="w">   </span>Pages<span class="w">         </span><span class="o">(</span><span class="m">11</span>.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>Ref: <a href="https://homebrew-file.readthedocs.io/en/latest/usage.html#brewfile">Usage — Homebrew-file documentation</a></p>
+
+<p>Brewfileの中でコマンドとして使えるものとしては上の様に主に</p>
+
+<ul>
+  <li><code>tap</code>: Tapするレポジトリ</li>
+  <li><code>brew</code>: インストールするFormulaパッケージ</li>
+  <li><code>cask</code>: インストールするCaskパッケージ</li>
+  <li><code>appstore</code>: AppStoreからインストールするApp (<code>mas</code>を利用。)</li>
+</ul>
+
+<p>があります。</p>
+
+<p><code>cask</code>に関してはHomebrew 3.0.0から<code>brew cask</code>というコマンドはなくなり、<code>brew install ...</code>
+で同じようにインストールできるようになりましたが、
+<code>brew list --cask ...</code>の様に区別して見ることも出来る状態で
+<code>brew file init</code>とかでBrewfileに書き出す場合には区別して書き出しています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20210206_homebrew300_120_90.jpg" width="120" height="90" alt="20210206_homebrew300_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2021/02/06/computer-mac-homebrew/">Homebrew 3.0.0リリース</a></div></li></ul>
+
+<p>Brewfileに手動で<code>brew iterm2</code>みたいにCaskなものを書いておいても<code>brew file install</code>でインストールすることは出来ます。</p>
+
+<h2 id="file機能">file機能</h2>
+
+<p>上記の4つ以外にもいくつか使えるコマンドがありますが、
+そのうちの一つに<code>file</code>というコマンドがあります。</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file<span class="w"> </span>./Brewfile.ext
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の様に書くと、<code>brew file install</code>をするとき、<strong>Brewfile.ext</strong>に書いてある
+パッケージも読み込んでインストールします。</p>
+
+<p><code>brew file init</code>すると、<strong>Brewfile.ext</strong>に元からあったパッケージはそちらに、
+新たに加わったパッケージは親の<strong>Brewfile</strong>に追加される様になっています。</p>
+
+<p>ファイルの指定方法として、上のように相対パスの様に書くと、親の<strong>Brewfile</strong>のある
+ディレクトリからの相対パスになります。
+なので、上の場合は<strong>Brewfile</strong>と同じディレクトリにある<strong>Brewfile.ext</strong>を見に行きます。</p>
+
+<p><strong>/home/user/Brewfile.ext</strong>の様に<code>/</code>から開始すると絶対パスとして見に行きます。</p>
+
+<p>もしファイルがない場合にはエラーにならずに無視されます。</p>
+
+<p>したがって、特定のマシンにだけ入れたいパッケージ、というものがある場合、</p>
+
+<p>file $HOME/Brewfile.ext</p>
+
+<p>としておいて、必要な環境にだけ<strong>$HOME/Brewfile.ext</strong>を置いておくと、
+その環境にだけ<code>brew file install</code>で<strong>Brewfile.ext</strong>の中身をインストールしてくれます。</p>
+
+<p>もし<strong>Brewfile</strong>と<strong>Brewfile.ext</strong>に同じパッケージが書かれているかつ
+そのパッケージが既にインストールされている状態で<code>brew file init</code>すると
+<strong>Brewfile.ext</strong>の方に優先して残すようになっています。</p>
+
+<h2 id="ファイル指定で使える変数">ファイル指定で使える変数</h2>
+
+<p><code>file</code>などで指定できるファイルに使える変数として、
+<code>~</code>でホームディレクトリを指定したり、<code>$HOME</code>などの環境変数を使うことが出来ます。</p>
+
+<p>加えて、
+<code>$HOSTNAME</code>、<code>$HOSTTYPE</code>、<code>$OSTYPE</code>、<code>$PLATFORM</code>の4つの変数も使えます。</p>
+
+<p>それぞれ</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: <code>os.uname().nodename</code></li>
+  <li><code>HOSTTYPE</code>: <code>os.uname().machine</code></li>
+  <li><code>OSTYPE</code>: Bashのシェル変数(<code>subprocess</code>で取得)</li>
+  <li><code>PLATFORM</code>: <code>sys.platform</code></li>
+</ul>
+
+<p>です。<code>HOSTNAME</code>、<code>HOSTTYPE</code>はシェル変数の同名のものと同じです。</p>
+
+<ul>
+  <li><code>HOSTNAME</code>: マシン名(ドメインなし)</li>
+  <li><code>HOSTTYPE</code>: <code>x86_64</code>, <code>arm64</code>など</li>
+  <li><code>OSTYPE</code>: <code>linux-gnu</code>、<code>darwin20.3.0</code>など</li>
+  <li><code>PLATFORM</code>: <code>linux</code>、<code>darwin</code>など</li>
+</ul>
+
+<p>これを使うと、例えば特定のマシンにだけ入れたいパッケージがある場合、
+親の<strong>Brewfile</strong>を</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">file<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>python@3.8
+</span></code></pre></td></tr></table></div></figure>
+
+<figure class="code"><figcaption><span>Brewfile.machine2 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>brew<span class="w"> </span>python@3.9
+</span></code></pre></td></tr></table></div></figure>
+
+<p>というファイルを用意しておくと、machine1では<code>python@3.8</code>をインストールして
+machine2では<code>python@3.9</code>をインストールし、
+その他の環境ではこれらをインストールしません。</p>
+
+<p>OSなど環境毎に変えたい場合には</p>
+
+<p>file ./Brewfile.$PLATFORM.$HOSTTYPE</p>
+
+<p>が便利です。</p>
+
+<p><code>OSTYPE</code>にはバージョン情報が入ってしまうため、
+そこまで管理したい場合には便利ですが、大概の場合はそのバージョンは無視して良いことが多く
+<code>PLATFORM</code>を使ったほうが便利です。</p>
+
+<p>あとはアーキテクチャの違いを<code>$HOSTTYPE</code>で追加しておきます。</p>
+
+<p>これは、特に最近でたM1 Macで使う際に便利です。</p>
+
+<p>M1のarm64の環境だと使えないCUIツールはまだ結構あって、
+Rosettaを使ったIntel環境も作っている人は多いかと思いますが、
+両方で同じ<strong>Brewfile</strong>を使おうと思うとIntel用に入れたものがarm64側でインストールに失敗してしまいます。</p>
+
+<p>そこで、上の様な<code>file</code>設定をしておいて、</p>
+
+<p><strong>Brewfile.darwin.x86_64</strong>というファイルにIntel側にだけ入れるものを書いておけば
+他のものは<strong>Brewfile</strong>で共有して使うことが出来ます。</p>
+
+<h2 id="mainコマンドの追加">mainコマンドの追加</h2>
+
+<p>上の<code>file</code>の場合、<code>brew init</code>や、
+<a href="https://homebrew-file.readthedocs.io/en/latest/brew-wrap.html">brew-wrap</a>
+を使った<code>brew install</code>時に追加されるパッケージは親の<strong>Brewfile</strong>側になります。</p>
+
+<p>したがって、その環境特有のものをインストールした場合には手動で
+<strong>Brewfile</strong>から
+<strong>Brewfile.machine1</strong>とかに移して、他の環境では使わないようにする必要があります。</p>
+
+<p>これはほとんどが共通で、ほんの一部だけが特別なパッケージの場合には便利です。</p>
+
+<p>一方で、例えば仕事のチームで最低限必要なパッケージ群をまとめる<strong>Brewfile</strong>を作り、
+他を個別に管理したい、という場合、自動で<strong>Brewfile</strong>を管理するのが難しくなります。</p>
+
+<p><code>main</code>コマンドはこういった場合に使えるようにv8.5.0で追加しました。
+通常、<strong>メイン</strong>のファイルは最初に指定されている<strong>Brewfile</strong>本体になりますが、
+<code>main</code>コマンドで指定されたファイルがあるとそれに移ります。</p>
+
+<p><strong>メイン</strong>のファイルは、新たなパッケージが加わったときなどに、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>でパッケージが加えられるファイルになります。</p>
+
+<p><code>main</code>の使い方は<code>file</code>と同じ様にファイルへのパスを書く形で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>tap<span class="w"> </span>homebrew/core
+</span><span class="line">brew<span class="w"> </span>neovim
+</span><span class="line">
+</span><span class="line">...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った感じ。</p>
+
+<p>この場合、新たなパッケージが加えられた場合、
+<code>brew file init</code>や
+brew-wrapを使った<code>brew install</code>では<strong>./Brewfile.$HOSTNAME</strong>
+に追加されます。</p>
+
+<p>もしファイルがない場合には自動的に作られます。</p>
+
+<p>これを使うと、<strong>Brewfile</strong>の自動アップデートを使っても共有ファイルの管理が簡単になります。</p>
+
+<p>例えば、MacとLinuxで共有しようと思うと、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、それぞれの環境でインストールしたものはそれぞれ、<strong>Brewfile.darwin</strong>、<strong>Brewfile.linux</strong>に追加されます。</p>
+
+<p>また、M1 Macでは</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTTYPE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としておけば、
+そのままのM1 (arm64)環境なら<strong>Brewfile.arm64</strong>、Rosetta使ったx86_64環境なら
+<strong>Brewfile.x86_64</strong>に追加されます。</p>
+
+<p>たまに整理してあげて、共通しているものを<strong>Brewfile</strong>に移す作業をしてあげれば良いかと。
+(この辺をうまくやる機能もそのうち実装したい。。。)</p>
+
+<p><strong>Brewfile</strong>と<code>main</code>で指定されてた<strong>Brewfile.$PLATFORM</strong>
+などの両方に同じパッケージが書かれていた場合、
+<code>brew file init</code>すると<code>main</code>の場合は<code>file</code>と違い
+親の<strong>Brewfile</strong>の方に優先して残すようになっています。</p>
+
+<p>ちなみに<code>main</code>や<code>file</code>は入れ子が可能で、</p>
+
+<figure class="code"><figcaption><span>Brewfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$PLATFORM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、</p>
+
+<figure class="code"><figcaption><span>Brewfile.darwin </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line"><span></span>...
+</span><span class="line">
+</span><span class="line">main<span class="w"> </span>./Brewfile.<span class="nv">$HOSTNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>として、<strong>Brewfile.linux</strong>の方では<code>main</code>を追加しないままにしておくと、</p>
+
+<ul>
+  <li>Linux環境: HOSTによらず<strong>Brewfile.linux</strong>がメイン。</li>
+  <li>Mac環境: HOST毎に別のものがメインに。</li>
+  <li><strong>Brewfile</strong>にあるパッケージは全環境共通。</li>
+  <li><strong>Brewfile.darwin</strong>にあるパッケージはMac環境だけで共通。</li>
+</ul>
+
+<p>とすることが出来ます。</p>
+
+<h2 id="チーム共有brewfileの運用">チーム共有Brewfileの運用</h2>
+
+<p>そこで、例えばチーム共有<strong>Brewfile</strong>みたいのを考えることが出来ます。</p>
+
+<ul>
+  <li>まず、共有する<strong>Brewfile</strong>を作り、適当なGitHubのレポジトリで共有。
+    <ul>
+      <li><strong>Brewfile</strong>に<code>main ~/.Brewfile</code>という一行を加えておく。</li>
+      <li>このレポジトリは管理者だけが書き込めるものでも構いません。</li>
+    </ul>
+  </li>
+  <li>各個人で<strong>~/.Brewfile</strong>を用意。
+    <ul>
+      <li>最初の時点でとくに必要なものがなければ自分で用意しなくても良くて勝手に作ってくれる。</li>
+    </ul>
+  </li>
+  <li><code>brew file set_repo</code>で共有レポジトリを指定してセットする。</li>
+  <li><code>brew install</code>したり色々して<strong>~/.Brewfile</strong>をアップデート。
+    <ul>
+      <li><a href="https://github.com/rcmdnk/dotfiles/">dotfiles</a>などで<strong>~/.Brewfile</strong>も管理すると良いかと。</li>
+    </ul>
+  </li>
+  <li>管理者が共有の<strong>Brewfile</strong>をアップデートしてパッケージを追加したりする。
+    <ul>
+      <li>管理者以外でも便利で皆が使うべきものだと思えばPull Request出したり。</li>
+    </ul>
+  </li>
+  <li><code>brew file update</code>によって共有<strong>Brewfile</strong>をアップデート。
+    <ul>
+      <li>個人ごとの利用ではこのファイルを変更することは無いので、レポジトリ側のアップデートのみを撮ってくる形になる。</li>
+      <li>自分でインストールしたパッケージも共有<strong>Brewfile</strong>に追加されると<strong>~/.Brewfile</strong>からは消える。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>と言った感じの運用が出ます。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[brew-fileのUbuntuなどDebian系Linuxへの対応]]></title>
+    <link href="https://rcmdnk.com/blog/2020/02/06/computer-linux-homebrew-brew-file/"/>
+    <updated>2020-02-06T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2020/02/06/computer-linux-homebrew-brew-file</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4798109088?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798109088&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51S3TB2CW8L._SS200_.jpg" alt="Debian 辞典 (Desktop reference)" /></a>
+</div>
+
+<p>brew-fileをLinuxにも対応させた、と書いてましたが、
+Ubuntu等では動かない状態だったので対応しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#brew-file" id="markdown-toc-brew-file">brew-file</a></li>
+  <li><a href="#linuxへの対応" id="markdown-toc-linuxへの対応">Linuxへの対応</a></li>
+  <li><a href="#debian系への対応" id="markdown-toc-debian系への対応">Debian系への対応</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="brew-file">brew-file</h2>
+
+<p>Homebrewのパッケージリストを管理するツール。</p>
+
+<p>Homebrew-fileと書いたりbrew-fileと書いたりこのブログの中でも統一されて無くて良くないですが、
+管理してるレポジトリ名が<code>homebrew-file</code>で
+コマンド名は<code>brew-file</code>、<code>brew</code>のサブコマンドとして<code>brew file</code>で呼び出される様なものです。
+なのでその時々の気分で変わってしまってすいません。(多分、brew-fileとしておくのが良いのかな、と最近は。)</p>
+
+<div class="github-widget" data-repo="rcmdnk/homebrew-file"></div>
+
+<p>Homebrew自体にも現在はbundleというBrewfileファイルに書き出す機能がありますが、
+brew-fileではBrewfile自体をGitHubのレポジトリで管理したり、
+また、<code>brew install</code>時などに自動でBrewfileをアップデートしたり、
+普段<code>brew-file</code>というコマンドを意識せずに自動で管理できる様なものを目指しています。</p>
+
+<p>ほんとはbundleの機能に追加できれば良いんですが、あちらRubyでこちらPythonで
+統一するのも面倒だし、その先新しいこと加えるときにRubyよりPythonのが(個人的に)やりやすいので
+別途の形に。</p>
+
+<p>ちなみに、以前、そこそこ使われてきたのでbrew-fileのformulaを
+公式のレポジトリに入れてもらおうかと思ったこともあったんですが、
+上記の様にbundleという似た(今はもう)公式のツールがあるので微妙かな、ということで
+入れないことにしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B011WTXSJ2?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B011WTXSJ2&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51RErbdy69L._SS90_CR0,0,120,90_.jpg" alt="The Persistence Formula: Follow Through, Stop Quitting, Stay Focused, Avoid Distraction, Achieve Your Goals, Control Your Habits, Maximize Productivity, ... Enjoy The Entire Journey (English Edition)" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/20/computer-homebrew-brew-file-mac/">HomebrewにFormulaを公式に入れてもらうためにチェックする事</a></div></li></ul>
+
+<p>まあ、Formulaの更新も自由に出来るので管理上は公式に入ってない方が楽なのでそれはそれで良いかな、と。</p>
+
+<h2 id="linuxへの対応">Linuxへの対応</h2>
+
+<p>今年はじめLinuxbrewがHomebrewに統一されたのでそれを機に
+Linuxでも本格的にHomebrewを使うためbrew-fileもLinux対応させました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2019/02/27/computer-linux-homebrew/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20190208_homebrew_120_90.jpg" width="120" height="90" alt="20190208_homebrew_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2019/02/27/computer-linux-homebrew/">LinuxでHomebrewを使う: Homebrew-fileも対応させた</a></div></li></ul>
+
+<p>ただ、自分で使っていたのがRedHat系で、
+最近WindowsでWindows Subsystem for Linux(WSL)なUbuntuの所でエラーが出て使えなかったので
+それに対応させました。</p>
+
+<h2 id="debian系への対応">Debian系への対応</h2>
+
+<p>ここで問題になったRedHat系とDebian系の違いは、<code>/bin/sh</code>の違いです。
+RedHat系はBash、Debian系はDash。</p>
+
+<p>brew-fileの中で、外部コマンドを<code>subprocess.Popen</code>で呼び出している部分がありますが、
+<code>brew</code>コマンドを呼ぶ際、brew-fileの設定で<code>brew-file</code>へのラッパー関数に設定している場合があるので、
+その場合のループを防ぐために<code>command brew</code>の様な呼び方をしていました。</p>
+
+<p>これでMacでもRedHat系でも問題なかったのですが、Ubuntuでやってみると</p>
+
+<pre><code>[ERROR]: Failed at command: command brew --prefix
+</code></pre>
+
+<p>というエラー。実際にはPopenが</p>
+
+<pre><code>command brew --prefix: [Errno 2] No such file or directory
+</code></pre>
+
+<p>みたいなエラーを出しています。</p>
+
+<p>簡単なスクリプト例としては</p>
+
+<figure class="code"><figcaption><span>title lang: </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">#!/usr/bin/env python3
+</span><span class="line">import subprocess
+</span><span class="line">subprocess.call(["command", "echo", "foo"])</span></code></pre></td></tr></table></div></figure>
+
+<p>とか。Ubuntuとかで実行すると</p>
+
+<pre><code>FileNotFoundError: [Errno 2] layouto such file or directory: 'command': 'command'
+</code></pre>
+
+<p>とか出ると思います。</p>
+
+<p>これがDashでは<code>command</code>というものがないのだ、と思ってたんですが、
+普通に</p>
+
+<pre><code>$ /bin/sh # Dash起動
+$ command echo foo
+foo
+</code></pre>
+
+<p>とかは出来ます。
+ちょっとこの辺調べようとしたんですがよくわからないままなのでまたそのうち。。。</p>
+
+<p>とりあえず<code>command brew...</code>というのがうまく行かないので、
+Bashで直接やれば、ということで</p>
+
+<pre><code>["bash", "-i", "-c", "brew ls"]
+</code></pre>
+
+<p>みたいなものを渡してみたんですが、これがRedHat系で</p>
+
+<pre><code>Package bash-completion was not found in the pkg-config search path.
+Perhaps you should add the directory containing `bash-completion.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'bash-completion' found
+bash: /yum: No such file or directory
+</code></pre>
+
+<p>というエラーを出しました。
+どうやらbrewコマンドの中での何かしら環境変数の設定とかがうまくいってない模様。
+<code>Popen</code>呼ぶときには現在の環境変数全てを渡す様なことはしているので、ちょっとよくわからない。</p>
+
+<p>PKG_CONFIG_PATH云々はわかりますが、そもそもなんでこういう事が出てくるか、
+というのがbrewの中身を見たりしないとちょっと理解できなくて、
+面倒なので見てません。</p>
+
+<p>ただ、そもそも<code>-i</code>を付けてインタラクティブモードで<code>bash</code>を呼ぶ必要があるのか、というところで、
+<code>-i</code>ナシにしてみるとうまくいきました。</p>
+
+<pre><code>["bash", "-c", "brew ls"]
+</code></pre>
+
+<p>みたいな感じ。</p>
+
+<p>ただ、これも最後の実際のコマンドの部分がまとめた状態になるので余り良くない。</p>
+
+<p>ということで、関数、aliasを無視するにどうするか、と思ったところ、
+単に<code>brew</code>へのフルパスを取ってやるのが一番楽だし正確かな、ということでそうしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2018/01/30/computer-bash-zsh/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20180130_aliasfunc_120_90.jpg" width="120" height="90" alt="20180130_aliasfunc_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2018/01/30/computer-bash-zsh/">Bash/Zshで関数やaliasを無視してオリジナルのコマンドを使う方法</a></div></li></ul>
+
+<p>ちょっと/bin/shに関する部分やsubprocessで呼ぶ際の環境、さらには
+subprocess.Popenでのshellやexecutable引数の意味、など
+もう一度ちゃんと理解しようと調べ始めて面倒になって中途半端な認識になってるので、
+またそのうちまとめられれば、とは思ってます。</p>
+
+<p>Ref:</p>
+
+<blockquote>
+  <p><a href="https://github.com/Linuxbrew/legacy-linuxbrew/issues/46">Linuxbrew: “Package bash-completion was not found…” at command prompt. · Issue #46 · Linuxbrew/legacy-linuxbrew</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://astropengu.in/blog/12/">ADC/MDAS への tmux のインストール</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://www.saltycrane.com/blog/2011/04/how-use-bash-shell-python-subprocess-instead-binsh/">How to use the bash shell with Python’s subprocess module instead of /bin/sh - SaltyCrane Blog</a></p>
+</blockquote>
+
+<blockquote>
+  <p><a href="https://qiita.com/yoichi22/items/5afa8b3b39c723acb359">subprocess で shell=True でリストを与えたときの挙動 - Qiita</a></p>
+</blockquote>
+]]></content>
+  </entry>
+  
+</feed>

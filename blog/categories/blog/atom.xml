@@ -1,0 +1,1234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="https://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Blog | rcmdnk's blog]]></title>
+  <link href="https://rcmdnk.com/blog/categories/blog/atom.xml" rel="self"/>
+  <link href="https://rcmdnk.com/"/>
+  <updated>2026-03-02T00:20:56+00:00</updated>
+  <id>https://rcmdnk.com/</id>
+  <author>
+    <name><![CDATA[rcmdnk]]></name>
+    <email><![CDATA[rcmdnk@gmail.com]]></email>
+  </author>
+  <generator uri="https://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Google AnalyticsのUAからGA4への移行]]></title>
+    <link href="https://rcmdnk.com/blog/2023/09/17/blog-google/"/>
+    <updated>2023-09-17T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/09/17/blog-google</id>
+    <content type="html"><![CDATA[<p>7月まででGoogle Analyticsのユニバーサルアナリティクス(UA)が停止し、
+Googleアナリティクス4(GA4)のみ使える状態になりました。</p>
+
+<p>ちょっと放置してたのですが対応しました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#uaからga4へのタグ等の変更" id="markdown-toc-uaからga4へのタグ等の変更">UAからGA4へのタグ等の変更</a></li>
+  <li><a href="#ページビューを取得するプラグインのアップデート" id="markdown-toc-ページビューを取得するプラグインのアップデート">ページビューを取得するプラグインのアップデート</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="uaからga4へのタグ等の変更">UAからGA4へのタグ等の変更</h2>
+
+<p>サイトに埋めてあるアナリティクス用のタグに関しては、
+アナリティクス側で元々あるUAのプロパティから新たに作成したGA4のプロパティ
+に接続するとそのままでもGA4側にもデータが送られるようになります。</p>
+
+<p>ということで、とりあえずしばらくはアナリティクス上での操作だけでそのままにしてました。</p>
+
+<ul>
+  <li><a href="https://support.google.com/analytics/answer/13486733?hl=ja">[UA→GA4] 移行ガイド: 初心者向け - アナリティクス ヘルプ</a></li>
+</ul>
+
+<p>この状態でUA、GA4両方のプロパティにデータが送られる状態になってました。</p>
+
+<p>7月でUAの方のデータは停止しましたが、古いタグのままでもGA4にはデータが送られている状態。</p>
+
+<p>このままでも良さそうですが、UA側はもう使えないのでちゃんとGA4のプロパティのタグを導入。</p>
+
+<p>アナリティクスの管理画面上で、該当のプロパティの</p>
+
+<p><strong>管理</strong><i class="fa fa-arrow-right"></i><strong>プロパティ</strong><i class="fa fa-arrow-right"></i><strong>データストリーム</strong><i class="fa fa-arrow-right"></i><code>&lt;該当のストリーム名&gt;</code><i class="fa fa-arrow-right"></i><strong>タグの実装手順を表示する</strong></p>
+
+<p>へ行くと</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="cm">&lt;!-- Google tag (gtag.js) --&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">async</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://www.googletagmanager.com/gtag/js?id=&lt;測定ID&gt;&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="w">  </span><span class="nb">window</span><span class="p">.</span><span class="nx">dataLayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">dataLayer</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">[];</span>
+</span><span class="line"><span class="w">  </span><span class="kd">function</span><span class="w"> </span><span class="nx">gtag</span><span class="p">(){</span><span class="nx">dataLayer</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);}</span>
+</span><span class="line"><span class="w">  </span><span class="nx">gtag</span><span class="p">(</span><span class="s1">&#39;js&#39;</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">());</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="nx">gtag</span><span class="p">(</span><span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;測定ID&gt;&#39;</span><span class="p">);</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といったタグが得られるのでこれを参考に。</p>
+
+<p>とはいえ、以前のUAでもgtag.jsを使えるようになっているので、すでにgtagを使ってる場合はIDの部分を変えるだけでOK。</p>
+
+<p>analytics.jsを使ってる場合はGA4ではgtag.jsの上記のスクリプトに置き換えないといけません。</p>
+
+<h2 id="ページビューを取得するプラグインのアップデート">ページビューを取得するプラグインのアップデート</h2>
+
+<p>Jekyllでビルドする際にRubyの<a href="https://github.com/googleapis/google-api-ruby-client">google-api-client</a>
+を使ってましたが、
+これを
+<a href="https://github.com/googleapis/google-cloud-ruby/tree/main/google-analytics-data">google-analytics-data</a>
+を使う様に変更。</p>
+
+<p>とりあえず新しいAPIを使うための準備として、</p>
+
+<ul>
+  <li><a href="https://console.cloud.google.com/cloud-resource-manager">Google Cloud Console</a>での準備
+    <ul>
+      <li>他でもAPI関連で使ってるプロジェクトの中でサービスアカウントを追加し、作られたメールアドレスをメモしておく。</li>
+      <li>作ったサービスアカウントの<strong>キー</strong>からJSON形式の鍵を作成して鍵ファイルを入手。
+        <ul>
+          <li><a href="https://cloud.google.com/ruby/docs/reference/google-analytics-data/latest/AUTHENTICATION#creating-a-service-account">Ruby client library  Google Cloud</a></li>
+        </ul>
+      </li>
+      <li>Analyticsを有効にするため、プロジェクトでGoogle analytics Data APIを有効に。</li>
+    </ul>
+  </li>
+  <li><a href="https://analytics.google.com/analytics/web/#/">Analytics</a>での準備
+    <ul>
+      <li>該当するプロパティの<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>プロパティ設定</strong>などに行き、9桁のプロパティIDを取得。</li>
+      <li>該当するプロパティの<strong>管理</strong><i class="fa fa-arrow-right"></i><strong>アカウントのアクセス管理</strong>で上で取得したメールアドレスを追加する(権限は<strong>閲覧者</strong>)。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>これで準備ができたので、
+google-analytics-dataを<code>gem install gogole-analytics-data</code>などでインストールして、
+テストコードを走らせてみます。</p>
+
+<p>Ref: <a href="https://cloud.google.com/ruby/docs/reference/google-analytics-data">Ruby client library Google Cloud</a></p>
+
+<figure class="code"><figcaption><span>get_page_view.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="ch">#!/usr/bin/env ruby</span>
+</span><span class="line">
+</span><span class="line"><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;google/analytics/data&quot;</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">def</span><span class="w"> </span><span class="nf">page_view</span><span class="p">(</span><span class="n">property_id</span><span class="p">,</span><span class="w"> </span><span class="n">credentials</span><span class="p">,</span><span class="w"> </span><span class="n">start_date</span><span class="p">,</span><span class="w"> </span><span class="n">end_date</span><span class="p">)</span>
+</span><span class="line"><span class="w">  </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">.</span><span class="n">analytics_data</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span class="line"><span class="w">      </span><span class="n">config</span><span class="o">.</span><span class="n">credentials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">credentials</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">RunReportRequest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class="line"><span class="w">    </span><span class="ss">property</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;properties/</span><span class="si">#{</span><span class="n">property_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">dimensions</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">Dimension</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pagePath&quot;</span><span class="p">)</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">metrics</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">Metric</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;screenPageViews&quot;</span><span class="p">)</span><span class="o">]</span><span class="p">,</span>
+</span><span class="line"><span class="w">    </span><span class="ss">date_ranges</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Google</span><span class="o">::</span><span class="no">Analytics</span><span class="o">::</span><span class="no">Data</span><span class="o">::</span><span class="no">V1beta</span><span class="o">::</span><span class="no">DateRange</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">start_date</span><span class="p">:</span><span class="w"> </span><span class="n">start_date</span><span class="p">,</span><span class="w"> </span><span class="ss">end_date</span><span class="p">:</span><span class="w"> </span><span class="n">end_date</span><span class="p">)</span><span class="o">]</span>
+</span><span class="line"><span class="w">  </span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">run_report</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="n">response</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class="line"><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Page: </span><span class="si">#{</span><span class="n">row</span><span class="o">.</span><span class="n">dimension_values</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">, Page view: </span><span class="si">#{</span><span class="n">row</span><span class="o">.</span><span class="n">metric_values</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class="line"><span class="w">  </span><span class="k">end</span>
+</span><span class="line"><span class="k">end</span>
+</span><span class="line">
+</span><span class="line"><span class="n">page_view</span><span class="p">(</span><span class="s2">&quot;&lt;property_id&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&lt;key_file.json&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;30daysAgo&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;today&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった感じのテストコードを実行してみます。
+(<code>peoperty_id</code>と<code>key_file.json</code>を上で取得したアナリティクスのプロパティIDと保存した鍵ファイルへのパスへ変更。)</p>
+
+<p><code>RunReportRequest</code>で取得する際の設定として</p>
+
+<ul>
+  <li><code>dimensions</code>: <code>pagePath</code>を指定してページごとの値を取得</li>
+  <li><code>metrics</code>: <code>screenPageViews</code>で表示数を取得</li>
+  <li><code>date_ranges</code>: <code>30daysAgo</code>から<code>today</code>まで</li>
+</ul>
+
+<p><code>screenPageViews</code>以外にも色々取れるものは以下を参照。</p>
+
+<ul>
+  <li><a href="https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema?hl=en">API Dimensions &amp; Metrics  Google Analytics Data API  Google for Developers</a>
+    <ul>
+      <li>これは日本語版もありますが、日本語訳の際に変数名まで訳されて意味がわからなくなってるので英語版のほうが見やすい。</li>
+      <li><a href="https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema?hl=ja#metrics">API のディメンションと指標  Google Analytics Data API  Google for Developers</a></li>
+    </ul>
+  </li>
+</ul>
+
+<p>また、<code>date_ranges</code>のところで、以前のAPIだと指定の仕方も色々違いますが、
+値として
+<code>1 month ago</code>, <code>1 day ago</code>といった指定だったのに対してこのAPIでは<code>month</code>とか<code>year</code>とか<code>week</code>とかは使えずに全て<code>days</code>で
+<code>NdaysAgo</code>といった感じで指定するか、<code>yesterday</code>, <code>today</code>での指定、もしくは<code>YYYY-MM-DD</code>での直接日付指定をするようになっています。</p>
+
+<p>これで動いたら適当にこれを使ってプラグインなどを作ります。
+以下関連プラグインの変更点など。</p>
+
+<p><a href="https://github.com/rcmdnk/octopress-page-view/commit/a79c715ac0242dbb79311517efe671ad7755e110">feat: Update Google Analytics API V3-&gt;V4 in page_view.rb · rcmdnk/octopress-page-view@a79c715</a></p>
+
+<p><a href="https://github.com/rcmdnk/octopress-share-numbers/commit/94fed6ef68a991087073c31010251dbcf7393983">feat: update Google Analytics API v3 -&gt; v4 (following octopress-popul… · rcmdnk/octopress-share-numbers@94fed6e</a></p>
+
+<p><a href="https://github.com/rcmdnk/octopress-popular-posts/commit/9c7e364cda5af577d75a8c08c27a996e47b7c104">feat: update Google Analytics API v3 -&gt; v4 · rcmdnk/octopress-popular-posts@9c7e364</a></p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150210_popularlist_120_90.jpg" width="120" height="90" alt="20150210_popularlist_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/02/10/blog-octopress/">Google AnalyticsのView数を取ってきてランキングを作る</a></div></li></ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ブログ10周年]]></title>
+    <link href="https://rcmdnk.com/blog/2023/03/07/blog-octopress/"/>
+    <updated>2023-03-07T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/03/07/blog-octopress</id>
+    <content type="html"><![CDATA[<p>2013年3月7日の投稿がこのブログの最初の投稿だったので2023年3月7日で10周年になりました。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#ブログの始まり" id="markdown-toc-ブログの始まり">ブログの始まり</a></li>
+  <li><a href="#これまで" id="markdown-toc-これまで">これまで</a></li>
+  <li><a href="#よく読まれている記事" id="markdown-toc-よく読まれている記事">よく読まれている記事</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="ブログの始まり">ブログの始まり</h2>
+
+<blockquote>
+  <p>GitHubを使って色々管理をし始めた今日このごろ、 GitHubではGitHub Pagesとページが 簡単に作れるということを知って、 さらにしばらく調べていたらOctopressと 言うツールを使ってブログをGitHub Pages上でブログを作る、 と言うのが面白そうだったのでいっその事ブログも作って見ることにしました。</p>
+</blockquote>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/03/07/setup-octopress/">GitHub pages + Octopressの導入</a></div></li></ul>
+
+<p>ということでメモ代わりのブログを始めた感じでした。</p>
+
+<p>GitHub Pages + Octopressの形で始めて結局今まで同じ形でやっています。</p>
+
+<p><a href="https://github.com/imathis/octopress">imathis/octopress</a>
+は
+<a href="http://jekyllrb-ja.github.io/">Jekyll</a>
+を使ったフレームワークですが、当時GitHub Pagesで静的なページを公開するというところで
+使いやすそうなものとして選びました。</p>
+
+<p><a href="https://github.com/octopress/octopress">Octopress 3.0</a>
+という次のバージョンも開発が進んでいましたが途中で止まってしまい、2.0の方も
+8年前が最後のアップデートになっています。</p>
+
+<p>とはいえ必要な部分は自分で変更したりしてなんとかなっているので
+今のところはまだ変更せずにやっていくつもりです。</p>
+
+<p>もとのOctopressからの変更点などは
+自作のテーマの中で管理しています。</p>
+
+<div class="github-widget" data-repo="rcmdnk/octogray"></div>
+
+<h2 id="これまで">これまで</h2>
+
+<p>最初の頃はブログの記事もブログに関することが結構多かったりもしました。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2014/02/02/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20140202_octopress_120_90.jpg" width="120" height="90" alt="20140202_octopress_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2014/02/02/blog-octopress/">Octorpessについてのここまでのまとめ</a></div></li></ul>
+
+<p><a href="https://rcmdnk.com/blog/tags/octopress/">/blog/tags/octopress/</a></p>
+
+<p>OctopressはJekyllを使ってるので基本Rubyで動いていますが、記事が多くなってくると
+どうしてもレンダリングに時間がかかってしまいます。</p>
+
+<p>それで他のものに移っていった人も多かったわけですが、
+まずはプレビューを素早く出来るような設定を作り、</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2013/10/07/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon128_120_90.png" width="120" height="90" alt="icon128_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2013/10/07/blog-octopress/">Octopressでチェック用に高速にgenerate/previewする</a></div></li></ul>
+
+<p>さらにページの共通部分を別途生成して合わせるようなことをしてあげることで一応実用的なレベルに出来てはいます。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B003MY4UH0?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B003MY4UH0&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51ZPJum6cCL._SS90_CR0,0,120,90_.jpg" alt="Amazon.co.jp： Speed Up (With Remixes) [Explicit]: Matt Harder: デジタルミュージック" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/06/18/blog-octopress/">Octopressのgenerateを劇的にスピードアップする</a></div></li></ul>
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B001DNQSNG?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B001DNQSNG&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/61RGm9%2BAKHL._SS90_CR0,0,120,90_.jpg" alt="Universal Mind Control" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/07/02/blog-octopress/">octopress-common-partでOctopressを高速化</a></div></li></ul>
+
+<p>現状ブログの生成はGitHub Actionsで行っていますが、全部作るのには10分程度です。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20200416_githubactions_120_90.png" width="120" height="90" alt="20200416_githubactions_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2020/04/16/blog-octopress-github/">ブログのビルド環境をGitHub Actionsに変更</a></div></li></ul>
+
+<p>恐らく他のツールであればこのくらいの規模でも1分もかからずに作れるものもあるかもしれませんが、
+瞬時に発信したいものがあるわけでもないので許容範囲かと。</p>
+
+<p>OctopressからGo製の同じくMarkdownからの静的ページ生成ツールの
+<a href="https://gohugo.io/">The world’s fastest framework for building websitesを自負するHugo</a>
+に移ろうかと何度か試したりはしたんですが、
+変更点を細かくチェックしたり
+色々と作ったプラグインとか全部
+移植するのは大変なので断念しています。</p>
+
+<p>また気が向いたら試すかもしれませんが、
+最近だとRustで作られたものも出てきているようなのでそっちを見て見るかも
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>あと大きく変わったのは独自ドメインに変更したこととか。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/thumbnail/icon200_120_90.png" width="120" height="90" alt="icon200_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/01/01/blog-octopress/">rcmdnk.com: 独自ドメインになりました</a></div></li></ul>
+
+<p>これで最悪GitHub Pagesがなくなっても適当なところで同じように公開することができるようになりました。</p>
+
+<p>一時期英語でも書こうかと思ってページも作っていくつか日本語で書いたものを
+書き換えたりしてたんですが、英語で特別発信したい(というより、そもそも誰かに向けて発信したい)という
+モチベーションもなく結局10記事も書かずに終わっています。。。
+翻訳するだけなら最早自分でやる必要はないわけで。</p>
+
+<p><a href="https://rcmdnk.com/en/">/en/</a></p>
+
+<p>何か特に英語で書きたいことがあればまた書きたいとは思ってます。</p>
+
+<p>ここ最近は通常の方も少し書く量が減った感じもありますが気が向いたら書くというこれまでと同じ感じで続けています。</p>
+
+<h2 id="よく読まれている記事">よく読まれている記事</h2>
+
+<p>meta情報に<strong>PC関連の自分設定やスクリプト等のメモとか。</strong>と最初の頃に書いたものがそのまま残ってるんですが、
+基本的にはPC周りの自分のメモのようなものとして始めました。</p>
+
+<p>Evernoteとか自分用だけに書きなぐったメモに比べて、
+結構細かいところまで調べて確認してから書いているつもりなので
+それなりに便利な情報は残っていると思ってます。
+実際今でも自分で見返すものも結構あったりしてブログに書いてて良かったと思うことも。</p>
+
+<p>なんですが、よく読まれたものを見ると結構そういったこととは関係ないものが。。。</p>
+
+<p>以下が全期間でのトップ10。</p>
+
+<ul>
+  <li><a href="https://rcmdnk.com/blog/2014/08/20/computer-android/">Androidスマホでの3つのテザリングの仕方。設定のやり方や速度を比較等。</a></li>
+  <li><a href="https://rcmdnk.com/blog/2015/03/06/life/">自転車が盗まれたら安物でも取り敢えず盗難届を出しておくべき</a></li>
+  <li><a href="https://rcmdnk.com/blog/2017/03/03/computer-windows/">ノートPCのキーボードのボタン一つだけが壊れた時の対処法</a></li>
+  <li><a href="https://rcmdnk.com/blog/2016/02/08/computer-windows/">DellのWindows 10なノートパソコンでファンクションキーを機能キーではなくファンクションキーとして使用する</a></li>
+  <li><a href="https://rcmdnk.com/blog/2015/04/16/computer-gmail/">GmailでGmail以外のアドレスでGmailのSMTPが使えなくなってた件(実は使えた件)</a></li>
+  <li><a href="https://rcmdnk.com/blog/2015/07/11/computer-javascript-jquery/">window.onloadとjQueryの$(document).ready等の比較</a></li>
+  <li><a href="https://rcmdnk.com/blog/2015/03/16/life-shopping/">‘このYahoo! JAPAN IDはオークションの利用を停止されています。’への対処法</a></li>
+  <li><a href="https://rcmdnk.com/blog/2015/07/03/computer-linux/">サーバーに接続できない-&gt;TIME_WAITが大量にポートを食い尽くしてる</a></li>
+  <li><a href="https://rcmdnk.com/blog/2014/08/23/computer-linux-putty/">sshでConnection reset by peerと接続が切れるのを防ぐ</a></li>
+</ul>
+
+<p>ほとんどがPC関係ない話に。すごく調べたのは<strong>windows.onload</strong>の話とか。</p>
+
+<p>ここ1年くらいだとトップ5は以下のもの。</p>
+
+<ul>
+  <li><a href="https://rcmdnk.com/blog/2020/08/02/computer-google/">日本語含めてソートしたときに最初と最後に来る文字</a></li>
+  <li><a href="https://rcmdnk.com/blog/2021/03/01/computer-windows-network/">Windows WSL2に外部から直接アクセスするための設定</a></li>
+  <li><a href="https://rcmdnk.com/blog/2021/09/17/computer-windows/">Windowsネイティブな環境でのtar.gzファイルの解凍</a></li>
+  <li><a href="https://rcmdnk.com/blog/2019/10/25/life-shopping-rakuten/">楽天会員規約に基づき利用停止措置がとられています</a></li>
+  <li><a href="https://rcmdnk.com/blog/2022/03/11/life-shopping-iphone/">iPhone SE(第2世代)のケースはダイソーのものが一番良かった</a></li>
+</ul>
+
+<p>調べたりして書き上げるのにかかった時間と見られる量は全く相関がないわけですが、
+あくまで自分のメモ代わりということで気になったことを書いていきます。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>ということで今後もよろしくお願いします。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GitHub ActionsでのGistへのアクセス制限の回避]]></title>
+    <link href="https://rcmdnk.com/blog/2023/01/13/blog-octopress-github/"/>
+    <updated>2023-01-13T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2023/01/13/blog-octopress-github</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07YSCMT96?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07YSCMT96&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71HCWFebUbL._SS200_.jpg" alt="遊戯王 原始生命態トークン 19TP-JP416 トーナメントパック2019 vol.4" /></a>
+</div>
+
+<p>このブログのビルドをGitHub Actionsで行っていますが、
+その中でGistにアクセスしてコードを取得して表示する作業があり、
+それが回数制限に引っかかることが多くなったのでそれを回避した話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#rest-apiへのアクセス制限" id="markdown-toc-rest-apiへのアクセス制限">REST APIへのアクセス制限</a></li>
+  <li><a href="#github-actionsのgithub_tokenの権限" id="markdown-toc-github-actionsのgithub_tokenの権限">GitHub ActionsのGITHUB_TOKENの権限</a></li>
+  <li><a href="#トークンを作成してレポジトリに登録" id="markdown-toc-トークンを作成してレポジトリに登録">トークンを作成してレポジトリに登録</a></li>
+  <li><a href="#トークンを使ってgistへアクセス" id="markdown-toc-トークンを使ってgistへアクセス">トークンを使ってGistへアクセス</a></li>
+  <li><a href="#以前やっていたこと" id="markdown-toc-以前やっていたこと">以前やっていたこと</a></li>
+  <li><a href="#リミットにかかる理由がよくわからない" id="markdown-toc-リミットにかかる理由がよくわからない">リミットにかかる理由がよくわからない</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="rest-apiへのアクセス制限">REST APIへのアクセス制限</h2>
+
+<p>Gistなどを取得するためにREST APIにアクセスを行いますが、
+トークンなしだと1時間に60回までに制限されています。</p>
+
+<p>GitHubのアカウントを使ってTOKENを作れば通常ユーザーであれば1時間あたり5000回までのアクセスが可能になります。</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/en/enterprise-cloud@latest/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#rate-limiting">Resources in the REST API - GitHub Enterprise Cloud Docs</a></p>
+</blockquote>
+
+<p>また、GitHub Actionsでは、実行時に<code>${{ secret.GITHUB_TOKEN }}</code>という値でトークンが自動で生成されますが、このトークンは
+1つのレポジトリに付き1000回のアクセス制限になっています。</p>
+
+<h2 id="github-actionsのgithub_tokenの権限">GitHub ActionsのGITHUB_TOKENの権限</h2>
+
+<p>GitHub Actionsの中で自動で作られるGITHUB_TOKENは下の<strong>GITHUB_TOKENのアクセス許可</strong>の表にある権限を持っています。</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/en/actions/security-guides/automatic-token-authentication">Automatic token authentication - GitHub Docs</a></p>
+</blockquote>
+
+<p>実行中のレポジトリへの読み書きの権限などを持っていますが、
+Gistへのアクセス権限は持っていません。</p>
+
+<p>無理やりこのGITHUB_TOKENを使ってGistへアクセスしようとすると</p>
+
+<pre><code>Resource not accessible by integration
+</code></pre>
+
+<p>なエラーが出ます。</p>
+
+<h2 id="トークンを作成してレポジトリに登録">トークンを作成してレポジトリに登録</h2>
+
+<p>というわけで別途作ってレポジトリの<strong>Actions secrets</strong>に登録します。</p>
+
+<p>作成は</p>
+
+<p><a href="https://github.com/settings/tokens">Personal Access Tokens (Classic)</a></p>
+
+<p>から(<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Developer settings</strong><i class="fa fa-arrow-right"></i><strong>Personal access tokens</strong><i class="fa fa-arrow-right"></i><strong>Tokens (classic)</strong>)。</p>
+
+<p>新しい<strong>Fine-grained tokens (Beta)</strong>というものができていて、こちらだと権限を与えるレポジトリを選択することが出来るようになってたりしますが、
+今回はPublicなGistへのアクセスだけなのでclassicな方で作ります。</p>
+
+<p>PublicなGistへのアクセスだけであれば<strong>Select scopes</strong>で何も選択しないで作成すればOKです。</p>
+
+<blockquote>
+  <p><a href="https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps">Scopes for OAuth Apps - GitHub Docs</a></p>
+</blockquote>
+
+<p>作ったトークンを、GitHub Actionsを行うレポジトリの<strong>Settings</strong><i class="fa fa-arrow-right"></i><strong>Secrets and variables</strong><i class="fa fa-arrow-right"></i><strong>Actions</strong>へ行き、<strong>Secrets</strong>で<strong>New Repository secret</strong>から登録します。</p>
+
+<p>名前は<code>GIST_GITHUB_TOKEN</code>とかなんとか。</p>
+
+<p>ちなみに<code>GITHUB_XXX</code>のように<code>GITHUB_</code>から始まる名前は使えないらしく、登録しようとすると、</p>
+
+<pre><code>Failed to add secret. Secret names must not start with GITHUB_.
+</code></pre>
+
+<p>とエラーが出ます。</p>
+
+<h2 id="トークンを使ってgistへアクセス">トークンを使ってGistへアクセス</h2>
+
+<p>Gistを取得するのは以下のプラグインを使っています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/rcmdnk/octogray/blob/master/plugins/gist_tag.rb">octogray/gist_tag.rb at master · rcmdnk/octogray</a></p>
+</blockquote>
+
+<p><a href="https://github.com/imathis/octopress">オリジナル</a>のものを色々と調整したもの。</p>
+
+<p>以下の部分で、<code>{Authorization: Bearer &lt;TOKEN&gt;}</code>なヘッダー情報を渡しています。</p>
+
+<blockquote>
+  <p>https://github.com/rcmdnk/octogray/blob/40030ff3c5d7f1e9c13413a208b7b30a40cfb68c/plugins/gist_tag.rb#L134</p>
+</blockquote>
+
+<p><code>GITHUB_TOKEN</code>という環境変数があればそれを使うようにしているため、
+GitHub Actionsでビルドを行うstepに対して上の<code>GIST_GITHUB_TOKEN</code>を<code>GITHUB_TOKEN</code>というevnで渡してあげればOKです。</p>
+
+<p>Octopressのビルドは<a href="https://github.com/rcmdnk/octopress-action">rcmdnk/octopress-action</a>
+というアクションで行っているので、</p>
+
+<figure class="code"><figcaption><span>action.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rcmdnk/octopress-action@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">env</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">GITHUB_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GIST_GITHUB_TOKEN }}</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">ssh_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.SSH_KEY }}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>こんな感じのstepを作ってあげればOK。</p>
+
+<h2 id="以前やっていたこと">以前やっていたこと</h2>
+
+<p>以前、これとは別にOAuth Appsを作ってclient_id/client_secretを使った認証でlimitを回避していて、
+その設定も上のgist_tag.rbで出来るようになっています。</p>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail"><div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/4873116864?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4873116864&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/51GHwTNJgSL._SS90_CR0,0,120,90_.jpg" alt="Web API: The Good Parts" /></a>
+</div></div><a class="click_box_link" href="https://rcmdnk.com/blog/2017/04/22/blog-octopress-github/">GitHubのAPIのリクエスト制限を避けるためにclient idなどを取得する</a></div></li></ul>
+
+<p>まだローカル環境でビルドを行っていた頃で、何度も手でビルドを行っているうちにリクエスト制限にかかってしまった事があり、
+それが他の作業にも影響してしまうので入れてました。</p>
+
+<p>その後、クラウド上でビルドするようになってからはそこまで連続で全ビルドすることはなくなったので特に設定してなかったようです。</p>
+
+<p>今回もAppsを使っても良かったんですが、より簡単に出来る方法としてトークンを使うようにしました。</p>
+
+<h2 id="リミットにかかる理由がよくわからない">リミットにかかる理由がよくわからない</h2>
+
+<p>1時間に60回の制限ですが、実際には毎日ビルドを行っている中でほとんどのビルドは成功していて最近までは特にこの制限にかかることはありませんでした。</p>
+
+<p>たまに続けてアップデートを繰り返して明らかに制限を超えてしまうことはありましたが、
+少なくとも1回のビルドでは30個位のGistへのアクセスしかありません。</p>
+
+<p>ここ2週間ほどでこのエラーが出るようになり、結構続いたので一旦Gistでなくても良いものは直接書いてしまうようにして、
+Gistのexample的な感じで載せたものとか一部だけ、数個だけ残した形になりました。</p>
+
+<p>が、それでも数日に1回失敗する感じになっています。</p>
+
+<p>ジョブが始まった時点で60回を使い切ってしまっているようです。</p>
+
+<p>たまたま他の人のジョブが前に同じIPのインスタンスで動いていて使い切ってしまった、とか?</p>
+
+<p>いずれにしろ60回/時、という数をかならず使える状態ではなくなってしまったので
+少しでも使う場合にはトークンとかを用意する必要がある状態になってしまっています。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MathJaxを使って数式をWebページに表示する]]></title>
+    <link href="https://rcmdnk.com/blog/2022/07/25/blog-octopress/"/>
+    <updated>2022-07-25T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/07/25/blog-octopress</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B07ZR12WM3?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B07ZR12WM3&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/71v8TR8cObL._SS200_.jpg" alt="カラフルな数式パーカートレーナーフーデッドアスレチックスウェット3Dプリントガールズボーイズメンズ（ヘルスファブリック）" /></a>
+</div>
+
+<p><a href="https://rcmdnk.com/blog/2022/07/17/computer-python/">前回の記事</a>で数式を載せてみたんですが、
+このブログでOctopressの中で使えるようにした方法について。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#mathjax" id="markdown-toc-mathjax">MathJax</a></li>
+  <li><a href="#kramdownでの運用" id="markdown-toc-kramdownでの運用">Kramdownでの運用</a></li>
+  <li><a href="#octopressjekyllでの運用" id="markdown-toc-octopressjekyllでの運用">Octopress/Jekyllでの運用</a></li>
+  <li><a href="#jekyll-spaceship" id="markdown-toc-jekyll-spaceship">Jekyll Spaceship</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="mathjax">MathJax</h2>
+
+<p><a href="https://www.mathjax.org/">MathJax</a>はJavaScriptを使って
+HTMLページ内のLaTeXのような記述方法で書かれた数式部分をCommonHTMLまたはSVG形式で表示してくれるツールです。</p>
+
+<p>使い方は</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://polyfill.io/v3/polyfill.min.js?features=es6&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;MathJax-script&quot;</span> <span class="na">async</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>の2つを読み込んでおいて、ページ内で<code>\(</code>/<code>\)</code>で囲った部分が文中表示で数式に変換され、
+<code>$$</code>/<code>$$</code>または<code>\[</code>/<code>\]</code>で囲った部分が独立した行として数式に変換されます
+<sup id="fninref:1"><a href="#fnin:1" rel="footnote">1</a></sup>。</p>
+
+<p>LaTeX的な<code>$</code>で囲った部分を文中数式にするには</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="nx">MathJax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">  </span><span class="nx">tex</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span class="line"><span class="w">    </span><span class="nx">inlineMath</span><span class="o">:</span><span class="w"> </span><span class="p">[[</span><span class="s1">&#39;$&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;$&#39;</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;\\(&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;\\)&#39;</span><span class="p">]]</span>
+</span><span class="line"><span class="w">  </span><span class="p">}</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>と言った設定を書いておくことで有効になります。</p>
+
+<p>ミニマムな例は以下のJS Binで見てみることが出来ます。</p>
+
+<p><a href="https://jsbin.com/?html,output">JS Bin - Collaborative JavaScript Debugging</a></p>
+
+<h2 id="kramdownでの運用">Kramdownでの運用</h2>
+
+<p>Kramdownで使う際には記号の変換が入るので少し注意が必要です。</p>
+
+<blockquote>
+  <p><a href="https://kramdown.gettalong.org/syntax.html#math-blocks">Syntax, Math Blocks: kramdown</a></p>
+</blockquote>
+
+<p>にあるようにKramdownはMathJaxをサポートしているとのことですが、
+実際にKramdownで行っていることは<code>$</code>などの記号を良しなに変形することを行っているだけです。</p>
+
+<p>それらを見越してMarkdownを書いて、さらに上のスクリプト2行を加えればきれいな数式のウェブページを作ってくれます。</p>
+
+<p>ですが、これがちょっとよくわからない変換になっていて</p>
+
+<ul>
+  <li><code>$~$</code>: そのまま。(MathJaxのデフォルトだと何もしない)</li>
+  <li><code>$$~$$</code>: 独立行だと<code>\[~\]</code>に変換。文中にあると<code>\(~\)</code>に変換。
+    <ul>
+      <li>MathJaxを通すと独立の場合は独立行に、文中だと文中数式に。</li>
+    </ul>
+  </li>
+  <li><code>\$$~$$</code>: 独立行だと<code>\(~\)</code>、文中だと<code>$$~$$</code>に。
+    <ul>
+      <li>MathJaxを通すと独立行は文中式に、文中だと独立行に。</li>
+    </ul>
+  </li>
+  <li><code>\$\$~$$</code>: <code>$$~$$</code>に。独立行数式に。</li>
+  <li><code>\$$~\$$</code>: 独立行だと<code>\(~\\)</code>、文中だと<code>$$~$$</code>。</li>
+  <li><code>\$\$~\$\$</code>: <code>$$~$$</code>に。</li>
+  <li><code>\(~\)</code>: <code>\</code>が消える(MathJaxには通らない)。</li>
+  <li><code>\[~\]</code>: <code>\</code>が消える(MathJaxには通らない)。</li>
+</ul>
+
+<p>といった変換になっています。
+(Kramdown 2.4.0でgemで入れたものを使って<code>$ kramdown test.md</code>のように直接変換してテスト。)</p>
+
+<p>上のドキュメントでは<code>\$$~$$</code>は文中数式になる、とのことなんですが、
+確かにそれだけ1行に書いておけば、独立行数式のように中寄せされずに通常分扱いで左端からはじまりますが、
+実際に文中に入れ込むと<code>$$~$$</code>に変換されてしまい予期せぬ改行になってしまいます。</p>
+
+<p>また、<code>\$\$~\$\$</code>はそのままそれを出力するとのことですが、そうはならず
+MathJaxで変換される状態になってしまいます。</p>
+
+<p>という状態なので、基本的に独立行数式でも文中数式でも<code>$$~$$</code>で書いておけば
+KramdownがMathJax用に変換してくれるということがわかります。</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">$$x_1$$</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">test</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">XXX $$x_2$$ XXX</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>とすれば、</p>
+
+<p>test</p>
+
+<p>[x_1]</p>
+
+<p>test</p>
+
+<p>XXX \(x_2\) XXX</p>
+
+<p>といった感じに表示されます。</p>
+
+<p>逆にそれ以外の記号は変なくせがあるので使わないほうが良さそうです。</p>
+
+<p>また、<code>$~$</code>を変換するようにMathJaxのオプションを追加する事もできますが、
+<code>$</code>記号が同一文中に2つ出てくることは普通の文でもありえるので避けておいた方が良いです。</p>
+
+<h2 id="octopressjekyllでの運用">Octopress/Jekyllでの運用</h2>
+
+<p>簡単には適当にテンプレートのhead部分とかに</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="html"><span class="line"><span></span><span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+</span><span class="line">...
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://polyfill.io/v3/polyfill.min.js?features=es6&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;MathJax-script&quot;</span> <span class="na">async</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span class="line">...
+</span><span class="line"><span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>を加えておけばすべてのページで読み込ますことが出来ます。</p>
+
+<p>ただ、ほとんどのページで使わない場合には無駄なので、
+例えば<code>page</code>というレイアウトを記事のテンプレートとして使う場合、
+<code>head</code>のテンプレート部分で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">{% if page.math %}
+</span><span class="line">&lt;script src="https://polyfill.io/v3/polyfill.min.js?features=es6"&gt;&lt;/script&gt;
+</span><span class="line">&lt;script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"&gt;&lt;/script&gt;
+</span><span class="line">{% endif %}}</span></code></pre></td></tr></table></div></figure>
+
+<p>としておいて、記事のMarkdownファイルの戦闘に書くYAML部分で、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">---
+</span><span class="line">title: "MathJax test"
+</span><span class="line">...
+</span><span class="line">math: true
+</span><span class="line">---</span></code></pre></td></tr></table></div></figure>
+
+<p>と<code>math</code>を有効にしてあげればその記事だけに上のスクリプトが読み込ませることが出来ます。</p>
+
+<h2 id="jekyll-spaceship">Jekyll Spaceship</h2>
+
+<div class="github-widget" data-repo="jeffreytse/jekyll-spaceship"></div>
+
+<p>Jekyll SpaceshipはJekyll用のプラグインで
+様々な変形をひとまとめに管理して有効に出来るツールです。</p>
+
+<p>この中に
+<code>mathjax-processor</code>というものがあり、
+Octopress/Jekyllの設定ファイルである<strong>_config.yml</strong>の中で</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">plugins</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jekyll-spaceship</span>
+</span><span class="line">
+</span><span class="line"><span class="nt">jekyll-spaceship</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">processors</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mathjax-processor</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>のようにプラグインを読み込むと<code>$~$</code>のような文字列が文章中にあれば
+自動で上のスクリプトを読み込むようにHTMLに書き込んでくれます。</p>
+
+<p><code>mathjax-processor</code>ではデフォルトで、</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">jekyll-spaceship</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">processors</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mathjax-processor</span>
+</span><span class="line"><span class="w">  </span><span class="nt">mathjax-processor</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">src</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://polyfill.io/v3/polyfill.min.js?features=es6</span>
+</span><span class="line"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js</span>
+</span><span class="line"><span class="w">    </span><span class="nt">config</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">tex</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">inlineMath</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;$&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;$&#39;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;\(&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;\)&#39;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">displayMath</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;$$&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;$$&#39;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;\[&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;\]&#39;</span><span class="p p-Indicator">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>といった設定になっていて、MathJaxのデフォルト値とは違い、<code>$~$</code>もMathJaxで変換するようになっています。</p>
+
+<p>これを入れるとKramdownの変形とは違い、</p>
+
+<ul>
+  <li><code>$~$</code>: そのまま。</li>
+  <li><code>$$~$$</code>: そのまま。</li>
+  <li><code>\$$~$$</code>: そのまま。</li>
+  <li><code>\$\$~$$</code>: <code>$$~$$</code>に。</li>
+  <li><code>\$$~\$$</code>: <code>\$$~$$</code>に。</li>
+  <li><code>\$\$~\$\$</code>: <code>$$~$$</code>に。</li>
+  <li><code>\(~\)</code>: <code>\</code>が消える(MathJaxには通らない)。</li>
+  <li><code>\[~\]</code>: <code>\</code>が消える(MathJaxには通らない)。</li>
+</ul>
+
+<p>で、何故かKramdownだと変化をさせないコードブロック中の<code>$$</code>を<code>\$\$</code>に変更してしまうことがあります。
+<code>$</code>1つだとエスケープはつきません。</p>
+
+<p>上の様にKramdownの変更とはちょっと変更になっていて、<code>tex</code>に指定した記号に関して
+処理を施しているようで、それがコードブロックまでちょっと悪さをしている模様。</p>
+
+<p><code>$$</code>を下手に変換させないために</p>
+
+<figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="w">    </span><span class="nt">config</span><span class="p">:</span>
+</span><span class="line"><span class="w">      </span><span class="nt">tex</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">inlineMath</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;\(&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;\)&#39;</span><span class="p p-Indicator">]</span>
+</span><span class="line"><span class="w">        </span><span class="nt">displayMath</span><span class="p">:</span>
+</span><span class="line"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;\[&#39;</span><span class="p p-Indicator">,</span><span class="s">&#39;\]&#39;</span><span class="p p-Indicator">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<p>としてみると、コードブロック内の<code>$$</code>は変換されなくなります。</p>
+
+<p>また、<code>$$~$$</code>の部分は、もとのKramdownと同じ様に変換され、出力としてMathJaxが読めるようになるので
+結果的に数式に変換されます。</p>
+
+<p>また、<code>$$~$$</code>の記号だけがあってもMathJaxのスクリプトを読み込む設定がHTMLに書き込まれます。</p>
+
+<p>ただ、これは直感に合わないので、おそらく予期してないものだと思います。</p>
+
+<p>このプラグインはKramdown用、というわけではなく、
+Kramdownでやっている<code>$</code>関連の処理はMarkdownの基本的な処理にはないものなので
+この部分がconflictしてしまっているのかと。</p>
+
+<p>なので、Kramdownを使っている場合にはそういう物だと思って、
+<code>config.tex</code>に関しては上の様に設定し、
+独立行でも文中数式でも
+<code>$$~$$</code>を使っておけば上の<code>math</code>オプションを使ったときと同じ様に出来るように見えます。</p>
+
+<p>ちょっと完全に副作用がないかは確認できてないのと、数式を書くことはそれほどないと思うので、
+今は一旦<code>math</code>オプションを使った方法でやっていこうと思ってます。</p>
+
+<p>Jekyll Spaceshipには数式以外にも、テーブルのcolumnをまとめて表示できる機能や、PlantUML/Mermaidといった図の表示などもあって1つのプラグイン入れるだけで使えるのは便利だな、とは思うので、
+また必要そうなら試してみようと思います。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[LinkcheckerをGitHub Actionsで動かせるようにした]]></title>
+    <link href="https://rcmdnk.com/blog/2022/06/20/blog-python/"/>
+    <updated>2022-06-20T00:00:00+00:00</updated>
+    <id>https://rcmdnk.com/blog/2022/06/20/blog-python</id>
+    <content type="html"><![CDATA[<div class="amazon-img">
+  <a href="//www.amazon.co.jp/gp/product/B002HUQ2KS?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=B002HUQ2KS&amp;linkCode=shr&amp;tag=rcmdnk0c-22" rel="nofollow" target="_blank"><img src="https://images-na.ssl-images-amazon.com/images/I/517ET5+EgzL._SS200_.jpg" alt="THE CHECKERS SUPER BEST COLLECTION" /></a>
+</div>
+
+<p>ブログのリンク切れをチェックするために
+<a href="https://linkchecker.github.io/linkchecker/">LinkChecker</a>
+を使っていて、GitHub Actionsで動かしていますが
+最近のバージョンで上手く動かなくなっていたのでなんとか動くように変更した話。</p>
+
+<!-- more -->
+
+<ul id="markdown-toc">
+  <li><a href="#linkchecker" id="markdown-toc-linkchecker">Linkchecker</a></li>
+  <li><a href="#起こった問題" id="markdown-toc-起こった問題">起こった問題</a></li>
+  <li><a href="#問題調査" id="markdown-toc-問題調査">問題調査</a></li>
+  <li><a href="#なぞ" id="markdown-toc-なぞ">なぞ</a></li>
+</ul>
+<div class="group"></div>
+
+<div class="center_wrapper">
+  <div>
+  <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-3802317723662375" data-ad-slot="5762198341"></ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  </div>
+</div>
+
+<h2 id="linkchecker">Linkchecker</h2>
+
+<ul class="post_card"><li class="index_click_box"><div class="group"><div class="title-small-thumbnail">
+  <a href="https://rcmdnk.com/blog/2015/05/29/blog-travisci/"><img class="small-thumbnail-img" src="https://rcmdnk.com/images/post/thumbnail/20150529_linkchecker_120_90.jpg" width="120" height="90" alt="20150529_linkchecker_120_90" /></a>
+</div><a class="click_box_link" href="https://rcmdnk.com/blog/2015/05/29/blog-travisci/">ブログのリンクチェックを行うlinkcheckerの特定のエラーを無視する</a></div></li></ul>
+
+<p>サイト内のリンクをチェックしてリンク切れを見つけてくれるツール。</p>
+
+<p>開発も未だにアクティブにやってくれているので
+使い続けています。</p>
+
+<p>一時期メンテナンスがストップして有志がフォークして開発、みたいな感じだったみたいですが、
+現在は<strong>linkchecker</strong>というアカウントのもと運用されています。</p>
+
+<blockquote>
+  <p><a href="https://github.com/linkchecker/linkchecker/issues/1">contribution guidelines and FAQ · Issue #1 · linkchecker/linkchecker</a></p>
+</blockquote>
+
+<h2 id="起こった問題">起こった問題</h2>
+
+<p>環境はGitHub Actionsは</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="nt">jobs</span><span class="p">:</span>
+</span><span class="line"><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span class="line"><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Setup python</span>
+</span><span class="line"><span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v3</span>
+</span><span class="line"><span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+</span><span class="line"><span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.9.X</span>
+</span><span class="line"><span class="w">        </span><span class="nt">architecture</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">x64</span>
+</span><span class="line"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linkchecker</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">id</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linkchecker</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">continue-on-error</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">          </span><span class="no">pip install linkchecker</span>
+</span><span class="line"><span class="w">          </span><span class="no">linkchecker -o html https://rcmdnk.com &gt; linkchecker.html</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>みたいな感じでやっているもの。
+これで入るlinkcheckerは
+現在10.1.0です。</p>
+
+<p>ただし、下記のエラーは10.0.0でも10.0.1でも出ます。</p>
+
+<p>9.X系はPython2用なので、Python3にして10.1.0を使おうと思って変えたところエラーが出るようになりました。</p>
+
+<pre><code>Error: Unknown logger type 'html' in 'html' for option '-o, --output'
+</code></pre>
+
+<p>Linkcheckerでは結果をいろいろな形式で出力することが出来て、<code>-o html</code>でHTMLを指定していますが、
+このフォーマットは使えない、とのこと。</p>
+
+<p>ただ、フォーマットを指定しないと、デフォルトでは<code>text</code>なんですが、</p>
+
+<pre><code>  File "/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/linkcheck/configuration/__init__.py", line 225, in logger_new
+    args = self[loggername]
+KeyError: 'text'
+</code></pre>
+
+<p>なエラーが。</p>
+
+<p>また、コマンドを実行してすぐに、</p>
+
+<pre><code>ERROR: refuse to load module from world writable file '/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/linkcheck/logger/graph.py'
+ERROR: refuse to load module from world writable file '/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/linkcheck/logger/gxml.py'
+ERROR: refuse to load module from world writable file '/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/linkcheck/logger/html.py'
+ERROR: refuse to load module from world writable file '/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/linkcheck/logger/sql.py'
+...
+</code></pre>
+
+<p>といったエラーが連発されていました。
+これは<code>linkchecker --help</code>してみても出ます。</p>
+
+<h2 id="問題調査">問題調査</h2>
+
+<p>この<code>ERROR</code>が出る部分を探してみると、
+<a href="https://github.com/linkchecker/linkchecker/blob/30f1678202d14dd769ca12a32df9dbb184a767d4/linkcheck/loader.py#L60">ここ</a>で、
+<a href="https://github.com/linkchecker/linkchecker/blob/30f1678202d14dd769ca12a32df9dbb184a767d4/linkcheck/loader.py#L17">check_writable_by_others</a>からさらに<a href="https://github.com/linkchecker/linkchecker/blob/30f1678202d14dd769ca12a32df9dbb184a767d4/linkcheck/fileutil.py#L102">is_writable_by_others</a>でチェックが行われてこれが0以外を返しているのが問題っぽい。</p>
+
+<p><code>check_writable_by_others</code>にある<code>os.name</code>のチェックはGitHub Actions上でも<code>posix</code>ということは確認しました。</p>
+
+<p><code>is_writable_by_others</code>で、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="k">def</span> <span class="nf">is_writable_by_others</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+</span><span class="line"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if file or directory is world writable.&quot;&quot;&quot;</span>
+</span><span class="line">    <span class="n">mode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_MODE</span><span class="p">]</span>
+</span><span class="line">    <span class="k">return</span> <span class="n">mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWOTH</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>といったことをしてますが、<code>os.stat</code>でファイルの状態情報が取れて、<code>stat.ST_MODE</code>(=0)はファイルのパーミッション情報をもつもの。</p>
+
+<blockquote>
+  <p><a href="https://docs.python.org/3/library/stat.html">stat — Interpreting stat() results — Python 3.10.5 documentation</a></p>
+</blockquote>
+
+<p><code>stat.S_IWOTH</code>(=2)のビットに所有者以外に書き込み権限があるかどうか、が入っているとのこと。</p>
+
+<p>なのでこれが0を返せば所有者以外は書き込み権限がなく、所有者以外に書き込み権限があれば2が返ります。</p>
+
+<p>ということで見てみると2が返ってきてました。</p>
+
+<p>普通に<code>ls</code>で見てみると、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="python"><span class="line"><span></span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">4842</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">csvlog</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span> <span class="mi">14915</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3322</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">xmllog</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span> <span class="mi">12480</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">text</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">4312</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">sql</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">4340</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">sitemapxml</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">1247</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">none</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span> <span class="mi">14377</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">html</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3253</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">gxml</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3328</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">graph</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">2826</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">gml</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3755</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">failures</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3143</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">dot</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-+</span> <span class="mi">1</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">3814</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">customxml</span><span class="o">.</span><span class="n">py</span>
+</span><span class="line"><span class="n">drwxrwxrwx</span><span class="o">+</span> <span class="mi">2</span> <span class="n">runner</span> <span class="n">docker</span>  <span class="mi">4096</span> <span class="n">Jun</span> <span class="n">XX</span> <span class="n">XX</span><span class="p">:</span><span class="n">XX</span> <span class="n">__pycache__</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>な感じで<code>666</code>でグループ以外の人にも書き込み権限が与えられている状態でした。</p>
+
+<p>これを変えてやれば動くだろうということで、</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linkchecker</span>
+</span><span class="line"><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">id</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linkchecker</span>
+</span><span class="line"><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">continue-on-error</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="line"><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">run</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span class="line"><span class="w">      </span><span class="no">pip install linkchecker</span>
+</span><span class="line"><span class="w">      </span><span class="no">chmod 644 $(find $(python -c &quot;import site;print(site.getsitepackages()[0])&quot;)/linkcheck/ -name &quot;*.py&quot;)</span>
+</span><span class="line"><span class="w">      </span><span class="no">linkchecker -o html https://rcmdnk.com &gt; linkchecker.html</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>とすると動くようになりました。
+<strong>logger</strong>以外のディレクトリに関してもチェックしてエラーが出ている部分があったので、<strong>linkcheck</strong>内を全部変更します。</p>
+
+<p>Linkcheckerのモジュール名は<strong>linkcheck</strong>で<strong>linkchecker</strong>ではないので注意。</p>
+
+<h2 id="なぞ">なぞ</h2>
+
+<p><a href="https://github.com/linkchecker/linkchecker/commit/7b34be590b52a85b207fae335d0885c85eb7b0aa">ここ</a>
+とかを見るとこの辺のチェックはずいぶん前からあったようです。</p>
+
+<p>まず最初になぜこのチェックが必要なのか、というのがよくわかってません。
+ファイルが下手な変更されていると困るというのはわかりますが、
+他のモジュールとかも全部しないと意味ないような?</p>
+
+<p>一方で、<code>pip</code>で入れたもののpermissionがなぜ666になっているのか?
+<a href="https://github.com/actions/setup-python">actions/setup-python</a>
+がよしなに用意してくれているもので、実行ユーザーの<code>runner</code>が直接
+<code>pip install</code>で入れられる<code>site-packages</code>ディレクトリを用意してくれていますが、
+その中にファイルを作ると全て他人にも書き込み権限が与えられてしまう仕様なのか
+<code>pip</code>の仕様なのか。。。</p>
+
+<p>ちょっと見てみると、
+(わかりやすく<code>$ </code>付けてますがそれぞれのコマンドをGitHub Actions上で<code>run</code>で実行した結果)</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">$ umask</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">0022</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">$ getfacl  /usr</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">getfacl</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Removing leading &#39;/&#39; from absolute path names</span>
+</span><span class="line"><span class="c1"># file: usr</span>
+</span><span class="line"><span class="c1"># owner: root</span>
+</span><span class="line"><span class="c1"># group: root</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">group::r-x</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">other::r-x</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">$ getfacl  /opt</span>
+</span><span class="line"><span class="nt">getfacl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Removing leading &#39;/&#39; from absolute path names</span>
+</span><span class="line"><span class="c1"># file: opt</span>
+</span><span class="line"><span class="c1"># owner: root</span>
+</span><span class="line"><span class="c1"># group: root</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">group::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">other::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:user:runner:rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:group::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:mask::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:other::rwx</span>
+</span><span class="line"><span class="nt">getfacl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Removing leading &#39;/&#39; from absolute path names</span>
+</span><span class="line">
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">$ getfacl  /opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/</span>
+</span><span class="line"><span class="c1"># file: opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/</span>
+</span><span class="line"><span class="c1"># owner: runner</span>
+</span><span class="line"><span class="c1"># group: runneradmin</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">group::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">other::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:user:runner:rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:group::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:mask::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">default:other::rwx</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>という感じで、<code>umask</code>は一般的な<code>0022</code>ですが、<strong>/opt</strong>のdefault ACLが<code>other</code>にも<code>rwx</code>になってます。</p>
+
+<p>Pythonのパッケージが入る<strong>site-packages</strong>も<code>owner</code>/<code>group</code>は違いますが全て<code>rwx</code>。
+ということで、この権限状態が問題なようです。</p>
+
+<p><strong>/opt</strong>も通常のLinuxだと</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="yaml"><span class="line"><span></span><span class="l l-Scalar l-Scalar-Plain">user::rwx</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">group::r-x</span>
+</span><span class="line"><span class="l l-Scalar l-Scalar-Plain">other::r-x</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>だとは思いますが、GitHub Actionsで用意されているUbuntuでは最初から(setup-pythonやcheckoutなどを行う前に見ても)この状態でした。</p>
+
+<p>通常はコンテナ的な使い方するだけならこの状態の方が便利といえば便利なわけですが、
+Linkcheckerでなくとも、ファイルの権限を気にするツールは他にもあるので、
+ちょっとこの仕様は覚えておいた方が良いな、と。</p>
+
+]]></content>
+  </entry>
+  
+</feed>
