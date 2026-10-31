@@ -1,0 +1,53 @@
+dist: xenial
+language: java
+addons:
+  apt:
+    packages:
+      - ant
+env:
+  global:
+    - GIT_COMMITTER_NAME=rcmdnk
+    - GIT_COMMITTER_EMAIL=rcmdnk@gmail.com
+    - GIT_AUTHOR_NAME=rcmdnk
+    - GIT_AUTHOR_EMAIL=rcmdnk@gmail.com
+before_install:
+  - openssl aes-256-cbc -K $encrypted_ee14946e6582_key -iv $encrypted_ee14946e6582_iv -in .travis_rsa.enc -out .travis_rsa -d
+  - cp .travis_rsa ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - git config --global push.default simple
+  - my_site="https://rcmdnk.com"
+install:
+  - 'if [ "$TRAVIS_BRANCH" = master ];then git checkout $TRAVIS_BRANCH;else git checkout -b $TRAVIS_BRANCH origin/$TRAVIS_BRANCH;fi'
+#  - pip install LinkChecker
+  - curdir=$(pwd)
+  - cd ../
+  - git clone https://github.com/linkcheck/linkchecker.git
+  - cd linkchecker
+  - pip install --user -r requirements.txt
+  - python setup.py install --user
+  - cd $curdir
+  - pip install --user html5validator
+  - git clone https://github.com/w3c/css-validator.git
+  - cd css-validator
+  - ant jar
+  - cd $curdir
+script:
+  - 'linkchecker -o html --ignore-url=liberator://help/options --ignore-url=aaaaaaaaaaa --ignore-url=$my_site/en/wrong --ignore-url=liberator://help/options $my_site  > linkchecker.html || :'
+  - '! grep Result linkchecker.html |grep -v "ConnectionError"| grep -v "ConnectTimeout"|grep -v "Valid: 200 OK"|grep -v "Valid: filtered"|grep -v "503 Service Unavailable"|grep -v "unrecognized or has invalid syntax"'
+  - git add linkchecker.html
+  - 'html5validator --root ./ 2>&1|grep -v linkchecker.html|grep -v htmlchecker.html|grep -v facebook_shares.html|grep -v googleffb17e830fb0d6d5.html|grep -v footnote|grep -v reference|grep -v csschecker.html|grep -v posts.html|grep -v posts_light.html > htmlchecker.html || :'
+  #- test $(wc -l htmlchecker.html|awk '{print $1}') -eq 0
+  - git add htmlchecker.html
+  # starting to show "Value Error : width Parse Error - 268px)" at width: -webkit-calc(100px - 10px);
+  - 'java -jar ./css-validator/css-validator.jar --output=html --lang=ja --vextwarning=true $my_site > csschecker.html || :'
+  - git add csschecker.html
+  - git commit -m "Added checkers [ci skip]"
+  - git remote set-url --push origin git@github.com:rcmdnk/rcmdnk.github.io
+  - git push
+
+#notifications:
+#    email:
+#      #on_success: change
+#      #on_failure: always
+#      on_success: never
+#      on_failure: never
