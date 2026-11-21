@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="ja"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="rcmdnk">
+  <meta property="og:title" content="sharetest" />
+  <meta property="og:site_name" content="rcmdnk's blog" />
+  <meta property="fb:admins" content="100005783252931" />
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+<!--
+.share-button {
+margin-bottom: 20px; }
+.share-button li {
+display: block; }
+.share-button li p {
+  border: solid 1px;
+  border-radius: 3px;
+  float: left;
+  margin-right: 2px;
+  padding: 0px 10px 3px;
+  font-size: 13px;
+  height: 18px;
+  color: #FFFFFF;
+text-decoration: none; }
+.share-button li p:hover {
+color: #e6e6e6; }
+.share-button li p.hatebu_custom {
+  background-color: #2c6ecd;
+border-color: #2c6ecd; }
+.share-button li p.hatebu_custom:hover {
+  background-color: #2357a3;
+border-color: #2357a3; }
+.share-button li p.twitter_custom {
+  background-color: #00acee;
+border-color: #00acee; }
+.share-button li p.twitter_custom:hover {
+  background-color: #0087bb;
+border-color: #0087bb; }
+.share-button li p.googleplus_custom {
+  background-color: #dd4c39;
+border-color: #dd4c39; }
+.share-button li p.googleplus_custom:hover {
+  background-color: #c23421;
+border-color: #c23421; }
+.share-button li p.facebook_custom {
+  background-color: #5776ce;
+border-color: #5776ce; }
+.share-button li p.facebook_custom:hover {
+  background-color: #3759bb;
+border-color: #3759bb; }
+.share-button li p.pocket_custom {
+  background-color: #ef4257;
+border-color: #ef4257; }
+.share-button li p.pocket_custom:hover {
+  background-color: #ea142e;
+border-color: #ea142e; }
+.share-button li p.linkedin_custom {
+  background-color: #4e8bbf;
+border-color: #4e8bbf; }
+.share-button li p.linkedin_custom:hover {
+  background-color: #3a71a0;
+border-color: #3a71a0; }
+border-color: #c93412; }
+.share-button li p.pinterest_custom {
+  background-color: #a70216;
+border-color: #a70216; }
+.share-button li p.pinterest_custom:hover {
+  background-color: #75010f;
+border-color: #75010f; }
+border-color: #007fff; }
+.share-button li p.tumblr_custom {
+  background-color: #9da6b0;
+border-color: #9da6b0; }
+.share-button li p.tumblr_custom:hover {
+  background-color: #818c99;
+border-color: #818c99; }
+-->
+  </style>
+  <!--[if lt IE 9]>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <![endif]-->
+  <!--[if gte IE 9]><!-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <!--<![endif]-->
+  <script type="text/javascript">
+var socialCount = function (social, cname, url) {
+  var vname = cname.replace(/-/g, "");
+  if((new Function('return (typeof ' + vname + '!= "undefined");'))())return;
+  (new Function('window.' + vname + ' = "defined";'))();
+  url = (url)? encodeURI(url): encodeURI(location.href);
+  socialData = {
+    type: 'GET',
+    dataType: 'jsonp',
+    data: {noncache: new Date().getTime()}
+  };
+  if(social == 'hatebu'){
+    socialData.url = 'http://api.b.st-hatena.com/entry.count';
+    socialData.data.url = url;
+    socialData.success = function(data){
+      $('.' + cname).text(data||0);
+    };
+  }else if (social == 'twitter'){
+    //socialData.url = 'http://urls.api.twitter.com/1/urls/count.json';
+    socialData.url = 'http://jsoon.digitiminimi.com/twitter/count.json';
+    socialData.data.url = url;
+    socialData.success = function(data){
+      $('.' + cname).text(data.count||0);
+    };
+  }else if(social == 'googleplus'){
+    socialData.url = "http://query.yahooapis.com/v1/public/yql";
+    socialData.data.q = "SELECT content FROM data.headers WHERE url='https://plusone.google.com/_/+1/fastbutton?hl=ja&url=" + url + "'";
+    socialData.data.format = "json";
+    socialData.data.env = "http://datatables.org/alltables.env";
+    socialData.success = function (data) {
+      var m = data.query.results.resources.content.match(/window\.__SSR = {c: ([\d]+)/);
+      $('.' + cname).text((m != null)? m[1] : 0);
+    };
+  }else if(social == 'facebook'){
+    socialData.url = 'http://graph.facebook.com/';
+    socialData.data.id = url;
+    socialData.success = function(data){
+      $('.' + cname).text(data.shares||0);
+    };
+  }else if(social == 'pocket'){
+    socialData.url = "http://query.yahooapis.com/v1/public/yql";
+    socialData.data.q = "SELECT content FROM data.headers WHERE url='https://widgets.getpocket.com/v1/button?label=pocket&count=vertical&v=1&url=" + url + "'";
+    socialData.data.format = "json";
+    socialData.data.env = "http://datatables.org/alltables.env";
+    socialData.success = function (data) {
+      //$('.' + cname).text(data.toSource());
+      $('.' + cname).text(data.query.results.resources.content.match(/<em id="cnt">(\d+)<\/em>/)[1]||0);
+    };
+  }else if(social == 'linkedin'){
+    socialData.url = 'http://www.linkedin.com/countserv/count/share';
+    socialData.data.url = url;
+    socialData.success = function(data){
+      $('.' + cname).text(data.count||0);
+    };
+  }else if(social == 'pinterest'){
+    socialData.url = 'http://api.pinterest.com/v1/urls/count.json';
+    socialData.data.url = url;
+    socialData.success = function(data){
+      $('.' + cname).text(data.count||0);
+    };
+  }else {
+    return;
+  }
+  $.ajax(socialData);
+}
+  </script>
+</head>
+
+<body>
+  <div id="main">
+    <br><br><br><br>
+    <ul>
+      <li>linkedin: http://www.linkedin.com</li>
+      <li>others: https://www.google.com</li>
+    </ul>
+    <div class="share-button">
+      <ul>
+        <li><a href="http://b.hatena.ne.jp/entry/https://www.google.com"
+        title="Save to Hatebu"
+        target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCountwwwgooglecom"></span></p></a></li>
+        <li><a href="http://twitter.com/intent/tweet?text=google&url=https://www.google.com&via=google"
+        title="Share on Twitter"
+        target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCountwwwgooglecom"></span></p></a></li>
+        <li><a href="https://plus.google.com/share?url=https://www.google.com&title=google"
+        title="Share on Google+"
+        target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCountwwwgooglecom"></span></p></a></li>
+        <li><a href="http://www.facebook.com/sharer.php?src=bm&u=https://www.google.com&amp;t=google"
+        title="Share on Facebook+"
+        target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCountwwwgooglecom"></span></p></a></li>
+        <li><a href="http://getpocket.com/edit?url=https://www.google.com&title=google"
+        title="Save to Pocket"
+        target="_blank"><p  class="pocket_custom">P <span class="pocketCountwwwgooglecom"></span></p></a></li>
+        <li><a href="http://www.linkedin.com/shareArticle?mini=true&url=https://www.linkedin.com&title=linkedin&source=linkedin"
+        title="Share on LinkedIn"
+        target="_blank"><p  class="linkedin_custom"><i class="fa fa-linkedin"></i> <span class="linkedinCountwwwgooglecom"></span></p></a></li>
+        <li><a href="http://pinterest.com/pin/create/button/?url=https://www.google.com"
+        title="Save to Pinterest"
+        target="_blank"><p  class="pinterest_custom"><i class="fa fa-pinterest"></i> <span class="pinterestCountwwwgooglecom"></span></p></a></li>
+      </ul>
+    </div>
+    <br><br><br><br>
+    <ul>
+      <li>all: https://rcmdnk.github.io/aaaaa</li>
+    </ul>
+    <div class="share-button">
+      <ul>
+        <li><a href="http://b.hatena.ne.jp/add?mode=confirm&url=http://rcmdnk.github.io/aaaaa"
+        title="Save to Hatebu"
+        target="_blank"><p class="hatebu_custom" >B! <span class="hatebuCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="http://twitter.com/intent/tweet?text=rcmdnk&url=http://rcmdnk.github.io/aaaaa&via=rcmdnk"
+        title="Share on Twitter"
+        target="_blank"><p class="twitter_custom"><i class="fa fa-twitter"></i> <span class="twitterCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="https://plus.google.com/share?url=http://rcmdnk.github.io/aaaaa"
+        title="Share on Google+"
+        target="_blank"><p  class="googleplus_custom"><i class="fa fa-google-plus"></i> <span class="googleplusCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="http://www.facebook.com/sharer.php?src=bm&u=http://rcmdnk.github.io/aaaaa&amp;t=rcmdnk"
+        title="Share on Facebook+"
+        target="_blank"><p  class="facebook_custom"><i class="fa fa-facebook"></i> <span class="facebookCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="http://getpocket.com/edit?url=http://rcmdnk.github.io/aaaaa&title=rcmdnk"
+        title="Save to Pocket"
+        target="_blank"><p  class="pocket_custom">P <span class="pocketCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="http://www.linkedin.com/shareArticle?mini=true&url=http://rcmdnk.github.io/aaaaaom&title=rcmdnk&source=rcmdnk"
+        title="Share on LinkedIn"
+        target="_blank"><p  class="linkedin_custom"><i class="fa fa-linkedin"></i> <span class="linkedinCountrcmdnkgithubioaaaaa"></span></p></a></li>
+        <li><a href="http://pinterest.com/pin/create/button/?url=http://rcmdnk.github.io/aaaaa"
+        title="Save to Pinterest"
+        target="_blank"><p  class="pinterest_custom"><i class="fa fa-pinterest"></i> <span class="pinterestCountrcmdnkgithubioaaaaa"></span></p></a></li>
+      </ul>
+    </div>
+  </div><!-- main -->
+
+  <script type="text/javascript">
+socialCount('hatebu', 'hatebuCountwwwgooglecom', 'https://www.google.com');
+socialCount('twitter', 'twitterCountwwwgooglecom', 'https://www.google.com');
+socialCount('googleplus', 'googleplusCountwwwgooglecom', 'https://www.google.com');
+socialCount('facebook', 'facebookCountwwwgooglecom', 'https://www.google.com');
+socialCount('pocket', 'pocketCountwwwgooglecom', 'https://www.google.com');
+socialCount('linkedin', 'linkedinCountwwwgooglecom', 'https://www.linkedin.com');
+socialCount('pinterest', 'pinterestCountwwwgooglecom', 'https://www.google.com');
+
+socialCount('hatebu', 'hatebuCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('twitter', 'twitterCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('googleplus', 'googleplusCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('facebook', 'facebookCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('pocket', 'pocketCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('linkedin', 'linkedinCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+socialCount('pinterest', 'pinterestCountrcmdnkgithubioaaaaa', 'http://rcmdnk.github.io/aaaaa');
+  </script>
+</body>
+</html>
